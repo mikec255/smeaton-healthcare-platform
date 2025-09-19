@@ -27,15 +27,30 @@ jobs:
 
       - name: Create deployment package
         run: |
-          # Include only necessary files for production
-          mkdir deployment-package
-          cp -r dist deployment-package/
-          cp package*.json deployment-package/
-          cp -r shared deployment-package/
-          cp -r server deployment-package/
-          # Exclude source files that aren't needed in production
-          cd deployment-package
-          zip -r ../release.zip . -x "*.ts" "*.tsx" "client/*" "*.git*"
+          # Create clean deployment with built files and production dependencies
+          mkdir deploy
+          cp -r dist/* deploy/
+          cp package.json deploy/
+          cp package-lock.json deploy/
+          cd deploy
+          # Install only production dependencies
+          npm ci --omit=dev
+          # Create a simple package.json for Azure startup
+          cat > package.json << 'EOF'
+          {
+            "name": "smeaton-healthcare-platform",
+            "version": "1.0.0",
+            "type": "module",
+            "scripts": {
+              "start": "node index.js"
+            },
+            "engines": {
+              "node": "20.x"
+            }
+          }
+          EOF
+          # Package everything
+          zip -r ../release.zip *
 
       - name: Upload artifact for deployment job
         uses: actions/upload-artifact@v4
@@ -63,7 +78,7 @@ jobs:
         id: deploy-to-webapp
         uses: azure/webapps-deploy@v3
         with:
-          app-name: 'smeaton-healthcare'  # IMPORTANT: Replace this with your exact Azure app name
+          app-name: 'smeaton-healthcare'  # This will be auto-updated by Azure
           slot-name: 'Production'
           package: .
           publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE }}
