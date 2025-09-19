@@ -32,16 +32,17 @@ jobs:
 
       - name: Create deployment package
         run: |
-          # Create clean deployment with built files and production dependencies
+          # Create deployment directory with correct structure
           mkdir deploy
-          cp -r dist/* deploy/
-          cp package.json deploy/
-          cp package-lock.json deploy/
-          cd deploy
-          # Install only production dependencies
-          npm ci --omit=dev
-          # Create a simple package.json for Azure startup
-          cat > package.json << 'EOF'
+          
+          # Copy the server bundle (this is your Node.js app)
+          cp dist/index.js deploy/
+          
+          # Copy the static assets (React frontend)
+          cp -r dist/public deploy/public
+          
+          # Create package.json for Azure startup
+          cat > deploy/package.json << 'EOF'
           {
             "name": "smeaton-healthcare-platform",
             "version": "1.0.0",
@@ -51,10 +52,15 @@ jobs:
             },
             "engines": {
               "node": "20.x"
+            },
+            "dependencies": {
+              "express": "^4.21.2"
             }
           }
           EOF
-          # Package everything
+          
+          # Package everything for Azure
+          cd deploy
           zip -r ../release.zip *
 
       - name: Upload artifact for deployment job
