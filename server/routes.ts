@@ -309,7 +309,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Create a simple token for Replit compatibility (base64 encoded user info)
       // Store user info in session (excluding password) - simplified approach
       req.session.user = {
-        userId: user.id, // Use userId for consistency
         id: user.id,
         username: user.username,
         role: user.role,
@@ -390,7 +389,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     if (process.env.NODE_ENV === 'production') {
       if (req.session?.user) {
         // Always verify user from database in production
-        const dbUser = await storage.getUserById(req.session.user.userId);
+        const dbUser = await storage.getUserById(req.session.user.id);
         if (!dbUser || !dbUser.isActive) {
           req.session.destroy((err: any) => {
             if (err) console.error('Session destroy error:', err);
