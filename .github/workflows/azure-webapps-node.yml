@@ -38,29 +38,25 @@ jobs:
           # Copy the server bundle (this is your Node.js app)
           cp dist/index.js deploy/
           
-          # Copy the static assets (React frontend)
+          # Copy the static assets (React frontend)  
           cp -r dist/public deploy/public
           
-          # Create package.json for Azure startup
-          cat > deploy/package.json << 'EOF'
-          {
-            "name": "smeaton-healthcare-platform",
-            "version": "1.0.0",
-            "type": "module",
-            "scripts": {
-              "start": "node index.js"
-            },
-            "engines": {
-              "node": "20.x"
-            },
-            "dependencies": {
-              "express": "^4.21.2"
-            }
-          }
-          EOF
+          # Copy real package.json and package-lock.json for full dependencies
+          cp package.json deploy/
+          cp package-lock.json deploy/
+          
+          # Install production dependencies in deploy directory
+          cd deploy
+          npm ci --omit=dev
+          
+          # Update package.json to use correct start script
+          node -e "
+            const pkg = JSON.parse(require('fs').readFileSync('package.json', 'utf8'));
+            pkg.scripts = { start: 'node index.js' };
+            require('fs').writeFileSync('package.json', JSON.stringify(pkg, null, 2));
+          "
           
           # Package everything for Azure
-          cd deploy
           zip -r ../release.zip *
 
       - name: Upload artifact for deployment job
