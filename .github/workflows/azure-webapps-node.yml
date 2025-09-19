@@ -49,10 +49,15 @@ jobs:
           cd deploy
           npm ci --omit=dev
           
-          # Update package.json to use correct start script
+          # Update package.json for Azure deployment
           node -e "
             const pkg = JSON.parse(require('fs').readFileSync('package.json', 'utf8'));
-            pkg.scripts = { start: 'node index.js' };
+            pkg.scripts = { 
+              start: 'node index.js',
+              'start:production': 'NODE_ENV=production node index.js'
+            };
+            pkg.main = 'index.js';
+            pkg.engines = { node: '20.x' };
             require('fs').writeFileSync('package.json', JSON.stringify(pkg, null, 2));
           "
           
