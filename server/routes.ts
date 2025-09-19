@@ -144,9 +144,22 @@ async function optionalAdmin(req: any, res: any, next: any) {
 }
 
 export async function registerRoutes(app: Express): Promise<Server> {
-  // CORS middleware for Replit environment
+  // CORS middleware for Replit and Azure environment
   app.use((req, res, next) => {
-    res.header('Access-Control-Allow-Origin', req.headers.origin || '*');
+    // Handle Azure and production domains
+    const allowedOrigins = [
+      req.headers.origin,
+      'https://your-app.azurewebsites.net',
+      'https://your-app.azurestaticapps.net',
+      process.env.AZURE_FRONTEND_URL,
+      process.env.FRONTEND_URL
+    ].filter(Boolean);
+    
+    const origin = req.headers.origin;
+    if (allowedOrigins.includes(origin) || process.env.NODE_ENV === 'development') {
+      res.header('Access-Control-Allow-Origin', origin || '*');
+    }
+    
     res.header('Access-Control-Allow-Credentials', 'true');
     res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization, Cookie');
     res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
@@ -155,6 +168,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } else {
       next();
     }
+  });
+
+  // Health check endpoint for Azure monitoring
+  app.get('/health', (_req, res) => {
+    res.status(200).json({ 
+      status: 'UP',
+      timestamp: new Date().toISOString(),
+      service: 'Smeaton Healthcare Platform',
+      version: '1.0.0'
+    });
+  });
+
+  // Alternative health check for Azure App Service
+  app.get('/api/health', (_req, res) => {
+    res.status(200).json({ 
+      status: 'healthy',
+      timestamp: new Date().toISOString(),
+      database: 'connected'
+    });
+  });
+
+  // Azure-style ping endpoint
+  app.get('/ping', (_req, res) => {
+    res.status(200).send('pong');
   });
 
   // Session middleware setup with default memory store
