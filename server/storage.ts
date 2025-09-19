@@ -367,6 +367,7 @@ export class MemStorage implements IStorage {
       experience: applicationData.experience || null,
       additionalInfo: applicationData.additionalInfo || null,
       status: applicationData.status || "pending",
+      notes: applicationData.notes || null,
       createdAt: new Date(),
     };
     this.applications.set(id, application);
@@ -911,6 +912,7 @@ export class MemStorage implements IStorage {
       readTime: postData.readTime || null,
       isPublished: postData.isPublished ?? false,
       publishedAt: null,
+      blocks: postData.blocks || null,
       createdAt: new Date(),
       updatedAt: new Date(),
     };
@@ -1094,7 +1096,7 @@ export class DrizzleStorage implements IStorage {
   }
   
   async createApplication(applicationData: InsertApplication): Promise<Application> {
-    const result = await db.insert(applications).values(applicationData).returning();
+    const result = await db.insert(applications).values([applicationData]).returning();
     return result[0];
   }
   
