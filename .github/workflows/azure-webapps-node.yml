@@ -53,13 +53,50 @@ jobs:
           node -e "
             const pkg = JSON.parse(require('fs').readFileSync('package.json', 'utf8'));
             pkg.scripts = { 
-              start: 'node index.js',
-              'start:production': 'NODE_ENV=production node index.js'
+              start: 'NODE_ENV=production node index.js'
             };
             pkg.main = 'index.js';
-            pkg.engines = { node: '20.x' };
+            pkg.type = 'module';
+            pkg.engines = { node: '>=20.0.0' };
             require('fs').writeFileSync('package.json', JSON.stringify(pkg, null, 2));
           "
+          
+          # Create a web.config for IIS on Azure
+          cat > web.config << 'EOF'
+          <?xml version="1.0" encoding="utf-8"?>
+          <configuration>
+            <system.webServer>
+              <webSocket enabled="false" />
+              <handlers>
+                <add name="iisnode" path="index.js" verb="*" modules="iisnode"/>
+              </handlers>
+              <rewrite>
+                <rules>
+                  <rule name="NodeInspector" patternSyntax="ECMAScript" stopProcessing="true">
+                    <match url="^index.js\/debug[\/]?" />
+                  </rule>
+                  <rule name="StaticContent">
+                    <action type="Rewrite" url="public{REQUEST_URI}"/>
+                  </rule>
+                  <rule name="DynamicContent">
+                    <conditions>
+                      <add input="{REQUEST_FILENAME}" matchType="IsFile" negate="True"/>
+                    </conditions>
+                    <action type="Rewrite" url="index.js"/>
+                  </rule>
+                </rules>
+              </rewrite>
+              <security>
+                <requestFiltering>
+                  <hiddenSegments>
+                    <add segment="node_modules"/>
+                  </hiddenSegments>
+                </requestFiltering>
+              </security>
+              <iisnode node_env="production" nodeProcessCommandLine="node" />
+            </system.webServer>
+          </configuration>
+          EOF
           
           # Package everything for Azure
           zip -r ../release.zip *
