@@ -10,48 +10,70 @@ import { brevoService } from "./brevo-service";
 import { z } from "zod";
 import "./types"; // Import type declarations
 
-// Simplified token-based authentication - more reliable than sessions
+// Secure session-based authentication for production
 async function requireAdmin(req: any, res: any, next: any) {
+  // In production, only use secure session-based auth
+  if (process.env.NODE_ENV === 'production') {
+    if (!req.session?.user) {
+      return res.status(401).json({ message: "Unauthorized: Please log in" });
+    }
+    
+    // Always verify user still exists and is active from database
+    const dbUser = await storage.getUserById(req.session.user.userId);
+    if (!dbUser || !dbUser.isActive) {
+      // Clear invalid session
+      req.session.destroy((err: any) => {
+        if (err) console.error('Session destroy error:', err);
+      });
+      return res.status(401).json({ message: "User not found or inactive" });
+    }
+    
+    // Use fresh database role, not session role
+    if (!["admin", "superadmin"].includes(dbUser.role)) {
+      return res.status(403).json({ message: "Forbidden: Admin access required" });
+    }
+    
+    req.user = dbUser;
+    next();
+    return;
+  }
+  
+  // Development only: Allow insecure token for testing
   let user = null;
   
-  // Try token authentication from Authorization header
   const authHeader = req.headers.authorization;
   if (authHeader && authHeader.startsWith('Bearer ')) {
     try {
       const token = authHeader.substring(7);
       const decoded = JSON.parse(Buffer.from(token, 'base64').toString());
       
-      // Verify token is not too old (24 hours)
       if (Date.now() - decoded.timestamp > 24 * 60 * 60 * 1000) {
         return res.status(401).json({ message: "Token expired" });
       }
       
-      // Verify user still exists and is active
       const dbUser = await storage.getUserById(decoded.userId);
       if (!dbUser || !dbUser.isActive) {
         return res.status(401).json({ message: "User not found or inactive" });
       }
       
-      user = decoded;
+      user = dbUser; // Use database user, not decoded token
     } catch (error) {
       console.error("Token verification error:", error);
     }
   }
   
-  // Fallback to session if token not available
+  // Fallback to session
   if (!user && req.session?.user) {
-    user = req.session.user;
+    const dbUser = await storage.getUserById(req.session.user.userId);
+    if (dbUser && dbUser.isActive) {
+      user = dbUser;
+    }
   }
   
   if (!user) {
     return res.status(401).json({ message: "Unauthorized: Please log in" });
   }
   
-  if (!user.isActive) {
-    return res.status(401).json({ message: "Unauthorized: Account is inactive" });
-  }
-  
-  // Both admin and superadmin have access to admin features
   if (!["admin", "superadmin"].includes(user.role)) {
     return res.status(403).json({ message: "Forbidden: Admin access required" });
   }
@@ -60,15 +82,37 @@ async function requireAdmin(req: any, res: any, next: any) {
   next();
 }
 
-// Superadmin only access with session and token support
+// Superadmin only access with secure authentication
 async function requireSuperAdmin(req: any, res: any, next: any) {
+  // In production, only use secure session-based auth
+  if (process.env.NODE_ENV === 'production') {
+    if (!req.session?.user) {
+      return res.status(401).json({ message: "Unauthorized: Please log in" });
+    }
+    
+    // Always verify user still exists and is superadmin from database
+    const dbUser = await storage.getUserById(req.session.user.userId);
+    if (!dbUser || !dbUser.isActive || dbUser.role !== "superadmin") {
+      req.session.destroy((err: any) => {
+        if (err) console.error('Session destroy error:', err);
+      });
+      return res.status(403).json({ message: "Forbidden: Superadmin access required" });
+    }
+    
+    req.user = dbUser;
+    next();
+    return;
+  }
+  
+  // Development only: Allow insecure token for testing
   let user = null;
   
-  // First try session authentication
   if (req.session?.user) {
-    user = req.session.user;
+    const dbUser = await storage.getUserById(req.session.user.userId);
+    if (dbUser && dbUser.isActive) {
+      user = dbUser;
+    }
   } else {
-    // Fallback to token authentication for Replit compatibility
     const authHeader = req.headers.authorization;
     if (authHeader && authHeader.startsWith('Bearer ')) {
       try {
@@ -109,55 +153,85 @@ async function requireSuperAdmin(req: any, res: any, next: any) {
   next();
 }
 
-// Optional admin authentication with session and token support
+// Optional admin authentication with secure role verification
 async function optionalAdmin(req: any, res: any, next: any) {
   let user = null;
   
-  // First try session authentication
-  if (req.session?.user) {
-    user = req.session.user;
+  // Production: Only use secure session-based auth
+  if (process.env.NODE_ENV === 'production') {
+    if (req.session?.user) {
+      // Always verify user from database, never trust session role
+      const dbUser = await storage.getUserById(req.session.user.userId);
+      if (dbUser && dbUser.isActive) {
+        user = dbUser; // Use fresh database user
+      }
+    }
   } else {
-    // Fallback to token authentication for Replit compatibility
-    const authHeader = req.headers.authorization;
-    if (authHeader && authHeader.startsWith('Bearer ')) {
-      try {
-        const token = authHeader.substring(7);
-        const decoded = JSON.parse(Buffer.from(token, 'base64').toString());
-        
-        // Verify token is not too old (24 hours)
-        if (Date.now() - decoded.timestamp <= 24 * 60 * 60 * 1000) {
-          // Verify user still exists and is active
-          const dbUser = await storage.getUserById(decoded.userId);
-          if (dbUser && dbUser.isActive) {
-            user = decoded;
+    // Development: Check session first
+    if (req.session?.user) {
+      const dbUser = await storage.getUserById(req.session.user.userId);
+      if (dbUser && dbUser.isActive) {
+        user = dbUser; // Use database user, not session cache
+      }
+    } else {
+      // Development only: Fallback to token but always verify from database
+      const authHeader = req.headers.authorization;
+      if (authHeader && authHeader.startsWith('Bearer ')) {
+        try {
+          const token = authHeader.substring(7);
+          const decoded = JSON.parse(Buffer.from(token, 'base64').toString());
+          
+          // Verify token is not too old (24 hours)
+          if (Date.now() - decoded.timestamp <= 24 * 60 * 60 * 1000) {
+            // Always verify user from database, never trust token role
+            const dbUser = await storage.getUserById(decoded.userId);
+            if (dbUser && dbUser.isActive) {
+              user = dbUser; // Use DB user, not decoded token
+            }
           }
+        } catch (error) {
+          // Invalid token format, continue without user
         }
-      } catch (error) {
-        // Invalid token format, continue without user
       }
     }
   }
   
   req.user = user;
+  // Always derive admin status from fresh database role, never from tokens/sessions
   req.isAdmin = user && ["admin", "superadmin"].includes(user.role);
   next();
 }
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  // Trust proxy for Azure deployment
+  if (process.env.NODE_ENV === 'production') {
+    app.set('trust proxy', 1);
+    
+    // Require strong session secret in production
+    if (!process.env.SESSION_SECRET || process.env.SESSION_SECRET === 'your-secret-key-here-replace-in-production') {
+      console.error('CRITICAL: Strong SESSION_SECRET required in production!');
+      console.error('Please set SESSION_SECRET environment variable to a strong, random value (minimum 32 characters)');
+      process.exit(1);
+    }
+  }
   // CORS middleware for Replit and Azure environment
   app.use((req, res, next) => {
-    // Handle Azure and production domains
+    // Strict allowlist of origins for production security
     const allowedOrigins = [
-      req.headers.origin,
-      'https://your-app.azurewebsites.net',
-      'https://your-app.azurestaticapps.net',
       process.env.AZURE_FRONTEND_URL,
-      process.env.FRONTEND_URL
+      process.env.FRONTEND_URL,
+      'https://your-app.azurewebsites.net',
+      'https://your-app.azurestaticapps.net'
     ].filter(Boolean);
     
     const origin = req.headers.origin;
-    if (allowedOrigins.includes(origin) || process.env.NODE_ENV === 'development') {
+    
+    if (process.env.NODE_ENV === 'development') {
+      // Allow any origin in development
       res.header('Access-Control-Allow-Origin', origin || '*');
+    } else if (origin && allowedOrigins.includes(origin)) {
+      // Only allow explicitly configured origins in production
+      res.header('Access-Control-Allow-Origin', origin);
     }
     
     res.header('Access-Control-Allow-Credentials', 'true');
@@ -194,16 +268,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
     res.status(200).send('pong');
   });
 
-  // Session middleware setup with default memory store
+  // Session middleware setup with secure production settings
   app.use(session({
     secret: process.env.SESSION_SECRET || 'your-secret-key-here-replace-in-production',
     resave: false,
     saveUninitialized: false,
     rolling: true, // Reset expiry on each request
     cookie: {
-      secure: false, // Allow HTTP in development
-      httpOnly: false, // Allow frontend access in development
-      sameSite: 'lax', // Allow cross-site requests in development
+      secure: process.env.NODE_ENV === 'production', // HTTPS only in production
+      httpOnly: true, // Prevent XSS access to cookies
+      sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax', // Cross-site for production
       maxAge: 24 * 60 * 60 * 1000, // 24 hours
     },
   }));
@@ -233,17 +307,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       // Create a simple token for Replit compatibility (base64 encoded user info)
-      const token = Buffer.from(JSON.stringify({
-        userId: user.id,
-        username: user.username,
-        role: user.role,
-        isActive: user.isActive,
-        createdAt: user.createdAt,
-        timestamp: Date.now()
-      })).toString('base64');
-      
       // Store user info in session (excluding password) - simplified approach
       req.session.user = {
+        userId: user.id, // Use userId for consistency
         id: user.id,
         username: user.username,
         role: user.role,
@@ -251,8 +317,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
         createdAt: user.createdAt,
       };
       
-      console.log("Login successful - storing user in session:", req.session.user);
-      console.log("Session ID after login:", req.sessionID);
+      // Production: Only log successful login, never session details
+      if (process.env.NODE_ENV === 'production') {
+        console.log(`Login successful for user: ${user.username}`);
+      } else {
+        // Development only: Log session details for debugging
+        console.log("Login successful - storing user in session:", {
+          userId: user.id,
+          username: user.username,
+          role: user.role
+        });
+      }
+      
+      // Create insecure token only for development/testing
+      let token = null;
+      if (process.env.NODE_ENV !== 'production') {
+        token = Buffer.from(JSON.stringify({
+          userId: user.id,
+          username: user.username,
+          role: user.role,
+          isActive: user.isActive,
+          createdAt: user.createdAt,
+          timestamp: Date.now()
+        })).toString('base64');
+      }
       
       // Force save session
       req.session.save((err) => {
@@ -261,12 +349,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
           return res.status(500).json({ message: "Login failed" });
         }
         
-        console.log("Session saved successfully");
-        res.json({ 
+        // Production: Only minimal logging
+        if (process.env.NODE_ENV !== 'production') {
+          console.log("Session saved successfully");
+        }
+        
+        const response: any = { 
           success: true, 
-          user: req.session.user,
-          token: token
-        });
+          user: req.session.user
+        };
+        
+        // Only include insecure token in development
+        if (process.env.NODE_ENV !== 'production' && token) {
+          response.token = token;
+        }
+        
+        res.json(response);
       });
     } catch (error) {
       console.error("Login error:", error);
@@ -288,12 +386,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   app.get("/api/auth/me", async (req, res) => {
-    // Check session first
+    // Production: Only use secure session-based auth
+    if (process.env.NODE_ENV === 'production') {
+      if (req.session?.user) {
+        // Always verify user from database in production
+        const dbUser = await storage.getUserById(req.session.user.userId);
+        if (!dbUser || !dbUser.isActive) {
+          req.session.destroy((err: any) => {
+            if (err) console.error('Session destroy error:', err);
+          });
+          return res.status(401).json({ message: "User not found or inactive" });
+        }
+        return res.json({ user: dbUser });
+      }
+      return res.status(401).json({ message: "Not authenticated" });
+    }
+    
+    // Development: Check session first
     if (req.session?.user) {
       return res.json({ user: req.session.user });
     }
     
-    // Fallback: Check for token in Authorization header for Replit compatibility
+    // Development only: Fallback to insecure token for testing
     const authHeader = req.headers.authorization;
     if (authHeader && authHeader.startsWith('Bearer ')) {
       try {
@@ -305,13 +419,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
           return res.status(401).json({ message: "Token expired" });
         }
         
-        // Verify user still exists and is active
-        const user = await storage.getUserById(decoded.userId);
-        if (!user || !user.isActive) {
+        // Always verify from database, never trust token data
+        const dbUser = await storage.getUserById(decoded.userId);
+        if (!dbUser || !dbUser.isActive) {
           return res.status(401).json({ message: "User not found or inactive" });
         }
         
-        return res.json({ user: decoded });
+        return res.json({ user: dbUser }); // Use DB user, not decoded token
       } catch (error) {
         // Invalid token format
       }
