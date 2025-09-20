@@ -179,7 +179,7 @@ export default function Blog() {
       
       // Render content from visual editor blocks or use regular content
       const hasBlocks = post.blocks && Array.isArray(post.blocks) && post.blocks.length > 0;
-      const displayContent = hasBlocks ? renderBlocksAsHTML(post.blocks) : (post.content || '');
+      const displayContent = hasBlocks ? renderBlocksAsHTML(post.blocks || []) : (post.content || '');
       
       return {
         id: post.id,
