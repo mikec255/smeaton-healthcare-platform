@@ -1,0 +1,85 @@
+
+Connected!
+2025-09-20T06:06:04  Welcome, you are now connected to log-streaming service.Starting Log Tail -n 10 of existing logs ----/home/LogFiles/__lastCheckTime.txt  (https://smeatonwebsite-aqhgfwdhcef2f7fq.scm.uksouth-01.azurewebsites.net/api/vfs/LogFiles/__lastCheckTime.txt)09/20/2025 05:30:02/home/LogFiles/kudu/trace/03138774f841-ef692e27-ba12-4e4c-b811-c0bb22e4d76a.txt  (https://smeatonwebsite-aqhgfwdhcef2f7fq.scm.uksouth-01.azurewebsites.net/api/vfs/LogFiles/kudu/trace/03138774f841-ef692e27-ba12-4e4c-b811-c0bb22e4d76a.txt)
+2025-09-19T05:49:37  Startup Request, url: /api/settings, method: GET, type: request, pid: 823,1,5, ScmType: GitHubAction/home/LogFiles/kudu/trace/17abe7af5852-8633083d-ebf0-4d43-bf7d-12bea89fbae6.txt  (https://smeatonwebsite-aqhgfwdhcef2f7fq.scm.uksouth-01.azurewebsites.net/api/vfs/LogFiles/kudu/trace/17abe7af5852-8633083d-ebf0-4d43-bf7d-12bea89fbae6.txt)
+2025-09-19T07:53:35  Startup Request, url: /api/deployments/latest?deployer=OneDeploy&time=2025-09-19_07-52-05Z, method: GET, type: request, pid: 827,1,16, ScmType: GitHubAction/home/LogFiles/kudu/trace/190d507f8e48-991ff376-7504-4163-8a78-09fb43c34445.txt  (https://smeatonwebsite-aqhgfwdhcef2f7fq.scm.uksouth-01.azurewebsites.net/api/vfs/LogFiles/kudu/trace/190d507f8e48-991ff376-7504-4163-8a78-09fb43c34445.txt)
+2025-09-20T05:51:12  Startup Request, url: /diagnostics/runtime, method: GET, type: request, pid: 825,1,19, ScmType: GitHubAction/home/LogFiles/kudu/trace/24cf38e45a81-a1e3ab6c-9333-4757-a9af-4a97e062647e.txt  (https://smeatonwebsite-aqhgfwdhcef2f7fq.scm.uksouth-01.azurewebsites.net/api/vfs/LogFiles/kudu/trace/24cf38e45a81-a1e3ab6c-9333-4757-a9af-4a97e062647e.txt)
+2025-09-19T08:15:59  Startup Request, url: /api/logstream/, method: GET, type: request, pid: 825,1,5, ScmType: GitHubAction/home/LogFiles/kudu/trace/24d65d341a56-9f8a63a9-923f-43d2-9057-81d3af838da3.txt  (https://smeatonwebsite-aqhgfwdhcef2f7fq.scm.uksouth-01.azurewebsites.net/api/vfs/LogFiles/kudu/trace/24d65d341a56-9f8a63a9-923f-43d2-9057-81d3af838da3.txt)
+2025-09-19T08:21:13  Startup Request, url: /api/logstream/, method: GET, type: request, pid: 822,1,5, ScmType: GitHubAction/home/LogFiles/kudu/trace/2c4142abaab7-49a3fa13-9368-4295-aab7-ca1f7239a5e6.txt  (https://smeatonwebsite-aqhgfwdhcef2f7fq.scm.uksouth-01.azurewebsites.net/api/vfs/LogFiles/kudu/trace/2c4142abaab7-49a3fa13-9368-4295-aab7-ca1f7239a5e6.txt)
+2025-09-20T05:46:42  Startup Request, url: /api/logstream/, method: GET, type: request, pid: 825,1,15, ScmType: GitHubAction/home/LogFiles/kudu/trace/52c292e4e571-51d3e27d-8d8c-4053-a6df-19027b4d6ed3.txt  (https://smeatonwebsite-aqhgfwdhcef2f7fq.scm.uksouth-01.azurewebsites.net/api/vfs/LogFiles/kudu/trace/52c292e4e571-51d3e27d-8d8c-4053-a6df-19027b4d6ed3.txt)
+2025-09-19T07:02:03  Startup Request, url: /api/deployments/?$orderby=ReceivedTime%20desc&$top=20&api-version=2022-03-01, method: GET, type: request, pid: 823,1,5, ScmType: GitHubAction/home/LogFiles/kudu/trace/57c32e624d63-eb95a3da-f9e4-48af-8550-ea6d42dcab40.txt  (https://smeatonwebsite-aqhgfwdhcef2f7fq.scm.uksouth-01.azurewebsites.net/api/vfs/LogFiles/kudu/trace/57c32e624d63-eb95a3da-f9e4-48af-8550-ea6d42dcab40.txt)
+2025-09-19T07:51:51  Startup Request, url: /api/publish?async=true&deployer=GITHUB_ONE_DEPLOY&type=zip&message=%7B%22type%22%3A%22deployment%22%2C%22sha%22%3A%2245fba84175d420408fcd32588520393b04dd1787%22%2C%22repoName%22%3A%22mikec255%2Fsmeaton-healthcare-platform%22%2C%22actor%22%3A%22mikec255%22%2C%22slotName%22%3A%22production%22%2C%22commitMessage%22%3A%22Improve%20navigation%20bar%20responsiveness%20for%20all%20device%20sizes%5Cn%5CnUpdate%20the%20navigation%20bar%20to%20ensure%20it%20is%20fully%20responsive%20and%20displays%20correctly%20across%20all%20screen%20sizes%2C%20enhancing%20user%20experience%20on%20any%20device.%5Cn%5CnReplit-Commit-Author%3A%20Agent%5CnReplit-Commit-Session-Id%3A%20d703dec6-2042-415b-a68b-a4b991a7f08c%5CnReplit-Commit-Checkpoint-Type%3A%20full_checkpoint%5CnReplit-Commit-Screenshot-Url%3A%20https%3A%2F%2Fstorage.googleapis.com%2Fscreenshot-production-us-central1%2Fef07a15c-7a98-423f-89f0-928d76d2acab%2Fd703dec6-2042-415b-a68b-a4b991a7f08c%2FthRjR41%22%7D, method: POST, type: request, pid: 821,1,5, ScmType: GitHubAction/home/LogFiles/kudu/trace/8d374a1aaa6a-8b551ed3-e409-413b-8ba9-7ecdca794791.txt  (https://smeatonwebsite-aqhgfwdhcef2f7fq.scm.uksouth-01.azurewebsites.net/api/vfs/LogFiles/kudu/trace/8d374a1aaa6a-8b551ed3-e409-413b-8ba9-7ecdca794791.txt)
+2025-09-19T07:48:52  Startup Request, url: /api/deployments/?$orderby=ReceivedTime%20desc&$top=20&api-version=2022-03-01, method: GET, type: request, pid: 829,1,16, ScmType: GitHubAction/home/LogFiles/kudu/trace/9451bbec8b58-ab51ff6b-657b-46eb-afbd-4d8986b5aa71.txt  (https://smeatonwebsite-aqhgfwdhcef2f7fq.scm.uksouth-01.azurewebsites.net/api/vfs/LogFiles/kudu/trace/9451bbec8b58-ab51ff6b-657b-46eb-afbd-4d8986b5aa71.txt)
+2025-09-20T05:59:21  Startup Request, url: /diagnostics/runtime, method: GET, type: request, pid: 823,1,7, ScmType: GitHubAction/home/LogFiles/kudu/trace/9e7ab3bbc654-a91be59e-1825-4534-812a-6c213bf494d4.txt  (https://smeatonwebsite-aqhgfwdhcef2f7fq.scm.uksouth-01.azurewebsites.net/api/vfs/LogFiles/kudu/trace/9e7ab3bbc654-a91be59e-1825-4534-812a-6c213bf494d4.txt)
+2025-09-19T07:23:10  Startup Request, url: /api/deployments/?$orderby=ReceivedTime%20desc&$top=20&api-version=2022-03-01, method: GET, type: request, pid: 821,1,7, ScmType: GitHubAction/home/LogFiles/kudu/trace/ddaa5288ffc0-78ecd99d-4ad7-4cbc-abcb-60ef245ea092.txt  (https://smeatonwebsite-aqhgfwdhcef2f7fq.scm.uksouth-01.azurewebsites.net/api/vfs/LogFiles/kudu/trace/ddaa5288ffc0-78ecd99d-4ad7-4cbc-abcb-60ef245ea092.txt)
+2025-09-20T05:34:24  Startup Request, url: /api/logstream/, method: GET, type: request, pid: 831,1,15, ScmType: GitHubAction/home/LogFiles/kudu/trace/f4438a069c02-4f90798b-8cda-4db1-9f40-7dfac5c11eee.txt  (https://smeatonwebsite-aqhgfwdhcef2f7fq.scm.uksouth-01.azurewebsites.net/api/vfs/LogFiles/kudu/trace/f4438a069c02-4f90798b-8cda-4db1-9f40-7dfac5c11eee.txt)
+2025-09-19T05:53:37  Startup Request, url: /api/deployments/?$orderby=ReceivedTime%20desc&$top=20&api-version=2022-03-01, method: GET, type: request, pid: 825,1,17, ScmType: GitHubAction/home/LogFiles/2025_09_19_lw0sdlwk000F10_default_docker.log  (https://smeatonwebsite-aqhgfwdhcef2f7fq.scm.uksouth-01.azurewebsites.net/api/vfs/LogFiles/2025_09_19_lw0sdlwk000F10_default_docker.log)
+2025-09-19T17:45:25.850101006Z }
+2025-09-19T17:45:25.850102664Z
+2025-09-19T17:45:25.850104356Z Node.js v20.19.3
+2025-09-19T17:45:25.871276234Z npm http fetch GET 200 https://registry.npmjs.org/npm 402ms
+2025-09-19T17:45:25.891255550Z npm notice
+2025-09-19T17:45:25.891279856Z npm notice New major version of npm available! 10.9.2 -> 11.6.0
+2025-09-19T17:45:25.891283121Z npm notice Changelog: https://github.com/npm/cli/releases/tag/v11.6.0
+2025-09-19T17:45:25.891285317Z npm notice To update run: npm install -g npm@11.6.0
+2025-09-19T17:45:25.891287355Z npm notice/home/LogFiles/2025_09_19_lw0sdlwk000F10_docker.log  (https://smeatonwebsite-aqhgfwdhcef2f7fq.scm.uksouth-01.azurewebsites.net/api/vfs/LogFiles/2025_09_19_lw0sdlwk000F10_docker.log)
+2025-09-19T17:44:37.730Z INFO  - Starting container for site
+2025-09-19T17:44:37.733Z INFO  - docker run -d --expose=8080 --name smeatonwebsite_1_4eb1b397 -e WEBSITE_USE_DIAGNOSTIC_SERVER=true -e PORT=8080 -e WEBSITE_SITE_NAME=smeatonwebsite -e WEBSITE_AUTH_ENABLED=False -e WEBSITE_ROLE_INSTANCE_ID=0 -e WEBSITE_HOSTNAME=smeatonwebsite-aqhgfwdhcef2f7fq.uksouth-01.azurewebsites.net -e WEBSITE_INSTANCE_ID=9210fd0c122fc1540c5ef9761b8a41ef990a83aba6c660ea67bdb222b82cd884 -e NODE_OPTIONS=--require /agents/nodejs/build/src/Loader.js appsvc/node:20-lts_20250724.2.tuxprod
+2025-09-19T17:44:37.737Z INFO  - Logging is not enabled for this container.Please use https://aka.ms/linux-diagnostics to enable logging to see container logs here.
+2025-09-19T17:44:41.320Z INFO  - Initiating warmup request to container smeatonwebsite_1_4eb1b397 for site smeatonwebsite
+2025-09-19T17:44:58.571Z INFO  - Waiting for response to warmup request for container smeatonwebsite_1_4eb1b397. Elapsed time = 17.2592992 sec
+2025-09-19T17:45:15.346Z INFO  - Waiting for response to warmup request for container smeatonwebsite_1_4eb1b397. Elapsed time = 34.0366023 sec
+2025-09-19T17:45:26.874Z ERROR - Container smeatonwebsite_1_4eb1b397 for site smeatonwebsite has exited, failing site start
+2025-09-19T17:45:26.938Z ERROR - Container smeatonwebsite_1_4eb1b397 didn't respond to HTTP pings on port: 8080. Failing site start. See container logs for debugging.
+2025-09-19T17:45:27.220Z INFO  - Stopping site smeatonwebsite because it failed during startup./home/LogFiles/2025_09_20_lw0sdlwk000F10_default_docker.log  (https://smeatonwebsite-aqhgfwdhcef2f7fq.scm.uksouth-01.azurewebsites.net/api/vfs/LogFiles/2025_09_20_lw0sdlwk000F10_default_docker.log)
+2025-09-20T05:20:11.042984216Z }
+2025-09-20T05:20:11.042985968Z
+2025-09-20T05:20:11.042987628Z Node.js v20.19.3
+2025-09-20T05:20:11.141897019Z npm http fetch GET 200 https://registry.npmjs.org/npm 551ms
+2025-09-20T05:20:11.141916421Z npm notice
+2025-09-20T05:20:11.141919095Z npm notice New major version of npm available! 10.9.2 -> 11.6.0
+2025-09-20T05:20:11.141921402Z npm notice Changelog: https://github.com/npm/cli/releases/tag/v11.6.0
+2025-09-20T05:20:11.141923331Z npm notice To update run: npm install -g npm@11.6.0
+2025-09-20T05:20:11.141925332Z npm notice/home/LogFiles/2025_09_20_lw0sdlwk000F10_docker.log  (https://smeatonwebsite-aqhgfwdhcef2f7fq.scm.uksouth-01.azurewebsites.net/api/vfs/LogFiles/2025_09_20_lw0sdlwk000F10_docker.log)
+2025-09-20T05:55:32.5158192Z Container is terminated. Total time elapsed: 11757 ms.
+2025-09-20T05:55:32.5162302Z Site container: smeatonwebsite terminated during site startup.
+2025-09-20T05:55:32.5242386Z Site: smeatonwebsite stopped.
+2025-09-20T05:55:56.8270795Z Container is terminating. Grace period: 5 seconds.
+2025-09-20T05:55:56.8474101Z Stop and delete container. Retry count = 0
+2025-09-20T05:55:56.8571613Z Stopping container: 7b3d54dd8bc7_smeatonwebsite.
+2025-09-20T05:56:02.3584782Z Deleting container: 7b3d54dd8bc7_smeatonwebsite. Retry count = 0
+2025-09-20T05:56:07.3440115Z Container spec TerminationMessagePolicy  path
+2025-09-20T05:56:07.3458865Z Container is terminated. Total time elapsed: 10511 ms.
+2025-09-20T05:56:07.3459591Z Site: smeatonwebsite stopped.Ending Log Tail of existing logs ---Starting Live Log Stream ---
+2025-09-20T06:05:52.8945182Z Container start method called.
+2025-09-20T06:05:52.9035382Z Establishing network.
+2025-09-20T06:05:52.9130856Z Pulling image: appsvc/node:20-lts_20250724.2.tuxprod.
+2025-09-20T06:05:56.4053845Z Container is starting.
+2025-09-20T06:05:56.4147390Z Establishing user namespace if not established already.
+2025-09-20T06:05:56.4164093Z Establishing network if not established already.
+2025-09-20T06:05:56.4244058Z Mounting volumes.
+2025-09-20T06:05:56.4367567Z Nested mountpoint
+2025-09-20T06:05:56.5178839Z Nested mountpoint volatile/logs
+2025-09-20T06:05:56.6863356ZNested mountpoint
+2025-09-20T06:05:56.7471562Z Nested mountpoint
+2025-09-20T06:05:56.7663552Z Nested mountpoint
+2025-09-20T06:05:56.7880914Z Nested mountpoint
+2025-09-20T06:05:56.9265287Z Nested mountpoint
+2025-09-20T06:05:57.8663208Z Creating container.
+2025-09-20T06:05:57.8760827Z Creating pipes for streaming container io.
+2025-09-20T06:05:57.8764122Z Creating stdout named pipe at /podr/container/pipe/b21f9f7c0bf8_smeatonwebsite/stdout_c9a7c49ec7a3477a9b2b72615d5ff6c5.
+2025-09-20T06:05:57.8778589Z Successfully created stdout named pipe at: /podr/container/pipe/b21f9f7c0bf8_smeatonwebsite/stdout_c9a7c49ec7a3477a9b2b72615d5ff6c5.
+2025-09-20T06:05:57.8783577Z Opening named pipe /podr/container/pipe/b21f9f7c0bf8_smeatonwebsite/stdout_c9a7c49ec7a3477a9b2b72615d5ff6c5 for reading in non-blocking mode.
+2025-09-20T06:05:57.8784928Z Successfully opened named pipe: /podr/container/pipe/b21f9f7c0bf8_smeatonwebsite/stdout_c9a7c49ec7a3477a9b2b72615d5ff6c5.
+2025-09-20T06:05:57.9058586Z Successfully removed non-blocking flag from /podr/container/pipe/b21f9f7c0bf8_smeatonwebsite/stdout_c9a7c49ec7a3477a9b2b72615d5ff6c5.
+2025-09-20T06:05:57.9062979Z Creating stderr named pipe at /podr/container/pipe/b21f9f7c0bf8_smeatonwebsite/stderr_0da8ccdfcd254bf185b68fc1e5a71052.
+2025-09-20T06:05:57.9068178Z Successfully created stderr named pipe at: /podr/container/pipe/b21f9f7c0bf8_smeatonwebsite/stderr_0da8ccdfcd254bf185b68fc1e5a71052.
+2025-09-20T06:05:57.9072598Z Opening named pipe /podr/container/pipe/b21f9f7c0bf8_smeatonwebsite/stderr_0da8ccdfcd254bf185b68fc1e5a71052 for reading in non-blocking mode.
+2025-09-20T06:05:57.9075847Z Successfully opened named pipe: /podr/container/pipe/b21f9f7c0bf8_smeatonwebsite/stderr_0da8ccdfcd254bf185b68fc1e5a71052.
+2025-09-20T06:05:57.9079134Z Successfully removed non-blocking flag from /podr/container/pipe/b21f9f7c0bf8_smeatonwebsite/stderr_0da8ccdfcd254bf185b68fc1e5a71052.
+2025-09-20T06:05:57.9084139Z Creating container with image: appsvc/node:20-lts_20250724.2.tuxprod from registry: mcr.microsoft.com and fully qualified image name: mcr.microsoft.com/appsvc/node:20-lts_20250724.2.tuxprod
+2025-09-20T06:05:58.6741683Z Starting container: b21f9f7c0bf8_smeatonwebsite.
+2025-09-20T06:05:58.7896595Z Starting watchers and probes.
+2025-09-20T06:05:58.7993055Z Starting metrics collection.
+2025-09-20T06:05:58.8118346Z Container is running.
+2025-09-20T06:06:00.2532526Z Container start method finished after 7357 ms.
