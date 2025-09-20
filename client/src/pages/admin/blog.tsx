@@ -471,7 +471,7 @@ export default function BlogAdmin() {
                 Create Post
               </Button>
             </DialogTrigger>
-            <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+            <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto mt-20">
               <DialogHeader>
                 <DialogTitle>Create New Blog Post</DialogTitle>
               </DialogHeader>
