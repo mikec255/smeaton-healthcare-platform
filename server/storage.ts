@@ -19,6 +19,7 @@ export interface IStorage {
   
   // Jobs
   getAllJobs(filters?: { location?: string; type?: string; salaryRange?: string }): Promise<Job[]>;
+  getAllJobsForAdmin(filters?: { location?: string; type?: string; salaryRange?: string; status?: string }): Promise<Job[]>;
   getJob(id: string): Promise<Job | undefined>;
   createJob(job: InsertJob): Promise<Job>;
   updateJob(id: string, updates: Partial<InsertJob>): Promise<Job | undefined>;
@@ -281,6 +282,39 @@ export class MemStorage implements IStorage {
 
   async getAllJobs(filters?: { location?: string; type?: string; salaryRange?: string }): Promise<Job[]> {
     let jobs = Array.from(this.jobs.values()).filter(job => job.isActive);
+    
+    if (filters?.location) {
+      jobs = jobs.filter(job => 
+        job.location.toLowerCase().includes(filters.location!.toLowerCase())
+      );
+    }
+    
+    if (filters?.type) {
+      jobs = jobs.filter(job => job.type === filters.type);
+    }
+    
+    if (filters?.salaryRange) {
+      const [min, max] = filters.salaryRange.split('-').map(Number);
+      jobs = jobs.filter(job => {
+        const jobSalary = job.salaryMin;
+        return jobSalary >= (min * 100) && (!max || jobSalary <= (max * 100));
+      });
+    }
+    
+    return jobs.sort((a, b) => (b.createdAt?.getTime() || 0) - (a.createdAt?.getTime() || 0));
+  }
+
+  async getAllJobsForAdmin(filters?: { location?: string; type?: string; salaryRange?: string; status?: string }): Promise<Job[]> {
+    let jobs = Array.from(this.jobs.values());
+    
+    if (filters?.status) {
+      if (filters.status === "active") {
+        jobs = jobs.filter(job => job.isActive);
+      } else if (filters.status === "inactive") {
+        jobs = jobs.filter(job => !job.isActive);
+      }
+      // "all" shows both active and inactive
+    }
     
     if (filters?.location) {
       jobs = jobs.filter(job => 
@@ -1043,6 +1077,43 @@ export class DrizzleStorage implements IStorage {
     
     if (filters?.type) {
       filteredJobs = filteredJobs.filter(job => job.type === filters.type);
+    }
+    
+    if (filters?.salaryRange) {
+      const [min, max] = filters.salaryRange.split('-').map(Number);
+      filteredJobs = filteredJobs.filter(job => {
+        const jobSalary = job.salaryMin;
+        return jobSalary >= (min * 100) && (!max || jobSalary <= (max * 100));
+      });
+    }
+    
+    return filteredJobs;
+  }
+
+  // Admin version that returns ALL jobs regardless of status
+  async getAllJobsForAdmin(filters?: { location?: string; type?: string; salaryRange?: string; status?: string }): Promise<Job[]> {
+    let query = db.select().from(jobs);
+    
+    const result = await query.orderBy(desc(jobs.createdAt));
+    let filteredJobs = result;
+    
+    if (filters?.location) {
+      filteredJobs = filteredJobs.filter(job => 
+        job.location.toLowerCase().includes(filters.location!.toLowerCase())
+      );
+    }
+    
+    if (filters?.type) {
+      filteredJobs = filteredJobs.filter(job => job.type === filters.type);
+    }
+    
+    if (filters?.status) {
+      if (filters.status === "active") {
+        filteredJobs = filteredJobs.filter(job => job.isActive);
+      } else if (filters.status === "inactive") {
+        filteredJobs = filteredJobs.filter(job => !job.isActive);
+      }
+      // "all" shows both active and inactive
     }
     
     if (filters?.salaryRange) {

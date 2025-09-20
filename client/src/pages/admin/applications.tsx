@@ -26,9 +26,9 @@ export default function ApplicationsAdmin() {
 
   // Fetch all jobs
   const { data: jobs, isLoading: jobsLoading, error: jobsError } = useQuery<JobWithApplications[]>({
-    queryKey: ["/api/jobs"],
+    queryKey: ["/api/admin/jobs"],
     queryFn: async () => {
-      const response = await fetch("/api/jobs");
+      const response = await fetch("/api/admin/jobs");
       if (!response.ok) {
         throw new Error("Failed to fetch jobs");
       }

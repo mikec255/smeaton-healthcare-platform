@@ -681,6 +681,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Admin endpoint that returns ALL jobs (both active and inactive)
+  app.get("/api/admin/jobs", requireAdmin, async (req, res) => {
+    try {
+      const { location, type, salaryRange, status } = req.query;
+      const jobs = await storage.getAllJobsForAdmin({
+        location: location as string,
+        type: type as string,
+        salaryRange: salaryRange as string,
+        status: status as string,
+      });
+      res.json(jobs);
+    } catch (error) {
+      console.error("Error fetching admin jobs:", error);
+      res.status(500).json({ message: "Failed to fetch jobs" });
+    }
+  });
+
   app.get("/api/jobs/:id", async (req, res) => {
     try {
       const job = await storage.getJob(req.params.id);

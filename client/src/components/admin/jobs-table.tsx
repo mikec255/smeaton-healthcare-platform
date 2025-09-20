@@ -44,7 +44,7 @@ export default function JobsTable({ jobs, onEdit }: JobsTableProps) {
         title: "Job deleted successfully",
         description: "The job listing has been removed.",
       });
-      queryClient.invalidateQueries({ queryKey: ["/api/jobs"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/jobs"] });
       setDeleteJobId(null);
     },
     onError: (error) => {
@@ -67,7 +67,7 @@ export default function JobsTable({ jobs, onEdit }: JobsTableProps) {
           ? "The job listing is now visible to candidates." 
           : "The job listing is no longer visible to candidates.",
       });
-      queryClient.invalidateQueries({ queryKey: ["/api/jobs"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/jobs"] });
     },
     onError: (error) => {
       toast({

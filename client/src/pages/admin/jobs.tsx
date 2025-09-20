@@ -17,7 +17,7 @@ export default function JobsAdmin() {
   const [isJobModalOpen, setIsJobModalOpen] = useState(false);
 
   const { data: jobs = [], isLoading, error } = useQuery<Job[]>({
-    queryKey: ["/api/jobs"],
+    queryKey: ["/api/admin/jobs"],
   });
 
   const filteredJobs = jobs.filter((job) => {
