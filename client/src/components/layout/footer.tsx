@@ -20,7 +20,7 @@ export default function Footer() {
               data-testid="footer-brand-logo"
             />
             <p className="text-gray-300 mb-4" data-testid="footer-description">
-              Providing exceptional healthcare services across Devon and Cornwall since 2019.
+              Providing exceptional healthcare services<br />across Devon and Cornwall since 2019.
             </p>
             <p className="text-gray-300 text-sm" data-testid="footer-copyright">
               © 2025 Smeaton Healthcare. All rights reserved.
