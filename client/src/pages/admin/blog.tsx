@@ -73,7 +73,39 @@ export default function BlogAdmin() {
     setEditingBlocks([]);
   };
 
+  // Save and continue editing
   const saveVisualContent = async () => {
+    if (!selectedPost) {
+      toast({
+        title: "Error",
+        description: "No post selected for visual editing",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      await apiRequest("PUT", `/api/blog-posts/${selectedPost.id}`, {
+        blocks: editingBlocks,
+      });
+      
+      queryClient.invalidateQueries({ queryKey: ["/api/blog-posts"] });
+      
+      toast({
+        title: "Content Saved",
+        description: "Your changes have been saved successfully",
+      });
+    } catch (error) {
+      toast({
+        title: "Save Failed",
+        description: "Failed to save visual content. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  // Save and close editor
+  const saveAndCloseEditor = async () => {
     if (!selectedPost) {
       toast({
         title: "Error",
@@ -93,7 +125,7 @@ export default function BlogAdmin() {
       
       toast({
         title: "Content Saved",
-        description: "Your visual content has been saved successfully",
+        description: "Your changes have been saved and editor closed",
       });
     } catch (error) {
       toast({
@@ -340,10 +372,18 @@ export default function BlogAdmin() {
               Preview
             </Button>
             <Button
+              variant="outline"
               onClick={saveVisualContent}
-              data-testid="save-visual-content"
+              className="bg-green-50 border-green-200 text-green-700 hover:bg-green-100"
+              data-testid="save-content"
             >
-              Save Content
+              💾 Save Changes
+            </Button>
+            <Button
+              onClick={saveAndCloseEditor}
+              data-testid="save-and-close"
+            >
+              Save & Close
             </Button>
           </div>
         </div>
