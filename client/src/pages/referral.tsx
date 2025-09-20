@@ -486,7 +486,7 @@ export default function Referral() {
             </div>
           </div>
           <p className="text-muted-foreground mt-4 text-sm">
-            Our care coordinators are available Monday to Friday, 8am-6pm to help with referrals and answer questions.
+            Our team is available between 8am and 4pm, however for urgent care please call the same number to reach our out of hours team.
           </p>
         </CardContent>
       </Card>
