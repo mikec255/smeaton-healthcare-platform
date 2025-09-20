@@ -727,6 +727,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.delete("/api/jobs/:id", requireAdmin, async (req, res) => {
     try {
+      // Check if job exists first
+      const existingJob = await storage.getJob(req.params.id);
+      if (!existingJob) {
+        return res.status(404).json({ message: "Job not found" });
+      }
+      
+      // Unpublish the job before deleting (only if it exists)
+      await storage.updateJob(req.params.id, { isActive: false });
+      
       const success = await storage.deleteJob(req.params.id);
       if (!success) {
         return res.status(404).json({ message: "Job not found" });

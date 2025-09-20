@@ -22,7 +22,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
-import { Edit, Eye, Trash2 } from "lucide-react";
+import { Edit, Eye, Trash2, ToggleLeft, ToggleRight } from "lucide-react";
 import { type Job } from "@shared/schema";
 
 interface JobsTableProps {
@@ -50,6 +50,28 @@ export default function JobsTable({ jobs, onEdit }: JobsTableProps) {
     onError: (error) => {
       toast({
         title: "Failed to delete job",
+        description: "Please try again.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const toggleJobStatusMutation = useMutation({
+    mutationFn: async ({ jobId, isActive }: { jobId: string; isActive: boolean }) => {
+      await apiRequest("PUT", `/api/jobs/${jobId}`, { isActive });
+    },
+    onSuccess: (_, { isActive }) => {
+      toast({
+        title: isActive ? "Job published" : "Job unpublished",
+        description: isActive 
+          ? "The job listing is now visible to candidates." 
+          : "The job listing is no longer visible to candidates.",
+      });
+      queryClient.invalidateQueries({ queryKey: ["/api/jobs"] });
+    },
+    onError: (error) => {
+      toast({
+        title: "Failed to update job status",
         description: "Please try again.",
         variant: "destructive",
       });
@@ -94,6 +116,13 @@ export default function JobsTable({ jobs, onEdit }: JobsTableProps) {
     if (deleteJobId) {
       deleteJobMutation.mutate(deleteJobId);
     }
+  };
+
+  const handleToggleStatus = (job: Job) => {
+    toggleJobStatusMutation.mutate({
+      jobId: job.id,
+      isActive: !job.isActive
+    });
   };
 
   if (jobs.length === 0) {
@@ -172,6 +201,20 @@ export default function JobsTable({ jobs, onEdit }: JobsTableProps) {
                       data-testid={`button-view-applications-${job.id}`}
                     >
                       <Eye className="h-4 w-4" />
+                    </Button>
+                    <Button 
+                      variant="ghost" 
+                      size="sm"
+                      onClick={() => handleToggleStatus(job)}
+                      className={job.isActive 
+                        ? "text-orange-600 hover:text-orange-700 hover:bg-orange-50" 
+                        : "text-green-600 hover:text-green-700 hover:bg-green-50"
+                      }
+                      disabled={toggleJobStatusMutation.isPending}
+                      data-testid={`button-toggle-status-${job.id}`}
+                      title={job.isActive ? "Unpublish job" : "Publish job"}
+                    >
+                      {job.isActive ? <ToggleRight className="h-4 w-4" /> : <ToggleLeft className="h-4 w-4" />}
                     </Button>
                     <Button 
                       variant="ghost" 
