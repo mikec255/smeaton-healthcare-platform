@@ -337,56 +337,93 @@ export default function BlogAdmin() {
     return (
       <div className="fixed inset-0 bg-background z-[100] flex flex-col">
         {/* Visual Editor Header */}
-        <div className="sticky top-0 z-10 border-b border-border p-4 flex items-center justify-between bg-background w-full">
-          <div className="flex items-center gap-4">
-            <Button
-              variant="outline"
-              onClick={closeVisualEditor}
-              data-testid="close-visual-editor"
-            >
-              <ArrowLeft className="h-4 w-4 mr-2" />
-              Back to Blog List
-            </Button>
+        <div 
+          className="w-full bg-red-500 p-6 border-4 border-yellow-400" 
+          style={{ 
+            position: "fixed", 
+            top: 0, 
+            left: 0, 
+            right: 0, 
+            zIndex: 9999, 
+            background: "red",
+            color: "white",
+            fontSize: "20px",
+            fontWeight: "bold"
+          }}
+        >
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", width: "100%" }}>
             <div>
-              <h1 className="text-xl font-semibold">Visual Blog Editor</h1>
-              {selectedPost && (
-                <p className="text-sm text-muted-foreground">
-                  Editing: {selectedPost.title}
-                </p>
-              )}
+              <button
+                onClick={closeVisualEditor}
+                style={{ 
+                  background: "white", 
+                  color: "black", 
+                  padding: "10px 20px", 
+                  border: "none", 
+                  borderRadius: "5px",
+                  fontSize: "16px",
+                  cursor: "pointer"
+                }}
+                data-testid="close-visual-editor"
+              >
+                ← Back to Blog List
+              </button>
+              <span style={{ marginLeft: "20px" }}>Visual Blog Editor - DEBUG HEADER</span>
             </div>
-          </div>
-          <div className="flex items-center gap-2 min-w-fit">
-            <Button
-              variant="outline"
-              onClick={() => {
-                // TODO: Add preview functionality
-                toast({
-                  title: "Preview",
-                  description: "Preview functionality coming soon",
-                });
-              }}
-              data-testid="preview-blog"
-              className="bg-blue-100 border-blue-300"
-            >
-              <Eye className="h-4 w-4 mr-2" />
-              Preview
-            </Button>
-            <Button
-              variant="outline"
-              onClick={saveVisualContent}
-              className="bg-green-100 border-green-300 text-green-800 font-bold"
-              data-testid="save-content"
-            >
-              💾 SAVE CHANGES
-            </Button>
-            <Button
-              onClick={saveAndCloseEditor}
-              data-testid="save-and-close"
-              className="bg-red-100 border-red-300 text-red-800 font-bold"
-            >
-              SAVE & CLOSE
-            </Button>
+            <div style={{ display: "flex", gap: "10px" }}>
+              <button
+                onClick={() => {
+                  toast({
+                    title: "Preview",
+                    description: "Preview functionality coming soon",
+                  });
+                }}
+                style={{ 
+                  background: "blue", 
+                  color: "white", 
+                  padding: "10px 20px", 
+                  border: "none", 
+                  borderRadius: "5px",
+                  fontSize: "16px",
+                  cursor: "pointer"
+                }}
+                data-testid="preview-blog"
+              >
+                👁 Preview
+              </button>
+              <button
+                onClick={saveVisualContent}
+                style={{ 
+                  background: "green", 
+                  color: "white", 
+                  padding: "10px 20px", 
+                  border: "none", 
+                  borderRadius: "5px",
+                  fontSize: "16px",
+                  cursor: "pointer",
+                  fontWeight: "bold"
+                }}
+                data-testid="save-content"
+              >
+                💾 SAVE CHANGES
+              </button>
+              <button
+                onClick={saveAndCloseEditor}
+                style={{ 
+                  background: "purple", 
+                  color: "white", 
+                  padding: "10px 20px", 
+                  border: "none", 
+                  borderRadius: "5px",
+                  fontSize: "16px",
+                  cursor: "pointer",
+                  fontWeight: "bold"
+                }}
+                data-testid="save-and-close"
+              >
+                🚀 SAVE & CLOSE
+              </button>
+            </div>
           </div>
         </div>
 
