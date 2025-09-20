@@ -53,7 +53,7 @@ export default function ImageUpload({
       }, 100);
 
       // Get upload URL from backend
-      const response = await fetch("/api/objects/upload", {
+      const response = await fetch("/api/blog-images/upload", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

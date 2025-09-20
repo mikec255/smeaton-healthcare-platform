@@ -1028,8 +1028,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // CV/File upload endpoints
-  app.post("/api/objects/upload", async (req, res) => {
+  // CV/File upload endpoints (admin only for security)
+  app.post("/api/objects/upload", requireAdmin, async (req, res) => {
     try {
       const objectStorageService = new ObjectStorageService();
       const uploadURL = await objectStorageService.getObjectEntityUploadURL();
