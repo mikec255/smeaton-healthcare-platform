@@ -337,7 +337,7 @@ export default function BlogAdmin() {
     return (
       <div className="fixed inset-0 bg-background z-[100] flex flex-col">
         {/* Visual Editor Header */}
-        <div className="sticky top-0 z-10 border-b border-border p-4 flex items-center justify-between bg-background">
+        <div className="sticky top-0 z-10 border-b border-border p-4 flex items-center justify-between bg-background w-full">
           <div className="flex items-center gap-4">
             <Button
               variant="outline"
@@ -356,7 +356,7 @@ export default function BlogAdmin() {
               )}
             </div>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 min-w-fit">
             <Button
               variant="outline"
               onClick={() => {
@@ -367,6 +367,7 @@ export default function BlogAdmin() {
                 });
               }}
               data-testid="preview-blog"
+              className="bg-blue-100 border-blue-300"
             >
               <Eye className="h-4 w-4 mr-2" />
               Preview
@@ -374,16 +375,17 @@ export default function BlogAdmin() {
             <Button
               variant="outline"
               onClick={saveVisualContent}
-              className="bg-green-50 border-green-200 text-green-700 hover:bg-green-100"
+              className="bg-green-100 border-green-300 text-green-800 font-bold"
               data-testid="save-content"
             >
-              💾 Save Changes
+              💾 SAVE CHANGES
             </Button>
             <Button
               onClick={saveAndCloseEditor}
               data-testid="save-and-close"
+              className="bg-red-100 border-red-300 text-red-800 font-bold"
             >
-              Save & Close
+              SAVE & CLOSE
             </Button>
           </div>
         </div>
