@@ -10,8 +10,8 @@ export default function Footer() {
   return (
     <footer className="bg-gradient-to-r from-foreground to-primary text-white pt-12 pb-24" data-testid="footer">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="grid md:grid-cols-4 gap-8 items-start">
-          <div className="self-start">
+        <div className="grid md:grid-cols-6 gap-4 items-start">
+          <div className="self-start md:col-span-3">
             <img 
               src={smeatonLogo} 
               alt="Smeaton Healthcare" 
