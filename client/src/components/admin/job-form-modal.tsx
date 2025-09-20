@@ -3,7 +3,7 @@ import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -183,6 +183,9 @@ export default function JobFormModal({ job, isOpen, onClose }: JobFormModalProps
           <DialogTitle className="text-2xl font-bold" data-testid="job-form-title">
             {isEditing ? "Edit Job Listing" : "Create New Job Listing"}
           </DialogTitle>
+          <DialogDescription className="sr-only">
+            {isEditing ? "Edit the details of an existing job listing" : "Create a new job listing with all required details"}
+          </DialogDescription>
         </DialogHeader>
         
         <Form {...form}>
