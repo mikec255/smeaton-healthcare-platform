@@ -565,7 +565,7 @@ export default function BlogAdmin() {
                         render={({ field }) => (
                           <FormItem>
                             <FormControl>
-                              <Textarea {...field} rows={10} data-testid="input-post-content" />
+                              <Textarea {...field} value={field.value || ""} rows={10} data-testid="input-post-content" />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
