@@ -13,7 +13,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useToast } from "@/hooks/use-toast";
-import { Plus, Edit, Trash2, ArrowLeft, Eye, EyeOff, Upload, Calendar, User, BookOpen, Tag } from "lucide-react";
+import { Plus, Edit, Trash2, ArrowLeft, Eye, EyeOff, Upload, Calendar, User, BookOpen, Tag, Save } from "lucide-react";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { type BlogPost, insertBlogPostSchema, insertBlogCategorySchema, blogCategories, type BlogBlock } from "@shared/schema";
 import BlogVisualEditor from "@/components/blog/BlogVisualEditor";
@@ -335,65 +335,53 @@ export default function BlogAdmin() {
   // Visual Editor Modal
   if (isVisualEditorOpen) {
     return (
-      <div className="fixed inset-0 bg-background z-[100] flex flex-col">
+      <div className="fixed inset-0 bg-background z-[100] flex flex-col pt-20">
         {/* Visual Editor Header */}
-        <div 
-          className="w-full bg-red-500 p-6 border-4 border-yellow-400" 
-          style={{ 
-            position: "relative", 
-            zIndex: 9999, 
-            background: "red",
-            color: "white",
-            fontSize: "20px",
-            fontWeight: "bold",
-            minHeight: "80px"
-          }}
-        >
-          CAN YOU SEE THIS TEXT? 
-          <button
-            onClick={closeVisualEditor}
-            style={{ 
-              background: "white", 
-              color: "black", 
-              padding: "10px 20px", 
-              border: "2px solid black", 
-              margin: "5px",
-              fontSize: "16px",
-              cursor: "pointer"
-            }}
-          >
-            ← BACK
-          </button>
-          <button
-            onClick={saveVisualContent}
-            style={{ 
-              background: "green", 
-              color: "white", 
-              padding: "10px 20px", 
-              border: "2px solid white", 
-              margin: "5px",
-              fontSize: "16px",
-              cursor: "pointer",
-              fontWeight: "bold"
-            }}
-          >
-            💾 SAVE
-          </button>
-          <button
-            onClick={saveAndCloseEditor}
-            style={{ 
-              background: "purple", 
-              color: "white", 
-              padding: "10px 20px", 
-              border: "2px solid white", 
-              margin: "5px",
-              fontSize: "16px",
-              cursor: "pointer",
-              fontWeight: "bold"
-            }}
-          >
-            SAVE & CLOSE
-          </button>
+        <div className="w-full bg-background border-b border-border p-4 shadow-sm">
+          <div className="flex justify-between items-center">
+            <div className="flex items-center gap-4">
+              <Button
+                onClick={closeVisualEditor}
+                variant="outline"
+                data-testid="close-visual-editor"
+              >
+                <ArrowLeft className="h-4 w-4 mr-2" />
+                Back to Blog List
+              </Button>
+              <h2 className="text-xl font-semibold">Visual Blog Editor</h2>
+            </div>
+            <div className="flex gap-2">
+              <Button
+                onClick={() => {
+                  toast({
+                    title: "Preview",
+                    description: "Preview functionality coming soon",
+                  });
+                }}
+                variant="outline"
+                data-testid="preview-blog"
+              >
+                <Eye className="h-4 w-4 mr-2" />
+                Preview
+              </Button>
+              <Button
+                onClick={saveVisualContent}
+                className="bg-green-600 hover:bg-green-700"
+                data-testid="save-content"
+              >
+                <Save className="h-4 w-4 mr-2" />
+                Save Changes
+              </Button>
+              <Button
+                onClick={saveAndCloseEditor}
+                className="bg-purple-600 hover:bg-purple-700"
+                data-testid="save-and-close"
+              >
+                <Save className="h-4 w-4 mr-2" />
+                Save & Close
+              </Button>
+            </div>
+          </div>
         </div>
 
         {/* Visual Editor Content */}
