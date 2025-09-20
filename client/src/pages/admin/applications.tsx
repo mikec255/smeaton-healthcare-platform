@@ -20,6 +20,7 @@ export default function ApplicationsAdmin() {
   const [selectedJob, setSelectedJob] = useState<Job | null>(null);
   const [selectedApplication, setSelectedApplication] = useState<Application | null>(null);
   const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [branchFilter, setBranchFilter] = useState<string>("all");
   const [notes, setNotes] = useState<string>("");
   const { toast } = useToast();
 
@@ -118,6 +119,13 @@ export default function ApplicationsAdmin() {
       });
     }
   });
+
+  // Filter jobs by branch
+  const filteredJobs = useMemo(() => {
+    if (!jobs) return [];
+    if (branchFilter === "all") return jobs;
+    return jobs.filter(job => (job.branch || "Plymouth") === branchFilter);
+  }, [jobs, branchFilter]);
 
   // Filter applications by status
   const filteredApplications = useMemo(() => {
@@ -229,11 +237,26 @@ export default function ApplicationsAdmin() {
       {!selectedJob ? (
         // Jobs List View
         <div className="space-y-4">
-          <h2 className="text-xl font-semibold">Available Positions</h2>
+          <div className="flex items-center justify-between">
+            <h2 className="text-xl font-semibold">Available Positions</h2>
+            <div className="flex items-center gap-2">
+              <Filter className="h-4 w-4 text-muted-foreground" />
+              <Select value={branchFilter} onValueChange={setBranchFilter}>
+                <SelectTrigger className="w-48" data-testid="select-branch-filter">
+                  <SelectValue placeholder="Filter by branch" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Branches</SelectItem>
+                  <SelectItem value="Plymouth">Plymouth</SelectItem>
+                  <SelectItem value="Truro">Truro</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
           
-          {jobs && jobs.length > 0 ? (
+          {filteredJobs && filteredJobs.length > 0 ? (
             <div className="grid gap-4">
-              {jobs.map((job) => (
+              {filteredJobs.map((job) => (
                 <Card 
                   key={job.id} 
                   className="cursor-pointer transition-all hover:shadow-md hover:border-primary/50"
@@ -254,6 +277,12 @@ export default function ApplicationsAdmin() {
                             <Briefcase className="h-4 w-4" />
                             {job.type}
                           </div>
+                          <Badge 
+                            variant="outline" 
+                            className="bg-secondary/10 text-secondary border-secondary/20 text-xs"
+                          >
+                            {job.branch || "Plymouth"}
+                          </Badge>
                         </div>
                         <p className="text-sm text-muted-foreground line-clamp-2">
                           {job.summary}
