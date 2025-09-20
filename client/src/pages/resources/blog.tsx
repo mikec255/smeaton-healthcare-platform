@@ -58,13 +58,32 @@ export default function Blog() {
     });
   };
 
+  // Helper function to convert Google Cloud Storage URL to proxy URL
+  const convertToProxyUrl = (url: string): string => {
+    // If it's already a proxy URL or regular URL, return as is
+    if (!url.includes('storage.googleapis.com')) {
+      return url;
+    }
+    
+    // Extract the object path from Google Cloud Storage URL
+    // URL format: https://storage.googleapis.com/bucket-name/.private/uploads/filename
+    const match = url.match(/\.private\/uploads\/(.+)/);
+    if (match) {
+      return `/objects/uploads/${match[1]}`;
+    }
+    
+    // Fallback: return original URL
+    return url;
+  };
+
   // Helper function to extract first image from visual editor blocks
   const extractImageFromBlocks = (blocks: any[]): string | null => {
     if (!blocks || !Array.isArray(blocks)) return null;
     
     for (const block of blocks) {
-      if (block.type === 'image' && block.content?.src) {
-        return block.content.src;
+      if (block.type === 'image' && (block.content?.url || block.content?.src)) {
+        const imageUrl = block.content.url || block.content.src;
+        return convertToProxyUrl(imageUrl);
       }
     }
     return null;
@@ -84,12 +103,14 @@ export default function Blog() {
           return `<p>${block.content?.text || ''}</p>`;
         
         case 'image':
-          if (block.content?.src) {
+          const imageSrc = block.content?.url || block.content?.src;
+          if (imageSrc) {
             const alt = block.content?.alt || '';
             const caption = block.content?.caption || '';
+            const proxyUrl = convertToProxyUrl(imageSrc);
             return `
               <div class="image-block">
-                <img src="${block.content.src}" alt="${alt}" class="w-full h-auto rounded-lg" />
+                <img src="${proxyUrl}" alt="${alt}" class="w-full h-auto rounded-lg" />
                 ${caption ? `<p class="text-sm text-gray-600 mt-2 italic">${caption}</p>` : ''}
               </div>
             `;
