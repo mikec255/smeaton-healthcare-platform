@@ -122,8 +122,9 @@ export default function Blog() {
         
         case 'list':
           const items = block.content?.items || [];
-          const listType = block.content?.ordered ? 'ol' : 'ul';
-          return `<${listType}>${items.map((item: string) => `<li>${item}</li>`).join('')}</${listType}>`;
+          const isNumbered = block.content?.listType === 'numbered' || block.content?.ordered;
+          const listType = isNumbered ? 'ol' : 'ul';
+          return `<${listType} class="${isNumbered ? 'list-decimal' : 'list-disc'} ml-6 space-y-1">${items.map((item: string) => `<li>${item}</li>`).join('')}</${listType}>`;
         
         case 'divider':
           return '<hr class="my-4" />';

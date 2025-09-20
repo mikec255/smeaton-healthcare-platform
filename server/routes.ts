@@ -1490,6 +1490,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.delete("/api/blog-posts/:id", requireAdmin, async (req, res) => {
     try {
+      // Check if blog post exists first
+      const existingPost = await storage.getBlogPost(req.params.id);
+      if (!existingPost) {
+        return res.status(404).json({ message: "Blog post not found" });
+      }
+      
+      // Unpublish the blog post before deleting (only if it exists)
+      await storage.updateBlogPost(req.params.id, { isPublished: false });
+      
       const success = await storage.deleteBlogPost(req.params.id);
       if (!success) {
         return res.status(404).json({ message: "Blog post not found" });
