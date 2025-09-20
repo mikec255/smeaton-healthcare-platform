@@ -75,6 +75,11 @@ export default function Admin() {
     enabled: !!authUser,
   });
 
+  const { data: jobs = [] } = useQuery<Job[]>({
+    queryKey: ["/api/jobs"],
+    enabled: !!authUser,
+  });
+
   // Email configuration status query
   const { data: emailConfig = { configured: false } } = useQuery<{ configured: boolean }>({
     queryKey: ["/api/admin/email-config/status"],
@@ -178,6 +183,18 @@ export default function Admin() {
       title: "Recruitment", 
       description: "Manage hiring and applications",
       areas: [
+        {
+          title: "Jobs",
+          description: "Create, manage and publish job listings for candidates",
+          icon: Briefcase,
+          link: "/admin/jobs",
+          stats: {
+            total: jobs.length,
+            active: jobs.filter(j => j.isActive).length,
+            inactive: jobs.filter(j => !j.isActive).length
+          },
+          color: "bg-primary text-primary-foreground hover:bg-primary/90"
+        },
         {
           title: "Pre-Screens",
           description: "Review job applications and manage candidate pipeline",
