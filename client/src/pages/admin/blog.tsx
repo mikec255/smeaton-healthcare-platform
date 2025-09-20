@@ -335,9 +335,9 @@ export default function BlogAdmin() {
   // Visual Editor Modal
   if (isVisualEditorOpen) {
     return (
-      <div className="fixed inset-0 bg-background z-50 flex flex-col">
+      <div className="fixed inset-0 bg-background z-[100] flex flex-col">
         {/* Visual Editor Header */}
-        <div className="border-b border-border p-4 flex items-center justify-between">
+        <div className="sticky top-0 z-10 border-b border-border p-4 flex items-center justify-between bg-background">
           <div className="flex items-center gap-4">
             <Button
               variant="outline"
