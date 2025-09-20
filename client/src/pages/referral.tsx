@@ -101,7 +101,7 @@ export default function Referral() {
           Make a Referral
         </h1>
         <p className="text-xl text-muted-foreground max-w-2xl mx-auto" data-testid="referral-subtitle">
-          Help someone access the care and support they need. Complete this form and we'll arrange a free, no-obligation assessment.
+          Referrals can be made by individuals, family members, or professionals. Complete this form to help someone access the care and support they need, and we'll arrange a free, no-obligation assessment.
         </p>
       </div>
 
