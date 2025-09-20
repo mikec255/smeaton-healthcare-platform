@@ -349,80 +349,51 @@ export default function BlogAdmin() {
             minHeight: "80px"
           }}
         >
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", width: "100%" }}>
-            <div>
-              <button
-                onClick={closeVisualEditor}
-                style={{ 
-                  background: "white", 
-                  color: "black", 
-                  padding: "10px 20px", 
-                  border: "none", 
-                  borderRadius: "5px",
-                  fontSize: "16px",
-                  cursor: "pointer"
-                }}
-                data-testid="close-visual-editor"
-              >
-                ← Back to Blog List
-              </button>
-              <span style={{ marginLeft: "20px" }}>Visual Blog Editor - DEBUG HEADER</span>
-            </div>
-            <div style={{ display: "flex", gap: "10px" }}>
-              <button
-                onClick={() => {
-                  toast({
-                    title: "Preview",
-                    description: "Preview functionality coming soon",
-                  });
-                }}
-                style={{ 
-                  background: "blue", 
-                  color: "white", 
-                  padding: "10px 20px", 
-                  border: "none", 
-                  borderRadius: "5px",
-                  fontSize: "16px",
-                  cursor: "pointer"
-                }}
-                data-testid="preview-blog"
-              >
-                👁 Preview
-              </button>
-              <button
-                onClick={saveVisualContent}
-                style={{ 
-                  background: "green", 
-                  color: "white", 
-                  padding: "10px 20px", 
-                  border: "none", 
-                  borderRadius: "5px",
-                  fontSize: "16px",
-                  cursor: "pointer",
-                  fontWeight: "bold"
-                }}
-                data-testid="save-content"
-              >
-                💾 SAVE CHANGES
-              </button>
-              <button
-                onClick={saveAndCloseEditor}
-                style={{ 
-                  background: "purple", 
-                  color: "white", 
-                  padding: "10px 20px", 
-                  border: "none", 
-                  borderRadius: "5px",
-                  fontSize: "16px",
-                  cursor: "pointer",
-                  fontWeight: "bold"
-                }}
-                data-testid="save-and-close"
-              >
-                🚀 SAVE & CLOSE
-              </button>
-            </div>
-          </div>
+          CAN YOU SEE THIS TEXT? 
+          <button
+            onClick={closeVisualEditor}
+            style={{ 
+              background: "white", 
+              color: "black", 
+              padding: "10px 20px", 
+              border: "2px solid black", 
+              margin: "5px",
+              fontSize: "16px",
+              cursor: "pointer"
+            }}
+          >
+            ← BACK
+          </button>
+          <button
+            onClick={saveVisualContent}
+            style={{ 
+              background: "green", 
+              color: "white", 
+              padding: "10px 20px", 
+              border: "2px solid white", 
+              margin: "5px",
+              fontSize: "16px",
+              cursor: "pointer",
+              fontWeight: "bold"
+            }}
+          >
+            💾 SAVE
+          </button>
+          <button
+            onClick={saveAndCloseEditor}
+            style={{ 
+              background: "purple", 
+              color: "white", 
+              padding: "10px 20px", 
+              border: "2px solid white", 
+              margin: "5px",
+              fontSize: "16px",
+              cursor: "pointer",
+              fontWeight: "bold"
+            }}
+          >
+            SAVE & CLOSE
+          </button>
         </div>
 
         {/* Visual Editor Content */}
