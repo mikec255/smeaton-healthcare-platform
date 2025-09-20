@@ -140,7 +140,8 @@ export default function Referral() {
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
               {/* Referrer Information */}
               <div className="space-y-6">
-                <h3 className="text-lg font-semibold border-b pb-2">Your Information</h3>
+                <h3 className="text-lg font-semibold border-b pb-2">Referrer's Information</h3>
+                <p className="text-sm text-red-600">Leave blank if you are making a self referral</p>
                 <div className="grid md:grid-cols-2 gap-4">
                   <FormField
                     control={form.control}
