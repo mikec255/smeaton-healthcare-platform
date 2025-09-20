@@ -213,6 +213,17 @@ function BlockRenderer({
     });
   };
 
+  // Dynamic heading styles based on level
+  const getHeaderClassName = (level: string) => {
+    const baseClasses = "w-full font-bold bg-transparent border-none outline-none resize-none";
+    switch (level) {
+      case "h1": return `${baseClasses} text-4xl`;
+      case "h2": return `${baseClasses} text-3xl`;
+      case "h3": return `${baseClasses} text-2xl`;
+      default: return `${baseClasses} text-2xl`;
+    }
+  };
+
   switch (block.type) {
     case "header":
       return (
@@ -222,7 +233,7 @@ function BlockRenderer({
             placeholder="Enter header text..."
             value={block.content.text || ""}
             onChange={(e) => updateContent({ text: e.target.value })}
-            className="w-full text-2xl font-bold bg-transparent border-none outline-none resize-none"
+            className={getHeaderClassName(block.content.level || "h1")}
             style={block.style}
             data-testid={`header-input-${block.id}`}
           />
