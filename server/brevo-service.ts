@@ -191,6 +191,54 @@ class BrevoService {
     }
   }
 
+  async sendPreScreenApplicationEmail(applicationData: {
+    firstName: string;
+    lastName: string;
+    email: string;
+    phone: string;
+    location: string;
+    jobTitle: string;
+    branch: string;
+    experience?: string;
+    currentlyWorking?: boolean;
+    currentEmployer?: string;
+    referralSource?: string;
+    shiftPreferences?: string[];
+    hasDBS?: boolean;
+    hasMHCertificate?: boolean;
+    additionalInfo?: string;
+  }) {
+    if (!this.isConfigured) {
+      console.warn('Brevo not configured - skipping pre-screen application email send');
+      return;
+    }
+
+    try {
+      const applicantName = `${applicationData.firstName} ${applicationData.lastName}`;
+      const subject = `${applicationData.branch} Branch - ${applicantName}`;
+
+      const result = await this.emailApi.sendTransacEmail({
+        to: [{
+          email: 'recruitment@smeatonhealthcare.co.uk',
+          name: 'Smeaton Healthcare Recruitment'
+        }],
+        subject: subject,
+        htmlContent: this.getPreScreenApplicationEmailHtml(applicationData),
+        textContent: this.getPreScreenApplicationEmailText(applicationData),
+        sender: {
+          email: 'applications@smeatonhealthcare.co.uk',
+          name: 'Smeaton Healthcare Applications'
+        }
+      });
+
+      console.log('Pre-screen application email sent successfully:', result.body?.messageId || 'Email sent');
+      return result;
+    } catch (error) {
+      console.error('Failed to send pre-screen application email:', error);
+      throw error;
+    }
+  }
+
   private getWelcomeEmailHtml(username: string, email: string, password: string, role: string): string {
     return `
       <!DOCTYPE html>
@@ -635,6 +683,184 @@ Please contact the referrer within 2 hours to arrange an assessment.
 Primary Contact: ${referralData.referrerEmail} or ${referralData.referrerPhone}
 
 This referral was submitted through the Smeaton Healthcare website.
+
+© ${new Date().getFullYear()} Smeaton Healthcare. All rights reserved.
+Healthcare staffing solutions across Devon and Cornwall
+    `;
+  }
+
+  private getPreScreenApplicationEmailHtml(applicationData: {
+    firstName: string;
+    lastName: string;
+    email: string;
+    phone: string;
+    location: string;
+    jobTitle: string;
+    branch: string;
+    experience?: string;
+    currentlyWorking?: boolean;
+    currentEmployer?: string;
+    referralSource?: string;
+    shiftPreferences?: string[];
+    hasDBS?: boolean;
+    hasMHCertificate?: boolean;
+    additionalInfo?: string;
+  }): string {
+    const timestamp = new Date().toLocaleString('en-GB', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+      timeZone: 'Europe/London'
+    });
+
+    return `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <meta charset="utf-8">
+        <title>New Job Application</title>
+        <style>
+          body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+          .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+          .header { background-color: #EF2587; color: white; padding: 20px; text-align: center; }
+          .content { padding: 20px; background-color: #f9f9f9; }
+          .info-section { background-color: white; padding: 15px; margin: 15px 0; border-left: 4px solid #275799; }
+          .footer { text-align: center; padding: 20px; color: #666; font-size: 14px; }
+          .highlight { background-color: #fff3cd; padding: 10px; border-radius: 5px; margin: 10px 0; }
+          h3 { color: #275799; margin-top: 0; }
+          .badge { display: inline-block; background-color: #275799; color: white; padding: 4px 8px; border-radius: 4px; font-size: 12px; margin: 2px; }
+        </style>
+      </head>
+      <body>
+        <div class="container">
+          <div class="header">
+            <h1>💼 New Job Application</h1>
+            <p>Received: ${timestamp}</p>
+          </div>
+          
+          <div class="content">
+            <div class="highlight">
+              <h2>Application for: ${applicationData.jobTitle}</h2>
+              <p><strong>Branch:</strong> ${applicationData.branch}</p>
+              <p><strong>Applicant:</strong> ${applicationData.firstName} ${applicationData.lastName}</p>
+            </div>
+
+            <div class="info-section">
+              <h3>👤 Contact Information</h3>
+              <p><strong>Name:</strong> ${applicationData.firstName} ${applicationData.lastName}</p>
+              <p><strong>Email:</strong> ${applicationData.email}</p>
+              <p><strong>Phone:</strong> ${applicationData.phone}</p>
+              <p><strong>Location:</strong> ${applicationData.location}</p>
+            </div>
+
+            <div class="info-section">
+              <h3>💼 Employment Details</h3>
+              ${applicationData.currentlyWorking !== undefined ? `<p><strong>Currently Working:</strong> ${applicationData.currentlyWorking ? 'Yes' : 'No'}</p>` : ''}
+              ${applicationData.currentEmployer ? `<p><strong>Current Employer:</strong> ${applicationData.currentEmployer}</p>` : ''}
+              ${applicationData.experience ? `<p><strong>Experience:</strong> ${applicationData.experience}</p>` : ''}
+              ${applicationData.referralSource ? `<p><strong>How they heard about us:</strong> ${applicationData.referralSource}</p>` : ''}
+            </div>
+
+            ${applicationData.shiftPreferences && applicationData.shiftPreferences.length > 0 ? `
+            <div class="info-section">
+              <h3>⏰ Shift Preferences</h3>
+              <p>${applicationData.shiftPreferences.map(pref => `<span class="badge">${pref}</span>`).join('')}</p>
+            </div>
+            ` : ''}
+
+            <div class="info-section">
+              <h3>📋 Certifications</h3>
+              <p><strong>DBS Check:</strong> ${applicationData.hasDBS === true ? 'Yes' : applicationData.hasDBS === false ? 'No' : 'Not specified'}</p>
+              <p><strong>Mental Health Certificate:</strong> ${applicationData.hasMHCertificate === true ? 'Yes' : applicationData.hasMHCertificate === false ? 'No' : 'Not specified'}</p>
+            </div>
+
+            ${applicationData.additionalInfo ? `
+            <div class="info-section">
+              <h3>📝 Additional Information</h3>
+              <p>${applicationData.additionalInfo}</p>
+            </div>
+            ` : ''}
+
+            <div class="info-section">
+              <h3>⚡ Next Steps</h3>
+              <p>Please review this application and contact the candidate within 24 hours.</p>
+              <p><strong>Primary Contact:</strong> ${applicationData.email} or ${applicationData.phone}</p>
+            </div>
+          </div>
+          
+          <div class="footer">
+            <p>&copy; ${new Date().getFullYear()} Smeaton Healthcare. All rights reserved.</p>
+            <p>Healthcare staffing solutions across Devon and Cornwall</p>
+          </div>
+        </div>
+      </body>
+      </html>
+    `;
+  }
+
+  private getPreScreenApplicationEmailText(applicationData: {
+    firstName: string;
+    lastName: string;
+    email: string;
+    phone: string;
+    location: string;
+    jobTitle: string;
+    branch: string;
+    experience?: string;
+    currentlyWorking?: boolean;
+    currentEmployer?: string;
+    referralSource?: string;
+    shiftPreferences?: string[];
+    hasDBS?: boolean;
+    hasMHCertificate?: boolean;
+    additionalInfo?: string;
+  }): string {
+    const timestamp = new Date().toLocaleString('en-GB', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+      timeZone: 'Europe/London'
+    });
+
+    return `
+New Job Application - Smeaton Healthcare
+Received: ${timestamp}
+
+===== APPLICATION FOR: ${applicationData.jobTitle} =====
+Branch: ${applicationData.branch}
+Applicant: ${applicationData.firstName} ${applicationData.lastName}
+
+===== CONTACT INFORMATION =====
+Name: ${applicationData.firstName} ${applicationData.lastName}
+Email: ${applicationData.email}
+Phone: ${applicationData.phone}
+Location: ${applicationData.location}
+
+===== EMPLOYMENT DETAILS =====
+${applicationData.currentlyWorking !== undefined ? `Currently Working: ${applicationData.currentlyWorking ? 'Yes' : 'No'}` : ''}
+${applicationData.currentEmployer ? `Current Employer: ${applicationData.currentEmployer}` : ''}
+${applicationData.experience ? `Experience: ${applicationData.experience}` : ''}
+${applicationData.referralSource ? `How they heard about us: ${applicationData.referralSource}` : ''}
+
+${applicationData.shiftPreferences && applicationData.shiftPreferences.length > 0 ? `===== SHIFT PREFERENCES =====
+${applicationData.shiftPreferences.join(', ')}
+
+` : ''}===== CERTIFICATIONS =====
+DBS Check: ${applicationData.hasDBS === true ? 'Yes' : applicationData.hasDBS === false ? 'No' : 'Not specified'}
+Mental Health Certificate: ${applicationData.hasMHCertificate === true ? 'Yes' : applicationData.hasMHCertificate === false ? 'No' : 'Not specified'}
+
+${applicationData.additionalInfo ? `===== ADDITIONAL INFORMATION =====
+${applicationData.additionalInfo}
+
+` : ''}===== NEXT STEPS =====
+Please review this application and contact the candidate within 24 hours.
+Primary Contact: ${applicationData.email} or ${applicationData.phone}
+
+This application was submitted through the Smeaton Healthcare website.
 
 © ${new Date().getFullYear()} Smeaton Healthcare. All rights reserved.
 Healthcare staffing solutions across Devon and Cornwall

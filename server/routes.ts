@@ -772,6 +772,35 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const validatedData = insertApplicationSchema.parse(req.body);
       const application = await storage.createApplication(validatedData);
+      
+      // Get job details for email notification
+      try {
+        const job = await storage.getJob(validatedData.jobId);
+        if (job) {
+          // Send email notification to recruitment team
+          await brevoService.sendPreScreenApplicationEmail({
+            firstName: validatedData.firstName,
+            lastName: validatedData.lastName,
+            email: validatedData.email,
+            phone: validatedData.phone,
+            location: validatedData.location,
+            jobTitle: job.title,
+            branch: job.branch || "Plymouth",
+            experience: validatedData.experience || undefined,
+            currentlyWorking: validatedData.currentlyWorking || undefined,
+            currentEmployer: validatedData.currentEmployer || undefined,
+            referralSource: validatedData.referralSource || undefined,
+            shiftPreferences: Array.isArray(validatedData.shiftPreferences) ? validatedData.shiftPreferences : undefined,
+            hasDBS: validatedData.hasDBS || undefined,
+            hasMHCertificate: validatedData.hasMHCertificate || undefined,
+            additionalInfo: validatedData.additionalInfo || undefined,
+          });
+        }
+      } catch (emailError) {
+        console.error("Error sending application notification email:", emailError);
+        // Don't fail the application creation if email fails
+      }
+      
       res.status(201).json(application);
     } catch (error) {
       console.error("Error creating application:", error);
