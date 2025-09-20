@@ -912,10 +912,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
           behavioralSupport, additionalInfo
         } = req.body;
 
-        // Validate required referral fields
-        if (!referrerName || !referrerEmail || !referrerPhone || !relationship ||
-            !clientName || !clientAge || !clientAddress || !serviceType || !urgency) {
-          return res.status(400).json({ message: "All required referral fields must be provided" });
+        // Validate required referral fields (referrer fields are optional for self-referrals)
+        if (!clientName || !clientAge || !clientAddress || !serviceType || !urgency) {
+          return res.status(400).json({ message: "Client name, age, address, service type, and urgency are required" });
         }
 
         // Send referral email notification to hello@smeatonhealthcare.co.uk
@@ -930,15 +929,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // Adapt referral data for database storage
         const submissionData = {
           type: "referral",
-          firstName: referrerName.split(' ')[0] || referrerName,
-          lastName: referrerName.split(' ').slice(1).join(' ') || '',
-          email: referrerEmail,
-          phone: referrerPhone,
+          firstName: referrerName ? (referrerName.split(' ')[0] || referrerName) : clientName.split(' ')[0] || clientName,
+          lastName: referrerName ? (referrerName.split(' ').slice(1).join(' ') || '') : (clientName.split(' ').slice(1).join(' ') || ''),
+          email: referrerEmail || 'no-email@provided.com',
+          phone: referrerPhone || 'No phone provided',
           location: clientAddress,
           serviceRequired: serviceType,
           additionalRequirements: [
             `Client: ${clientName} (Age: ${clientAge})`,
-            `Relationship: ${relationship}`,
+            referrerName ? `Referrer: ${referrerName}` : 'Self-referral',
+            relationship ? `Relationship: ${relationship}` : '',
+            referrerEmail ? `Referrer Email: ${referrerEmail}` : '',
+            referrerPhone ? `Referrer Phone: ${referrerPhone}` : '',
             clientPhone ? `Client Phone: ${clientPhone}` : '',
             `Urgency: ${urgency}`,
             startDate ? `Preferred Start: ${startDate}` : '',
