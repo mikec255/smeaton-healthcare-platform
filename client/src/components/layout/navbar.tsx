@@ -67,7 +67,7 @@ export default function Navbar() {
             <img 
               src={logoImage} 
               alt="Smeaton Healthcare" 
-              style={{ height: '144px', width: 'auto' }}
+              style={{ height: '100px', width: 'auto' }}
             />
           </Link>
           <div style={{ 
