@@ -44,7 +44,7 @@ export default function Navbar() {
       top: 0,
       left: 0,
       right: 0,
-      height: '160px',
+      height: '80px',
       backgroundColor: 'white',
       borderBottom: '1px solid #e5e7eb',
       boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
@@ -67,7 +67,7 @@ export default function Navbar() {
             <img 
               src={logoImage} 
               alt="Smeaton Healthcare" 
-              style={{ height: '100px', width: 'auto' }}
+              style={{ height: '144px', width: 'auto' }}
             />
           </Link>
           <div style={{ 
@@ -362,7 +362,7 @@ export default function Navbar() {
       {mobileMenuOpen && (
         <div style={{
           position: 'fixed',
-          top: '160px',
+          top: '80px',
           left: 0,
           right: 0,
           bottom: 0,
