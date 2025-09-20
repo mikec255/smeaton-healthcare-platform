@@ -459,7 +459,7 @@ Healthcare staffing solutions across Devon and Cornwall
       <body>
         <div class="container">
           <div class="header">
-            <h1>New Contact Form Submission</h1>
+            <h1>Website Contact Form</h1>
             <p>Smeaton Healthcare Website</p>
           </div>
           
