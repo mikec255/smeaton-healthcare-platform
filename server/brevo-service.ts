@@ -141,8 +141,8 @@ class BrevoService {
         htmlContent: this.getContactFormEmailHtml(contactData),
         textContent: this.getContactFormEmailText(contactData),
         sender: {
-          email: 'noreply@smeatonhealthcare.co.uk',
-          name: 'Smeaton Healthcare Website'
+          email: 'hello@smeatonhealthcare.co.uk',
+          name: 'Smeaton Healthcare'
         },
         replyTo: {
           email: contactData.email,
