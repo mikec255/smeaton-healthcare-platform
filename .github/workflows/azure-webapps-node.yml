@@ -27,7 +27,10 @@ jobs:
 
       - name: Build application
         run: |
-          npm run build
+          # Build frontend with vite
+          npx vite build
+          # Build server without vite dependency
+          node build.mjs
           ls -la dist/
 
       - name: Create deployment package
