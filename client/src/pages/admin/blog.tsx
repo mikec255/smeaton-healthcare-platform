@@ -340,15 +340,13 @@ export default function BlogAdmin() {
         <div 
           className="w-full bg-red-500 p-6 border-4 border-yellow-400" 
           style={{ 
-            position: "fixed", 
-            top: 0, 
-            left: 0, 
-            right: 0, 
+            position: "relative", 
             zIndex: 9999, 
             background: "red",
             color: "white",
             fontSize: "20px",
-            fontWeight: "bold"
+            fontWeight: "bold",
+            minHeight: "80px"
           }}
         >
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", width: "100%" }}>
