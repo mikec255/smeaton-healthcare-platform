@@ -20,6 +20,7 @@ const jobSchema = z.object({
   type: z.string().min(1, "Job type is required"),
   location: z.string().min(1, "Location is required"),
   department: z.string().optional(),
+  branch: z.string().min(1, "Branch is required"),
   salaryType: z.string().min(1, "Salary type is required"),
   salaryMin: z.number().min(0, "Minimum salary is required"),
   salaryMax: z.number().optional(),
@@ -50,6 +51,7 @@ export default function JobFormModal({ job, isOpen, onClose }: JobFormModalProps
       type: job.type,
       location: job.location,
       department: job.department || "",
+      branch: job.branch || "Plymouth",
       salaryType: job.salaryType,
       salaryMin: job.salaryMin,
       salaryMax: job.salaryMax || undefined,
@@ -65,6 +67,7 @@ export default function JobFormModal({ job, isOpen, onClose }: JobFormModalProps
       type: "",
       location: "",
       department: "",
+      branch: "Plymouth",
       salaryType: "",
       salaryMin: 0,
       salaryMax: undefined,
@@ -86,6 +89,7 @@ export default function JobFormModal({ job, isOpen, onClose }: JobFormModalProps
         type: job.type,
         location: job.location,
         department: job.department || "",
+        branch: job.branch || "Plymouth",
         salaryType: job.salaryType,
         salaryMin: job.salaryMin,
         salaryMax: job.salaryMax || undefined,
@@ -104,6 +108,7 @@ export default function JobFormModal({ job, isOpen, onClose }: JobFormModalProps
         type: "",
         location: "",
         department: "",
+        branch: "Plymouth",
         salaryType: "",
         salaryMin: 0,
         salaryMax: undefined,
@@ -250,6 +255,30 @@ export default function JobFormModal({ job, isOpen, onClose }: JobFormModalProps
                         <SelectItem value="care-at-home">Care at Home</SelectItem>
                         <SelectItem value="office">Office</SelectItem>
                         <SelectItem value="management">Management</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+            
+            <div className="grid md:grid-cols-1 gap-6">
+              <FormField
+                control={form.control}
+                name="branch"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Branch *</FormLabel>
+                    <Select onValueChange={field.onChange} value={field.value}>
+                      <FormControl>
+                        <SelectTrigger data-testid="select-branch">
+                          <SelectValue placeholder="Select branch..." />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="Plymouth">Plymouth</SelectItem>
+                        <SelectItem value="Truro">Truro</SelectItem>
                       </SelectContent>
                     </Select>
                     <FormMessage />
