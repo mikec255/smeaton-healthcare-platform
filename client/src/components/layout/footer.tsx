@@ -1,5 +1,5 @@
 import { Link } from "wouter";
-import { Heart, Mail, MapPin, Clock } from "lucide-react";
+import { Heart, Mail, MapPin, Clock, Phone } from "lucide-react";
 import smeatonLogo from "@assets/Untitled design-33_1757665477175.png";
 
 export default function Footer() {
@@ -31,25 +31,35 @@ export default function Footer() {
             <h4 className="font-semibold mb-4" style={{ marginTop: '0px', lineHeight: '32px', paddingTop: '48px' }} data-testid="footer-services-title">Services</h4>
             <ul className="space-y-2 text-gray-300">
               <li>
-                <Link href="/services" className="hover:text-white transition-colors" data-testid="footer-link-care-at-home">
-                  Care at Home
+                <Link href="/services/short-visits" className="hover:text-white transition-colors" data-testid="footer-link-short-visits">
+                  Short Visits
                 </Link>
               </li>
               <li>
-                <Link href="/services" className="hover:text-white transition-colors" data-testid="footer-link-live-in-care">
+                <Link href="/services/supported-living" className="hover:text-white transition-colors" data-testid="footer-link-supported-living">
+                  Supported Living
+                </Link>
+              </li>
+              <li>
+                <Link href="/services/care-24-7" className="hover:text-white transition-colors" data-testid="footer-link-care-24-7">
+                  Care 24/7
+                </Link>
+              </li>
+              <li>
+                <Link href="/services/live-in-care" className="hover:text-white transition-colors" data-testid="footer-link-live-in-care">
                   Live-in Care
                 </Link>
               </li>
               <li>
-                <Link href="/services" className="hover:text-white transition-colors" data-testid="footer-link-specialized-care">
-                  Specialized Care
+                <Link href="/services/respite" className="hover:text-white transition-colors" data-testid="footer-link-respite">
+                  Respite Care
                 </Link>
               </li>
             </ul>
           </div>
           
           <div>
-            <h4 className="font-semibold mb-4" style={{ marginTop: '0px', lineHeight: '32px', paddingTop: '48px' }} data-testid="footer-careers-title">Careers</h4>
+            <h4 className="font-semibold mb-4" style={{ marginTop: '0px', lineHeight: '32px', paddingTop: '48px' }} data-testid="footer-careers-title">Resources</h4>
             <ul className="space-y-2 text-gray-300">
               <li>
                 <Link href="/jobs" className="hover:text-white transition-colors" data-testid="footer-link-current-openings">
@@ -57,18 +67,18 @@ export default function Footer() {
                 </Link>
               </li>
               <li>
-                <Link href="/jobs" className="hover:text-white transition-colors" data-testid="footer-link-healthcare-assistants">
-                  Healthcare Assistants
+                <Link href="/resources/working-at-smeaton" className="hover:text-white transition-colors" data-testid="footer-link-working-at-smeaton">
+                  Working at Smeaton
                 </Link>
               </li>
               <li>
-                <Link href="/jobs" className="hover:text-white transition-colors" data-testid="footer-link-care-at-home-roles">
-                  Care at Home Roles
+                <Link href="/resources/blog" className="hover:text-white transition-colors" data-testid="footer-link-blog">
+                  Blog & News
                 </Link>
               </li>
               <li>
-                <Link href="/jobs" className="hover:text-white transition-colors" data-testid="footer-link-management-positions">
-                  Management Positions
+                <Link href="/referral" className="hover:text-white transition-colors" data-testid="footer-link-referrals">
+                  Make a Referral
                 </Link>
               </li>
             </ul>
@@ -81,9 +91,13 @@ export default function Footer() {
                 <Mail className="h-4 w-4 mr-2" />
                 hello@smeatonhealthcare.co.uk
               </li>
+              <li className="flex items-center" data-testid="footer-phone">
+                <Phone className="h-4 w-4 mr-2" />
+                0330 165 8880
+              </li>
               <li className="flex items-center" data-testid="footer-location">
                 <MapPin className="h-4 w-4 mr-2" />
-                Devon & Cornwall
+                Plymouth & Truro
               </li>
               <li className="flex items-center" data-testid="footer-availability">
                 <Clock className="h-4 w-4 mr-2" />
