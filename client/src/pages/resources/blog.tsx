@@ -89,18 +89,39 @@ export default function Blog() {
     return null;
   };
 
+  // Helper function to convert block style object to CSS string
+  const blockStyleToCss = (style: any): string => {
+    if (!style || typeof style !== 'object') return '';
+    
+    const cssProps: string[] = [];
+    
+    if (style.color) cssProps.push(`color: ${style.color}`);
+    if (style.backgroundColor) cssProps.push(`background-color: ${style.backgroundColor}`);
+    if (style.fontSize) cssProps.push(`font-size: ${style.fontSize}`);
+    if (style.fontWeight) cssProps.push(`font-weight: ${style.fontWeight}`);
+    if (style.textAlign) cssProps.push(`text-align: ${style.textAlign}`);
+    if (style.margin) cssProps.push(`margin: ${style.margin}`);
+    if (style.padding) cssProps.push(`padding: ${style.padding}`);
+    if (style.borderRadius) cssProps.push(`border-radius: ${style.borderRadius}`);
+    if (style.border) cssProps.push(`border: ${style.border}`);
+    
+    return cssProps.length > 0 ? ` style="${cssProps.join('; ')}"` : '';
+  };
+
   // Helper function to render visual editor blocks as HTML
   const renderBlocksAsHTML = (blocks: any[]): string => {
     if (!blocks || !Array.isArray(blocks)) return '';
     
     return blocks.map(block => {
+      const styleAttr = blockStyleToCss(block.style);
+      
       switch (block.type) {
         case 'header':
           const level = block.content?.level || 'h2';
-          return `<${level}>${block.content?.text || ''}</${level}>`;
+          return `<${level}${styleAttr}>${block.content?.text || ''}</${level}>`;
         
         case 'text':
-          return `<p>${block.content?.text || ''}</p>`;
+          return `<p${styleAttr}>${block.content?.text || ''}</p>`;
         
         case 'image':
           const imageSrc = block.content?.url || block.content?.src;
@@ -109,7 +130,7 @@ export default function Blog() {
             const caption = block.content?.caption || '';
             const proxyUrl = convertToProxyUrl(imageSrc);
             return `
-              <div class="image-block">
+              <div class="image-block"${styleAttr}>
                 <img src="${proxyUrl}" alt="${alt}" class="w-full h-auto rounded-lg" />
                 ${caption ? `<p class="text-sm text-gray-600 mt-2 italic">${caption}</p>` : ''}
               </div>
@@ -118,25 +139,28 @@ export default function Blog() {
           return '';
         
         case 'quote':
-          return `<blockquote class="border-l-4 border-primary pl-4 italic">${block.content?.text || ''}</blockquote>`;
+          return `<blockquote class="border-l-4 border-primary pl-4 italic"${styleAttr}>${block.content?.text || ''}</blockquote>`;
         
         case 'list':
           const items = block.content?.items || [];
           const isNumbered = block.content?.listType === 'numbered' || block.content?.ordered;
           const listType = isNumbered ? 'ol' : 'ul';
-          return `<${listType} class="${isNumbered ? 'list-decimal' : 'list-disc'} ml-6 space-y-1">${items.map((item: string) => `<li>${item}</li>`).join('')}</${listType}>`;
+          return `<${listType} class="${isNumbered ? 'list-decimal' : 'list-disc'} ml-6 space-y-1"${styleAttr}>${items.map((item: string) => `<li>${item}</li>`).join('')}</${listType}>`;
         
         case 'divider':
-          return '<hr class="my-4" />';
+          return `<hr class="my-4"${styleAttr} />`;
         
         case 'spacer':
           const height = block.content?.height || '20px';
-          return `<div style="height: ${height}"></div>`;
+          const spacerStyle = blockStyleToCss(block.style);
+          const combinedStyle = spacerStyle ? ` style="height: ${height}; ${spacerStyle.replace('style="', '').replace('"', '')}"` : ` style="height: ${height}"`;
+          return `<div${combinedStyle}></div>`;
         
         case 'button':
           const text = block.content?.text || 'Button';
           const url = block.content?.url || '#';
-          return `<a href="${url}" class="inline-block bg-primary text-white px-4 py-2 rounded hover:bg-primary/90">${text}</a>`;
+          const buttonClasses = "inline-block bg-primary text-white px-4 py-2 rounded hover:bg-primary/90";
+          return `<a href="${url}" class="${buttonClasses}"${styleAttr}>${text}</a>`;
         
         default:
           return '';
