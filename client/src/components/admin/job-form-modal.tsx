@@ -1,4 +1,5 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -76,6 +77,46 @@ export default function JobFormModal({ job, isOpen, onClose }: JobFormModalProps
       isActive: true,
     },
   });
+
+  // Reset form when job prop changes (for editing existing jobs)
+  useEffect(() => {
+    if (job) {
+      form.reset({
+        title: job.title,
+        type: job.type,
+        location: job.location,
+        department: job.department || "",
+        salaryType: job.salaryType,
+        salaryMin: job.salaryMin,
+        salaryMax: job.salaryMax || undefined,
+        summary: job.summary,
+        description: job.description,
+        requirements: job.requirements || "",
+        benefits: job.benefits || "",
+        reportsTo: job.reportsTo || "",
+        experienceLevel: job.experienceLevel || "",
+        isActive: job.isActive ?? true,
+      });
+    } else {
+      // Reset to empty form for creating new jobs
+      form.reset({
+        title: "",
+        type: "",
+        location: "",
+        department: "",
+        salaryType: "",
+        salaryMin: 0,
+        salaryMax: undefined,
+        summary: "",
+        description: "",
+        requirements: "",
+        benefits: "",
+        reportsTo: "",
+        experienceLevel: "",
+        isActive: true,
+      });
+    }
+  }, [job, form]);
 
   const createJobMutation = useMutation({
     mutationFn: async (data: z.infer<typeof jobSchema>) => {
