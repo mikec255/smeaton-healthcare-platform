@@ -39,7 +39,7 @@ export default function Jobs() {
     retry: false,
   });
 
-  const { data: jobs, isLoading } = useQuery<Job[]>({
+  const { data: jobs, isLoading, error, refetch } = useQuery<Job[]>({
     queryKey: [
       "/api/jobs", 
       { location: filters.location, type: filters.type, salaryRange: filters.salaryRange }
@@ -51,13 +51,19 @@ export default function Jobs() {
       if (filters.salaryRange && filters.salaryRange !== 'all') params.set('salaryRange', filters.salaryRange);
       
       const url = `/api/jobs${params.toString() ? `?${params.toString()}` : ''}`;
+      console.log('Fetching jobs from:', url);
       const response = await fetch(url);
       if (!response.ok) {
-        throw new Error('Failed to fetch jobs');
+        console.error('Failed to fetch jobs:', response.status, response.statusText);
+        throw new Error(`Failed to fetch jobs: ${response.status} ${response.statusText}`);
       }
-      return response.json();
+      const data = await response.json();
+      console.log('Jobs fetched successfully:', data);
+      return data;
     },
     enabled: true,
+    retry: 3,
+    retryDelay: 1000,
   });
 
   const handleFilterChange = (newFilters: typeof filters) => {
@@ -95,6 +101,28 @@ export default function Jobs() {
         <div className="text-center" data-testid="jobs-loading">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
           <p className="mt-2 text-muted-foreground">Loading job opportunities...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+        <div className="text-center" data-testid="jobs-error">
+          <div className="bg-destructive/10 border border-destructive/20 rounded-lg p-6 max-w-md mx-auto">
+            <h3 className="text-lg font-semibold text-destructive mb-2">Failed to load jobs</h3>
+            <p className="text-muted-foreground mb-4">
+              {error instanceof Error ? error.message : 'An unexpected error occurred'}
+            </p>
+            <Button 
+              onClick={() => refetch()} 
+              variant="outline"
+              data-testid="button-retry-jobs"
+            >
+              Try Again
+            </Button>
+          </div>
         </div>
       </div>
     );
