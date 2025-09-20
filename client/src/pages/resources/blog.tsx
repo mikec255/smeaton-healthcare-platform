@@ -58,21 +58,95 @@ export default function Blog() {
     });
   };
 
+  // Helper function to extract first image from visual editor blocks
+  const extractImageFromBlocks = (blocks: any[]): string | null => {
+    if (!blocks || !Array.isArray(blocks)) return null;
+    
+    for (const block of blocks) {
+      if (block.type === 'image' && block.content?.src) {
+        return block.content.src;
+      }
+    }
+    return null;
+  };
+
+  // Helper function to render visual editor blocks as HTML
+  const renderBlocksAsHTML = (blocks: any[]): string => {
+    if (!blocks || !Array.isArray(blocks)) return '';
+    
+    return blocks.map(block => {
+      switch (block.type) {
+        case 'header':
+          const level = block.content?.level || 'h2';
+          return `<${level}>${block.content?.text || ''}</${level}>`;
+        
+        case 'text':
+          return `<p>${block.content?.text || ''}</p>`;
+        
+        case 'image':
+          if (block.content?.src) {
+            const alt = block.content?.alt || '';
+            const caption = block.content?.caption || '';
+            return `
+              <div class="image-block">
+                <img src="${block.content.src}" alt="${alt}" class="w-full h-auto rounded-lg" />
+                ${caption ? `<p class="text-sm text-gray-600 mt-2 italic">${caption}</p>` : ''}
+              </div>
+            `;
+          }
+          return '';
+        
+        case 'quote':
+          return `<blockquote class="border-l-4 border-primary pl-4 italic">${block.content?.text || ''}</blockquote>`;
+        
+        case 'list':
+          const items = block.content?.items || [];
+          const listType = block.content?.ordered ? 'ol' : 'ul';
+          return `<${listType}>${items.map((item: string) => `<li>${item}</li>`).join('')}</${listType}>`;
+        
+        case 'divider':
+          return '<hr class="my-4" />';
+        
+        case 'spacer':
+          const height = block.content?.height || '20px';
+          return `<div style="height: ${height}"></div>`;
+        
+        case 'button':
+          const text = block.content?.text || 'Button';
+          const url = block.content?.url || '#';
+          return `<a href="${url}" class="inline-block bg-primary text-white px-4 py-2 rounded hover:bg-primary/90">${text}</a>`;
+        
+        default:
+          return '';
+      }
+    }).join('\n');
+  };
+
   // Transform API data to component format
   const transformedBlogPosts: TransformedBlogPost[] = useMemo(() => {
     if (!blogPosts.length || !categories.length) return [];
     
-    return blogPosts.map(post => ({
-      id: post.id,
-      title: post.title,
-      excerpt: post.excerpt,
-      date: formatDate(post.createdAt),
-      readTime: post.readTime || "5 min read",
-      author: post.author,
-      category: getCategoryName(post.categoryId),
-      image: post.imagePath || teamMeetingImg, // fallback to default image
-      fullContent: post.content
-    }));
+    return blogPosts.map(post => {
+      // Extract image from visual editor blocks or use imagePath
+      const blockImage = extractImageFromBlocks(post.blocks || []);
+      const displayImage = blockImage || post.imagePath || teamMeetingImg;
+      
+      // Render content from visual editor blocks or use regular content
+      const hasBlocks = post.blocks && Array.isArray(post.blocks) && post.blocks.length > 0;
+      const displayContent = hasBlocks ? renderBlocksAsHTML(post.blocks) : post.content;
+      
+      return {
+        id: post.id,
+        title: post.title,
+        excerpt: post.excerpt,
+        date: formatDate(post.createdAt),
+        readTime: post.readTime || "5 min read",
+        author: post.author,
+        category: getCategoryName(post.categoryId),
+        image: displayImage,
+        fullContent: displayContent
+      };
+    });
   }, [blogPosts, categories]);
 
   // Create category options with "All" option
