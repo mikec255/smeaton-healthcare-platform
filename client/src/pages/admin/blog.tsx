@@ -352,33 +352,11 @@ export default function BlogAdmin() {
             </div>
             <div className="flex gap-2">
               <Button
-                onClick={() => {
-                  toast({
-                    title: "Preview",
-                    description: "Preview functionality coming soon",
-                  });
-                }}
-                variant="outline"
-                data-testid="preview-blog"
-              >
-                <Eye className="h-4 w-4 mr-2" />
-                Preview
-              </Button>
-              <Button
-                onClick={saveVisualContent}
-                className="bg-green-600 hover:bg-green-700"
-                data-testid="save-content"
-              >
-                <Save className="h-4 w-4 mr-2" />
-                Save Changes
-              </Button>
-              <Button
                 onClick={saveAndCloseEditor}
-                className="bg-purple-600 hover:bg-purple-700"
+                className="bg-primary hover:bg-primary/90"
                 data-testid="save-and-close"
               >
-                <Save className="h-4 w-4 mr-2" />
-                Save & Close
+                💾 Save & Close
               </Button>
             </div>
           </div>
