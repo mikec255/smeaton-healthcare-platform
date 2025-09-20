@@ -226,8 +226,8 @@ class BrevoService {
         htmlContent: this.getPreScreenApplicationEmailHtml(applicationData),
         textContent: this.getPreScreenApplicationEmailText(applicationData),
         sender: {
-          email: 'applications@smeatonhealthcare.co.uk',
-          name: 'Smeaton Healthcare Applications'
+          email: 'hello@smeatonhealthcare.co.uk',
+          name: 'Smeaton Healthcare'
         }
       });
 
