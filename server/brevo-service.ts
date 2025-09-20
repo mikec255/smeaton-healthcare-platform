@@ -174,12 +174,8 @@ class BrevoService {
         htmlContent: this.getReferralEmailHtml(referralData),
         textContent: this.getReferralEmailText(referralData),
         sender: {
-          email: 'admin@smeatonhealthcare.co.uk',
-          name: 'Smeaton Healthcare Website'
-        },
-        replyTo: {
-          email: referralData.referrerEmail,
-          name: referralData.referrerName
+          email: 'hello@smeatonhealthcare.co.uk',
+          name: 'Smeaton Healthcare'
         }
       });
 
