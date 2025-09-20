@@ -805,6 +805,7 @@ export default function BlogAdmin() {
                     <Button
                       variant="outline"
                       size="sm"
+                      onClick={() => openVisualEditor(post)}
                       data-testid={`button-edit-${post.id}`}
                     >
                       <Edit className="h-4 w-4 mr-1" />
