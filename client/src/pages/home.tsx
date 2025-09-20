@@ -465,7 +465,7 @@ export default function Home({ heroTab = "find-care", onHeroTabChange }: { heroT
                     <TabsTrigger 
                       key={service.title}
                       value={slug}
-                      className="flex items-center gap-1 sm:gap-2 data-[state=active]:bg-primary data-[state=active]:text-white text-xs sm:text-sm px-2 sm:px-4 lg:px-6 py-2 sm:py-3 min-w-max flex-shrink-0 whitespace-nowrap"
+                      className="flex items-center justify-center gap-1 sm:gap-2 data-[state=active]:bg-primary data-[state=active]:text-white text-xs sm:text-sm px-2 sm:px-4 lg:px-6 py-2 sm:py-3 min-w-max flex-shrink-0 whitespace-nowrap"
                       data-testid={`tab-trigger-${slug}`}
                     >
                       <IconComponent className="h-3 w-3 sm:h-4 sm:w-4" />
