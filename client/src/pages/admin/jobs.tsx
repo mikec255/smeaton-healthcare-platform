@@ -12,6 +12,7 @@ import { type Job } from "@shared/schema";
 export default function JobsAdmin() {
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [branchFilter, setBranchFilter] = useState<string>("all");
   const [selectedJob, setSelectedJob] = useState<Job | null>(null);
   const [isJobModalOpen, setIsJobModalOpen] = useState(false);
 
@@ -28,7 +29,10 @@ export default function JobsAdmin() {
                          (statusFilter === "active" && job.isActive) ||
                          (statusFilter === "inactive" && !job.isActive);
     
-    return matchesSearch && matchesStatus;
+    const matchesBranch = branchFilter === "all" || 
+                         (job.branch || "Plymouth") === branchFilter;
+    
+    return matchesSearch && matchesStatus && matchesBranch;
   });
 
   const handleEditJob = (job: Job) => {
@@ -120,6 +124,16 @@ export default function JobsAdmin() {
                 data-testid="input-search"
               />
             </div>
+            <Select value={branchFilter} onValueChange={setBranchFilter}>
+              <SelectTrigger className="w-full sm:w-48" data-testid="select-branch-filter">
+                <SelectValue placeholder="Filter by branch" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Branches</SelectItem>
+                <SelectItem value="Plymouth">Plymouth</SelectItem>
+                <SelectItem value="Truro">Truro</SelectItem>
+              </SelectContent>
+            </Select>
             <Select value={statusFilter} onValueChange={setStatusFilter}>
               <SelectTrigger className="w-full sm:w-48" data-testid="select-status-filter">
                 <SelectValue placeholder="Filter by status" />

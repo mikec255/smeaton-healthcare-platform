@@ -140,6 +140,7 @@ export default function JobsTable({ jobs, onEdit }: JobsTableProps) {
           <TableHeader>
             <TableRow>
               <TableHead>Position</TableHead>
+              <TableHead>Branch</TableHead>
               <TableHead>Type</TableHead>
               <TableHead>Location</TableHead>
               <TableHead>Salary</TableHead>
@@ -161,6 +162,15 @@ export default function JobsTable({ jobs, onEdit }: JobsTableProps) {
                       </div>
                     )}
                   </div>
+                </TableCell>
+                <TableCell>
+                  <Badge 
+                    variant="outline" 
+                    className="bg-secondary/10 text-secondary border-secondary/20" 
+                    data-testid={`job-branch-${job.id}`}
+                  >
+                    {job.branch || "Plymouth"}
+                  </Badge>
                 </TableCell>
                 <TableCell>
                   <Badge className={getTypeColor(job.type)} data-testid={`job-type-badge-${job.id}`}>
