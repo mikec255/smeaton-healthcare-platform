@@ -478,11 +478,11 @@ export default function Referral() {
           <div className="grid md:grid-cols-2 gap-4 text-sm">
             <div className="flex items-center gap-2">
               <Phone className="h-4 w-4 text-primary" />
-              <span>Call us: 01752 123456</span>
+              <span>Call us: 0330 165 8880</span>
             </div>
             <div className="flex items-center gap-2">
               <Mail className="h-4 w-4 text-primary" />
-              <span>Email: referrals@smeatonhealthcare.com</span>
+              <span>Email: hello@smeatonhealthcare.co.uk</span>
             </div>
           </div>
           <p className="text-muted-foreground mt-4 text-sm">
