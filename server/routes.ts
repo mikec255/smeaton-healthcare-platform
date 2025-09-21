@@ -19,7 +19,7 @@ async function requireAdmin(req: any, res: any, next: any) {
     }
     
     // Always verify user still exists and is active from database
-    const dbUser = await storage.getUserById(req.session.user.userId);
+    const dbUser = await storage.getUserById(req.session.user.id);
     if (!dbUser || !dbUser.isActive) {
       // Clear invalid session
       req.session.destroy((err: any) => {
@@ -91,7 +91,7 @@ async function requireSuperAdmin(req: any, res: any, next: any) {
     }
     
     // Always verify user still exists and is superadmin from database
-    const dbUser = await storage.getUserById(req.session.user.userId);
+    const dbUser = await storage.getUserById(req.session.user.id);
     if (!dbUser || !dbUser.isActive || dbUser.role !== "superadmin") {
       req.session.destroy((err: any) => {
         if (err) console.error('Session destroy error:', err);
@@ -161,7 +161,7 @@ async function optionalAdmin(req: any, res: any, next: any) {
   if (process.env.NODE_ENV === 'production') {
     if (req.session?.user) {
       // Always verify user from database, never trust session role
-      const dbUser = await storage.getUserById(req.session.user.userId);
+      const dbUser = await storage.getUserById(req.session.user.id);
       if (dbUser && dbUser.isActive) {
         user = dbUser; // Use fresh database user
       }
@@ -169,7 +169,7 @@ async function optionalAdmin(req: any, res: any, next: any) {
   } else {
     // Development: Check session first
     if (req.session?.user) {
-      const dbUser = await storage.getUserById(req.session.user.userId);
+      const dbUser = await storage.getUserById(req.session.user.id);
       if (dbUser && dbUser.isActive) {
         user = dbUser; // Use database user, not session cache
       }
