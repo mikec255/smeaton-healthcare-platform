@@ -13,6 +13,17 @@ import "./types"; // Import type declarations
 
 // Secure session-based authentication for production
 async function requireAdmin(req: any, res: any, next: any) {
+  // Development debug logging
+  if (process.env.NODE_ENV !== 'production') {
+    console.log("RequireAdmin debug - NODE_ENV:", process.env.NODE_ENV);
+    console.log("RequireAdmin debug - Session exists:", !!req.session);
+    console.log("RequireAdmin debug - Session.user exists:", !!req.session?.user);
+    if (req.session?.user) {
+      console.log("RequireAdmin debug - Session.user.id:", req.session.user.id);
+      console.log("RequireAdmin debug - Session.user.role:", req.session.user.role);
+    }
+  }
+
   // In production, only use secure session-based auth
   if (process.env.NODE_ENV === 'production') {
     if (!req.session?.user) {
