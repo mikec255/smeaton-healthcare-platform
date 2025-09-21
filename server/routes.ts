@@ -220,7 +220,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     const allowedOrigins = [
       process.env.AZURE_FRONTEND_URL,
       process.env.FRONTEND_URL,
-      'https://your-app.azurewebsites.net',
+      'https://smeatonwebsite-aqhgfwdhcef2f7fq.uksouth-01.azurewebsites.net',
       'https://your-app.azurestaticapps.net'
     ].filter(Boolean);
     
