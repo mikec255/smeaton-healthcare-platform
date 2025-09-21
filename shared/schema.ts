@@ -268,6 +268,20 @@ export const blogPosts = pgTable("blog_posts", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
+// GDPR Audit Logging Table
+export const auditLogs = pgTable("audit_logs", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").references(() => users.id).notNull(),
+  username: text("username").notNull(), // Denormalized for faster queries
+  action: text("action").notNull(), // view, create, update, delete, export, etc.
+  resourceType: text("resource_type").notNull(), // job, application, contact, user, etc.
+  resourceId: varchar("resource_id"), // ID of the affected resource
+  details: json("details").$type<Record<string, any>>(), // Additional context
+  ipAddress: text("ip_address"),
+  userAgent: text("user_agent"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
 export const insertUserSchema = createInsertSchema(users).omit({
   id: true,
   createdAt: true,
@@ -365,6 +379,11 @@ export const insertBlogPostSchema = createInsertSchema(blogPosts).omit({
   })).optional(),
 });
 
+export const insertAuditLogSchema = createInsertSchema(auditLogs).omit({
+  id: true,
+  createdAt: true,
+});
+
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type User = typeof users.$inferSelect;
 export type InsertJob = z.infer<typeof insertJobSchema>;
@@ -391,3 +410,5 @@ export type InsertBlogCategory = z.infer<typeof insertBlogCategorySchema>;
 export type BlogCategory = typeof blogCategories.$inferSelect;
 export type InsertBlogPost = z.infer<typeof insertBlogPostSchema>;
 export type BlogPost = typeof blogPosts.$inferSelect;
+export type InsertAuditLog = z.infer<typeof insertAuditLogSchema>;
+export type AuditLog = typeof auditLogs.$inferSelect;

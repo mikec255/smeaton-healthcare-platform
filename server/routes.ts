@@ -7,6 +7,7 @@ import { storage } from "./storage";
 import { insertJobSchema, insertApplicationSchema, insertContactSubmissionSchema, insertFeedbackSchema, insertNewsletterSchema, insertNewsletterBlockSchema, insertTemplateSchema, insertBlogCategorySchema, insertBlogPostSchema, insertUserSchema, loginUserSchema, updateUserSchema } from "@shared/schema";
 import { ObjectStorageService } from "./objectStorage";
 import { brevoService } from "./brevo-service";
+import { AuditLogger } from "./audit";
 import { z } from "zod";
 import "./types"; // Import type declarations
 
@@ -64,7 +65,7 @@ async function requireAdmin(req: any, res: any, next: any) {
   
   // Fallback to session
   if (!user && req.session?.user) {
-    const dbUser = await storage.getUserById(req.session.user.userId);
+    const dbUser = await storage.getUserById(req.session.user.id);
     if (dbUser && dbUser.isActive) {
       user = dbUser;
     }
@@ -768,6 +769,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/applications", requireAdmin, async (req, res) => {
     try {
       const applications = await storage.getAllApplications();
+      
+      // Log GDPR-relevant action: admin viewing personal data
+      await AuditLogger.logView(req, req.user, "application", "bulk", {
+        action: "view_all_applications",
+        recordCount: applications.length
+      });
+      
       res.json(applications);
     } catch (error) {
       console.error("Error fetching all applications:", error);
@@ -835,6 +843,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (!application) {
         return res.status(404).json({ message: "Application not found" });
       }
+      
+      // Log GDPR-relevant action: admin modifying personal data
+      await AuditLogger.logUpdate(req, req.user, "application", req.params.id, {
+        action: "update_application_status",
+        newStatus: status,
+        applicantEmail: application.email
+      });
+      
       res.json(application);
     } catch (error) {
       console.error("Error updating application status:", error);
@@ -854,6 +870,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (!application) {
         return res.status(404).json({ message: "Application not found" });
       }
+      
+      // Log GDPR-relevant action: admin adding/modifying notes about personal data
+      await AuditLogger.logUpdate(req, req.user, "application", req.params.id, {
+        action: "update_application_notes",
+        notesLength: validatedData.notes?.length || 0,
+        applicantEmail: application.email
+      });
+      
       res.json(application);
     } catch (error) {
       console.error("Error updating application notes:", error);
@@ -870,12 +894,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const submissions = await storage.getAllContactSubmissions();
       
       // Filter by type if specified
+      let responseSubmissions = submissions;
       if (req.query.type) {
-        const filteredSubmissions = submissions.filter(submission => submission.type === req.query.type);
-        return res.json(filteredSubmissions);
+        responseSubmissions = submissions.filter(submission => submission.type === req.query.type);
       }
       
-      res.json(submissions);
+      // Log GDPR-relevant action: admin viewing personal data
+      await AuditLogger.logView(req, req.user, "contact_submission", "bulk", {
+        action: "view_all_contact_submissions",
+        recordCount: responseSubmissions.length,
+        filterType: req.query.type || "all"
+      });
+      
+      res.json(responseSubmissions);
     } catch (error) {
       console.error("Error fetching contact submissions:", error);
       res.status(500).json({ message: "Failed to fetch contact submissions" });
@@ -898,6 +929,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (!submission) {
         return res.status(404).json({ message: "Contact submission not found" });
       }
+      
+      // Log GDPR-relevant action: admin modifying personal data
+      await AuditLogger.logUpdate(req, req.user, "contact_submission", req.params.id, {
+        action: "update_contact_submission_status",
+        newStatus: status,
+        submissionType: submission.type,
+        submitterEmail: submission.email
+      });
+      
       res.json(submission);
     } catch (error) {
       console.error("Error updating contact submission:", error);
@@ -1353,6 +1393,52 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error deleting template:", error);
       res.status(500).json({ message: "Failed to delete template" });
+    }
+  });
+
+  // GDPR Audit Logs API
+  app.get("/api/audit-logs", requireAdmin, async (req, res) => {
+    try {
+      const { userId, resourceType, action, startDate, endDate } = req.query;
+      
+      const filters: any = {};
+      if (userId) filters.userId = userId as string;
+      if (resourceType) filters.resourceType = resourceType as string; 
+      if (action) filters.action = action as string;
+      if (startDate) filters.startDate = new Date(startDate as string);
+      if (endDate) filters.endDate = new Date(endDate as string);
+      
+      const logs = await storage.getAuditLogs(filters);
+      
+      // Log that admin is viewing audit logs (meta-logging)
+      await AuditLogger.logView(req, req.user, "audit_log", "bulk", {
+        action: "view_audit_logs",
+        recordCount: logs.length,
+        filters
+      });
+      
+      res.json(logs);
+    } catch (error) {
+      console.error("Error fetching audit logs:", error);
+      res.status(500).json({ message: "Failed to fetch audit logs" });
+    }
+  });
+
+  app.get("/api/audit-logs/resource/:resourceId", requireAdmin, async (req, res) => {
+    try {
+      const logs = await storage.getAuditLogsByResourceId(req.params.resourceId);
+      
+      // Log that admin is viewing resource-specific audit logs
+      await AuditLogger.logView(req, req.user, "audit_log", "resource_specific", {
+        action: "view_resource_audit_logs",
+        resourceId: req.params.resourceId,
+        recordCount: logs.length
+      });
+      
+      res.json(logs);
+    } catch (error) {
+      console.error("Error fetching resource audit logs:", error);
+      res.status(500).json({ message: "Failed to fetch resource audit logs" });
     }
   });
 

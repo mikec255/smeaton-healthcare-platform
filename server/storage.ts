@@ -1,7 +1,7 @@
-import { type User, type InsertUser, type Job, type InsertJob, type Application, type InsertApplication, type ContactSubmission, type InsertContactSubmission, type Feedback, type InsertFeedback, type Newsletter, type InsertNewsletter, type NewsletterBlock, type InsertNewsletterBlock, type Template, type InsertTemplate, type Subscriber, type InsertSubscriber, type Campaign, type InsertCampaign, type Delivery, type InsertDelivery, type BlogCategory, type InsertBlogCategory, type BlogPost, type InsertBlogPost } from "@shared/schema";
+import { type User, type InsertUser, type Job, type InsertJob, type Application, type InsertApplication, type ContactSubmission, type InsertContactSubmission, type Feedback, type InsertFeedback, type Newsletter, type InsertNewsletter, type NewsletterBlock, type InsertNewsletterBlock, type Template, type InsertTemplate, type Subscriber, type InsertSubscriber, type Campaign, type InsertCampaign, type Delivery, type InsertDelivery, type BlogCategory, type InsertBlogCategory, type BlogPost, type InsertBlogPost, type AuditLog, type InsertAuditLog } from "@shared/schema";
 import { randomUUID } from "crypto";
 import { db } from "./db";
-import { users, jobs, applications, contactSubmissions, blogCategories, blogPosts } from "@shared/schema";
+import { users, jobs, applications, contactSubmissions, blogCategories, blogPosts, auditLogs } from "@shared/schema";
 import { eq, and, desc } from "drizzle-orm";
 import bcrypt from "bcryptjs";
 
@@ -108,6 +108,11 @@ export interface IStorage {
   updateBlogPost(id: string, updates: Partial<InsertBlogPost>): Promise<BlogPost | undefined>;
   deleteBlogPost(id: string): Promise<boolean>;
   publishBlogPost(id: string): Promise<BlogPost | undefined>;
+  
+  // GDPR Audit Logging
+  createAuditLog(log: InsertAuditLog): Promise<AuditLog>;
+  getAuditLogs(filters?: { userId?: string; resourceType?: string; action?: string; startDate?: Date; endDate?: Date }): Promise<AuditLog[]>;
+  getAuditLogsByResourceId(resourceId: string): Promise<AuditLog[]>;
 }
 
 export class MemStorage implements IStorage {
@@ -124,6 +129,7 @@ export class MemStorage implements IStorage {
   private deliveries: Map<string, Delivery>;
   private blogCategories: Map<string, BlogCategory>;
   private blogPosts: Map<string, BlogPost>;
+  private auditLogs: Map<string, AuditLog>;
 
   constructor() {
     this.users = new Map();
@@ -139,6 +145,7 @@ export class MemStorage implements IStorage {
     this.deliveries = new Map();
     this.blogCategories = new Map();
     this.blogPosts = new Map();
+    this.auditLogs = new Map();
     
     // Initialize with sample jobs from the website
     this.initializeSampleJobs();
@@ -984,6 +991,44 @@ export class MemStorage implements IStorage {
     this.blogPosts.set(id, publishedPost);
     return publishedPost;
   }
+
+  // GDPR Audit Logging Methods
+  async createAuditLog(log: InsertAuditLog): Promise<AuditLog> {
+    const auditLog: AuditLog = {
+      id: randomUUID(),
+      ...log,
+      createdAt: new Date(),
+    };
+    this.auditLogs.set(auditLog.id, auditLog);
+    return auditLog;
+  }
+
+  async getAuditLogs(filters?: { userId?: string; resourceType?: string; action?: string; startDate?: Date; endDate?: Date }): Promise<AuditLog[]> {
+    const logs = Array.from(this.auditLogs.values());
+    
+    if (!filters) {
+      return logs.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
+    }
+
+    const filtered = logs.filter(log => {
+      if (filters.userId && log.userId !== filters.userId) return false;
+      if (filters.resourceType && log.resourceType !== filters.resourceType) return false;
+      if (filters.action && log.action !== filters.action) return false;
+      if (filters.startDate && log.createdAt < filters.startDate) return false;
+      if (filters.endDate && log.createdAt > filters.endDate) return false;
+      return true;
+    });
+
+    return filtered.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
+  }
+
+  async getAuditLogsByResourceId(resourceId: string): Promise<AuditLog[]> {
+    const logs = Array.from(this.auditLogs.values())
+      .filter(log => log.resourceId === resourceId)
+      .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
+    
+    return logs;
+  }
 }
 
 // Database storage implementation using Drizzle ORM
@@ -1341,6 +1386,47 @@ export class DrizzleStorage implements IStorage {
       .where(eq(blogPosts.id, id))
       .returning();
     return result[0];
+  }
+
+  // GDPR Audit Logging Methods
+  async createAuditLog(log: InsertAuditLog): Promise<AuditLog> {
+    const result = await db.insert(auditLogs).values(log).returning();
+    return result[0];
+  }
+
+  async getAuditLogs(filters?: { userId?: string; resourceType?: string; action?: string; startDate?: Date; endDate?: Date }): Promise<AuditLog[]> {
+    let query = db.select().from(auditLogs);
+
+    if (filters) {
+      const conditions = [];
+      
+      if (filters.userId) {
+        conditions.push(eq(auditLogs.userId, filters.userId));
+      }
+      if (filters.resourceType) {
+        conditions.push(eq(auditLogs.resourceType, filters.resourceType));
+      }
+      if (filters.action) {
+        conditions.push(eq(auditLogs.action, filters.action));
+      }
+      // Add date filters if needed - would require additional imports from drizzle-orm
+
+      if (conditions.length > 0) {
+        query = query.where(and(...conditions));
+      }
+    }
+
+    const result = await query.orderBy(desc(auditLogs.createdAt));
+    return result;
+  }
+
+  async getAuditLogsByResourceId(resourceId: string): Promise<AuditLog[]> {
+    const result = await db.select()
+      .from(auditLogs)
+      .where(eq(auditLogs.resourceId, resourceId))
+      .orderBy(desc(auditLogs.createdAt));
+    
+    return result;
   }
 }
 

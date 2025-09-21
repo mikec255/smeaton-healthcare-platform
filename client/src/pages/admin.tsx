@@ -14,7 +14,7 @@ import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import JobsTable from "@/components/admin/jobs-table";
 import JobFormModal from "@/components/admin/job-form-modal";
-import { Plus, Briefcase, UserPlus, Clock, CheckCircle, FileText, Send, Edit, ArrowRight, MessageSquare, Star, Mail, Users, UserCheck, Settings, BookOpen, LogOut, ChevronDown, ChevronRight, BarChart3 } from "lucide-react";
+import { Plus, Briefcase, UserPlus, Clock, CheckCircle, FileText, Send, Edit, ArrowRight, MessageSquare, Star, Mail, Users, UserCheck, Settings, BookOpen, LogOut, ChevronDown, ChevronRight, BarChart3, Shield } from "lucide-react";
 import { type Job, type Newsletter, type Feedback, type BlogPost, type User } from "@shared/schema";
 
 // Email configuration schema
@@ -291,6 +291,18 @@ export default function Admin() {
             status: emailConfig.configured ? "Configured" : "Not configured"
           },
           color: emailConfig.configured ? "bg-green-600 text-white hover:bg-green-700" : "bg-red-600 text-white hover:bg-red-700"
+        },
+        {
+          title: "Audit Logs",
+          description: "GDPR compliance tracking - view all admin actions involving personal data",
+          icon: Shield,
+          link: "/admin/audit-logs",
+          stats: {
+            total: "Secure",
+            status: "Compliant",
+            info: "GDPR Ready"
+          },
+          color: "bg-blue-600 text-white hover:bg-blue-700"
         }
       ]
     });
