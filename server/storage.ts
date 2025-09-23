@@ -1,7 +1,7 @@
-import { type User, type InsertUser, type Job, type InsertJob, type Application, type InsertApplication, type ContactSubmission, type InsertContactSubmission, type Feedback, type InsertFeedback, type Newsletter, type InsertNewsletter, type NewsletterBlock, type InsertNewsletterBlock, type Template, type InsertTemplate, type Subscriber, type InsertSubscriber, type Campaign, type InsertCampaign, type Delivery, type InsertDelivery, type BlogCategory, type InsertBlogCategory, type BlogPost, type InsertBlogPost, type AuditLog, type InsertAuditLog, type CqcAudit, type InsertCqcAudit, type CqcAuditCategory, type InsertCqcAuditCategory, type CqcChecklistItem, type InsertCqcChecklistItem, type CqcAuditResponse, type InsertCqcAuditResponse, type CqcComplianceRecord, type InsertCqcComplianceRecord } from "@shared/schema";
+import { type User, type InsertUser, type Job, type InsertJob, type Application, type InsertApplication, type ContactSubmission, type InsertContactSubmission, type Feedback, type InsertFeedback, type Newsletter, type InsertNewsletter, type NewsletterBlock, type InsertNewsletterBlock, type Template, type InsertTemplate, type Subscriber, type InsertSubscriber, type Campaign, type InsertCampaign, type Delivery, type InsertDelivery, type BlogCategory, type InsertBlogCategory, type BlogPost, type InsertBlogPost, type AuditLog, type InsertAuditLog, type CqcAudit, type InsertCqcAudit, type CqcAuditCategory, type InsertCqcAuditCategory, type CqcChecklistItem, type InsertCqcChecklistItem, type CqcAuditResponse, type InsertCqcAuditResponse, type CqcComplianceRecord, type InsertCqcComplianceRecord, type KnowledgeQuestionnaire, type InsertKnowledgeQuestionnaire, type KnowledgeQuestion, type InsertKnowledgeQuestion, type KnowledgeSession, type InsertKnowledgeSession, type KnowledgeResponse, type InsertKnowledgeResponse, type KnowledgeAction, type InsertKnowledgeAction } from "@shared/schema";
 import { randomUUID } from "crypto";
 import { db } from "./db";
-import { users, jobs, applications, contactSubmissions, blogCategories, blogPosts, auditLogs, cqcAudits, cqcAuditCategories, cqcChecklistItems, cqcAuditResponses, cqcComplianceRecords } from "@shared/schema";
+import { users, jobs, applications, contactSubmissions, blogCategories, blogPosts, auditLogs, cqcAudits, cqcAuditCategories, cqcChecklistItems, cqcAuditResponses, cqcComplianceRecords, knowledgeQuestionnaires, knowledgeQuestions, knowledgeSessions, knowledgeResponses, knowledgeActions } from "@shared/schema";
 import { eq, and, desc } from "drizzle-orm";
 import bcrypt from "bcryptjs";
 
@@ -148,6 +148,42 @@ export interface IStorage {
   createCqcComplianceRecord(record: InsertCqcComplianceRecord): Promise<CqcComplianceRecord>;
   updateCqcComplianceRecord(id: string, updates: Partial<InsertCqcComplianceRecord>): Promise<CqcComplianceRecord | undefined>;
   deleteCqcComplianceRecord(id: string): Promise<boolean>;
+
+  // Staff Knowledge Assessment Management
+  getAllKnowledgeQuestionnaires(filters?: { category?: string; subcategory?: string; isActive?: boolean }): Promise<KnowledgeQuestionnaire[]>;
+  getKnowledgeQuestionnaire(id: string): Promise<KnowledgeQuestionnaire | undefined>;
+  getKnowledgeQuestionnaireByShareableLink(shareableLink: string): Promise<KnowledgeQuestionnaire | undefined>;
+  createKnowledgeQuestionnaire(questionnaire: InsertKnowledgeQuestionnaire): Promise<KnowledgeQuestionnaire>;
+  updateKnowledgeQuestionnaire(id: string, updates: Partial<InsertKnowledgeQuestionnaire>): Promise<KnowledgeQuestionnaire | undefined>;
+  deleteKnowledgeQuestionnaire(id: string): Promise<boolean>;
+
+  // Knowledge Questions
+  getKnowledgeQuestions(questionnaireId: string): Promise<KnowledgeQuestion[]>;
+  getKnowledgeQuestion(id: string): Promise<KnowledgeQuestion | undefined>;
+  createKnowledgeQuestion(question: InsertKnowledgeQuestion): Promise<KnowledgeQuestion>;
+  updateKnowledgeQuestion(id: string, updates: Partial<InsertKnowledgeQuestion>): Promise<KnowledgeQuestion | undefined>;
+  deleteKnowledgeQuestion(id: string): Promise<boolean>;
+
+  // Knowledge Sessions
+  getAllKnowledgeSessions(filters?: { questionnaireId?: string; staffEmail?: string; status?: string }): Promise<KnowledgeSession[]>;
+  getKnowledgeSession(id: string): Promise<KnowledgeSession | undefined>;
+  createKnowledgeSession(session: InsertKnowledgeSession): Promise<KnowledgeSession>;
+  updateKnowledgeSession(id: string, updates: Partial<InsertKnowledgeSession>): Promise<KnowledgeSession | undefined>;
+  deleteKnowledgeSession(id: string): Promise<boolean>;
+
+  // Knowledge Responses
+  getKnowledgeResponses(sessionId: string): Promise<KnowledgeResponse[]>;
+  getKnowledgeResponse(id: string): Promise<KnowledgeResponse | undefined>;
+  createKnowledgeResponse(response: InsertKnowledgeResponse): Promise<KnowledgeResponse>;
+  updateKnowledgeResponse(id: string, updates: Partial<InsertKnowledgeResponse>): Promise<KnowledgeResponse | undefined>;
+  deleteKnowledgeResponse(id: string): Promise<boolean>;
+
+  // Knowledge Actions
+  getAllKnowledgeActions(filters?: { sessionId?: string; assignedTo?: string; status?: string }): Promise<KnowledgeAction[]>;
+  getKnowledgeAction(id: string): Promise<KnowledgeAction | undefined>;
+  createKnowledgeAction(action: InsertKnowledgeAction): Promise<KnowledgeAction>;
+  updateKnowledgeAction(id: string, updates: Partial<InsertKnowledgeAction>): Promise<KnowledgeAction | undefined>;
+  deleteKnowledgeAction(id: string): Promise<boolean>;
 }
 
 export class MemStorage implements IStorage {
@@ -170,6 +206,11 @@ export class MemStorage implements IStorage {
   private cqcChecklistItems: Map<string, CqcChecklistItem>;
   private cqcAuditResponses: Map<string, CqcAuditResponse>;
   private cqcComplianceRecords: Map<string, CqcComplianceRecord>;
+  private knowledgeQuestionnaires: Map<string, KnowledgeQuestionnaire>;
+  private knowledgeQuestions: Map<string, KnowledgeQuestion>;
+  private knowledgeSessions: Map<string, KnowledgeSession>;
+  private knowledgeResponses: Map<string, KnowledgeResponse>;
+  private knowledgeActions: Map<string, KnowledgeAction>;
 
   constructor() {
     this.users = new Map();
@@ -191,6 +232,11 @@ export class MemStorage implements IStorage {
     this.cqcChecklistItems = new Map();
     this.cqcAuditResponses = new Map();
     this.cqcComplianceRecords = new Map();
+    this.knowledgeQuestionnaires = new Map();
+    this.knowledgeQuestions = new Map();
+    this.knowledgeSessions = new Map();
+    this.knowledgeResponses = new Map();
+    this.knowledgeActions = new Map();
     
     // Initialize with sample jobs from the website
     this.initializeSampleJobs();
@@ -1954,6 +2000,230 @@ export class DrizzleStorage implements IStorage {
 
   async deleteCqcComplianceRecord(id: string): Promise<boolean> {
     const result = await db.delete(cqcComplianceRecords).where(eq(cqcComplianceRecords.id, id)).returning();
+    return result.length > 0;
+  }
+
+  // Staff Knowledge Assessment Methods
+  async getAllKnowledgeQuestionnaires(filters?: { category?: string; subcategory?: string; isActive?: boolean }): Promise<KnowledgeQuestionnaire[]> {
+    let query = db.select().from(knowledgeQuestionnaires);
+    
+    if (filters) {
+      const conditions = [];
+      
+      if (filters.category) {
+        conditions.push(eq(knowledgeQuestionnaires.category, filters.category));
+      }
+      if (filters.subcategory) {
+        conditions.push(eq(knowledgeQuestionnaires.subcategory, filters.subcategory));
+      }
+      if (filters.isActive !== undefined) {
+        conditions.push(eq(knowledgeQuestionnaires.isActive, filters.isActive));
+      }
+      
+      if (conditions.length > 0) {
+        query = query.where(and(...conditions));
+      }
+    }
+    
+    const result = await query.orderBy(desc(knowledgeQuestionnaires.createdAt));
+    return result;
+  }
+
+  async getKnowledgeQuestionnaire(id: string): Promise<KnowledgeQuestionnaire | undefined> {
+    const result = await db.select().from(knowledgeQuestionnaires).where(eq(knowledgeQuestionnaires.id, id)).limit(1);
+    return result[0];
+  }
+
+  async getKnowledgeQuestionnaireByShareableLink(shareableLink: string): Promise<KnowledgeQuestionnaire | undefined> {
+    const result = await db.select().from(knowledgeQuestionnaires).where(eq(knowledgeQuestionnaires.shareableLink, shareableLink)).limit(1);
+    return result[0];
+  }
+
+  async createKnowledgeQuestionnaire(questionnaire: InsertKnowledgeQuestionnaire): Promise<KnowledgeQuestionnaire> {
+    const result = await db.insert(knowledgeQuestionnaires).values(questionnaire).returning();
+    return result[0];
+  }
+
+  async updateKnowledgeQuestionnaire(id: string, updates: Partial<InsertKnowledgeQuestionnaire>): Promise<KnowledgeQuestionnaire | undefined> {
+    const updateData = {
+      ...updates,
+      updatedAt: new Date(),
+    };
+    
+    const result = await db.update(knowledgeQuestionnaires)
+      .set(updateData)
+      .where(eq(knowledgeQuestionnaires.id, id))
+      .returning();
+    return result[0];
+  }
+
+  async deleteKnowledgeQuestionnaire(id: string): Promise<boolean> {
+    const result = await db.delete(knowledgeQuestionnaires).where(eq(knowledgeQuestionnaires.id, id)).returning();
+    return result.length > 0;
+  }
+
+  // Knowledge Questions Methods
+  async getKnowledgeQuestions(questionnaireId: string): Promise<KnowledgeQuestion[]> {
+    const result = await db.select().from(knowledgeQuestions)
+      .where(eq(knowledgeQuestions.questionnaireId, questionnaireId))
+      .orderBy(knowledgeQuestions.sortOrder);
+    return result;
+  }
+
+  async getKnowledgeQuestion(id: string): Promise<KnowledgeQuestion | undefined> {
+    const result = await db.select().from(knowledgeQuestions).where(eq(knowledgeQuestions.id, id)).limit(1);
+    return result[0];
+  }
+
+  async createKnowledgeQuestion(question: InsertKnowledgeQuestion): Promise<KnowledgeQuestion> {
+    const result = await db.insert(knowledgeQuestions).values(question).returning();
+    return result[0];
+  }
+
+  async updateKnowledgeQuestion(id: string, updates: Partial<InsertKnowledgeQuestion>): Promise<KnowledgeQuestion | undefined> {
+    const result = await db.update(knowledgeQuestions)
+      .set(updates)
+      .where(eq(knowledgeQuestions.id, id))
+      .returning();
+    return result[0];
+  }
+
+  async deleteKnowledgeQuestion(id: string): Promise<boolean> {
+    const result = await db.delete(knowledgeQuestions).where(eq(knowledgeQuestions.id, id)).returning();
+    return result.length > 0;
+  }
+
+  // Knowledge Sessions Methods
+  async getAllKnowledgeSessions(filters?: { questionnaireId?: string; staffEmail?: string; status?: string }): Promise<KnowledgeSession[]> {
+    let query = db.select().from(knowledgeSessions);
+    
+    if (filters) {
+      const conditions = [];
+      
+      if (filters.questionnaireId) {
+        conditions.push(eq(knowledgeSessions.questionnaireId, filters.questionnaireId));
+      }
+      if (filters.staffEmail) {
+        conditions.push(eq(knowledgeSessions.staffEmail, filters.staffEmail));
+      }
+      if (filters.status) {
+        conditions.push(eq(knowledgeSessions.status, filters.status));
+      }
+      
+      if (conditions.length > 0) {
+        query = query.where(and(...conditions));
+      }
+    }
+    
+    const result = await query.orderBy(desc(knowledgeSessions.createdAt));
+    return result;
+  }
+
+  async getKnowledgeSession(id: string): Promise<KnowledgeSession | undefined> {
+    const result = await db.select().from(knowledgeSessions).where(eq(knowledgeSessions.id, id)).limit(1);
+    return result[0];
+  }
+
+  async createKnowledgeSession(session: InsertKnowledgeSession): Promise<KnowledgeSession> {
+    const result = await db.insert(knowledgeSessions).values(session).returning();
+    return result[0];
+  }
+
+  async updateKnowledgeSession(id: string, updates: Partial<InsertKnowledgeSession>): Promise<KnowledgeSession | undefined> {
+    const result = await db.update(knowledgeSessions)
+      .set(updates)
+      .where(eq(knowledgeSessions.id, id))
+      .returning();
+    return result[0];
+  }
+
+  async deleteKnowledgeSession(id: string): Promise<boolean> {
+    const result = await db.delete(knowledgeSessions).where(eq(knowledgeSessions.id, id)).returning();
+    return result.length > 0;
+  }
+
+  // Knowledge Responses Methods
+  async getKnowledgeResponses(sessionId: string): Promise<KnowledgeResponse[]> {
+    const result = await db.select().from(knowledgeResponses)
+      .where(eq(knowledgeResponses.sessionId, sessionId))
+      .orderBy(desc(knowledgeResponses.createdAt));
+    return result;
+  }
+
+  async getKnowledgeResponse(id: string): Promise<KnowledgeResponse | undefined> {
+    const result = await db.select().from(knowledgeResponses).where(eq(knowledgeResponses.id, id)).limit(1);
+    return result[0];
+  }
+
+  async createKnowledgeResponse(response: InsertKnowledgeResponse): Promise<KnowledgeResponse> {
+    const result = await db.insert(knowledgeResponses).values(response).returning();
+    return result[0];
+  }
+
+  async updateKnowledgeResponse(id: string, updates: Partial<InsertKnowledgeResponse>): Promise<KnowledgeResponse | undefined> {
+    const result = await db.update(knowledgeResponses)
+      .set(updates)
+      .where(eq(knowledgeResponses.id, id))
+      .returning();
+    return result[0];
+  }
+
+  async deleteKnowledgeResponse(id: string): Promise<boolean> {
+    const result = await db.delete(knowledgeResponses).where(eq(knowledgeResponses.id, id)).returning();
+    return result.length > 0;
+  }
+
+  // Knowledge Actions Methods
+  async getAllKnowledgeActions(filters?: { sessionId?: string; assignedTo?: string; status?: string }): Promise<KnowledgeAction[]> {
+    let query = db.select().from(knowledgeActions);
+    
+    if (filters) {
+      const conditions = [];
+      
+      if (filters.sessionId) {
+        conditions.push(eq(knowledgeActions.sessionId, filters.sessionId));
+      }
+      if (filters.assignedTo) {
+        conditions.push(eq(knowledgeActions.assignedTo, filters.assignedTo));
+      }
+      if (filters.status) {
+        conditions.push(eq(knowledgeActions.status, filters.status));
+      }
+      
+      if (conditions.length > 0) {
+        query = query.where(and(...conditions));
+      }
+    }
+    
+    const result = await query.orderBy(desc(knowledgeActions.createdAt));
+    return result;
+  }
+
+  async getKnowledgeAction(id: string): Promise<KnowledgeAction | undefined> {
+    const result = await db.select().from(knowledgeActions).where(eq(knowledgeActions.id, id)).limit(1);
+    return result[0];
+  }
+
+  async createKnowledgeAction(action: InsertKnowledgeAction): Promise<KnowledgeAction> {
+    const result = await db.insert(knowledgeActions).values(action).returning();
+    return result[0];
+  }
+
+  async updateKnowledgeAction(id: string, updates: Partial<InsertKnowledgeAction>): Promise<KnowledgeAction | undefined> {
+    const updateData = {
+      ...updates,
+      updatedAt: new Date(),
+    };
+    
+    const result = await db.update(knowledgeActions)
+      .set(updateData)
+      .where(eq(knowledgeActions.id, id))
+      .returning();
+    return result[0];
+  }
+
+  async deleteKnowledgeAction(id: string): Promise<boolean> {
+    const result = await db.delete(knowledgeActions).where(eq(knowledgeActions.id, id)).returning();
     return result.length > 0;
   }
 }
