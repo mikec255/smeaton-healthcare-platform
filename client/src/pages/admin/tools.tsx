@@ -14,7 +14,7 @@ export default function AdminTools() {
     carerWage: '',
     travelCosts: '',
     // UK overhead rates (these can be made configurable later)
-    nationalInsurance: 13.8, // Employer NI rate %
+    nationalInsurance: 15.0, // Employer NI rate %
     pensionContribution: 3.0, // Minimum auto-enrolment rate %
     holidayPay: 12.07, // Statutory holiday pay %
     insurance: 2.0, // Employer liability insurance %
@@ -369,7 +369,7 @@ export default function AdminTools() {
                 <div className="space-y-2 text-sm text-amber-800 dark:text-amber-200">
                   <p className="font-semibold">UK Employment Cost Information:</p>
                   <ul className="space-y-1 ml-4 list-disc">
-                    <li>National Insurance: Employer contribution rate (13.8% for 2024/25)</li>
+                    <li>National Insurance: Employer contribution rate (15.0% current rate)</li>
                     <li>Pension: Minimum auto-enrolment employer contribution (3%)</li>
                     <li>Holiday Pay: Statutory holiday entitlement calculation (12.07%)</li>
                     <li>Insurance: Employer liability and professional indemnity insurance</li>
