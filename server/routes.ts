@@ -4,7 +4,7 @@ import session from "express-session";
 import bcrypt from "bcryptjs";
 import crypto from "crypto";
 import { storage } from "./storage";
-import { insertJobSchema, insertApplicationSchema, insertContactSubmissionSchema, insertFeedbackSchema, insertNewsletterSchema, insertNewsletterBlockSchema, insertTemplateSchema, insertBlogCategorySchema, insertBlogPostSchema, insertUserSchema, loginUserSchema, updateUserSchema } from "@shared/schema";
+import { insertJobSchema, insertApplicationSchema, insertContactSubmissionSchema, insertFeedbackSchema, insertNewsletterSchema, insertNewsletterBlockSchema, insertTemplateSchema, insertBlogCategorySchema, insertBlogPostSchema, insertUserSchema, loginUserSchema, updateUserSchema, insertCqcAuditSchema, insertCqcAuditCategorySchema, insertCqcChecklistItemSchema, insertCqcAuditResponseSchema, insertCqcComplianceRecordSchema } from "@shared/schema";
 import { ObjectStorageService } from "./objectStorage";
 import { brevoService } from "./brevo-service";
 import { AuditLogger } from "./audit";
@@ -1674,6 +1674,354 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error publishing blog post:", error);
       res.status(500).json({ message: "Failed to publish blog post" });
+    }
+  });
+
+  // ========== CQC AUDIT API ROUTES ==========
+  
+  // CQC Audits
+  app.get("/api/cqc/audits", requireAdmin, async (req, res) => {
+    try {
+      const { auditType, status, auditorId } = req.query;
+      const audits = await storage.getAllCqcAudits({
+        auditType: auditType as string,
+        status: status as string,
+        auditorId: auditorId as string,
+      });
+      res.json(audits);
+    } catch (error) {
+      console.error("Error fetching CQC audits:", error);
+      res.status(500).json({ message: "Failed to fetch CQC audits" });
+    }
+  });
+
+  app.get("/api/cqc/audits/:id", requireAdmin, async (req, res) => {
+    try {
+      const audit = await storage.getCqcAudit(req.params.id);
+      if (!audit) {
+        return res.status(404).json({ message: "CQC audit not found" });
+      }
+      res.json(audit);
+    } catch (error) {
+      console.error("Error fetching CQC audit:", error);
+      res.status(500).json({ message: "Failed to fetch CQC audit" });
+    }
+  });
+
+  app.post("/api/cqc/audits", requireAdmin, async (req, res) => {
+    try {
+      const validatedData = insertCqcAuditSchema.parse(req.body);
+      const audit = await storage.createCqcAudit(validatedData);
+      
+      // Create audit log for compliance tracking
+      await AuditLogger.logCreate(
+        req,
+        req.user!,
+        'cqc_audit',
+        audit.id,
+        { auditType: audit.auditType, category: audit.category, title: audit.title }
+      );
+      
+      res.status(201).json(audit);
+    } catch (error) {
+      console.error("Error creating CQC audit:", error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid audit data", errors: error.errors });
+      }
+      res.status(500).json({ message: "Failed to create CQC audit" });
+    }
+  });
+
+  app.put("/api/cqc/audits/:id", requireAdmin, async (req, res) => {
+    try {
+      const validatedData = insertCqcAuditSchema.partial().parse(req.body);
+      const audit = await storage.updateCqcAudit(req.params.id, validatedData);
+      if (!audit) {
+        return res.status(404).json({ message: "CQC audit not found" });
+      }
+      
+      // Create audit log
+      await AuditLogger.logUpdate(
+        req,
+        req.user!,
+        'cqc_audit',
+        audit.id,
+        { ...validatedData, title: audit.title }
+      );
+      
+      res.json(audit);
+    } catch (error) {
+      console.error("Error updating CQC audit:", error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid audit data", errors: error.errors });
+      }
+      res.status(500).json({ message: "Failed to update CQC audit" });
+    }
+  });
+
+  app.delete("/api/cqc/audits/:id", requireAdmin, async (req, res) => {
+    try {
+      // Get audit details before deletion for logging
+      const existingAudit = await storage.getCqcAudit(req.params.id);
+      if (!existingAudit) {
+        return res.status(404).json({ message: "CQC audit not found" });
+      }
+      
+      const success = await storage.deleteCqcAudit(req.params.id);
+      if (!success) {
+        return res.status(404).json({ message: "CQC audit not found" });
+      }
+      
+      // Create audit log
+      await AuditLogger.logDelete(
+        req,
+        req.user!,
+        'cqc_audit',
+        req.params.id,
+        { auditType: existingAudit.auditType, title: existingAudit.title }
+      );
+      
+      res.status(204).send();
+    } catch (error) {
+      console.error("Error deleting CQC audit:", error);
+      res.status(500).json({ message: "Failed to delete CQC audit" });
+    }
+  });
+
+  // CQC Audit Categories
+  app.get("/api/cqc/audit-categories", requireAdmin, async (req, res) => {
+    try {
+      const { auditType } = req.query;
+      const categories = await storage.getAllCqcAuditCategories(auditType as string);
+      res.json(categories);
+    } catch (error) {
+      console.error("Error fetching CQC audit categories:", error);
+      res.status(500).json({ message: "Failed to fetch CQC audit categories" });
+    }
+  });
+
+  app.post("/api/cqc/audit-categories", requireAdmin, async (req, res) => {
+    try {
+      const validatedData = insertCqcAuditCategorySchema.parse(req.body);
+      const category = await storage.createCqcAuditCategory(validatedData);
+      res.status(201).json(category);
+    } catch (error) {
+      console.error("Error creating CQC audit category:", error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid category data", errors: error.errors });
+      }
+      res.status(500).json({ message: "Failed to create CQC audit category" });
+    }
+  });
+
+  app.put("/api/cqc/audit-categories/:id", requireAdmin, async (req, res) => {
+    try {
+      const validatedData = insertCqcAuditCategorySchema.partial().parse(req.body);
+      const category = await storage.updateCqcAuditCategory(req.params.id, validatedData);
+      if (!category) {
+        return res.status(404).json({ message: "CQC audit category not found" });
+      }
+      res.json(category);
+    } catch (error) {
+      console.error("Error updating CQC audit category:", error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid category data", errors: error.errors });
+      }
+      res.status(500).json({ message: "Failed to update CQC audit category" });
+    }
+  });
+
+  // CQC Checklist Items
+  app.get("/api/cqc/checklist-items", requireAdmin, async (req, res) => {
+    try {
+      const { categoryId } = req.query;
+      const items = await storage.getCqcChecklistItems(categoryId as string);
+      res.json(items);
+    } catch (error) {
+      console.error("Error fetching CQC checklist items:", error);
+      res.status(500).json({ message: "Failed to fetch CQC checklist items" });
+    }
+  });
+
+  app.post("/api/cqc/checklist-items", requireAdmin, async (req, res) => {
+    try {
+      const validatedData = insertCqcChecklistItemSchema.parse(req.body);
+      const item = await storage.createCqcChecklistItem(validatedData);
+      res.status(201).json(item);
+    } catch (error) {
+      console.error("Error creating CQC checklist item:", error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid checklist item data", errors: error.errors });
+      }
+      res.status(500).json({ message: "Failed to create CQC checklist item" });
+    }
+  });
+
+  app.put("/api/cqc/checklist-items/:id", requireAdmin, async (req, res) => {
+    try {
+      const validatedData = insertCqcChecklistItemSchema.partial().parse(req.body);
+      const item = await storage.updateCqcChecklistItem(req.params.id, validatedData);
+      if (!item) {
+        return res.status(404).json({ message: "CQC checklist item not found" });
+      }
+      res.json(item);
+    } catch (error) {
+      console.error("Error updating CQC checklist item:", error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid checklist item data", errors: error.errors });
+      }
+      res.status(500).json({ message: "Failed to update CQC checklist item" });
+    }
+  });
+
+  // CQC Audit Responses
+  app.get("/api/cqc/audits/:auditId/responses", requireAdmin, async (req, res) => {
+    try {
+      const responses = await storage.getCqcAuditResponses(req.params.auditId);
+      res.json(responses);
+    } catch (error) {
+      console.error("Error fetching CQC audit responses:", error);
+      res.status(500).json({ message: "Failed to fetch CQC audit responses" });
+    }
+  });
+
+  app.post("/api/cqc/audit-responses", requireAdmin, async (req, res) => {
+    try {
+      const validatedData = insertCqcAuditResponseSchema.parse(req.body);
+      const response = await storage.createCqcAuditResponse(validatedData);
+      res.status(201).json(response);
+    } catch (error) {
+      console.error("Error creating CQC audit response:", error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid audit response data", errors: error.errors });
+      }
+      res.status(500).json({ message: "Failed to create CQC audit response" });
+    }
+  });
+
+  app.put("/api/cqc/audit-responses/:id", requireAdmin, async (req, res) => {
+    try {
+      const validatedData = insertCqcAuditResponseSchema.partial().parse(req.body);
+      const response = await storage.updateCqcAuditResponse(req.params.id, validatedData);
+      if (!response) {
+        return res.status(404).json({ message: "CQC audit response not found" });
+      }
+      res.json(response);
+    } catch (error) {
+      console.error("Error updating CQC audit response:", error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid audit response data", errors: error.errors });
+      }
+      res.status(500).json({ message: "Failed to update CQC audit response" });
+    }
+  });
+
+  // CQC Compliance Records
+  app.get("/api/cqc/compliance-records", requireAdmin, async (req, res) => {
+    try {
+      const { staffId, recordType, status } = req.query;
+      const records = await storage.getAllCqcComplianceRecords({
+        staffId: staffId as string,
+        recordType: recordType as string,
+        status: status as string,
+      });
+      res.json(records);
+    } catch (error) {
+      console.error("Error fetching CQC compliance records:", error);
+      res.status(500).json({ message: "Failed to fetch CQC compliance records" });
+    }
+  });
+
+  app.get("/api/cqc/compliance-records/:id", requireAdmin, async (req, res) => {
+    try {
+      const record = await storage.getCqcComplianceRecord(req.params.id);
+      if (!record) {
+        return res.status(404).json({ message: "CQC compliance record not found" });
+      }
+      res.json(record);
+    } catch (error) {
+      console.error("Error fetching CQC compliance record:", error);
+      res.status(500).json({ message: "Failed to fetch CQC compliance record" });
+    }
+  });
+
+  app.post("/api/cqc/compliance-records", requireAdmin, async (req, res) => {
+    try {
+      const validatedData = insertCqcComplianceRecordSchema.parse(req.body);
+      const record = await storage.createCqcComplianceRecord(validatedData);
+      
+      // Create audit log for compliance tracking
+      await AuditLogger.logCreate(
+        req,
+        req.user!,
+        'cqc_compliance_record',
+        record.id,
+        { recordType: record.recordType, staffId: record.staffId, title: record.title }
+      );
+      
+      res.status(201).json(record);
+    } catch (error) {
+      console.error("Error creating CQC compliance record:", error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid compliance record data", errors: error.errors });
+      }
+      res.status(500).json({ message: "Failed to create CQC compliance record" });
+    }
+  });
+
+  app.put("/api/cqc/compliance-records/:id", requireAdmin, async (req, res) => {
+    try {
+      const validatedData = insertCqcComplianceRecordSchema.partial().parse(req.body);
+      const record = await storage.updateCqcComplianceRecord(req.params.id, validatedData);
+      if (!record) {
+        return res.status(404).json({ message: "CQC compliance record not found" });
+      }
+      
+      // Create audit log
+      await AuditLogger.logUpdate(
+        req,
+        req.user!,
+        'cqc_compliance_record',
+        record.id,
+        { ...validatedData, title: record.title }
+      );
+      
+      res.json(record);
+    } catch (error) {
+      console.error("Error updating CQC compliance record:", error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid compliance record data", errors: error.errors });
+      }
+      res.status(500).json({ message: "Failed to update CQC compliance record" });
+    }
+  });
+
+  app.delete("/api/cqc/compliance-records/:id", requireAdmin, async (req, res) => {
+    try {
+      // Get record details before deletion for logging
+      const existingRecord = await storage.getCqcComplianceRecord(req.params.id);
+      if (!existingRecord) {
+        return res.status(404).json({ message: "CQC compliance record not found" });
+      }
+      
+      const success = await storage.deleteCqcComplianceRecord(req.params.id);
+      if (!success) {
+        return res.status(404).json({ message: "CQC compliance record not found" });
+      }
+      
+      // Create audit log
+      await AuditLogger.logDelete(
+        req,
+        req.user!,
+        'cqc_compliance_record',
+        req.params.id,
+        { recordType: existingRecord.recordType, staffId: existingRecord.staffId, title: existingRecord.title }
+      );
+      
+      res.status(204).send();
+    } catch (error) {
+      console.error("Error deleting CQC compliance record:", error);
+      res.status(500).json({ message: "Failed to delete CQC compliance record" });
     }
   });
 

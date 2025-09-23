@@ -1,7 +1,7 @@
-import { type User, type InsertUser, type Job, type InsertJob, type Application, type InsertApplication, type ContactSubmission, type InsertContactSubmission, type Feedback, type InsertFeedback, type Newsletter, type InsertNewsletter, type NewsletterBlock, type InsertNewsletterBlock, type Template, type InsertTemplate, type Subscriber, type InsertSubscriber, type Campaign, type InsertCampaign, type Delivery, type InsertDelivery, type BlogCategory, type InsertBlogCategory, type BlogPost, type InsertBlogPost, type AuditLog, type InsertAuditLog } from "@shared/schema";
+import { type User, type InsertUser, type Job, type InsertJob, type Application, type InsertApplication, type ContactSubmission, type InsertContactSubmission, type Feedback, type InsertFeedback, type Newsletter, type InsertNewsletter, type NewsletterBlock, type InsertNewsletterBlock, type Template, type InsertTemplate, type Subscriber, type InsertSubscriber, type Campaign, type InsertCampaign, type Delivery, type InsertDelivery, type BlogCategory, type InsertBlogCategory, type BlogPost, type InsertBlogPost, type AuditLog, type InsertAuditLog, type CqcAudit, type InsertCqcAudit, type CqcAuditCategory, type InsertCqcAuditCategory, type CqcChecklistItem, type InsertCqcChecklistItem, type CqcAuditResponse, type InsertCqcAuditResponse, type CqcComplianceRecord, type InsertCqcComplianceRecord } from "@shared/schema";
 import { randomUUID } from "crypto";
 import { db } from "./db";
-import { users, jobs, applications, contactSubmissions, blogCategories, blogPosts, auditLogs } from "@shared/schema";
+import { users, jobs, applications, contactSubmissions, blogCategories, blogPosts, auditLogs, cqcAudits, cqcAuditCategories, cqcChecklistItems, cqcAuditResponses, cqcComplianceRecords } from "@shared/schema";
 import { eq, and, desc } from "drizzle-orm";
 import bcrypt from "bcryptjs";
 
@@ -113,6 +113,41 @@ export interface IStorage {
   createAuditLog(log: InsertAuditLog): Promise<AuditLog>;
   getAuditLogs(filters?: { userId?: string; resourceType?: string; action?: string; startDate?: Date; endDate?: Date }): Promise<AuditLog[]>;
   getAuditLogsByResourceId(resourceId: string): Promise<AuditLog[]>;
+  
+  // CQC Audit Management
+  getAllCqcAudits(filters?: { auditType?: string; status?: string; auditorId?: string }): Promise<CqcAudit[]>;
+  getCqcAudit(id: string): Promise<CqcAudit | undefined>;
+  createCqcAudit(audit: InsertCqcAudit): Promise<CqcAudit>;
+  updateCqcAudit(id: string, updates: Partial<InsertCqcAudit>): Promise<CqcAudit | undefined>;
+  deleteCqcAudit(id: string): Promise<boolean>;
+  
+  // CQC Audit Categories
+  getAllCqcAuditCategories(auditType?: string): Promise<CqcAuditCategory[]>;
+  getCqcAuditCategory(id: string): Promise<CqcAuditCategory | undefined>;
+  createCqcAuditCategory(category: InsertCqcAuditCategory): Promise<CqcAuditCategory>;
+  updateCqcAuditCategory(id: string, updates: Partial<InsertCqcAuditCategory>): Promise<CqcAuditCategory | undefined>;
+  deleteCqcAuditCategory(id: string): Promise<boolean>;
+  
+  // CQC Checklist Items
+  getCqcChecklistItems(categoryId?: string): Promise<CqcChecklistItem[]>;
+  getCqcChecklistItem(id: string): Promise<CqcChecklistItem | undefined>;
+  createCqcChecklistItem(item: InsertCqcChecklistItem): Promise<CqcChecklistItem>;
+  updateCqcChecklistItem(id: string, updates: Partial<InsertCqcChecklistItem>): Promise<CqcChecklistItem | undefined>;
+  deleteCqcChecklistItem(id: string): Promise<boolean>;
+  
+  // CQC Audit Responses
+  getCqcAuditResponses(auditId: string): Promise<CqcAuditResponse[]>;
+  getCqcAuditResponse(id: string): Promise<CqcAuditResponse | undefined>;
+  createCqcAuditResponse(response: InsertCqcAuditResponse): Promise<CqcAuditResponse>;
+  updateCqcAuditResponse(id: string, updates: Partial<InsertCqcAuditResponse>): Promise<CqcAuditResponse | undefined>;
+  deleteCqcAuditResponse(id: string): Promise<boolean>;
+  
+  // CQC Compliance Records
+  getAllCqcComplianceRecords(filters?: { staffId?: string; recordType?: string; status?: string }): Promise<CqcComplianceRecord[]>;
+  getCqcComplianceRecord(id: string): Promise<CqcComplianceRecord | undefined>;
+  createCqcComplianceRecord(record: InsertCqcComplianceRecord): Promise<CqcComplianceRecord>;
+  updateCqcComplianceRecord(id: string, updates: Partial<InsertCqcComplianceRecord>): Promise<CqcComplianceRecord | undefined>;
+  deleteCqcComplianceRecord(id: string): Promise<boolean>;
 }
 
 export class MemStorage implements IStorage {
@@ -130,6 +165,11 @@ export class MemStorage implements IStorage {
   private blogCategories: Map<string, BlogCategory>;
   private blogPosts: Map<string, BlogPost>;
   private auditLogs: Map<string, AuditLog>;
+  private cqcAudits: Map<string, CqcAudit>;
+  private cqcAuditCategories: Map<string, CqcAuditCategory>;
+  private cqcChecklistItems: Map<string, CqcChecklistItem>;
+  private cqcAuditResponses: Map<string, CqcAuditResponse>;
+  private cqcComplianceRecords: Map<string, CqcComplianceRecord>;
 
   constructor() {
     this.users = new Map();
@@ -146,6 +186,11 @@ export class MemStorage implements IStorage {
     this.blogCategories = new Map();
     this.blogPosts = new Map();
     this.auditLogs = new Map();
+    this.cqcAudits = new Map();
+    this.cqcAuditCategories = new Map();
+    this.cqcChecklistItems = new Map();
+    this.cqcAuditResponses = new Map();
+    this.cqcComplianceRecords = new Map();
     
     // Initialize with sample jobs from the website
     this.initializeSampleJobs();
@@ -158,6 +203,7 @@ export class MemStorage implements IStorage {
         title: "Service Manager",
         type: "permanent",
         location: "Plymouth",
+        branch: "Plymouth",
         department: "Care at Home",
         salaryType: "annual",
         salaryMin: 28600,
@@ -177,6 +223,7 @@ export class MemStorage implements IStorage {
         title: "Homecare Assistant",
         type: "care-at-home",
         location: "Devon & Cornwall",
+        branch: "Multi-Location",
         department: "Care at Home",
         salaryType: "hourly",
         salaryMin: 1150, // £11.50 in pence
@@ -196,6 +243,7 @@ export class MemStorage implements IStorage {
         title: "Live-in Care",
         type: "care-at-home",
         location: "Various Locations",
+        branch: "Multi-Location",
         department: "Care at Home",
         salaryType: "weekly",
         salaryMin: 80000, // £800 in pence
@@ -354,6 +402,7 @@ export class MemStorage implements IStorage {
       ...jobData,
       id,
       department: jobData.department || null,
+      branch: jobData.branch,
       salaryMax: jobData.salaryMax || null,
       requirements: jobData.requirements || null,
       benefits: jobData.benefits || null,
@@ -409,6 +458,7 @@ export class MemStorage implements IStorage {
       additionalInfo: applicationData.additionalInfo || null,
       status: applicationData.status || "pending",
       notes: applicationData.notes || null,
+      referralSource: applicationData.referralSource || null,
       createdAt: new Date(),
     };
     this.applications.set(id, application);
@@ -948,6 +998,7 @@ export class MemStorage implements IStorage {
     const post: BlogPost = {
       ...postData,
       id,
+      content: postData.content || null,
       excerpt: postData.excerpt || null,
       imagePath: postData.imagePath || null,
       readTime: postData.readTime || null,
@@ -997,6 +1048,10 @@ export class MemStorage implements IStorage {
     const auditLog: AuditLog = {
       id: randomUUID(),
       ...log,
+      resourceId: log.resourceId || null,
+      details: log.details || null,
+      ipAddress: log.ipAddress || null,
+      userAgent: log.userAgent || null,
       createdAt: new Date(),
     };
     this.auditLogs.set(auditLog.id, auditLog);
@@ -1007,27 +1062,286 @@ export class MemStorage implements IStorage {
     const logs = Array.from(this.auditLogs.values());
     
     if (!filters) {
-      return logs.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
+      return logs.sort((a, b) => (b.createdAt?.getTime() || 0) - (a.createdAt?.getTime() || 0));
     }
 
     const filtered = logs.filter(log => {
       if (filters.userId && log.userId !== filters.userId) return false;
       if (filters.resourceType && log.resourceType !== filters.resourceType) return false;
       if (filters.action && log.action !== filters.action) return false;
-      if (filters.startDate && log.createdAt < filters.startDate) return false;
-      if (filters.endDate && log.createdAt > filters.endDate) return false;
+      if (filters.startDate && log.createdAt && log.createdAt < filters.startDate) return false;
+      if (filters.endDate && log.createdAt && log.createdAt > filters.endDate) return false;
       return true;
     });
 
-    return filtered.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
+    return filtered.sort((a, b) => (b.createdAt?.getTime() || 0) - (a.createdAt?.getTime() || 0));
   }
 
   async getAuditLogsByResourceId(resourceId: string): Promise<AuditLog[]> {
     const logs = Array.from(this.auditLogs.values())
       .filter(log => log.resourceId === resourceId)
-      .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
+      .sort((a, b) => (b.createdAt?.getTime() || 0) - (a.createdAt?.getTime() || 0));
     
     return logs;
+  }
+
+  // CQC Audit Management Methods
+  async getAllCqcAudits(filters?: { auditType?: string; status?: string; auditorId?: string }): Promise<CqcAudit[]> {
+    let audits = Array.from(this.cqcAudits.values());
+    
+    if (filters?.auditType) {
+      audits = audits.filter(audit => audit.auditType === filters.auditType);
+    }
+    if (filters?.status) {
+      audits = audits.filter(audit => audit.status === filters.status);
+    }
+    if (filters?.auditorId) {
+      audits = audits.filter(audit => audit.auditorId === filters.auditorId);
+    }
+    
+    return audits.sort((a, b) => (b.createdAt?.getTime() || 0) - (a.createdAt?.getTime() || 0));
+  }
+
+  async getCqcAudit(id: string): Promise<CqcAudit | undefined> {
+    return this.cqcAudits.get(id);
+  }
+
+  async createCqcAudit(auditData: InsertCqcAudit): Promise<CqcAudit> {
+    const id = randomUUID();
+    const audit: CqcAudit = {
+      ...auditData,
+      id,
+      status: auditData.status || "draft",
+      score: auditData.score || null,
+      totalItems: auditData.totalItems || null,
+      compliantItems: auditData.compliantItems || null,
+      actionItemsCount: auditData.actionItemsCount || null,
+      findings: auditData.findings || null,
+      recommendations: auditData.recommendations || null,
+      nextAuditDue: auditData.nextAuditDue || null,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+    this.cqcAudits.set(id, audit);
+    return audit;
+  }
+
+  async updateCqcAudit(id: string, updates: Partial<InsertCqcAudit>): Promise<CqcAudit | undefined> {
+    const audit = this.cqcAudits.get(id);
+    if (!audit) return undefined;
+    
+    const updatedAudit: CqcAudit = {
+      ...audit,
+      ...updates,
+      updatedAt: new Date(),
+    };
+    this.cqcAudits.set(id, updatedAudit);
+    return updatedAudit;
+  }
+
+  async deleteCqcAudit(id: string): Promise<boolean> {
+    return this.cqcAudits.delete(id);
+  }
+
+  // CQC Audit Categories Methods
+  async getAllCqcAuditCategories(auditType?: string): Promise<CqcAuditCategory[]> {
+    let categories = Array.from(this.cqcAuditCategories.values()).filter(cat => cat.isActive);
+    
+    if (auditType) {
+      categories = categories.filter(category => category.auditType === auditType);
+    }
+    
+    return categories.sort((a, b) => (a.sortOrder || 0) - (b.sortOrder || 0));
+  }
+
+  async getCqcAuditCategory(id: string): Promise<CqcAuditCategory | undefined> {
+    return this.cqcAuditCategories.get(id);
+  }
+
+  async createCqcAuditCategory(categoryData: InsertCqcAuditCategory): Promise<CqcAuditCategory> {
+    const id = randomUUID();
+    const category: CqcAuditCategory = {
+      ...categoryData,
+      id,
+      isActive: categoryData.isActive ?? true,
+      sortOrder: categoryData.sortOrder || 0,
+      createdAt: new Date(),
+    };
+    this.cqcAuditCategories.set(id, category);
+    return category;
+  }
+
+  async updateCqcAuditCategory(id: string, updates: Partial<InsertCqcAuditCategory>): Promise<CqcAuditCategory | undefined> {
+    const category = this.cqcAuditCategories.get(id);
+    if (!category) return undefined;
+    
+    const updatedCategory: CqcAuditCategory = {
+      ...category,
+      ...updates,
+    };
+    this.cqcAuditCategories.set(id, updatedCategory);
+    return updatedCategory;
+  }
+
+  async deleteCqcAuditCategory(id: string): Promise<boolean> {
+    return this.cqcAuditCategories.delete(id);
+  }
+
+  // CQC Checklist Items Methods
+  async getCqcChecklistItems(categoryId?: string): Promise<CqcChecklistItem[]> {
+    let items = Array.from(this.cqcChecklistItems.values()).filter(item => item.isActive);
+    
+    if (categoryId) {
+      items = items.filter(item => item.categoryId === categoryId);
+    }
+    
+    return items.sort((a, b) => (a.sortOrder || 0) - (b.sortOrder || 0));
+  }
+
+  async getCqcChecklistItem(id: string): Promise<CqcChecklistItem | undefined> {
+    return this.cqcChecklistItems.get(id);
+  }
+
+  async createCqcChecklistItem(itemData: InsertCqcChecklistItem): Promise<CqcChecklistItem> {
+    const id = randomUUID();
+    const item: CqcChecklistItem = {
+      ...itemData,
+      id,
+      guidance: itemData.guidance || null,
+      regulationReference: itemData.regulationReference || null,
+      isRequired: itemData.isRequired ?? true,
+      section: itemData.section || null,
+      sortOrder: itemData.sortOrder || 0,
+      isActive: itemData.isActive ?? true,
+      createdAt: new Date(),
+    };
+    this.cqcChecklistItems.set(id, item);
+    return item;
+  }
+
+  async updateCqcChecklistItem(id: string, updates: Partial<InsertCqcChecklistItem>): Promise<CqcChecklistItem | undefined> {
+    const item = this.cqcChecklistItems.get(id);
+    if (!item) return undefined;
+    
+    const updatedItem: CqcChecklistItem = {
+      ...item,
+      ...updates,
+    };
+    this.cqcChecklistItems.set(id, updatedItem);
+    return updatedItem;
+  }
+
+  async deleteCqcChecklistItem(id: string): Promise<boolean> {
+    return this.cqcChecklistItems.delete(id);
+  }
+
+  // CQC Audit Responses Methods
+  async getCqcAuditResponses(auditId: string): Promise<CqcAuditResponse[]> {
+    return Array.from(this.cqcAuditResponses.values())
+      .filter(response => response.auditId === auditId)
+      .sort((a, b) => (b.createdAt?.getTime() || 0) - (a.createdAt?.getTime() || 0));
+  }
+
+  async getCqcAuditResponse(id: string): Promise<CqcAuditResponse | undefined> {
+    return this.cqcAuditResponses.get(id);
+  }
+
+  async createCqcAuditResponse(responseData: InsertCqcAuditResponse): Promise<CqcAuditResponse> {
+    const id = randomUUID();
+    const response: CqcAuditResponse = {
+      ...responseData,
+      id,
+      evidence: responseData.evidence || null,
+      actionRequired: responseData.actionRequired || null,
+      actionDueDate: responseData.actionDueDate || null,
+      actionOwner: responseData.actionOwner || null,
+      actionStatus: responseData.actionStatus || 'pending',
+      actionCompletedDate: responseData.actionCompletedDate || null,
+      notes: responseData.notes || null,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+    this.cqcAuditResponses.set(id, response);
+    return response;
+  }
+
+  async updateCqcAuditResponse(id: string, updates: Partial<InsertCqcAuditResponse>): Promise<CqcAuditResponse | undefined> {
+    const response = this.cqcAuditResponses.get(id);
+    if (!response) return undefined;
+    
+    const updatedResponse: CqcAuditResponse = {
+      ...response,
+      ...updates,
+      updatedAt: new Date(),
+    };
+    this.cqcAuditResponses.set(id, updatedResponse);
+    return updatedResponse;
+  }
+
+  async deleteCqcAuditResponse(id: string): Promise<boolean> {
+    return this.cqcAuditResponses.delete(id);
+  }
+
+  // CQC Compliance Records Methods
+  async getAllCqcComplianceRecords(filters?: { staffId?: string; recordType?: string; status?: string }): Promise<CqcComplianceRecord[]> {
+    let records = Array.from(this.cqcComplianceRecords.values());
+    
+    if (filters?.staffId) {
+      records = records.filter(record => record.staffId === filters.staffId);
+    }
+    if (filters?.recordType) {
+      records = records.filter(record => record.recordType === filters.recordType);
+    }
+    if (filters?.status) {
+      records = records.filter(record => record.status === filters.status);
+    }
+    
+    return records.sort((a, b) => (b.createdAt?.getTime() || 0) - (a.createdAt?.getTime() || 0));
+  }
+
+  async getCqcComplianceRecord(id: string): Promise<CqcComplianceRecord | undefined> {
+    return this.cqcComplianceRecords.get(id);
+  }
+
+  async createCqcComplianceRecord(recordData: InsertCqcComplianceRecord): Promise<CqcComplianceRecord> {
+    const id = randomUUID();
+    const record: CqcComplianceRecord = {
+      ...recordData,
+      id,
+      staffId: recordData.staffId || null,
+      staffName: recordData.staffName || null,
+      issueDate: recordData.issueDate || null,
+      expiryDate: recordData.expiryDate || null,
+      renewalDue: recordData.renewalDue || null,
+      status: recordData.status || 'active',
+      certificateNumber: recordData.certificateNumber || null,
+      issuingBody: recordData.issuingBody || null,
+      documentPath: recordData.documentPath || null,
+      notes: recordData.notes || null,
+      reminderSent: recordData.reminderSent || false,
+      lastReminderDate: recordData.lastReminderDate || null,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+    this.cqcComplianceRecords.set(id, record);
+    return record;
+  }
+
+  async updateCqcComplianceRecord(id: string, updates: Partial<InsertCqcComplianceRecord>): Promise<CqcComplianceRecord | undefined> {
+    const record = this.cqcComplianceRecords.get(id);
+    if (!record) return undefined;
+    
+    const updatedRecord: CqcComplianceRecord = {
+      ...record,
+      ...updates,
+      updatedAt: new Date(),
+    };
+    this.cqcComplianceRecords.set(id, updatedRecord);
+    return updatedRecord;
+  }
+
+  async deleteCqcComplianceRecord(id: string): Promise<boolean> {
+    return this.cqcComplianceRecords.delete(id);
   }
 }
 
@@ -1427,6 +1741,220 @@ export class DrizzleStorage implements IStorage {
       .orderBy(desc(auditLogs.createdAt));
     
     return result;
+  }
+
+  // CQC Audit Management Methods
+  async getAllCqcAudits(filters?: { auditType?: string; status?: string; auditorId?: string }): Promise<CqcAudit[]> {
+    let query = db.select().from(cqcAudits);
+    
+    if (filters) {
+      const conditions = [];
+      
+      if (filters.auditType) {
+        conditions.push(eq(cqcAudits.auditType, filters.auditType));
+      }
+      if (filters.status) {
+        conditions.push(eq(cqcAudits.status, filters.status));
+      }
+      if (filters.auditorId) {
+        conditions.push(eq(cqcAudits.auditorId, filters.auditorId));
+      }
+      
+      if (conditions.length > 0) {
+        query = query.where(and(...conditions));
+      }
+    }
+    
+    const result = await query.orderBy(desc(cqcAudits.createdAt));
+    return result;
+  }
+
+  async getCqcAudit(id: string): Promise<CqcAudit | undefined> {
+    const result = await db.select().from(cqcAudits).where(eq(cqcAudits.id, id)).limit(1);
+    return result[0];
+  }
+
+  async createCqcAudit(audit: InsertCqcAudit): Promise<CqcAudit> {
+    const result = await db.insert(cqcAudits).values(audit).returning();
+    return result[0];
+  }
+
+  async updateCqcAudit(id: string, updates: Partial<InsertCqcAudit>): Promise<CqcAudit | undefined> {
+    const updateData = {
+      ...updates,
+      updatedAt: new Date(),
+    };
+    
+    const result = await db.update(cqcAudits)
+      .set(updateData)
+      .where(eq(cqcAudits.id, id))
+      .returning();
+    return result[0];
+  }
+
+  async deleteCqcAudit(id: string): Promise<boolean> {
+    const result = await db.delete(cqcAudits).where(eq(cqcAudits.id, id)).returning();
+    return result.length > 0;
+  }
+
+  // CQC Audit Categories Methods
+  async getAllCqcAuditCategories(auditType?: string): Promise<CqcAuditCategory[]> {
+    let query = db.select().from(cqcAuditCategories).where(eq(cqcAuditCategories.isActive, true));
+    
+    if (auditType) {
+      query = query.where(and(eq(cqcAuditCategories.isActive, true), eq(cqcAuditCategories.auditType, auditType)));
+    }
+    
+    const result = await query.orderBy(cqcAuditCategories.sortOrder);
+    return result;
+  }
+
+  async getCqcAuditCategory(id: string): Promise<CqcAuditCategory | undefined> {
+    const result = await db.select().from(cqcAuditCategories).where(eq(cqcAuditCategories.id, id)).limit(1);
+    return result[0];
+  }
+
+  async createCqcAuditCategory(category: InsertCqcAuditCategory): Promise<CqcAuditCategory> {
+    const result = await db.insert(cqcAuditCategories).values(category).returning();
+    return result[0];
+  }
+
+  async updateCqcAuditCategory(id: string, updates: Partial<InsertCqcAuditCategory>): Promise<CqcAuditCategory | undefined> {
+    const result = await db.update(cqcAuditCategories)
+      .set(updates)
+      .where(eq(cqcAuditCategories.id, id))
+      .returning();
+    return result[0];
+  }
+
+  async deleteCqcAuditCategory(id: string): Promise<boolean> {
+    const result = await db.delete(cqcAuditCategories).where(eq(cqcAuditCategories.id, id)).returning();
+    return result.length > 0;
+  }
+
+  // CQC Checklist Items Methods
+  async getCqcChecklistItems(categoryId?: string): Promise<CqcChecklistItem[]> {
+    let query = db.select().from(cqcChecklistItems).where(eq(cqcChecklistItems.isActive, true));
+    
+    if (categoryId) {
+      query = query.where(and(eq(cqcChecklistItems.isActive, true), eq(cqcChecklistItems.categoryId, categoryId)));
+    }
+    
+    const result = await query.orderBy(cqcChecklistItems.sortOrder);
+    return result;
+  }
+
+  async getCqcChecklistItem(id: string): Promise<CqcChecklistItem | undefined> {
+    const result = await db.select().from(cqcChecklistItems).where(eq(cqcChecklistItems.id, id)).limit(1);
+    return result[0];
+  }
+
+  async createCqcChecklistItem(item: InsertCqcChecklistItem): Promise<CqcChecklistItem> {
+    const result = await db.insert(cqcChecklistItems).values(item).returning();
+    return result[0];
+  }
+
+  async updateCqcChecklistItem(id: string, updates: Partial<InsertCqcChecklistItem>): Promise<CqcChecklistItem | undefined> {
+    const result = await db.update(cqcChecklistItems)
+      .set(updates)
+      .where(eq(cqcChecklistItems.id, id))
+      .returning();
+    return result[0];
+  }
+
+  async deleteCqcChecklistItem(id: string): Promise<boolean> {
+    const result = await db.delete(cqcChecklistItems).where(eq(cqcChecklistItems.id, id)).returning();
+    return result.length > 0;
+  }
+
+  // CQC Audit Responses Methods
+  async getCqcAuditResponses(auditId: string): Promise<CqcAuditResponse[]> {
+    const result = await db.select().from(cqcAuditResponses)
+      .where(eq(cqcAuditResponses.auditId, auditId))
+      .orderBy(desc(cqcAuditResponses.createdAt));
+    return result;
+  }
+
+  async getCqcAuditResponse(id: string): Promise<CqcAuditResponse | undefined> {
+    const result = await db.select().from(cqcAuditResponses).where(eq(cqcAuditResponses.id, id)).limit(1);
+    return result[0];
+  }
+
+  async createCqcAuditResponse(response: InsertCqcAuditResponse): Promise<CqcAuditResponse> {
+    const result = await db.insert(cqcAuditResponses).values(response).returning();
+    return result[0];
+  }
+
+  async updateCqcAuditResponse(id: string, updates: Partial<InsertCqcAuditResponse>): Promise<CqcAuditResponse | undefined> {
+    const updateData = {
+      ...updates,
+      updatedAt: new Date(),
+    };
+    
+    const result = await db.update(cqcAuditResponses)
+      .set(updateData)
+      .where(eq(cqcAuditResponses.id, id))
+      .returning();
+    return result[0];
+  }
+
+  async deleteCqcAuditResponse(id: string): Promise<boolean> {
+    const result = await db.delete(cqcAuditResponses).where(eq(cqcAuditResponses.id, id)).returning();
+    return result.length > 0;
+  }
+
+  // CQC Compliance Records Methods
+  async getAllCqcComplianceRecords(filters?: { staffId?: string; recordType?: string; status?: string }): Promise<CqcComplianceRecord[]> {
+    let query = db.select().from(cqcComplianceRecords);
+    
+    if (filters) {
+      const conditions = [];
+      
+      if (filters.staffId) {
+        conditions.push(eq(cqcComplianceRecords.staffId, filters.staffId));
+      }
+      if (filters.recordType) {
+        conditions.push(eq(cqcComplianceRecords.recordType, filters.recordType));
+      }
+      if (filters.status) {
+        conditions.push(eq(cqcComplianceRecords.status, filters.status));
+      }
+      
+      if (conditions.length > 0) {
+        query = query.where(and(...conditions));
+      }
+    }
+    
+    const result = await query.orderBy(desc(cqcComplianceRecords.createdAt));
+    return result;
+  }
+
+  async getCqcComplianceRecord(id: string): Promise<CqcComplianceRecord | undefined> {
+    const result = await db.select().from(cqcComplianceRecords).where(eq(cqcComplianceRecords.id, id)).limit(1);
+    return result[0];
+  }
+
+  async createCqcComplianceRecord(record: InsertCqcComplianceRecord): Promise<CqcComplianceRecord> {
+    const result = await db.insert(cqcComplianceRecords).values(record).returning();
+    return result[0];
+  }
+
+  async updateCqcComplianceRecord(id: string, updates: Partial<InsertCqcComplianceRecord>): Promise<CqcComplianceRecord | undefined> {
+    const updateData = {
+      ...updates,
+      updatedAt: new Date(),
+    };
+    
+    const result = await db.update(cqcComplianceRecords)
+      .set(updateData)
+      .where(eq(cqcComplianceRecords.id, id))
+      .returning();
+    return result[0];
+  }
+
+  async deleteCqcComplianceRecord(id: string): Promise<boolean> {
+    const result = await db.delete(cqcComplianceRecords).where(eq(cqcComplianceRecords.id, id)).returning();
+    return result.length > 0;
   }
 }
 
