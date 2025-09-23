@@ -15,7 +15,7 @@ import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
 
 export default function AdminTools() {
-  const [packageType, setPackageType] = useState('hourly'); // 'hourly' or 'live-in'
+  const [packageType, setPackageType] = useState('hourly'); // 'hourly', 'live-in', or 'care24x7'
   const [calculation, setCalculation] = useState({
     chargeRate: '',
     hours: '',
@@ -24,6 +24,17 @@ export default function AdminTools() {
     carerWage: '',
     travelCosts: '',
     foodAllowance: '',
+    // 24/7 Care specific fields
+    dayChargeRate: '',
+    nightChargeRate: '',
+    dayWageRate: '',
+    nightWageRate: '',
+    dayHours: '',
+    nightHours: '',
+    periodDays: '7',
+    calcMode: 'weekly', // 'weekly' or 'hourly'
+    travelDayPerShift: '',
+    travelNightPerShift: '',
     // UK overhead rates (these can be made configurable later)
     nationalInsurance: 15.0, // Employer NI rate %
     pensionContribution: 3.0, // Minimum auto-enrolment rate %
@@ -43,6 +54,14 @@ export default function AdminTools() {
     shiftMargin: 0,
     hourlyMargin: 0,
     marginPercentage: 0,
+    // 24/7 Care specific results
+    dayRevenue: 0,
+    nightRevenue: 0,
+    dayWage: 0,
+    nightWage: 0,
+    dayMargin: 0,
+    nightMargin: 0,
+    totalHours: 0,
   });
 
   const [showQuoteModal, setShowQuoteModal] = useState(false);
@@ -73,21 +92,48 @@ export default function AdminTools() {
     const travelCosts = parseFloat(calculation.travelCosts) || 0;
     const foodAllowance = parseFloat(calculation.foodAllowance) || 0;
 
+    // 24/7 Care specific values
+    const dayChargeRate = parseFloat(calculation.dayChargeRate) || 0;
+    const nightChargeRate = parseFloat(calculation.nightChargeRate) || 0;
+    const dayWageRate = parseFloat(calculation.dayWageRate) || 0;
+    const nightWageRate = parseFloat(calculation.nightWageRate) || 0;
+    const dayHours = parseFloat(calculation.dayHours) || 0;
+    const nightHours = parseFloat(calculation.nightHours) || 0;
+    const periodDays = parseFloat(calculation.periodDays) || 7;
+    const travelDayPerShift = parseFloat(calculation.travelDayPerShift) || 0;
+    const travelNightPerShift = parseFloat(calculation.travelNightPerShift) || 0;
 
     let totalRevenue = 0;
     let grossWage = 0;
     let totalHours = 0;
+    let dayRevenue = 0;
+    let nightRevenue = 0;
+    let dayWage = 0;
+    let nightWage = 0;
 
     if (packageType === 'hourly') {
       // Hourly package calculations
       totalRevenue = chargeRate * hours;
       grossWage = carerWage * hours;
       totalHours = hours;
-    } else {
+    } else if (packageType === 'live-in') {
       // Live-in care package calculations: hourly rate × hours per day × number of days
       totalHours = hoursPerDay * days;
       totalRevenue = chargeRate * totalHours;
       grossWage = carerWage * totalHours;
+    } else if (packageType === 'care24x7') {
+      // 24/7 Care calculations
+      const totalDayHours = calculation.calcMode === 'weekly' ? dayHours * periodDays : dayHours;
+      const totalNightHours = calculation.calcMode === 'weekly' ? nightHours * periodDays : nightHours;
+      totalHours = totalDayHours + totalNightHours;
+      
+      dayRevenue = dayChargeRate * totalDayHours;
+      nightRevenue = nightChargeRate * totalNightHours;
+      totalRevenue = dayRevenue + nightRevenue;
+      
+      dayWage = dayWageRate * totalDayHours;
+      nightWage = nightWageRate * totalNightHours;
+      grossWage = dayWage + nightWage;
     }
 
 
@@ -98,16 +144,42 @@ export default function AdminTools() {
     
     const totalStaffCost = grossWage + nationalInsuranceCost + pensionCost + holidayPayCost;
     
-    // For live-in care: travel costs and food allowance are applied once for the entire period
-    // For hourly care: travel costs are per shift, no food allowance
-    const totalOtherCosts = packageType === 'live-in' 
-      ? travelCosts + foodAllowance
-      : travelCosts;
+    // Travel costs and food allowance handling for different package types
+    let totalOtherCosts = 0;
+    if (packageType === 'hourly') {
+      // Hourly care: travel costs per shift, no food allowance
+      totalOtherCosts = travelCosts;
+    } else if (packageType === 'live-in') {
+      // Live-in care: travel costs and food allowance applied once for the entire period
+      totalOtherCosts = travelCosts + foodAllowance;
+    } else if (packageType === 'care24x7') {
+      // 24/7 Care: travel costs per day for day and night shifts
+      const travelMultiplier = calculation.calcMode === 'weekly' ? periodDays : 1;
+      const travelTotal = (travelDayPerShift + travelNightPerShift) * travelMultiplier;
+      const foodTotal = calculation.calcMode === 'weekly' ? foodAllowance : 0;
+      totalOtherCosts = travelTotal + foodTotal;
+    }
     
     const totalCosts = totalStaffCost + totalOtherCosts;
     const shiftMargin = totalRevenue - totalCosts;
     const hourlyMargin = totalHours > 0 ? shiftMargin / totalHours : 0;
     const marginPercentage = totalRevenue > 0 ? (shiftMargin / totalRevenue) * 100 : 0;
+
+    // Calculate day/night margin breakdown for 24/7 care
+    let dayMargin = 0;
+    let nightMargin = 0;
+    if (packageType === 'care24x7' && totalHours > 0) {
+      const totalDayHours = calculation.calcMode === 'weekly' ? dayHours * periodDays : dayHours;
+      const totalNightHours = calculation.calcMode === 'weekly' ? nightHours * periodDays : nightHours;
+      
+      // Apportion overhead and other costs by hours
+      const overheadAndOtherCosts = nationalInsuranceCost + pensionCost + holidayPayCost + totalOtherCosts;
+      const dayCostShare = totalDayHours > 0 ? (totalDayHours / totalHours) * overheadAndOtherCosts : 0;
+      const nightCostShare = totalNightHours > 0 ? (totalNightHours / totalHours) * overheadAndOtherCosts : 0;
+      
+      dayMargin = dayRevenue - (dayWage + dayCostShare);
+      nightMargin = nightRevenue - (nightWage + nightCostShare);
+    }
 
     setResults({
       totalRevenue,
@@ -116,12 +188,23 @@ export default function AdminTools() {
       nationalInsuranceCost,
       pensionCost,
       holidayPayCost,
-      travelCostTotal: travelCosts,
-      foodAllowanceTotal: foodAllowance,
+      travelCostTotal: packageType === 'care24x7' ? 
+        ((travelDayPerShift + travelNightPerShift) * (calculation.calcMode === 'weekly' ? periodDays : 1)) : 
+        travelCosts,
+      foodAllowanceTotal: packageType === 'care24x7' && calculation.calcMode === 'weekly' ? 
+        foodAllowance : (packageType === 'live-in' ? foodAllowance : 0),
       totalCosts,
       shiftMargin,
       hourlyMargin,
       marginPercentage,
+      // 24/7 Care specific results
+      dayRevenue,
+      nightRevenue,
+      dayWage,
+      nightWage,
+      dayMargin,
+      nightMargin,
+      totalHours,
     });
   };
 
@@ -239,27 +322,37 @@ export default function AdminTools() {
                       Live In Care
                     </Label>
                   </div>
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="care24x7" id="care24x7" />
+                    <Label htmlFor="care24x7" className="flex items-center gap-2 cursor-pointer">
+                      <Users className="h-4 w-4" />
+                      24/7 Care
+                    </Label>
+                  </div>
                 </RadioGroup>
               </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="charge-rate">
-                  Charge Rate (per {packageType === 'hourly' ? 'hour' : 'day'})
-                </Label>
-                <div className="relative">
-                  <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-500" />
-                  <Input
-                    id="charge-rate"
-                    type="number"
-                    step="0.01"
-                    placeholder="25.00"
-                    className="pl-10"
-                    value={calculation.chargeRate}
-                    onChange={(e) => handleInputChange('chargeRate', e.target.value)}
-                    data-testid="input-charge-rate"
-                  />
+              {/* Standard charge rate for hourly and live-in care only */}
+              {packageType !== 'care24x7' && (
+                <div className="space-y-2">
+                  <Label htmlFor="charge-rate">
+                    Charge Rate (per hour)
+                  </Label>
+                  <div className="relative">
+                    <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-500" />
+                    <Input
+                      id="charge-rate"
+                      type="number"
+                      step="0.01"
+                      placeholder="25.00"
+                      className="pl-10"
+                      value={calculation.chargeRate}
+                      onChange={(e) => handleInputChange('chargeRate', e.target.value)}
+                      data-testid="input-charge-rate"
+                    />
+                  </div>
                 </div>
-              </div>
+              )}
 
               {packageType === 'hourly' ? (
                 <div className="space-y-2">
@@ -278,7 +371,7 @@ export default function AdminTools() {
                     />
                   </div>
                 </div>
-              ) : (
+              ) : packageType === 'live-in' ? (
                 <div className="space-y-4">
                   <div className="space-y-2">
                     <Label htmlFor="hours-per-day">Hours of Care (per day)</Label>
@@ -313,7 +406,7 @@ export default function AdminTools() {
                     </div>
                   </div>
                 </div>
-              )}
+              ) : null}"
 
               <div className="space-y-2">
                 <Label htmlFor="carer-wage">Carer Wage (per hour)</Label>
