@@ -275,7 +275,7 @@ export default function Admin() {
             icon: Calculator,
             link: "/admin/tools",
             stats: {
-              total: "Package",
+              total: 3,
               status: "Calculator", 
               info: "UK Ready"
             },
@@ -287,7 +287,7 @@ export default function Admin() {
             icon: Shield,
             link: "/admin/audit-logs",
             stats: {
-              total: "Secure",
+              total: 1,
               status: "Compliant",
               info: "GDPR Ready"
             },

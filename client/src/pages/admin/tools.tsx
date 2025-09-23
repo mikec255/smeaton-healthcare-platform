@@ -406,43 +406,259 @@ export default function AdminTools() {
                     </div>
                   </div>
                 </div>
-              ) : null}"
+              ) : packageType === 'care24x7' ? (
+                // 24/7 Care specific inputs
+                <div className="space-y-4">
+                  {/* Calculation Mode Toggle */}
+                  <div className="space-y-2">
+                    <Label>Calculation Mode</Label>
+                    <RadioGroup 
+                      value={calculation.calcMode} 
+                      onValueChange={(value) => handleInputChange('calcMode', value)}
+                      className="flex gap-6"
+                      data-testid="radio-calc-mode"
+                    >
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="hourly" id="calc-hourly" />
+                        <Label htmlFor="calc-hourly">Hourly</Label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="weekly" id="calc-weekly" />
+                        <Label htmlFor="calc-weekly">Weekly</Label>
+                      </div>
+                    </RadioGroup>
+                  </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="carer-wage">Carer Wage (per hour)</Label>
-                <div className="relative">
-                  <Users className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-500" />
-                  <Input
-                    id="carer-wage"
-                    type="number"
-                    step="0.01"
-                    placeholder="12.50"
-                    className="pl-10"
-                    value={calculation.carerWage}
-                    onChange={(e) => handleInputChange('carerWage', e.target.value)}
-                    data-testid="input-carer-wage"
-                  />
-                </div>
-              </div>
+                  {/* Period Days (only for weekly) */}
+                  {calculation.calcMode === 'weekly' && (
+                    <div className="space-y-2">
+                      <Label htmlFor="period-days">Number of Days</Label>
+                      <div className="relative">
+                        <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-500" />
+                        <Input
+                          id="period-days"
+                          type="number"
+                          step="1"
+                          placeholder="7"
+                          className="pl-10"
+                          value={calculation.periodDays}
+                          onChange={(e) => handleInputChange('periodDays', e.target.value)}
+                          data-testid="input-period-days"
+                        />
+                      </div>
+                    </div>
+                  )}
 
-              <div className="space-y-2">
-                <Label htmlFor="travel-costs">
-                  Travel Costs {packageType === 'live-in' ? '(one-time for period)' : '(per shift)'}
-                </Label>
-                <div className="relative">
-                  <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-500" />
-                  <Input
-                    id="travel-costs"
-                    type="number"
-                    step="0.01"
-                    placeholder="5.00"
-                    className="pl-10"
-                    value={calculation.travelCosts}
-                    onChange={(e) => handleInputChange('travelCosts', e.target.value)}
-                    data-testid="input-travel-costs"
-                  />
+                  {/* Day Rates Section */}
+                  <div className="bg-yellow-50 dark:bg-yellow-950 p-4 rounded-lg border border-yellow-200 dark:border-yellow-800">
+                    <h4 className="font-semibold text-yellow-900 dark:text-yellow-100 mb-3 flex items-center gap-2">
+                      <DollarSign className="h-4 w-4" />
+                      Day Shift Rates
+                    </h4>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="day-charge-rate">Day Charge Rate (per hour)</Label>
+                        <div className="relative">
+                          <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-500" />
+                          <Input
+                            id="day-charge-rate"
+                            type="number"
+                            step="0.01"
+                            placeholder="25.00"
+                            className="pl-10"
+                            value={calculation.dayChargeRate}
+                            onChange={(e) => handleInputChange('dayChargeRate', e.target.value)}
+                            data-testid="input-day-charge-rate"
+                          />
+                        </div>
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="day-wage-rate">Day Carer Wage (per hour)</Label>
+                        <div className="relative">
+                          <Users className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-500" />
+                          <Input
+                            id="day-wage-rate"
+                            type="number"
+                            step="0.01"
+                            placeholder="15.00"
+                            className="pl-10"
+                            value={calculation.dayWageRate}
+                            onChange={(e) => handleInputChange('dayWageRate', e.target.value)}
+                            data-testid="input-day-wage-rate"
+                          />
+                        </div>
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="day-hours">Day Hours ({calculation.calcMode === 'weekly' ? 'per day' : 'total'})</Label>
+                        <div className="relative">
+                          <Clock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-500" />
+                          <Input
+                            id="day-hours"
+                            type="number"
+                            step="0.5"
+                            placeholder="12.0"
+                            className="pl-10"
+                            value={calculation.dayHours}
+                            onChange={(e) => handleInputChange('dayHours', e.target.value)}
+                            data-testid="input-day-hours"
+                          />
+                        </div>
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="travel-day">Day Travel Cost ({calculation.calcMode === 'weekly' ? 'per day' : 'total'})</Label>
+                        <div className="relative">
+                          <ArrowRight className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-500" />
+                          <Input
+                            id="travel-day"
+                            type="number"
+                            step="0.01"
+                            placeholder="10.00"
+                            className="pl-10"
+                            value={calculation.travelDayPerShift}
+                            onChange={(e) => handleInputChange('travelDayPerShift', e.target.value)}
+                            data-testid="input-travel-day"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Night Rates Section */}
+                  <div className="bg-blue-50 dark:bg-blue-950 p-4 rounded-lg border border-blue-200 dark:border-blue-800">
+                    <h4 className="font-semibold text-blue-900 dark:text-blue-100 mb-3 flex items-center gap-2">
+                      <DollarSign className="h-4 w-4" />
+                      Night Shift Rates
+                    </h4>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="night-charge-rate">Night Charge Rate (per hour)</Label>
+                        <div className="relative">
+                          <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-500" />
+                          <Input
+                            id="night-charge-rate"
+                            type="number"
+                            step="0.01"
+                            placeholder="30.00"
+                            className="pl-10"
+                            value={calculation.nightChargeRate}
+                            onChange={(e) => handleInputChange('nightChargeRate', e.target.value)}
+                            data-testid="input-night-charge-rate"
+                          />
+                        </div>
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="night-wage-rate">Night Carer Wage (per hour)</Label>
+                        <div className="relative">
+                          <Users className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-500" />
+                          <Input
+                            id="night-wage-rate"
+                            type="number"
+                            step="0.01"
+                            placeholder="18.00"
+                            className="pl-10"
+                            value={calculation.nightWageRate}
+                            onChange={(e) => handleInputChange('nightWageRate', e.target.value)}
+                            data-testid="input-night-wage-rate"
+                          />
+                        </div>
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="night-hours">Night Hours ({calculation.calcMode === 'weekly' ? 'per night' : 'total'})</Label>
+                        <div className="relative">
+                          <Clock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-500" />
+                          <Input
+                            id="night-hours"
+                            type="number"
+                            step="0.5"
+                            placeholder="12.0"
+                            className="pl-10"
+                            value={calculation.nightHours}
+                            onChange={(e) => handleInputChange('nightHours', e.target.value)}
+                            data-testid="input-night-hours"
+                          />
+                        </div>
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="travel-night">Night Travel Cost ({calculation.calcMode === 'weekly' ? 'per night' : 'total'})</Label>
+                        <div className="relative">
+                          <ArrowRight className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-500" />
+                          <Input
+                            id="travel-night"
+                            type="number"
+                            step="0.01"
+                            placeholder="10.00"
+                            className="pl-10"
+                            value={calculation.travelNightPerShift}
+                            onChange={(e) => handleInputChange('travelNightPerShift', e.target.value)}
+                            data-testid="input-travel-night"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Food Allowance (only for weekly) */}
+                  {calculation.calcMode === 'weekly' && (
+                    <div className="space-y-2">
+                      <Label htmlFor="food-allowance-24x7">Food Allowance (weekly)</Label>
+                      <div className="relative">
+                        <Utensils className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-500" />
+                        <Input
+                          id="food-allowance-24x7"
+                          type="number"
+                          step="0.01"
+                          placeholder="50.00"
+                          className="pl-10"
+                          value={calculation.foodAllowance}
+                          onChange={(e) => handleInputChange('foodAllowance', e.target.value)}
+                          data-testid="input-food-allowance-24x7"
+                        />
+                      </div>
+                    </div>
+                  )}
                 </div>
-              </div>
+              ) : null}
+
+              {/* Standard carer wage and travel costs (exclude for 24/7 care) */}
+              {packageType !== 'care24x7' && (
+                <>
+                  <div className="space-y-2">
+                    <Label htmlFor="carer-wage">Carer Wage (per hour)</Label>
+                    <div className="relative">
+                      <Users className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-500" />
+                      <Input
+                        id="carer-wage"
+                        type="number"
+                        step="0.01"
+                        placeholder="12.50"
+                        className="pl-10"
+                        value={calculation.carerWage}
+                        onChange={(e) => handleInputChange('carerWage', e.target.value)}
+                        data-testid="input-carer-wage"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="travel-costs">
+                      Travel Costs {packageType === 'live-in' ? '(one-time for period)' : '(per shift)'}
+                    </Label>
+                    <div className="relative">
+                      <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-500" />
+                      <Input
+                        id="travel-costs"
+                        type="number"
+                        step="0.01"
+                        placeholder="5.00"
+                        className="pl-10"
+                        value={calculation.travelCosts}
+                        onChange={(e) => handleInputChange('travelCosts', e.target.value)}
+                        data-testid="input-travel-costs"
+                      />
+                    </div>
+                  </div>
+                </>
+              )}
 
               {packageType === 'live-in' && (
                 <div className="space-y-2">
