@@ -473,7 +473,7 @@ export default function AdminTools() {
                   <h4 className="font-semibold text-blue-900 dark:text-blue-100">Profit Margins</h4>
                   <div className="space-y-2">
                     <div className="flex justify-between items-center">
-                      <span>Shift Margin:</span>
+                      <span>{packageType === 'hourly' ? 'Shift Margin:' : 'Period Margin:'}</span>
                       <span className={`text-xl font-bold ${results.shiftMargin >= 0 ? 'text-blue-700 dark:text-blue-300' : 'text-red-700 dark:text-red-300'}`}>
                         {formatCurrency(results.shiftMargin)}
                       </span>
