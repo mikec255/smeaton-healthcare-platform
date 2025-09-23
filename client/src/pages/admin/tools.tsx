@@ -8,6 +8,9 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
+import logoImage from "@/assets/logo.png";
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
 
@@ -45,9 +48,21 @@ export default function AdminTools() {
   const [showQuoteModal, setShowQuoteModal] = useState(false);
   const [quoteDetails, setQuoteDetails] = useState({
     customerName: '',
-    relatingTo: ''
+    relatingTo: '',
+    careNeeds: '',
+    selectedService: ''
   });
   const [showQuote, setShowQuote] = useState(false);
+
+  const serviceOptions = [
+    'Short Visits',
+    'Supported Living', 
+    '24/7 Care',
+    'Enabling',
+    'Respite Care',
+    'Live-In Care',
+    'Condition-Led Care'
+  ];
 
   const calculatePackage = () => {
     const chargeRate = parseFloat(calculation.chargeRate) || 0;
@@ -519,6 +534,35 @@ export default function AdminTools() {
                         data-testid="input-relating-to"
                       />
                     </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="service-type">Service Type</Label>
+                      <Select 
+                        value={quoteDetails.selectedService} 
+                        onValueChange={(value) => setQuoteDetails(prev => ({ ...prev, selectedService: value }))}
+                      >
+                        <SelectTrigger data-testid="select-service-type">
+                          <SelectValue placeholder="Select a service..." />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {serviceOptions.map((service) => (
+                            <SelectItem key={service} value={service}>
+                              {service}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="care-needs">Care Needs Discussed</Label>
+                      <Textarea
+                        id="care-needs"
+                        placeholder="Brief description of care needs discussed with the client..."
+                        value={quoteDetails.careNeeds}
+                        onChange={(e) => setQuoteDetails(prev => ({ ...prev, careNeeds: e.target.value }))}
+                        rows={3}
+                        data-testid="textarea-care-needs"
+                      />
+                    </div>
                   </div>
                   <div className="flex justify-end gap-2">
                     <Button
@@ -533,7 +577,7 @@ export default function AdminTools() {
                         setShowQuoteModal(false);
                         setShowQuote(true);
                       }}
-                      disabled={!quoteDetails.customerName}
+                      disabled={!quoteDetails.customerName || !quoteDetails.selectedService}
                       data-testid="button-create-quote"
                     >
                       Create Quote
@@ -555,6 +599,12 @@ export default function AdminTools() {
                     travelCosts: '',
                     foodAllowance: ''
                   }));
+                  setQuoteDetails({
+                    customerName: '',
+                    relatingTo: '',
+                    careNeeds: '',
+                    selectedService: ''
+                  });
                   setPackageType('hourly');
                 }}
                 variant="outline"
@@ -601,7 +651,11 @@ export default function AdminTools() {
           <div id="quote-content" className="bg-white p-8 text-black">
             {/* Company Logo and Header */}
             <div className="text-center mb-8">
-              <div className="text-3xl font-bold text-[#EF2587] mb-2">Smeaton Healthcare</div>
+              <img 
+                src={logoImage} 
+                alt="Smeaton Healthcare" 
+                style={{ height: '120px', width: 'auto', margin: '0 auto', marginBottom: '16px' }}
+              />
               <div className="text-sm text-gray-600 mb-4">Professional Healthcare Staffing Solutions</div>
               <div className="text-sm text-gray-600">
                 Email: hello@smeatonhealthcare.co.uk | Phone: 0330 165 8880
@@ -623,8 +677,23 @@ export default function AdminTools() {
                     <strong>Relating To:</strong> {quoteDetails.relatingTo}
                   </div>
                 )}
+                {quoteDetails.selectedService && (
+                  <div className="col-span-2">
+                    <strong>Service Type:</strong> {quoteDetails.selectedService}
+                  </div>
+                )}
               </div>
             </div>
+
+            {/* Care Needs Discussed */}
+            {quoteDetails.careNeeds && (
+              <div className="mb-6">
+                <h3 className="text-lg font-semibold mb-3">Care Needs Discussed</h3>
+                <div className="bg-gray-50 p-4 rounded border text-sm">
+                  {quoteDetails.careNeeds}
+                </div>
+              </div>
+            )}
 
             {/* Package Type and Details */}
             <div className="mb-6">
