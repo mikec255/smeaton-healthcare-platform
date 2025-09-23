@@ -58,6 +58,22 @@
   --stats-pattern: url("data:image/svg+xml,%3Csvg width='40' height='40' viewBox='0 0 40 40' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%23ffffff' fill-opacity='0.1'%3E%3Cpath d='M20 20v20h20v-20H20zm16 16h-12v-12h12v12z'/%3E%3C/g%3E%3C/svg%3E");
 }
 
+/* Fix for radix-ui dropdowns */
+[data-radix-select-content] {
+  z-index: 9999 !important;
+  position: fixed !important;
+}
+
+[data-radix-popper-content-wrapper] {
+  z-index: 9999 !important;
+}
+
+.dark [data-radix-select-content] {
+  background: var(--popover) !important;
+  color: var(--popover-foreground) !important;
+  border: 1px solid var(--border) !important;
+}
+
 .dark {
   --background: hsl(222, 84%, 13%);
   --foreground: hsl(210, 40%, 98%);
