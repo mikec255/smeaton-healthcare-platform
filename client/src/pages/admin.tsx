@@ -14,7 +14,7 @@ import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import JobsTable from "@/components/admin/jobs-table";
 import JobFormModal from "@/components/admin/job-form-modal";
-import { Plus, Briefcase, UserPlus, Clock, CheckCircle, FileText, Send, Edit, ArrowRight, MessageSquare, Star, Mail, Users, UserCheck, Settings, BookOpen, LogOut, ChevronDown, ChevronRight, BarChart3, Shield } from "lucide-react";
+import { Plus, Briefcase, UserPlus, Clock, CheckCircle, FileText, Send, Edit, ArrowRight, MessageSquare, Star, Mail, Users, UserCheck, Settings, BookOpen, LogOut, ChevronDown, ChevronRight, BarChart3, Shield, Calculator } from "lucide-react";
 import { type Job, type Newsletter, type Feedback, type BlogPost, type User } from "@shared/schema";
 
 // Email configuration schema
@@ -303,6 +303,18 @@ export default function Admin() {
             info: "GDPR Ready"
           },
           color: "bg-blue-600 text-white hover:bg-blue-700"
+        },
+        {
+          title: "Tools",
+          description: "Business calculators and tools for operational management",
+          icon: Calculator,
+          link: "/admin/tools",
+          stats: {
+            total: "Package",
+            status: "Calculator",
+            info: "UK Ready"
+          },
+          color: "bg-purple-600 text-white hover:bg-purple-700"
         }
       ]
     });
