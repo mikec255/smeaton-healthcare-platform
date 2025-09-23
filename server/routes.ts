@@ -4,7 +4,7 @@ import session from "express-session";
 import bcrypt from "bcryptjs";
 import crypto from "crypto";
 import { storage } from "./storage";
-import { insertJobSchema, insertApplicationSchema, insertContactSubmissionSchema, insertFeedbackSchema, insertNewsletterSchema, insertNewsletterBlockSchema, insertTemplateSchema, insertBlogCategorySchema, insertBlogPostSchema, insertUserSchema, loginUserSchema, updateUserSchema, insertCqcAuditSchema, insertCqcAuditCategorySchema, insertCqcChecklistItemSchema, insertCqcAuditResponseSchema, insertCqcComplianceRecordSchema } from "@shared/schema";
+import { insertJobSchema, insertApplicationSchema, insertContactSubmissionSchema, insertFeedbackSchema, insertNewsletterSchema, insertNewsletterBlockSchema, insertTemplateSchema, insertBlogCategorySchema, insertBlogPostSchema, insertUserSchema, loginUserSchema, updateUserSchema, insertCqcAuditSchema, insertCqcAuditCategorySchema, insertCqcChecklistItemSchema, insertCqcAuditResponseSchema, insertCqcComplianceRecordSchema, insertKnowledgeQuestionnaireSchema, insertKnowledgeQuestionSchema, insertKnowledgeSessionSchema, insertKnowledgeResponseSchema, insertKnowledgeActionSchema } from "@shared/schema";
 import { ObjectStorageService } from "./objectStorage";
 import { brevoService } from "./brevo-service";
 import { AuditLogger } from "./audit";
@@ -2022,6 +2022,406 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error deleting CQC compliance record:", error);
       res.status(500).json({ message: "Failed to delete CQC compliance record" });
+    }
+  });
+
+  // ========== STAFF KNOWLEDGE ASSESSMENT API ROUTES ==========
+  
+  // Knowledge Questionnaires
+  app.get("/api/knowledge/questionnaires", requireAdmin, async (req, res) => {
+    try {
+      const { category, subcategory, isActive } = req.query;
+      const questionnaires = await storage.getAllKnowledgeQuestionnaires({
+        category: category as string,
+        subcategory: subcategory as string,
+        isActive: isActive === 'true' ? true : isActive === 'false' ? false : undefined
+      });
+      res.json(questionnaires);
+    } catch (error) {
+      console.error("Error fetching knowledge questionnaires:", error);
+      res.status(500).json({ message: "Failed to fetch knowledge questionnaires" });
+    }
+  });
+
+  app.get("/api/knowledge/questionnaires/:id", requireAdmin, async (req, res) => {
+    try {
+      const questionnaire = await storage.getKnowledgeQuestionnaire(req.params.id);
+      if (!questionnaire) {
+        return res.status(404).json({ message: "Knowledge questionnaire not found" });
+      }
+      res.json(questionnaire);
+    } catch (error) {
+      console.error("Error fetching knowledge questionnaire:", error);
+      res.status(500).json({ message: "Failed to fetch knowledge questionnaire" });
+    }
+  });
+
+  app.post("/api/knowledge/questionnaires", requireAdmin, async (req, res) => {
+    try {
+      // Generate shareable link
+      const shareableLink = crypto.randomUUID();
+      const validatedData = insertKnowledgeQuestionnaireSchema.parse({
+        ...req.body,
+        shareableLink,
+        createdBy: req.user!.id
+      });
+      
+      const questionnaire = await storage.createKnowledgeQuestionnaire(validatedData);
+      
+      // Create audit log
+      await AuditLogger.logCreate(
+        req,
+        req.user!,
+        'knowledge_questionnaire',
+        questionnaire.id,
+        { title: questionnaire.title, category: questionnaire.category }
+      );
+      
+      res.status(201).json(questionnaire);
+    } catch (error) {
+      console.error("Error creating knowledge questionnaire:", error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid questionnaire data", errors: error.errors });
+      }
+      res.status(500).json({ message: "Failed to create knowledge questionnaire" });
+    }
+  });
+
+  app.put("/api/knowledge/questionnaires/:id", requireAdmin, async (req, res) => {
+    try {
+      const validatedData = insertKnowledgeQuestionnaireSchema.partial().parse(req.body);
+      const questionnaire = await storage.updateKnowledgeQuestionnaire(req.params.id, validatedData);
+      if (!questionnaire) {
+        return res.status(404).json({ message: "Knowledge questionnaire not found" });
+      }
+      
+      // Create audit log
+      await AuditLogger.logUpdate(
+        req,
+        req.user!,
+        'knowledge_questionnaire',
+        questionnaire.id,
+        { ...validatedData, title: questionnaire.title }
+      );
+      
+      res.json(questionnaire);
+    } catch (error) {
+      console.error("Error updating knowledge questionnaire:", error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid questionnaire data", errors: error.errors });
+      }
+      res.status(500).json({ message: "Failed to update knowledge questionnaire" });
+    }
+  });
+
+  app.delete("/api/knowledge/questionnaires/:id", requireAdmin, async (req, res) => {
+    try {
+      const existingQuestionnaire = await storage.getKnowledgeQuestionnaire(req.params.id);
+      if (!existingQuestionnaire) {
+        return res.status(404).json({ message: "Knowledge questionnaire not found" });
+      }
+      
+      const success = await storage.deleteKnowledgeQuestionnaire(req.params.id);
+      if (!success) {
+        return res.status(404).json({ message: "Knowledge questionnaire not found" });
+      }
+      
+      // Create audit log
+      await AuditLogger.logDelete(
+        req,
+        req.user!,
+        'knowledge_questionnaire',
+        req.params.id,
+        { title: existingQuestionnaire.title, category: existingQuestionnaire.category }
+      );
+      
+      res.status(204).send();
+    } catch (error) {
+      console.error("Error deleting knowledge questionnaire:", error);
+      res.status(500).json({ message: "Failed to delete knowledge questionnaire" });
+    }
+  });
+
+  // Knowledge Questions
+  app.get("/api/knowledge/questionnaires/:questionnaireId/questions", requireAdmin, async (req, res) => {
+    try {
+      const questions = await storage.getKnowledgeQuestions(req.params.questionnaireId);
+      res.json(questions);
+    } catch (error) {
+      console.error("Error fetching knowledge questions:", error);
+      res.status(500).json({ message: "Failed to fetch knowledge questions" });
+    }
+  });
+
+  app.post("/api/knowledge/questions", requireAdmin, async (req, res) => {
+    try {
+      const validatedData = insertKnowledgeQuestionSchema.parse(req.body);
+      const question = await storage.createKnowledgeQuestion(validatedData);
+      res.status(201).json(question);
+    } catch (error) {
+      console.error("Error creating knowledge question:", error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid question data", errors: error.errors });
+      }
+      res.status(500).json({ message: "Failed to create knowledge question" });
+    }
+  });
+
+  app.put("/api/knowledge/questions/:id", requireAdmin, async (req, res) => {
+    try {
+      const validatedData = insertKnowledgeQuestionSchema.partial().parse(req.body);
+      const question = await storage.updateKnowledgeQuestion(req.params.id, validatedData);
+      if (!question) {
+        return res.status(404).json({ message: "Knowledge question not found" });
+      }
+      res.json(question);
+    } catch (error) {
+      console.error("Error updating knowledge question:", error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid question data", errors: error.errors });
+      }
+      res.status(500).json({ message: "Failed to update knowledge question" });
+    }
+  });
+
+  app.delete("/api/knowledge/questions/:id", requireAdmin, async (req, res) => {
+    try {
+      const success = await storage.deleteKnowledgeQuestion(req.params.id);
+      if (!success) {
+        return res.status(404).json({ message: "Knowledge question not found" });
+      }
+      res.status(204).send();
+    } catch (error) {
+      console.error("Error deleting knowledge question:", error);
+      res.status(500).json({ message: "Failed to delete knowledge question" });
+    }
+  });
+
+  // Knowledge Sessions (for admin viewing)
+  app.get("/api/knowledge/sessions", requireAdmin, async (req, res) => {
+    try {
+      const { questionnaireId, staffEmail, status } = req.query;
+      const sessions = await storage.getAllKnowledgeSessions({
+        questionnaireId: questionnaireId as string,
+        staffEmail: staffEmail as string,
+        status: status as string
+      });
+      res.json(sessions);
+    } catch (error) {
+      console.error("Error fetching knowledge sessions:", error);
+      res.status(500).json({ message: "Failed to fetch knowledge sessions" });
+    }
+  });
+
+  app.get("/api/knowledge/sessions/:id", requireAdmin, async (req, res) => {
+    try {
+      const session = await storage.getKnowledgeSession(req.params.id);
+      if (!session) {
+        return res.status(404).json({ message: "Knowledge session not found" });
+      }
+      res.json(session);
+    } catch (error) {
+      console.error("Error fetching knowledge session:", error);
+      res.status(500).json({ message: "Failed to fetch knowledge session" });
+    }
+  });
+
+  // Knowledge Actions
+  app.get("/api/knowledge/actions", requireAdmin, async (req, res) => {
+    try {
+      const { sessionId, assignedTo, status } = req.query;
+      const actions = await storage.getAllKnowledgeActions({
+        sessionId: sessionId as string,
+        assignedTo: assignedTo as string,
+        status: status as string
+      });
+      res.json(actions);
+    } catch (error) {
+      console.error("Error fetching knowledge actions:", error);
+      res.status(500).json({ message: "Failed to fetch knowledge actions" });
+    }
+  });
+
+  app.post("/api/knowledge/actions", requireAdmin, async (req, res) => {
+    try {
+      const validatedData = insertKnowledgeActionSchema.parse({
+        ...req.body,
+        createdBy: req.user!.id
+      });
+      const action = await storage.createKnowledgeAction(validatedData);
+      res.status(201).json(action);
+    } catch (error) {
+      console.error("Error creating knowledge action:", error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid action data", errors: error.errors });
+      }
+      res.status(500).json({ message: "Failed to create knowledge action" });
+    }
+  });
+
+  app.put("/api/knowledge/actions/:id", requireAdmin, async (req, res) => {
+    try {
+      const validatedData = insertKnowledgeActionSchema.partial().parse(req.body);
+      const action = await storage.updateKnowledgeAction(req.params.id, validatedData);
+      if (!action) {
+        return res.status(404).json({ message: "Knowledge action not found" });
+      }
+      res.json(action);
+    } catch (error) {
+      console.error("Error updating knowledge action:", error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid action data", errors: error.errors });
+      }
+      res.status(500).json({ message: "Failed to update knowledge action" });
+    }
+  });
+
+  // Public Assessment Taking Routes (no auth required for staff to take assessments)
+  app.get("/api/public/knowledge/assessment/:shareableLink", async (req, res) => {
+    try {
+      const questionnaire = await storage.getKnowledgeQuestionnaireByShareableLink(req.params.shareableLink);
+      if (!questionnaire || !questionnaire.isActive) {
+        return res.status(404).json({ message: "Assessment not found or inactive" });
+      }
+      
+      const questions = await storage.getKnowledgeQuestions(questionnaire.id);
+      res.json({
+        questionnaire: {
+          id: questionnaire.id,
+          title: questionnaire.title,
+          description: questionnaire.description,
+          instructions: questionnaire.instructions,
+          timeLimit: questionnaire.timeLimit,
+          category: questionnaire.category,
+          subcategory: questionnaire.subcategory
+        },
+        questions: questions.map(q => ({
+          id: q.id,
+          questionText: q.questionText,
+          questionType: q.questionType,
+          options: q.options,
+          points: q.points,
+          sortOrder: q.sortOrder,
+          isRequired: q.isRequired
+          // Note: correctAnswer and explanation are not included for security
+        }))
+      });
+    } catch (error) {
+      console.error("Error fetching public assessment:", error);
+      res.status(500).json({ message: "Failed to fetch assessment" });
+    }
+  });
+
+  app.post("/api/public/knowledge/start-session", async (req, res) => {
+    try {
+      const { questionnaireId, staffEmail, staffName } = req.body;
+      
+      // Validate questionnaire exists and is active
+      const questionnaire = await storage.getKnowledgeQuestionnaire(questionnaireId);
+      if (!questionnaire || !questionnaire.isActive) {
+        return res.status(404).json({ message: "Assessment not found or inactive" });
+      }
+      
+      const sessionData = insertKnowledgeSessionSchema.parse({
+        questionnaireId,
+        staffEmail,
+        staffName,
+        status: 'in_progress',
+        ipAddress: req.ip,
+        userAgent: req.get('User-Agent')
+      });
+      
+      const session = await storage.createKnowledgeSession(sessionData);
+      res.status(201).json({ sessionId: session.id });
+    } catch (error) {
+      console.error("Error starting knowledge session:", error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid session data", errors: error.errors });
+      }
+      res.status(500).json({ message: "Failed to start assessment session" });
+    }
+  });
+
+  app.post("/api/public/knowledge/submit-response", async (req, res) => {
+    try {
+      const responseData = insertKnowledgeResponseSchema.parse(req.body);
+      
+      // Get the question to check correct answer and calculate points
+      const question = await storage.getKnowledgeQuestion(responseData.questionId);
+      if (!question) {
+        return res.status(404).json({ message: "Question not found" });
+      }
+      
+      // Calculate if answer is correct and award points
+      let isCorrect = false;
+      let pointsAwarded = 0;
+      
+      if (question.correctAnswer && question.correctAnswer === responseData.answer) {
+        isCorrect = true;
+        pointsAwarded = question.points || 1;
+      }
+      
+      const response = await storage.createKnowledgeResponse({
+        ...responseData,
+        isCorrect,
+        pointsAwarded,
+        needsReview: question.questionType === 'short_answer' || question.questionType === 'scenario_based'
+      });
+      
+      res.status(201).json({ success: true });
+    } catch (error) {
+      console.error("Error submitting knowledge response:", error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid response data", errors: error.errors });
+      }
+      res.status(500).json({ message: "Failed to submit response" });
+    }
+  });
+
+  app.post("/api/public/knowledge/complete-session/:sessionId", async (req, res) => {
+    try {
+      const sessionId = req.params.sessionId;
+      
+      // Get all responses for this session to calculate final score
+      const responses = await storage.getKnowledgeResponses(sessionId);
+      const session = await storage.getKnowledgeSession(sessionId);
+      
+      if (!session) {
+        return res.status(404).json({ message: "Session not found" });
+      }
+      
+      const questionnaire = await storage.getKnowledgeQuestionnaire(session.questionnaireId);
+      if (!questionnaire) {
+        return res.status(404).json({ message: "Questionnaire not found" });
+      }
+      
+      // Calculate scores
+      const totalScore = responses.reduce((sum, r) => sum + (r.pointsAwarded || 0), 0);
+      const maxScore = responses.reduce((sum, r) => sum + (responses.find(resp => resp.questionId === r.questionId)?.pointsAwarded || 1), 0);
+      const percentageScore = maxScore > 0 ? Math.round((totalScore / maxScore) * 100) : 0;
+      const passed = percentageScore >= (questionnaire.passingScore || 70);
+      
+      // Update session
+      await storage.updateKnowledgeSession(sessionId, {
+        status: 'completed',
+        completedAt: new Date(),
+        totalScore,
+        maxScore,
+        percentageScore,
+        passed,
+        timeSpent: req.body.timeSpent || 0
+      });
+      
+      res.json({ 
+        totalScore, 
+        maxScore, 
+        percentageScore, 
+        passed,
+        passingScore: questionnaire.passingScore || 70
+      });
+    } catch (error) {
+      console.error("Error completing knowledge session:", error);
+      res.status(500).json({ message: "Failed to complete session" });
     }
   });
 
