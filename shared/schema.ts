@@ -384,23 +384,26 @@ export const insertAuditLogSchema = createInsertSchema(auditLogs).omit({
   createdAt: true,
 });
 
-// CQC Audit and Compliance Tables
+// CQC Audit and Compliance Tables (2024 Single Assessment Framework)
 export const cqcAudits = pgTable("cqc_audits", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   title: text("title").notNull(),
-  auditType: text("audit_type").notNull(), // fundamental_standards, staff_recruitment, training_compliance, supervision_monitoring, record_keeping
-  category: text("category").notNull(), // safe, effective, caring, responsive, well_led, dbs_checks, training, supervision, documentation
-  status: text("status").default("draft"), // draft, in_progress, completed, approved
+  auditType: text("audit_type").notNull(), // single_assessment, targeted_inspection, comprehensive_inspection
+  serviceType: text("service_type").notNull(), // domiciliary_care, residential_care, supported_living, community_health
+  keyQuestion: text("key_question").notNull(), // safe, effective, caring, responsive, well_led, overall
+  status: text("status").default("draft"), // draft, in_progress, completed, approved, submitted_to_cqc
   auditDate: timestamp("audit_date").notNull(),
   auditorId: varchar("auditor_id").references(() => users.id).notNull(),
   auditorName: text("auditor_name").notNull(), // Denormalized for faster queries
-  score: integer("score"), // Overall percentage score
-  totalItems: integer("total_items"), // Total checklist items
-  compliantItems: integer("compliant_items"), // Number of compliant items
-  actionItemsCount: integer("action_items_count"), // Items requiring action
+  inspectorName: text("inspector_name"), // CQC inspector if external inspection
+  overallRating: text("overall_rating"), // outstanding, good, requires_improvement, inadequate
   findings: text("findings"), // General audit findings
-  recommendations: text("recommendations"), // Recommendations for improvement
+  areasOfStrength: text("areas_of_strength"), // What's working well
+  areasForImprovement: text("areas_for_improvement"), // What needs improvement
+  actionPlan: text("action_plan"), // Improvement action plan
   nextAuditDue: timestamp("next_audit_due"),
+  evidenceSubmitted: boolean("evidence_submitted").default(false),
+  cqcSubmissionDate: timestamp("cqc_submission_date"),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
@@ -415,31 +418,67 @@ export const cqcAuditCategories = pgTable("cqc_audit_categories", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
-export const cqcChecklistItems = pgTable("cqc_checklist_items", {
+// CQC Quality Statements (2024 Framework - 34 statements)
+export const cqcQualityStatements = pgTable("cqc_quality_statements", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  categoryId: varchar("category_id").references(() => cqcAuditCategories.id).notNull(),
-  itemText: text("item_text").notNull(),
-  guidance: text("guidance"), // Additional guidance for the checklist item
-  regulationReference: text("regulation_reference"), // e.g., "Regulation 18", "Regulation 19"
-  isRequired: boolean("is_required").default(true), // Is this a mandatory requirement
-  section: text("section"), // Sub-section within the category
-  sortOrder: integer("sort_order").default(0),
+  keyQuestion: text("key_question").notNull(), // safe, effective, caring, responsive, well_led
+  statementNumber: text("statement_number").notNull(), // e.g., "S1.1", "E2.3"
+  statementText: text("statement_text").notNull(), // The actual "We" statement
+  description: text("description").notNull(), // Detailed description of what this means
+  regulationReferences: json("regulation_references").$type<string[]>(), // Associated regulations
+  evidenceTypes: json("evidence_types").$type<string[]>(), // What evidence is needed
+  applicableServices: json("applicable_services").$type<string[]>(), // Which service types this applies to
+  priorityLevel: text("priority_level").default("standard"), // high, standard, low
   isActive: boolean("is_active").default(true),
+  sortOrder: integer("sort_order").default(0),
   createdAt: timestamp("created_at").defaultNow(),
 });
 
-export const cqcAuditResponses = pgTable("cqc_audit_responses", {
+// Evidence Categories (6 categories from 2024 framework)
+export const cqcEvidenceCategories = pgTable("cqc_evidence_categories", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  categoryName: text("category_name").notNull(), // people_experience, staff_feedback, leadership_feedback, partner_feedback, observations, processes_outcomes
+  displayName: text("display_name").notNull(), // Human-readable name
+  description: text("description").notNull(),
+  exampleEvidence: json("example_evidence").$type<string[]>(), // Examples of evidence for this category
+  isActive: boolean("is_active").default(true),
+  sortOrder: integer("sort_order").default(0),
+});
+
+// Evidence Files Upload System
+export const cqcAuditEvidence = pgTable("cqc_audit_evidence", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   auditId: varchar("audit_id").references(() => cqcAudits.id, { onDelete: "cascade" }).notNull(),
-  checklistItemId: varchar("checklist_item_id").references(() => cqcChecklistItems.id).notNull(),
-  isCompliant: boolean("is_compliant").notNull(),
-  evidence: text("evidence"), // Evidence/notes for compliance
-  actionRequired: text("action_required"), // What action is needed if non-compliant
+  qualityStatementId: varchar("quality_statement_id").references(() => cqcQualityStatements.id),
+  evidenceCategoryId: varchar("evidence_category_id").references(() => cqcEvidenceCategories.id).notNull(),
+  title: text("title").notNull(),
+  description: text("description"),
+  fileType: text("file_type"), // document, image, video, audio
+  filePath: text("file_path"), // Path to uploaded file
+  fileName: text("file_name").notNull(),
+  fileSize: integer("file_size"), // File size in bytes
+  uploadedBy: varchar("uploaded_by").references(() => users.id).notNull(),
+  tags: json("tags").$type<string[]>(), // Searchable tags
+  isConfidential: boolean("is_confidential").default(false),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// CQC Quality Statement Assessments (replaces audit responses)
+export const cqcQualityAssessments = pgTable("cqc_quality_assessments", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  auditId: varchar("audit_id").references(() => cqcAudits.id, { onDelete: "cascade" }).notNull(),
+  qualityStatementId: varchar("quality_statement_id").references(() => cqcQualityStatements.id).notNull(),
+  complianceLevel: text("compliance_level").notNull(), // outstanding, good, requires_improvement, inadequate, not_assessed
+  evidenceSummary: text("evidence_summary"), // Summary of evidence for this statement
+  strengths: text("strengths"), // What's working well for this statement
+  concernsRisks: text("concerns_risks"), // Areas of concern or risk
+  actionRequired: text("action_required"), // What action is needed
+  actionOwner: text("action_owner"), // Who is responsible
   actionDueDate: timestamp("action_due_date"),
-  actionOwner: text("action_owner"), // Who is responsible for the action
   actionStatus: text("action_status").default("pending"), // pending, in_progress, completed, overdue
   actionCompletedDate: timestamp("action_completed_date"),
-  notes: text("notes"), // Additional notes
+  evidenceAttached: boolean("evidence_attached").default(false), // Whether evidence files are attached
+  inspectorNotes: text("inspector_notes"), // CQC inspector notes if applicable
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
@@ -556,12 +595,21 @@ export const insertCqcAuditCategorySchema = createInsertSchema(cqcAuditCategorie
   createdAt: true,
 });
 
-export const insertCqcChecklistItemSchema = createInsertSchema(cqcChecklistItems).omit({
+export const insertCqcQualityStatementSchema = createInsertSchema(cqcQualityStatements).omit({
   id: true,
   createdAt: true,
 });
 
-export const insertCqcAuditResponseSchema = createInsertSchema(cqcAuditResponses).omit({
+export const insertCqcEvidenceCategorySchema = createInsertSchema(cqcEvidenceCategories).omit({
+  id: true,
+});
+
+export const insertCqcAuditEvidenceSchema = createInsertSchema(cqcAuditEvidence).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertCqcQualityAssessmentSchema = createInsertSchema(cqcQualityAssessments).omit({
   id: true,
   createdAt: true,
   updatedAt: true,
@@ -632,10 +680,14 @@ export type InsertCqcAudit = z.infer<typeof insertCqcAuditSchema>;
 export type CqcAudit = typeof cqcAudits.$inferSelect;
 export type InsertCqcAuditCategory = z.infer<typeof insertCqcAuditCategorySchema>;
 export type CqcAuditCategory = typeof cqcAuditCategories.$inferSelect;
-export type InsertCqcChecklistItem = z.infer<typeof insertCqcChecklistItemSchema>;
-export type CqcChecklistItem = typeof cqcChecklistItems.$inferSelect;
-export type InsertCqcAuditResponse = z.infer<typeof insertCqcAuditResponseSchema>;
-export type CqcAuditResponse = typeof cqcAuditResponses.$inferSelect;
+export type InsertCqcQualityStatement = z.infer<typeof insertCqcQualityStatementSchema>;
+export type CqcQualityStatement = typeof cqcQualityStatements.$inferSelect;
+export type InsertCqcEvidenceCategory = z.infer<typeof insertCqcEvidenceCategorySchema>;
+export type CqcEvidenceCategory = typeof cqcEvidenceCategories.$inferSelect;
+export type InsertCqcAuditEvidence = z.infer<typeof insertCqcAuditEvidenceSchema>;
+export type CqcAuditEvidence = typeof cqcAuditEvidence.$inferSelect;
+export type InsertCqcQualityAssessment = z.infer<typeof insertCqcQualityAssessmentSchema>;
+export type CqcQualityAssessment = typeof cqcQualityAssessments.$inferSelect;
 export type InsertCqcComplianceRecord = z.infer<typeof insertCqcComplianceRecordSchema>;
 export type CqcComplianceRecord = typeof cqcComplianceRecords.$inferSelect;
 export type InsertKnowledgeQuestionnaire = z.infer<typeof insertKnowledgeQuestionnaireSchema>;
