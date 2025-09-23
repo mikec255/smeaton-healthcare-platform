@@ -48,6 +48,16 @@ export default function AdminTools() {
     const travelCosts = parseFloat(calculation.travelCosts) || 0;
     const foodAllowance = parseFloat(calculation.foodAllowance) || 0;
 
+    // Debug logging
+    console.log('Calculate Package Debug:', {
+      packageType,
+      chargeRate,
+      hours,
+      days,
+      hoursPerDay,
+      carerWage
+    });
+
     let totalRevenue = 0;
     let grossWage = 0;
     let totalHours = 0;
@@ -63,6 +73,12 @@ export default function AdminTools() {
       totalRevenue = chargeRate * totalHours;
       grossWage = carerWage * totalHours;
     }
+
+    console.log('Calculation Results:', {
+      totalHours,
+      totalRevenue,
+      grossWage
+    });
 
     // Staff cost calculations
     const nationalInsuranceCost = grossWage * (calculation.nationalInsurance / 100);
