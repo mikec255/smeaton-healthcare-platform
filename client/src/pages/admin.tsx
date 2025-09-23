@@ -261,63 +261,72 @@ export default function Admin() {
     }
   ];
 
-  // Add admin category for superadmin users
+  // Add Tools & Compliance category for superadmin users
   if (authUser?.user?.role === "superadmin") {
-    managementCategories.push({
-      id: "admin",
-      title: "Admin",
-      description: "System administration and configuration",
-      areas: [
-        {
-          title: "Manage Users",
-          description: "Create and manage admin users with role-based access control",
-          icon: Settings,
-          link: "/admin/users",
-          stats: {
-            total: 1,
-            active: 1,
-            inactive: 0
+    managementCategories.push(
+      {
+        id: "tools-compliance",
+        title: "Tools & Compliance",
+        description: "Business tools and regulatory compliance management",
+        areas: [
+          {
+            title: "Package Calculators",
+            description: "Business calculators for hourly, live-in, and 24/7 care packages with UK employment overhead calculations",
+            icon: Calculator,
+            link: "/admin/tools",
+            stats: {
+              total: "Package",
+              status: "Calculator", 
+              info: "UK Ready"
+            },
+            color: "bg-purple-600 text-white hover:bg-purple-700"
           },
-          color: "bg-destructive text-destructive-foreground hover:bg-destructive/90"
-        },
-        {
-          title: "Email Settings",
-          description: "Configure email services for automated notifications and communications",
-          icon: Mail,
-          link: "#",
-          isEmailSettings: true,
-          stats: {
-            configured: emailConfig.configured,
-            status: emailConfig.configured ? "Configured" : "Not configured"
+          {
+            title: "Audit Logs", 
+            description: "GDPR compliance tracking - view all admin actions involving personal data",
+            icon: Shield,
+            link: "/admin/audit-logs",
+            stats: {
+              total: "Secure",
+              status: "Compliant",
+              info: "GDPR Ready"
+            },
+            color: "bg-blue-600 text-white hover:bg-blue-700"
+          }
+        ]
+      },
+      {
+        id: "admin",
+        title: "Admin",
+        description: "System administration and configuration", 
+        areas: [
+          {
+            title: "Manage Users",
+            description: "Create and manage admin users with role-based access control",
+            icon: Settings,
+            link: "/admin/users",
+            stats: {
+              total: 1,
+              active: 1,
+              inactive: 0
+            },
+            color: "bg-destructive text-destructive-foreground hover:bg-destructive/90"
           },
-          color: emailConfig.configured ? "bg-green-600 text-white hover:bg-green-700" : "bg-red-600 text-white hover:bg-red-700"
-        },
-        {
-          title: "Audit Logs",
-          description: "GDPR compliance tracking - view all admin actions involving personal data",
-          icon: Shield,
-          link: "/admin/audit-logs",
-          stats: {
-            total: "Secure",
-            status: "Compliant",
-            info: "GDPR Ready"
-          },
-          color: "bg-blue-600 text-white hover:bg-blue-700"
-        },
-        {
-          title: "Tools",
-          description: "Business calculators and tools for operational management",
-          icon: Calculator,
-          link: "/admin/tools",
-          stats: {
-            total: "Package",
-            status: "Calculator",
-            info: "UK Ready"
-          },
-          color: "bg-purple-600 text-white hover:bg-purple-700"
-        }
-      ]
-    });
+          {
+            title: "Email Settings",
+            description: "Configure email services for automated notifications and communications",
+            icon: Mail,
+            link: "#",
+            isEmailSettings: true,
+            stats: {
+              configured: emailConfig.configured,
+              status: emailConfig.configured ? "Configured" : "Not configured"
+            },
+            color: emailConfig.configured ? "bg-green-600 text-white hover:bg-green-700" : "bg-red-600 text-white hover:bg-red-700"
+          }
+        ]
+      }
+    );
   }
 
   return (
