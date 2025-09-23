@@ -464,6 +464,87 @@ export const cqcComplianceRecords = pgTable("cqc_compliance_records", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
+// Staff Knowledge Assessment Tables
+export const knowledgeQuestionnaires = pgTable("knowledge_questionnaires", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  title: text("title").notNull(),
+  description: text("description").notNull(),
+  category: text("category").notNull(), // mandatory_core, care_specific, professional_standards, specialized, scenario_testing
+  subcategory: text("subcategory").notNull(), // safeguarding, mental_capacity, health_safety, etc.
+  isActive: boolean("is_active").default(true),
+  timeLimit: integer("time_limit"), // Time limit in minutes (optional)
+  passingScore: integer("passing_score").default(70), // Percentage required to pass
+  instructions: text("instructions"), // Instructions for completing the assessment
+  shareableLink: text("shareable_link").unique(), // UUID for shareable link
+  qrCode: text("qr_code"), // Base64 encoded QR code
+  emailTemplate: text("email_template"), // Pre-filled email template
+  createdBy: varchar("created_by").references(() => users.id).notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const knowledgeQuestions = pgTable("knowledge_questions", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  questionnaireId: varchar("questionnaire_id").references(() => knowledgeQuestionnaires.id, { onDelete: "cascade" }).notNull(),
+  questionText: text("question_text").notNull(),
+  questionType: text("question_type").notNull(), // multiple_choice, scenario_based, true_false, short_answer
+  options: json("options").$type<string[]>(), // For multiple choice questions
+  correctAnswer: text("correct_answer"), // Correct answer for objective questions
+  explanation: text("explanation"), // Explanation of the correct answer
+  points: integer("points").default(1), // Points awarded for correct answer
+  sortOrder: integer("sort_order").default(0),
+  isRequired: boolean("is_required").default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const knowledgeSessions = pgTable("knowledge_sessions", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  questionnaireId: varchar("questionnaire_id").references(() => knowledgeQuestionnaires.id, { onDelete: "cascade" }).notNull(),
+  staffEmail: text("staff_email").notNull(),
+  staffName: text("staff_name").notNull(),
+  status: text("status").default("in_progress"), // in_progress, completed, abandoned
+  startedAt: timestamp("started_at").defaultNow(),
+  completedAt: timestamp("completed_at"),
+  timeSpent: integer("time_spent"), // Time spent in minutes
+  totalScore: integer("total_score"), // Total points scored
+  maxScore: integer("max_score"), // Maximum possible points
+  percentageScore: integer("percentage_score"), // Percentage score
+  passed: boolean("passed"), // Whether they passed based on passing score
+  ipAddress: text("ip_address"),
+  userAgent: text("user_agent"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const knowledgeResponses = pgTable("knowledge_responses", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  sessionId: varchar("session_id").references(() => knowledgeSessions.id, { onDelete: "cascade" }).notNull(),
+  questionId: varchar("question_id").references(() => knowledgeQuestions.id).notNull(),
+  answer: text("answer").notNull(), // The staff member's answer
+  isCorrect: boolean("is_correct"), // Whether the answer is correct (for objective questions)
+  pointsAwarded: integer("points_awarded").default(0), // Points awarded for this answer
+  timeSpent: integer("time_spent"), // Time spent on this question in seconds
+  reviewNotes: text("review_notes"), // Notes for manual review (subjective questions)
+  needsReview: boolean("needs_review").default(false), // Whether this response needs manual review
+  reviewedBy: varchar("reviewed_by").references(() => users.id),
+  reviewedAt: timestamp("reviewed_at"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const knowledgeActions = pgTable("knowledge_actions", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  sessionId: varchar("session_id").references(() => knowledgeSessions.id, { onDelete: "cascade" }).notNull(),
+  actionType: text("action_type").notNull(), // training_required, follow_up_needed, competency_check, no_action
+  actionDescription: text("action_description").notNull(),
+  actionDueDate: timestamp("action_due_date"),
+  assignedTo: varchar("assigned_to").references(() => users.id),
+  status: text("status").default("pending"), // pending, in_progress, completed, overdue
+  completedAt: timestamp("completed_at"),
+  notes: text("notes"),
+  createdBy: varchar("created_by").references(() => users.id).notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
 export const insertCqcAuditSchema = createInsertSchema(cqcAudits).omit({
   id: true,
   createdAt: true,
@@ -487,6 +568,33 @@ export const insertCqcAuditResponseSchema = createInsertSchema(cqcAuditResponses
 });
 
 export const insertCqcComplianceRecordSchema = createInsertSchema(cqcComplianceRecords).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertKnowledgeQuestionnaireSchema = createInsertSchema(knowledgeQuestionnaires).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertKnowledgeQuestionSchema = createInsertSchema(knowledgeQuestions).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertKnowledgeSessionSchema = createInsertSchema(knowledgeSessions).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertKnowledgeResponseSchema = createInsertSchema(knowledgeResponses).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertKnowledgeActionSchema = createInsertSchema(knowledgeActions).omit({
   id: true,
   createdAt: true,
   updatedAt: true,
@@ -530,3 +638,13 @@ export type InsertCqcAuditResponse = z.infer<typeof insertCqcAuditResponseSchema
 export type CqcAuditResponse = typeof cqcAuditResponses.$inferSelect;
 export type InsertCqcComplianceRecord = z.infer<typeof insertCqcComplianceRecordSchema>;
 export type CqcComplianceRecord = typeof cqcComplianceRecords.$inferSelect;
+export type InsertKnowledgeQuestionnaire = z.infer<typeof insertKnowledgeQuestionnaireSchema>;
+export type KnowledgeQuestionnaire = typeof knowledgeQuestionnaires.$inferSelect;
+export type InsertKnowledgeQuestion = z.infer<typeof insertKnowledgeQuestionSchema>;
+export type KnowledgeQuestion = typeof knowledgeQuestions.$inferSelect;
+export type InsertKnowledgeSession = z.infer<typeof insertKnowledgeSessionSchema>;
+export type KnowledgeSession = typeof knowledgeSessions.$inferSelect;
+export type InsertKnowledgeResponse = z.infer<typeof insertKnowledgeResponseSchema>;
+export type KnowledgeResponse = typeof knowledgeResponses.$inferSelect;
+export type InsertKnowledgeAction = z.infer<typeof insertKnowledgeActionSchema>;
+export type KnowledgeAction = typeof knowledgeActions.$inferSelect;
