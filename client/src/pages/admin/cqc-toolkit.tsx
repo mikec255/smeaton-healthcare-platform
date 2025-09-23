@@ -41,115 +41,26 @@ type CreateComplianceRecordFormData = z.infer<typeof createComplianceRecordSchem
 type CreateKnowledgeQuestionnaireFormData = z.infer<typeof createKnowledgeQuestionnaireSchema>;
 type CreateKnowledgeQuestionFormData = z.infer<typeof createKnowledgeQuestionSchema>;
 
-// CQC 2024 Single Assessment Framework - 6 Evidence Categories
-const CQC_EVIDENCE_CATEGORIES = [
-  {
-    id: "people_experience",
-    name: "People's Experience",
-    description: "Direct feedback from people using services, their families and carers",
-    icon: Users,
-    color: "text-blue-600"
-  },
-  {
-    id: "staff_feedback", 
-    name: "Staff Feedback",
-    description: "Views and experiences from staff members providing care",
-    icon: MessageSquare,
-    color: "text-green-600"
-  },
-  {
-    id: "observations",
-    name: "Observations",
-    description: "Direct observations of care delivery and practice standards",
-    icon: Eye,
-    color: "text-purple-600"
-  },
-  {
-    id: "records_documents",
-    name: "Records & Documents", 
-    description: "Care records, policies, procedures, and documentation",
-    icon: FileText,
-    color: "text-orange-600"
-  },
-  {
-    id: "systems_processes",
-    name: "Systems & Processes",
-    description: "Governance systems, quality assurance, and operational processes",
-    icon: BarChart3,
-    color: "text-red-600"
-  },
-  {
-    id: "environment_resources",
-    name: "Environment & Resources",
-    description: "Physical environment, equipment, staffing levels and resources",
-    icon: ClipboardCheck,
-    color: "text-teal-600"
-  }
-];
+// Icon mapping for evidence categories
+const EVIDENCE_CATEGORY_ICONS: Record<string, any> = {
+  "people_experience": Users,
+  "staff_feedback": MessageSquare,
+  "observations": Eye,
+  "records_documents": FileText,
+  "systems_processes": BarChart3,
+  "environment_resources": ClipboardCheck
+};
 
-// CQC 2024 Single Assessment Framework - 5 Key Questions with 34 Quality Statements
-const CQC_KEY_QUESTIONS = [
-  {
-    id: "safe",
-    name: "Safe",
-    description: "People are protected from abuse and avoidable harm",
-    qualityStatements: [
-      "People are safeguarded from abuse, neglect, discrimination and loss of dignity, and their human rights are protected and promoted",
-      "People's individual risks are identified, assessed and managed",
-      "People receive safe care and treatment",
-      "People are protected from healthcare associated infections",
-      "People are supported to make decisions about their care and treatment"
-    ]
-  },
-  {
-    id: "effective", 
-    name: "Effective",
-    description: "People's care, treatment and support achieves good outcomes",
-    qualityStatements: [
-      "People's needs are holistically assessed, and their care, treatment and support is delivered in line with evidence-based guidance",
-      "People have their care and treatment coordinated when they move between services",
-      "People are supported to live healthier lives and their physical and mental health and wellbeing is promoted",
-      "People's communication needs are identified and met",
-      "People are supported to make informed decisions about their care and treatment"
-    ]
-  },
-  {
-    id: "caring",
-    name: "Caring", 
-    description: "Staff involve and treat people with compassion, kindness, dignity and respect",
-    qualityStatements: [
-      "People are treated with kindness, respect and compassion and their rights are protected",
-      "People's privacy, dignity and confidentiality are respected and protected",
-      "People are actively involved in decisions about their care, treatment and support",
-      "People's cultural and spiritual beliefs, values and preferences are respected"
-    ]
-  },
-  {
-    id: "responsive",
-    name: "Responsive",
-    description: "Services are organized to meet people's needs",
-    qualityStatements: [
-      "People can access care and treatment in a timely way",
-      "People receive person-centred care that is responsive to their individual needs, values and circumstances",
-      "People have choice and control over their care and support",
-      "People know how to access information, advice and support",
-      "People know how to raise concerns and complaints and feel confident to do so"
-    ]
-  },
-  {
-    id: "well_led",
-    name: "Well-Led",
-    description: "Leadership, management and governance support the delivery of person-centered care",
-    qualityStatements: [
-      "There is a clear vision and credible strategy to deliver person-centred care",
-      "Leaders have the skills, knowledge and integrity to lead effectively",
-      "There are clear responsibilities, roles and systems of accountability",
-      "There are sufficient numbers of suitably qualified, competent, skilled and experienced staff",
-      "There is a culture of continuous learning and improvement",
-      "People are supported through effective partnerships and joint working with other organisations"
-    ]
-  }
-];
+// Color mapping for evidence categories
+const EVIDENCE_CATEGORY_COLORS: Record<string, string> = {
+  "people_experience": "text-blue-600",
+  "staff_feedback": "text-green-600",
+  "observations": "text-purple-600",
+  "records_documents": "text-orange-600",
+  "systems_processes": "text-red-600",
+  "environment_resources": "text-teal-600"
+};
+
 
 export default function CqcToolkit() {
   const [activeTab, setActiveTab] = useState("dashboard");
@@ -192,6 +103,49 @@ export default function CqcToolkit() {
   const { data: knowledgeQuestions = [], isLoading: questionsLoading } = useQuery<KnowledgeQuestion[]>({
     queryKey: ["/api/knowledge/questionnaires", selectedQuestionnaire, "questions"],
     enabled: !!selectedQuestionnaire,
+  });
+
+  // CQC 2024 Framework queries
+  const { data: cqcEvidenceCategories = [], isLoading: evidenceCategoriesLoading } = useQuery<CqcEvidenceCategory[]>({
+    queryKey: ["/api/cqc/evidence-categories"],
+  });
+
+  const { data: cqcQualityStatements = [], isLoading: qualityStatementsLoading } = useQuery<CqcQualityStatement[]>({
+    queryKey: ["/api/cqc/quality-statements"],
+  });
+
+  const { data: cqcAuditEvidence = [], isLoading: auditEvidenceLoading } = useQuery<CqcAuditEvidence[]>({
+    queryKey: ["/api/cqc/audit-evidence"],
+  });
+
+  const { data: cqcQualityAssessments = [], isLoading: qualityAssessmentsLoading } = useQuery<CqcQualityAssessment[]>({
+    queryKey: ["/api/cqc/quality-assessments"],
+  });
+
+  // CQC Evidence upload mutation
+  const uploadEvidenceMutation = useMutation({
+    mutationFn: async (evidenceData: {
+      evidenceCategoryId: string;
+      qualityStatementId: string;
+      fileName: string;
+      fileUrl: string;
+      fileSize: number;
+      fileType: string;
+      description?: string;
+    }): Promise<CqcAuditEvidence> => {
+      return apiRequest('/api/cqc/audit-evidence', {
+        method: 'POST',
+        body: JSON.stringify(evidenceData),
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/cqc/audit-evidence"] });
+      toast({ title: "Success", description: "Evidence uploaded successfully" });
+    },
+    onError: (error: Error) => {
+      console.error('Upload evidence error:', error);
+      toast({ title: "Error", description: error.message || "Failed to upload evidence", variant: "destructive" });
+    },
   });
 
   // Mutations
@@ -1175,13 +1129,26 @@ Smeaton Healthcare Training Team`;
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {CQC_EVIDENCE_CATEGORIES.map((category) => {
-                  const IconComponent = category.icon;
+                {evidenceCategoriesLoading ? (
+                  Array.from({ length: 6 }).map((_, i) => (
+                    <Card key={i}>
+                      <CardContent className="pt-6">
+                        <Skeleton className="h-12 w-12 rounded-lg mb-4" />
+                        <Skeleton className="h-6 w-32 mb-2" />
+                        <Skeleton className="h-4 w-full mb-2" />
+                        <Skeleton className="h-4 w-3/4" />
+                      </CardContent>
+                    </Card>
+                  ))
+                ) : (
+                  cqcEvidenceCategories.map((category) => {
+                    const IconComponent = EVIDENCE_CATEGORY_ICONS[category.categoryKey] || FileText;
+                    const colorClass = EVIDENCE_CATEGORY_COLORS[category.categoryKey] || "text-gray-600";
                   return (
                     <Card key={category.id} className="relative overflow-hidden">
                       <CardContent className="pt-6">
                         <div className="flex items-start space-x-3">
-                          <div className={`p-2 rounded-lg bg-gray-100 dark:bg-gray-800 ${category.color}`}>
+                          <div className={`p-2 rounded-lg bg-gray-100 dark:bg-gray-800 ${colorClass}`}>
                             <IconComponent className="h-5 w-5" />
                           </div>
                           <div className="flex-1 min-w-0">
@@ -1191,45 +1158,101 @@ Smeaton Healthcare Training Team`;
                             <p className="text-xs text-gray-600 dark:text-gray-400 mt-1 line-clamp-2">
                               {category.description}
                             </p>
-                            <Button 
-                              variant="ghost" 
-                              size="sm" 
-                              className="mt-2 p-0 h-auto text-xs hover:bg-transparent"
-                              data-testid={`button-upload-${category.id}`}
-                            >
-                              <Upload className="h-3 w-3 mr-1" />
-                              Upload Evidence
-                            </Button>
+                            <div className="flex items-center justify-between mt-2">
+                              <span className="text-xs text-gray-600 dark:text-gray-400">
+                                Evidence: {cqcAuditEvidence.filter(evidence => evidence.evidenceCategoryId === category.id).length}
+                              </span>
+                              <Dialog>
+                                <DialogTrigger asChild>
+                                  <Button 
+                                    variant="ghost" 
+                                    size="sm" 
+                                    className="p-0 h-auto text-xs hover:bg-transparent"
+                                    data-testid={`button-upload-${category.categoryKey}`}
+                                  >
+                                    <Upload className="h-3 w-3 mr-1" />
+                                    Upload
+                                  </Button>
+                                </DialogTrigger>
+                                <DialogContent className="sm:max-w-2xl">
+                                  <DialogHeader>
+                                    <DialogTitle>Upload Evidence - {category.name}</DialogTitle>
+                                    <DialogDescription>
+                                      Upload evidence files for {category.description.toLowerCase()}
+                                    </DialogDescription>
+                                  </DialogHeader>
+                                  <div className="py-4">
+                                    <DashboardModal
+                                      uppy={undefined}
+                                      open={true}
+                                      onRequestClose={() => {}}
+                                      note="Upload photos, documents, certificates, and other evidence files"
+                                    />
+                                  </div>
+                                </DialogContent>
+                              </Dialog>
+                            </div>
                           </div>
                         </div>
                       </CardContent>
                     </Card>
                   );
-                })}
+                  })
+                )}
               </div>
             </CardContent>
           </Card>
 
           {/* CQC 5 Key Questions Interface */}
           <div className="space-y-6">
-            {CQC_KEY_QUESTIONS.map((keyQuestion, questionIndex) => (
-              <Card key={keyQuestion.id} className="overflow-hidden">
-                <CardHeader className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-950 dark:to-indigo-950">
-                  <CardTitle className="flex items-center justify-between">
-                    <div className="flex items-center space-x-3">
+            {qualityStatementsLoading ? (
+              Array.from({ length: 5 }).map((_, i) => (
+                <Card key={i} className="overflow-hidden">
+                  <CardHeader>
+                    <Skeleton className="h-8 w-48 mb-2" />
+                    <Skeleton className="h-4 w-full" />
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-3">
+                      {Array.from({ length: 6 }).map((_, j) => (
+                        <Skeleton key={j} className="h-16 w-full" />
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
+              ))
+            ) : (
+              // Group quality statements by key question
+              ['safe', 'effective', 'caring', 'responsive', 'well_led'].map((keyQuestionId, questionIndex) => {
+                const keyQuestionStatements = cqcQualityStatements.filter(statement => statement.keyQuestion === keyQuestionId);
+                const keyQuestionInfo = {
+                  safe: { name: 'Safe', description: 'People are protected from abuse and avoidable harm' },
+                  effective: { name: 'Effective', description: 'People\'s care, treatment and support achieves good outcomes' },
+                  caring: { name: 'Caring', description: 'Staff involve and treat people with compassion, kindness, dignity and respect' },
+                  responsive: { name: 'Responsive', description: 'Services are organized to meet people\'s needs' },
+                  well_led: { name: 'Well-Led', description: 'Leadership, management and governance support the delivery of person-centered care' }
+                }[keyQuestionId];
+                
+                if (keyQuestionStatements.length === 0) return null;
+                
+                return (
+                  <Card key={keyQuestionId} className="overflow-hidden">
+                    <CardHeader className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-950 dark:to-indigo-950">
+                      <CardTitle className="flex items-center justify-between">
+                        <div className="flex items-center space-x-3">
                       <div className="w-8 h-8 rounded-full bg-blue-600 text-white flex items-center justify-center text-sm font-bold">
                         {questionIndex + 1}
                       </div>
                       <div>
-                        <h3 className="text-lg font-semibold" data-testid={`key-question-${keyQuestion.id}`}>
-                          {keyQuestion.name}
+                        <h3 className="text-lg font-semibold" data-testid={`key-question-${keyQuestionId}`}>
+                          {keyQuestionInfo.name}
                         </h3>
                         <p className="text-sm text-gray-600 dark:text-gray-400 font-normal">
-                          {keyQuestion.description}
+                          {keyQuestionInfo.description}
                         </p>
                       </div>
                     </div>
-                    <Button variant="outline" size="sm" data-testid={`button-assess-${keyQuestion.id}`}>
+                    <Button variant="outline" size="sm" data-testid={`button-assess-${keyQuestionId}`}>
                       <ClipboardCheck className="h-4 w-4 mr-1" />
                       Start Assessment
                     </Button>
@@ -1238,10 +1261,10 @@ Smeaton Healthcare Training Team`;
                 <CardContent className="pt-6">
                   <div className="space-y-4">
                     <div className="text-sm text-gray-600 dark:text-gray-400 mb-4">
-                      <strong>Quality Statements ({keyQuestion.qualityStatements.length})</strong>
+                      <strong>Quality Statements ({keyQuestionStatements.length})</strong>
                     </div>
                     <div className="grid gap-3">
-                      {keyQuestion.qualityStatements.map((statement, statementIndex) => (
+                      {keyQuestionStatements.map((statement, statementIndex) => (
                         <Card key={statementIndex} className="border-l-4 border-l-blue-500">
                           <CardContent className="pt-4">
                             <div className="flex items-start justify-between space-x-4">
@@ -1252,7 +1275,7 @@ Smeaton Healthcare Training Team`;
                                   </div>
                                   <div className="flex-1">
                                     <p className="text-sm font-medium text-gray-900 dark:text-white leading-relaxed">
-                                      {statement}
+                                      {statement.statement}
                                     </p>
                                     <div className="flex items-center space-x-4 mt-3">
                                       <Button variant="outline" size="sm" data-testid={`button-assess-statement-${questionIndex}-${statementIndex}`}>
