@@ -14,6 +14,7 @@ export default function AdminTools() {
     chargeRate: '',
     hours: '',
     days: '',
+    hoursPerDay: '',
     carerWage: '',
     travelCosts: '',
     foodAllowance: '',
@@ -42,24 +43,25 @@ export default function AdminTools() {
     const chargeRate = parseFloat(calculation.chargeRate) || 0;
     const hours = parseFloat(calculation.hours) || 0;
     const days = parseFloat(calculation.days) || 0;
+    const hoursPerDay = parseFloat(calculation.hoursPerDay) || 0;
     const carerWage = parseFloat(calculation.carerWage) || 0;
     const travelCosts = parseFloat(calculation.travelCosts) || 0;
     const foodAllowance = parseFloat(calculation.foodAllowance) || 0;
 
     let totalRevenue = 0;
     let grossWage = 0;
-    let timeUnit = 0;
+    let totalHours = 0;
 
     if (packageType === 'hourly') {
       // Hourly package calculations
       totalRevenue = chargeRate * hours;
       grossWage = carerWage * hours;
-      timeUnit = hours;
+      totalHours = hours;
     } else {
-      // Live-in care package calculations
-      totalRevenue = chargeRate * days;
-      grossWage = carerWage * days;
-      timeUnit = days;
+      // Live-in care package calculations: hourly rate × hours per day × number of days
+      totalHours = hoursPerDay * days;
+      totalRevenue = chargeRate * totalHours;
+      grossWage = carerWage * totalHours;
     }
 
     // Staff cost calculations
@@ -77,7 +79,7 @@ export default function AdminTools() {
     
     const totalCosts = totalStaffCost + totalOtherCosts;
     const shiftMargin = totalRevenue - totalCosts;
-    const unitMargin = timeUnit > 0 ? shiftMargin / timeUnit : 0;
+    const hourlyMargin = totalHours > 0 ? shiftMargin / totalHours : 0;
     const marginPercentage = totalRevenue > 0 ? (shiftMargin / totalRevenue) * 100 : 0;
 
     setResults({
@@ -91,7 +93,7 @@ export default function AdminTools() {
       foodAllowanceTotal: foodAllowance,
       totalCosts,
       shiftMargin,
-      hourlyMargin: unitMargin,
+      hourlyMargin,
       marginPercentage,
     });
   };
@@ -210,35 +212,51 @@ export default function AdminTools() {
                   </div>
                 </div>
               ) : (
-                <div className="space-y-2">
-                  <Label htmlFor="days">Number of Days</Label>
-                  <div className="relative">
-                    <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-500" />
-                    <Input
-                      id="days"
-                      type="number"
-                      step="1"
-                      placeholder="7"
-                      className="pl-10"
-                      value={calculation.days}
-                      onChange={(e) => handleInputChange('days', e.target.value)}
-                      data-testid="input-days"
-                    />
+                <div className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="hours-per-day">Hours of Care (per day)</Label>
+                    <div className="relative">
+                      <Clock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-500" />
+                      <Input
+                        id="hours-per-day"
+                        type="number"
+                        step="0.5"
+                        placeholder="12.0"
+                        className="pl-10"
+                        value={calculation.hoursPerDay}
+                        onChange={(e) => handleInputChange('hoursPerDay', e.target.value)}
+                        data-testid="input-hours-per-day"
+                      />
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="days">Number of Days</Label>
+                    <div className="relative">
+                      <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-500" />
+                      <Input
+                        id="days"
+                        type="number"
+                        step="1"
+                        placeholder="7"
+                        className="pl-10"
+                        value={calculation.days}
+                        onChange={(e) => handleInputChange('days', e.target.value)}
+                        data-testid="input-days"
+                      />
+                    </div>
                   </div>
                 </div>
               )}
 
               <div className="space-y-2">
-                <Label htmlFor="carer-wage">
-                  Carer Wage (per {packageType === 'hourly' ? 'hour' : 'day'})
-                </Label>
+                <Label htmlFor="carer-wage">Carer Wage (per hour)</Label>
                 <div className="relative">
                   <Users className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-500" />
                   <Input
                     id="carer-wage"
                     type="number"
                     step="0.01"
-                    placeholder={packageType === 'hourly' ? '12.50' : '150.00'}
+                    placeholder="12.50"
                     className="pl-10"
                     value={calculation.carerWage}
                     onChange={(e) => handleInputChange('carerWage', e.target.value)}
@@ -417,6 +435,7 @@ export default function AdminTools() {
                     chargeRate: '',
                     hours: '',
                     days: '',
+                    hoursPerDay: '',
                     carerWage: '',
                     travelCosts: '',
                     foodAllowance: ''
