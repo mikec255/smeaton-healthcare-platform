@@ -1,18 +1,22 @@
 import { useState, useEffect } from "react";
-import { Calculator, TrendingUp, Clock, Users, DollarSign, Info, ArrowRight } from "lucide-react";
+import { Calculator, TrendingUp, Clock, Users, DollarSign, Info, ArrowRight, Calendar, Utensils } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 
 export default function AdminTools() {
+  const [packageType, setPackageType] = useState('hourly'); // 'hourly' or 'live-in'
   const [calculation, setCalculation] = useState({
     chargeRate: '',
     hours: '',
+    days: '',
     carerWage: '',
     travelCosts: '',
+    foodAllowance: '',
     // UK overhead rates (these can be made configurable later)
     nationalInsurance: 15.0, // Employer NI rate %
     pensionContribution: 3.0, // Minimum auto-enrolment rate %
@@ -26,10 +30,8 @@ export default function AdminTools() {
     nationalInsuranceCost: 0,
     pensionCost: 0,
     holidayPayCost: 0,
-    insuranceCost: 0,
-    trainingCost: 0,
-    adminCost: 0,
     travelCostTotal: 0,
+    foodAllowanceTotal: 0,
     totalCosts: 0,
     shiftMargin: 0,
     hourlyMargin: 0,
@@ -39,23 +41,43 @@ export default function AdminTools() {
   const calculatePackage = () => {
     const chargeRate = parseFloat(calculation.chargeRate) || 0;
     const hours = parseFloat(calculation.hours) || 0;
+    const days = parseFloat(calculation.days) || 0;
     const carerWage = parseFloat(calculation.carerWage) || 0;
     const travelCosts = parseFloat(calculation.travelCosts) || 0;
+    const foodAllowance = parseFloat(calculation.foodAllowance) || 0;
 
-    // Revenue calculation
-    const totalRevenue = chargeRate * hours;
+    let totalRevenue = 0;
+    let grossWage = 0;
+    let timeUnit = 0;
+
+    if (packageType === 'hourly') {
+      // Hourly package calculations
+      totalRevenue = chargeRate * hours;
+      grossWage = carerWage * hours;
+      timeUnit = hours;
+    } else {
+      // Live-in care package calculations
+      totalRevenue = chargeRate * days;
+      grossWage = carerWage * days;
+      timeUnit = days;
+    }
 
     // Staff cost calculations
-    const grossWage = carerWage * hours;
     const nationalInsuranceCost = grossWage * (calculation.nationalInsurance / 100);
     const pensionCost = grossWage * (calculation.pensionContribution / 100);
     const holidayPayCost = grossWage * (calculation.holidayPay / 100);
     
     const totalStaffCost = grossWage + nationalInsuranceCost + pensionCost + holidayPayCost;
     
-    const totalCosts = totalStaffCost + travelCosts;
+    // For live-in care: travel costs and food allowance are applied once for the entire period
+    // For hourly care: travel costs are per shift, no food allowance
+    const totalOtherCosts = packageType === 'live-in' 
+      ? travelCosts + foodAllowance
+      : travelCosts;
+    
+    const totalCosts = totalStaffCost + totalOtherCosts;
     const shiftMargin = totalRevenue - totalCosts;
-    const hourlyMargin = hours > 0 ? shiftMargin / hours : 0;
+    const unitMargin = timeUnit > 0 ? shiftMargin / timeUnit : 0;
     const marginPercentage = totalRevenue > 0 ? (shiftMargin / totalRevenue) * 100 : 0;
 
     setResults({
@@ -66,16 +88,17 @@ export default function AdminTools() {
       pensionCost,
       holidayPayCost,
       travelCostTotal: travelCosts,
+      foodAllowanceTotal: foodAllowance,
       totalCosts,
       shiftMargin,
-      hourlyMargin,
+      hourlyMargin: unitMargin,
       marginPercentage,
     });
   };
 
   useEffect(() => {
     calculatePackage();
-  }, [calculation]);
+  }, [calculation, packageType]);
 
   const handleInputChange = (field: string, value: string) => {
     setCalculation(prev => ({
@@ -124,8 +147,36 @@ export default function AdminTools() {
             <div className="space-y-4">
               <h3 className="text-lg font-semibold mb-4">Package Details</h3>
               
+              {/* Package Type Selector */}
+              <div className="space-y-3">
+                <Label>Package Type</Label>
+                <RadioGroup 
+                  value={packageType} 
+                  onValueChange={setPackageType}
+                  className="flex space-x-6"
+                  data-testid="radio-package-type"
+                >
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="hourly" id="hourly" />
+                    <Label htmlFor="hourly" className="flex items-center gap-2 cursor-pointer">
+                      <Clock className="h-4 w-4" />
+                      Hourly Care
+                    </Label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="live-in" id="live-in" />
+                    <Label htmlFor="live-in" className="flex items-center gap-2 cursor-pointer">
+                      <Calendar className="h-4 w-4" />
+                      Live In Care
+                    </Label>
+                  </div>
+                </RadioGroup>
+              </div>
+
               <div className="space-y-2">
-                <Label htmlFor="charge-rate">Charge Rate (per hour)</Label>
+                <Label htmlFor="charge-rate">
+                  Charge Rate (per {packageType === 'hourly' ? 'hour' : 'day'})
+                </Label>
                 <div className="relative">
                   <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-500" />
                   <Input
@@ -141,32 +192,53 @@ export default function AdminTools() {
                 </div>
               </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="hours">Hours per Shift</Label>
-                <div className="relative">
-                  <Clock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-500" />
-                  <Input
-                    id="hours"
-                    type="number"
-                    step="0.5"
-                    placeholder="8.0"
-                    className="pl-10"
-                    value={calculation.hours}
-                    onChange={(e) => handleInputChange('hours', e.target.value)}
-                    data-testid="input-hours"
-                  />
+              {packageType === 'hourly' ? (
+                <div className="space-y-2">
+                  <Label htmlFor="hours">Hours per Shift</Label>
+                  <div className="relative">
+                    <Clock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-500" />
+                    <Input
+                      id="hours"
+                      type="number"
+                      step="0.5"
+                      placeholder="8.0"
+                      className="pl-10"
+                      value={calculation.hours}
+                      onChange={(e) => handleInputChange('hours', e.target.value)}
+                      data-testid="input-hours"
+                    />
+                  </div>
                 </div>
-              </div>
+              ) : (
+                <div className="space-y-2">
+                  <Label htmlFor="days">Number of Days</Label>
+                  <div className="relative">
+                    <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-500" />
+                    <Input
+                      id="days"
+                      type="number"
+                      step="1"
+                      placeholder="7"
+                      className="pl-10"
+                      value={calculation.days}
+                      onChange={(e) => handleInputChange('days', e.target.value)}
+                      data-testid="input-days"
+                    />
+                  </div>
+                </div>
+              )}
 
               <div className="space-y-2">
-                <Label htmlFor="carer-wage">Carer Wage (per hour)</Label>
+                <Label htmlFor="carer-wage">
+                  Carer Wage (per {packageType === 'hourly' ? 'hour' : 'day'})
+                </Label>
                 <div className="relative">
                   <Users className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-500" />
                   <Input
                     id="carer-wage"
                     type="number"
                     step="0.01"
-                    placeholder="12.50"
+                    placeholder={packageType === 'hourly' ? '12.50' : '150.00'}
                     className="pl-10"
                     value={calculation.carerWage}
                     onChange={(e) => handleInputChange('carerWage', e.target.value)}
@@ -176,7 +248,9 @@ export default function AdminTools() {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="travel-costs">Travel Costs (total)</Label>
+                <Label htmlFor="travel-costs">
+                  Travel Costs {packageType === 'live-in' ? '(one-time for period)' : '(per shift)'}
+                </Label>
                 <div className="relative">
                   <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-500" />
                   <Input
@@ -191,6 +265,25 @@ export default function AdminTools() {
                   />
                 </div>
               </div>
+
+              {packageType === 'live-in' && (
+                <div className="space-y-2">
+                  <Label htmlFor="food-allowance">Food Allowance (total for period)</Label>
+                  <div className="relative">
+                    <Utensils className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-500" />
+                    <Input
+                      id="food-allowance"
+                      type="number"
+                      step="0.01"
+                      placeholder="50.00"
+                      className="pl-10"
+                      value={calculation.foodAllowance}
+                      onChange={(e) => handleInputChange('foodAllowance', e.target.value)}
+                      data-testid="input-food-allowance"
+                    />
+                  </div>
+                </div>
+              )}
 
               {/* UK Overhead Rates */}
               <div className="pt-4">
@@ -260,11 +353,20 @@ export default function AdminTools() {
 
               {/* Other Costs */}
               <Card>
-                <CardContent className="pt-4">
+                <CardContent className="pt-4 space-y-3">
                   <div className="flex justify-between items-center">
                     <span className="font-medium">Travel Costs</span>
                     <span className="font-bold">{formatCurrency(results.travelCostTotal)}</span>
                   </div>
+                  {packageType === 'live-in' && results.foodAllowanceTotal > 0 && (
+                    <>
+                      <Separator />
+                      <div className="flex justify-between items-center">
+                        <span className="font-medium">Food Allowance</span>
+                        <span className="font-bold">{formatCurrency(results.foodAllowanceTotal)}</span>
+                      </div>
+                    </>
+                  )}
                 </CardContent>
               </Card>
 
@@ -292,7 +394,7 @@ export default function AdminTools() {
                       </span>
                     </div>
                     <div className="flex justify-between items-center">
-                      <span>Hourly Margin:</span>
+                      <span>{packageType === 'hourly' ? 'Hourly' : 'Daily'} Margin:</span>
                       <span className={`font-bold ${results.hourlyMargin >= 0 ? 'text-blue-700 dark:text-blue-300' : 'text-red-700 dark:text-red-300'}`}>
                         {formatCurrency(results.hourlyMargin)}
                       </span>
@@ -314,9 +416,12 @@ export default function AdminTools() {
                     ...prev,
                     chargeRate: '',
                     hours: '',
+                    days: '',
                     carerWage: '',
-                    travelCosts: ''
+                    travelCosts: '',
+                    foodAllowance: ''
                   }));
+                  setPackageType('hourly');
                 }}
                 variant="outline"
                 className="w-full"
