@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
-import { Calculator, TrendingUp, Clock, Users, DollarSign, Info, ArrowRight, Calendar, Utensils, Download, FileText } from "lucide-react";
+import { Calculator, TrendingUp, Clock, Users, DollarSign, Info, ArrowRight, Calendar, Utensils, Download, FileText, Shield, FileCheck } from "lucide-react";
+import { Link } from "wouter";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -274,12 +275,74 @@ export default function AdminTools() {
     <div className="container mx-auto py-8 space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Admin Tools</h1>
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Tools & Compliance</h1>
           <p className="text-gray-600 dark:text-gray-400 mt-2">
-            Business tools and calculators for operations management
+            Business tools, calculators, and compliance management for healthcare staffing
           </p>
         </div>
         <Calculator className="h-8 w-8 text-pink-600" />
+      </div>
+      
+      {/* Tool Navigation */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+        <Card className="border-2 border-pink-200 bg-gradient-to-r from-pink-50 to-pink-100 dark:from-pink-950 dark:to-pink-900">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-3">
+              <Calculator className="h-6 w-6 text-pink-600" />
+              Package Calculator
+            </CardTitle>
+            <CardDescription>
+              Calculate care package costs, staff wages, UK employment overheads, and profit margins with professional quote generation
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center justify-between">
+              <Badge variant="secondary" className="bg-pink-100 text-pink-800 dark:bg-pink-800 dark:text-pink-100">
+                Current Tool
+              </Badge>
+              <Button 
+                variant="outline" 
+                size="sm" 
+                disabled
+                className="border-pink-300 text-pink-700 hover:bg-pink-50"
+                data-testid="button-package-calculator"
+              >
+                Active
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+        
+        <Link href="/admin/cqc-toolkit">
+          <Card className="border-2 border-blue-200 bg-gradient-to-r from-blue-50 to-blue-100 dark:from-blue-950 dark:to-blue-900 hover:shadow-lg transition-shadow cursor-pointer">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-3">
+                <Shield className="h-6 w-6 text-blue-600" />
+                CQC Audit & Compliance Toolkit
+              </CardTitle>
+              <CardDescription>
+                Comprehensive CQC compliance management including audit tracking, staff qualification monitoring, and regulatory compliance tools
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <FileCheck className="h-4 w-4 text-blue-600" />
+                  <span className="text-sm text-blue-700 dark:text-blue-300">5 Core Standards • Compliance Tracking</span>
+                </div>
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  className="border-blue-300 text-blue-700 hover:bg-blue-50"
+                  data-testid="button-cqc-toolkit"
+                >
+                  Open Toolkit
+                  <ArrowRight className="h-4 w-4 ml-1" />
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </Link>
       </div>
 
       {/* Package Calculator */}
