@@ -2025,6 +2025,234 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // ========== CQC 2024 SINGLE ASSESSMENT FRAMEWORK API ROUTES ==========
+  
+  // Quality Statements - Fetch the 34 CQC Quality Statements 
+  app.get("/api/cqc/quality-statements", requireAdmin, async (req, res) => {
+    try {
+      const { keyQuestion } = req.query;
+      const statements = await storage.getAllCqcQualityStatements(keyQuestion as string);
+      res.json(statements);
+    } catch (error) {
+      console.error("Error fetching CQC quality statements:", error);
+      res.status(500).json({ message: "Failed to fetch CQC quality statements" });
+    }
+  });
+
+  app.post("/api/cqc/quality-statements", requireAdmin, async (req, res) => {
+    try {
+      const validatedData = insertCqcQualityStatementSchema.parse(req.body);
+      const statement = await storage.createCqcQualityStatement(validatedData);
+      res.status(201).json(statement);
+    } catch (error) {
+      console.error("Error creating CQC quality statement:", error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid quality statement data", errors: error.errors });
+      }
+      res.status(500).json({ message: "Failed to create CQC quality statement" });
+    }
+  });
+
+  // Evidence Categories - Fetch the 6 CQC Evidence Categories
+  app.get("/api/cqc/evidence-categories", requireAdmin, async (req, res) => {
+    try {
+      const categories = await storage.getAllCqcEvidenceCategories();
+      res.json(categories);
+    } catch (error) {
+      console.error("Error fetching CQC evidence categories:", error);
+      res.status(500).json({ message: "Failed to fetch CQC evidence categories" });
+    }
+  });
+
+  app.post("/api/cqc/evidence-categories", requireAdmin, async (req, res) => {
+    try {
+      const validatedData = insertCqcEvidenceCategorySchema.parse(req.body);
+      const category = await storage.createCqcEvidenceCategory(validatedData);
+      res.status(201).json(category);
+    } catch (error) {
+      console.error("Error creating CQC evidence category:", error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid evidence category data", errors: error.errors });
+      }
+      res.status(500).json({ message: "Failed to create CQC evidence category" });
+    }
+  });
+
+  // Audit Evidence - File uploads and evidence management
+  app.get("/api/cqc/evidence", requireAdmin, async (req, res) => {
+    try {
+      const { auditId, evidenceCategoryId, qualityStatementId } = req.query;
+      const evidence = await storage.getAllCqcAuditEvidence({
+        auditId: auditId as string,
+        evidenceCategoryId: evidenceCategoryId as string,
+        qualityStatementId: qualityStatementId as string
+      });
+      res.json(evidence);
+    } catch (error) {
+      console.error("Error fetching CQC audit evidence:", error);
+      res.status(500).json({ message: "Failed to fetch CQC audit evidence" });
+    }
+  });
+
+  app.post("/api/cqc/evidence", requireAdmin, async (req, res) => {
+    try {
+      const validatedData = insertCqcAuditEvidenceSchema.parse({
+        ...req.body,
+        uploadedBy: req.user!.id
+      });
+      const evidence = await storage.createCqcAuditEvidence(validatedData);
+      
+      // Create audit log for evidence upload
+      await AuditLogger.logCreate(
+        req,
+        req.user!,
+        'cqc_audit_evidence',
+        evidence.id,
+        { 
+          fileName: evidence.fileName,
+          evidenceCategory: evidence.evidenceCategoryId,
+          auditId: evidence.auditId 
+        }
+      );
+      
+      res.status(201).json(evidence);
+    } catch (error) {
+      console.error("Error creating CQC audit evidence:", error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid evidence data", errors: error.errors });
+      }
+      res.status(500).json({ message: "Failed to create CQC audit evidence" });
+    }
+  });
+
+  app.get("/api/cqc/evidence/:id", requireAdmin, async (req, res) => {
+    try {
+      const evidence = await storage.getCqcAuditEvidence(req.params.id);
+      if (!evidence) {
+        return res.status(404).json({ message: "CQC audit evidence not found" });
+      }
+      res.json(evidence);
+    } catch (error) {
+      console.error("Error fetching CQC audit evidence:", error);
+      res.status(500).json({ message: "Failed to fetch CQC audit evidence" });
+    }
+  });
+
+  app.delete("/api/cqc/evidence/:id", requireAdmin, async (req, res) => {
+    try {
+      const existingEvidence = await storage.getCqcAuditEvidence(req.params.id);
+      if (!existingEvidence) {
+        return res.status(404).json({ message: "CQC audit evidence not found" });
+      }
+      
+      const success = await storage.deleteCqcAuditEvidence(req.params.id);
+      if (!success) {
+        return res.status(404).json({ message: "CQC audit evidence not found" });
+      }
+      
+      // Create audit log for evidence deletion
+      await AuditLogger.logDelete(
+        req,
+        req.user!,
+        'cqc_audit_evidence',
+        req.params.id,
+        { fileName: existingEvidence.fileName, evidenceCategory: existingEvidence.evidenceCategoryId }
+      );
+      
+      res.status(204).send();
+    } catch (error) {
+      console.error("Error deleting CQC audit evidence:", error);
+      res.status(500).json({ message: "Failed to delete CQC audit evidence" });
+    }
+  });
+
+  // Quality Assessments - Ratings and judgements for Quality Statements
+  app.get("/api/cqc/assessments", requireAdmin, async (req, res) => {
+    try {
+      const { auditId, qualityStatementId, assessmentRating } = req.query;
+      const assessments = await storage.getAllCqcQualityAssessments({
+        auditId: auditId as string,
+        qualityStatementId: qualityStatementId as string,
+        assessmentRating: assessmentRating as string
+      });
+      res.json(assessments);
+    } catch (error) {
+      console.error("Error fetching CQC quality assessments:", error);
+      res.status(500).json({ message: "Failed to fetch CQC quality assessments" });
+    }
+  });
+
+  app.post("/api/cqc/assessments", requireAdmin, async (req, res) => {
+    try {
+      const validatedData = insertCqcQualityAssessmentSchema.parse({
+        ...req.body,
+        assessorId: req.user!.id
+      });
+      const assessment = await storage.createCqcQualityAssessment(validatedData);
+      
+      // Create audit log for assessment
+      await AuditLogger.logCreate(
+        req,
+        req.user!,
+        'cqc_quality_assessment',
+        assessment.id,
+        { 
+          qualityStatementId: assessment.qualityStatementId,
+          rating: assessment.assessmentRating,
+          auditId: assessment.auditId 
+        }
+      );
+      
+      res.status(201).json(assessment);
+    } catch (error) {
+      console.error("Error creating CQC quality assessment:", error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid assessment data", errors: error.errors });
+      }
+      res.status(500).json({ message: "Failed to create CQC quality assessment" });
+    }
+  });
+
+  app.get("/api/cqc/assessments/:id", requireAdmin, async (req, res) => {
+    try {
+      const assessment = await storage.getCqcQualityAssessment(req.params.id);
+      if (!assessment) {
+        return res.status(404).json({ message: "CQC quality assessment not found" });
+      }
+      res.json(assessment);
+    } catch (error) {
+      console.error("Error fetching CQC quality assessment:", error);
+      res.status(500).json({ message: "Failed to fetch CQC quality assessment" });
+    }
+  });
+
+  app.put("/api/cqc/assessments/:id", requireAdmin, async (req, res) => {
+    try {
+      const validatedData = insertCqcQualityAssessmentSchema.partial().parse(req.body);
+      const assessment = await storage.updateCqcQualityAssessment(req.params.id, validatedData);
+      if (!assessment) {
+        return res.status(404).json({ message: "CQC quality assessment not found" });
+      }
+      
+      // Create audit log for assessment update
+      await AuditLogger.logUpdate(
+        req,
+        req.user!,
+        'cqc_quality_assessment',
+        req.params.id,
+        { rating: assessment.assessmentRating, qualityStatementId: assessment.qualityStatementId }
+      );
+      
+      res.json(assessment);
+    } catch (error) {
+      console.error("Error updating CQC quality assessment:", error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid assessment data", errors: error.errors });
+      }
+      res.status(500).json({ message: "Failed to update CQC quality assessment" });
+    }
+  });
+
   // ========== STAFF KNOWLEDGE ASSESSMENT API ROUTES ==========
   
   // Knowledge Questionnaires

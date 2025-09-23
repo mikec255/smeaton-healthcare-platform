@@ -149,6 +149,34 @@ export interface IStorage {
   updateCqcComplianceRecord(id: string, updates: Partial<InsertCqcComplianceRecord>): Promise<CqcComplianceRecord | undefined>;
   deleteCqcComplianceRecord(id: string): Promise<boolean>;
 
+  // CQC 2024 Single Assessment Framework - Quality Statements
+  getAllCqcQualityStatements(keyQuestion?: string): Promise<CqcQualityStatement[]>;
+  getCqcQualityStatement(id: string): Promise<CqcQualityStatement | undefined>;
+  createCqcQualityStatement(statement: InsertCqcQualityStatement): Promise<CqcQualityStatement>;
+  updateCqcQualityStatement(id: string, updates: Partial<InsertCqcQualityStatement>): Promise<CqcQualityStatement | undefined>;
+  deleteCqcQualityStatement(id: string): Promise<boolean>;
+
+  // CQC 2024 Single Assessment Framework - Evidence Categories
+  getAllCqcEvidenceCategories(): Promise<CqcEvidenceCategory[]>;
+  getCqcEvidenceCategory(id: string): Promise<CqcEvidenceCategory | undefined>;
+  createCqcEvidenceCategory(category: InsertCqcEvidenceCategory): Promise<CqcEvidenceCategory>;
+  updateCqcEvidenceCategory(id: string, updates: Partial<InsertCqcEvidenceCategory>): Promise<CqcEvidenceCategory | undefined>;
+  deleteCqcEvidenceCategory(id: string): Promise<boolean>;
+
+  // CQC 2024 Single Assessment Framework - Audit Evidence
+  getAllCqcAuditEvidence(filters?: { auditId?: string; evidenceCategoryId?: string; qualityStatementId?: string }): Promise<CqcAuditEvidence[]>;
+  getCqcAuditEvidence(id: string): Promise<CqcAuditEvidence | undefined>;
+  createCqcAuditEvidence(evidence: InsertCqcAuditEvidence): Promise<CqcAuditEvidence>;
+  updateCqcAuditEvidence(id: string, updates: Partial<InsertCqcAuditEvidence>): Promise<CqcAuditEvidence | undefined>;
+  deleteCqcAuditEvidence(id: string): Promise<boolean>;
+
+  // CQC 2024 Single Assessment Framework - Quality Assessments
+  getAllCqcQualityAssessments(filters?: { auditId?: string; qualityStatementId?: string; assessmentRating?: string }): Promise<CqcQualityAssessment[]>;
+  getCqcQualityAssessment(id: string): Promise<CqcQualityAssessment | undefined>;
+  createCqcQualityAssessment(assessment: InsertCqcQualityAssessment): Promise<CqcQualityAssessment>;
+  updateCqcQualityAssessment(id: string, updates: Partial<InsertCqcQualityAssessment>): Promise<CqcQualityAssessment | undefined>;
+  deleteCqcQualityAssessment(id: string): Promise<boolean>;
+
   // Staff Knowledge Assessment Management
   getAllKnowledgeQuestionnaires(filters?: { category?: string; subcategory?: string; isActive?: boolean }): Promise<KnowledgeQuestionnaire[]>;
   getKnowledgeQuestionnaire(id: string): Promise<KnowledgeQuestionnaire | undefined>;
@@ -2000,6 +2028,164 @@ export class DrizzleStorage implements IStorage {
 
   async deleteCqcComplianceRecord(id: string): Promise<boolean> {
     const result = await db.delete(cqcComplianceRecords).where(eq(cqcComplianceRecords.id, id)).returning();
+    return result.length > 0;
+  }
+
+  // CQC 2024 Single Assessment Framework - Quality Statements Methods
+  async getAllCqcQualityStatements(keyQuestion?: string): Promise<CqcQualityStatement[]> {
+    let query = db.select().from(cqcQualityStatements);
+    
+    if (keyQuestion) {
+      query = query.where(eq(cqcQualityStatements.keyQuestion, keyQuestion));
+    }
+    
+    return await query.orderBy(cqcQualityStatements.statementNumber);
+  }
+
+  async getCqcQualityStatement(id: string): Promise<CqcQualityStatement | undefined> {
+    const result = await db.select().from(cqcQualityStatements).where(eq(cqcQualityStatements.id, id)).limit(1);
+    return result[0];
+  }
+
+  async createCqcQualityStatement(statement: InsertCqcQualityStatement): Promise<CqcQualityStatement> {
+    const result = await db.insert(cqcQualityStatements).values(statement).returning();
+    return result[0];
+  }
+
+  async updateCqcQualityStatement(id: string, updates: Partial<InsertCqcQualityStatement>): Promise<CqcQualityStatement | undefined> {
+    const result = await db.update(cqcQualityStatements)
+      .set({ ...updates, updatedAt: new Date() })
+      .where(eq(cqcQualityStatements.id, id))
+      .returning();
+    return result[0];
+  }
+
+  async deleteCqcQualityStatement(id: string): Promise<boolean> {
+    const result = await db.delete(cqcQualityStatements).where(eq(cqcQualityStatements.id, id)).returning();
+    return result.length > 0;
+  }
+
+  // CQC 2024 Single Assessment Framework - Evidence Categories Methods
+  async getAllCqcEvidenceCategories(): Promise<CqcEvidenceCategory[]> {
+    return await db.select().from(cqcEvidenceCategories).orderBy(cqcEvidenceCategories.name);
+  }
+
+  async getCqcEvidenceCategory(id: string): Promise<CqcEvidenceCategory | undefined> {
+    const result = await db.select().from(cqcEvidenceCategories).where(eq(cqcEvidenceCategories.id, id)).limit(1);
+    return result[0];
+  }
+
+  async createCqcEvidenceCategory(category: InsertCqcEvidenceCategory): Promise<CqcEvidenceCategory> {
+    const result = await db.insert(cqcEvidenceCategories).values(category).returning();
+    return result[0];
+  }
+
+  async updateCqcEvidenceCategory(id: string, updates: Partial<InsertCqcEvidenceCategory>): Promise<CqcEvidenceCategory | undefined> {
+    const result = await db.update(cqcEvidenceCategories)
+      .set({ ...updates, updatedAt: new Date() })
+      .where(eq(cqcEvidenceCategories.id, id))
+      .returning();
+    return result[0];
+  }
+
+  async deleteCqcEvidenceCategory(id: string): Promise<boolean> {
+    const result = await db.delete(cqcEvidenceCategories).where(eq(cqcEvidenceCategories.id, id)).returning();
+    return result.length > 0;
+  }
+
+  // CQC 2024 Single Assessment Framework - Audit Evidence Methods
+  async getAllCqcAuditEvidence(filters?: { auditId?: string; evidenceCategoryId?: string; qualityStatementId?: string }): Promise<CqcAuditEvidence[]> {
+    let query = db.select().from(cqcAuditEvidence);
+    
+    if (filters) {
+      const conditions = [];
+      
+      if (filters.auditId) {
+        conditions.push(eq(cqcAuditEvidence.auditId, filters.auditId));
+      }
+      if (filters.evidenceCategoryId) {
+        conditions.push(eq(cqcAuditEvidence.evidenceCategoryId, filters.evidenceCategoryId));
+      }
+      if (filters.qualityStatementId) {
+        conditions.push(eq(cqcAuditEvidence.qualityStatementId, filters.qualityStatementId));
+      }
+      
+      if (conditions.length > 0) {
+        query = query.where(and(...conditions));
+      }
+    }
+    
+    return await query.orderBy(desc(cqcAuditEvidence.uploadedAt));
+  }
+
+  async getCqcAuditEvidence(id: string): Promise<CqcAuditEvidence | undefined> {
+    const result = await db.select().from(cqcAuditEvidence).where(eq(cqcAuditEvidence.id, id)).limit(1);
+    return result[0];
+  }
+
+  async createCqcAuditEvidence(evidence: InsertCqcAuditEvidence): Promise<CqcAuditEvidence> {
+    const result = await db.insert(cqcAuditEvidence).values(evidence).returning();
+    return result[0];
+  }
+
+  async updateCqcAuditEvidence(id: string, updates: Partial<InsertCqcAuditEvidence>): Promise<CqcAuditEvidence | undefined> {
+    const result = await db.update(cqcAuditEvidence)
+      .set({ ...updates, updatedAt: new Date() })
+      .where(eq(cqcAuditEvidence.id, id))
+      .returning();
+    return result[0];
+  }
+
+  async deleteCqcAuditEvidence(id: string): Promise<boolean> {
+    const result = await db.delete(cqcAuditEvidence).where(eq(cqcAuditEvidence.id, id)).returning();
+    return result.length > 0;
+  }
+
+  // CQC 2024 Single Assessment Framework - Quality Assessments Methods
+  async getAllCqcQualityAssessments(filters?: { auditId?: string; qualityStatementId?: string; assessmentRating?: string }): Promise<CqcQualityAssessment[]> {
+    let query = db.select().from(cqcQualityAssessments);
+    
+    if (filters) {
+      const conditions = [];
+      
+      if (filters.auditId) {
+        conditions.push(eq(cqcQualityAssessments.auditId, filters.auditId));
+      }
+      if (filters.qualityStatementId) {
+        conditions.push(eq(cqcQualityAssessments.qualityStatementId, filters.qualityStatementId));
+      }
+      if (filters.assessmentRating) {
+        conditions.push(eq(cqcQualityAssessments.assessmentRating, filters.assessmentRating));
+      }
+      
+      if (conditions.length > 0) {
+        query = query.where(and(...conditions));
+      }
+    }
+    
+    return await query.orderBy(desc(cqcQualityAssessments.assessedAt));
+  }
+
+  async getCqcQualityAssessment(id: string): Promise<CqcQualityAssessment | undefined> {
+    const result = await db.select().from(cqcQualityAssessments).where(eq(cqcQualityAssessments.id, id)).limit(1);
+    return result[0];
+  }
+
+  async createCqcQualityAssessment(assessment: InsertCqcQualityAssessment): Promise<CqcQualityAssessment> {
+    const result = await db.insert(cqcQualityAssessments).values(assessment).returning();
+    return result[0];
+  }
+
+  async updateCqcQualityAssessment(id: string, updates: Partial<InsertCqcQualityAssessment>): Promise<CqcQualityAssessment | undefined> {
+    const result = await db.update(cqcQualityAssessments)
+      .set({ ...updates, updatedAt: new Date() })
+      .where(eq(cqcQualityAssessments.id, id))
+      .returning();
+    return result[0];
+  }
+
+  async deleteCqcQualityAssessment(id: string): Promise<boolean> {
+    const result = await db.delete(cqcQualityAssessments).where(eq(cqcQualityAssessments.id, id)).returning();
     return result.length > 0;
   }
 

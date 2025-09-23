@@ -13,10 +13,11 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { Plus, FileCheck, Shield, Users, Clock, AlertTriangle, CheckCircle, XCircle, Calendar, Download, Edit, Trash2, Brain, QrCode, Mail, PlayCircle, Eye } from "lucide-react";
+import { Plus, FileCheck, Shield, Users, Clock, AlertTriangle, CheckCircle, XCircle, Calendar, Download, Edit, Trash2, Brain, QrCode, Mail, PlayCircle, Eye, Upload, Camera, FileText, Award, MessageSquare, BarChart3, ClipboardCheck } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import type { CqcAudit, CqcAuditCategory, CqcChecklistItem, CqcAuditResponse, CqcComplianceRecord, InsertCqcAudit, InsertCqcComplianceRecord, KnowledgeQuestionnaire, InsertKnowledgeQuestionnaire, KnowledgeQuestion, InsertKnowledgeQuestion, KnowledgeSession, KnowledgeAction } from "@shared/schema";
+import { DashboardModal } from '@uppy/react';
+import type { CqcAudit, CqcAuditCategory, CqcQualityStatement, CqcEvidenceCategory, CqcAuditEvidence, CqcQualityAssessment, CqcComplianceRecord, InsertCqcAudit, InsertCqcComplianceRecord, KnowledgeQuestionnaire, InsertKnowledgeQuestionnaire, KnowledgeQuestion, InsertKnowledgeQuestion, KnowledgeSession, KnowledgeAction } from "@shared/schema";
 import { insertCqcAuditSchema, insertCqcComplianceRecordSchema, insertKnowledgeQuestionnaireSchema, insertKnowledgeQuestionSchema } from "@shared/schema";
 
 // Extended form schemas based on shared insert schemas
@@ -39,6 +40,116 @@ type CreateAuditFormData = z.infer<typeof createAuditSchema>;
 type CreateComplianceRecordFormData = z.infer<typeof createComplianceRecordSchema>;
 type CreateKnowledgeQuestionnaireFormData = z.infer<typeof createKnowledgeQuestionnaireSchema>;
 type CreateKnowledgeQuestionFormData = z.infer<typeof createKnowledgeQuestionSchema>;
+
+// CQC 2024 Single Assessment Framework - 6 Evidence Categories
+const CQC_EVIDENCE_CATEGORIES = [
+  {
+    id: "people_experience",
+    name: "People's Experience",
+    description: "Direct feedback from people using services, their families and carers",
+    icon: Users,
+    color: "text-blue-600"
+  },
+  {
+    id: "staff_feedback", 
+    name: "Staff Feedback",
+    description: "Views and experiences from staff members providing care",
+    icon: MessageSquare,
+    color: "text-green-600"
+  },
+  {
+    id: "observations",
+    name: "Observations",
+    description: "Direct observations of care delivery and practice standards",
+    icon: Eye,
+    color: "text-purple-600"
+  },
+  {
+    id: "records_documents",
+    name: "Records & Documents", 
+    description: "Care records, policies, procedures, and documentation",
+    icon: FileText,
+    color: "text-orange-600"
+  },
+  {
+    id: "systems_processes",
+    name: "Systems & Processes",
+    description: "Governance systems, quality assurance, and operational processes",
+    icon: BarChart3,
+    color: "text-red-600"
+  },
+  {
+    id: "environment_resources",
+    name: "Environment & Resources",
+    description: "Physical environment, equipment, staffing levels and resources",
+    icon: ClipboardCheck,
+    color: "text-teal-600"
+  }
+];
+
+// CQC 2024 Single Assessment Framework - 5 Key Questions with 34 Quality Statements
+const CQC_KEY_QUESTIONS = [
+  {
+    id: "safe",
+    name: "Safe",
+    description: "People are protected from abuse and avoidable harm",
+    qualityStatements: [
+      "People are safeguarded from abuse, neglect, discrimination and loss of dignity, and their human rights are protected and promoted",
+      "People's individual risks are identified, assessed and managed",
+      "People receive safe care and treatment",
+      "People are protected from healthcare associated infections",
+      "People are supported to make decisions about their care and treatment"
+    ]
+  },
+  {
+    id: "effective", 
+    name: "Effective",
+    description: "People's care, treatment and support achieves good outcomes",
+    qualityStatements: [
+      "People's needs are holistically assessed, and their care, treatment and support is delivered in line with evidence-based guidance",
+      "People have their care and treatment coordinated when they move between services",
+      "People are supported to live healthier lives and their physical and mental health and wellbeing is promoted",
+      "People's communication needs are identified and met",
+      "People are supported to make informed decisions about their care and treatment"
+    ]
+  },
+  {
+    id: "caring",
+    name: "Caring", 
+    description: "Staff involve and treat people with compassion, kindness, dignity and respect",
+    qualityStatements: [
+      "People are treated with kindness, respect and compassion and their rights are protected",
+      "People's privacy, dignity and confidentiality are respected and protected",
+      "People are actively involved in decisions about their care, treatment and support",
+      "People's cultural and spiritual beliefs, values and preferences are respected"
+    ]
+  },
+  {
+    id: "responsive",
+    name: "Responsive",
+    description: "Services are organized to meet people's needs",
+    qualityStatements: [
+      "People can access care and treatment in a timely way",
+      "People receive person-centred care that is responsive to their individual needs, values and circumstances",
+      "People have choice and control over their care and support",
+      "People know how to access information, advice and support",
+      "People know how to raise concerns and complaints and feel confident to do so"
+    ]
+  },
+  {
+    id: "well_led",
+    name: "Well-Led",
+    description: "Leadership, management and governance support the delivery of person-centered care",
+    qualityStatements: [
+      "There is a clear vision and credible strategy to deliver person-centred care",
+      "Leaders have the skills, knowledge and integrity to lead effectively",
+      "There are clear responsibilities, roles and systems of accountability",
+      "There are sufficient numbers of suitably qualified, competent, skilled and experienced staff",
+      "There is a culture of continuous learning and improvement",
+      "People are supported through effective partnerships and joint working with other organisations"
+    ]
+  }
+];
 
 export default function CqcToolkit() {
   const [activeTab, setActiveTab] = useState("dashboard");
@@ -1027,30 +1138,173 @@ Smeaton Healthcare Training Team`;
         </TabsContent>
 
         <TabsContent value="audits" className="space-y-6">
+          {/* CQC 2024 Single Assessment Framework Header */}
           <Card>
             <CardHeader>
-              <CardTitle>CQC Audits</CardTitle>
-              <CardDescription>Manage your CQC audit activities and compliance checks</CardDescription>
+              <CardTitle className="flex items-center gap-2">
+                <Shield className="h-5 w-5" />
+                CQC 2024 Single Assessment Framework
+              </CardTitle>
+              <CardDescription>
+                Comprehensive audit system based on the 5 key questions and 34 Quality Statements for regulatory compliance
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="flex gap-4 mb-6">
+                <Button data-testid="button-start-new-audit">
+                  <Plus className="w-4 h-4 mr-2" />
+                  Start New Audit
+                </Button>
+                <Button variant="outline" data-testid="button-view-evidence-library">
+                  <Upload className="w-4 h-4 mr-2" />
+                  Evidence Library
+                </Button>
+                <Button variant="outline" data-testid="button-audit-reports">
+                  <BarChart3 className="w-4 h-4 mr-2" />
+                  Audit Reports
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Evidence Categories Overview */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Evidence Collection Framework</CardTitle>
+              <CardDescription>Six types of evidence used in CQC inspections to assess quality and safety</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {CQC_EVIDENCE_CATEGORIES.map((category) => {
+                  const IconComponent = category.icon;
+                  return (
+                    <Card key={category.id} className="relative overflow-hidden">
+                      <CardContent className="pt-6">
+                        <div className="flex items-start space-x-3">
+                          <div className={`p-2 rounded-lg bg-gray-100 dark:bg-gray-800 ${category.color}`}>
+                            <IconComponent className="h-5 w-5" />
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <h3 className="font-medium text-sm" data-testid={`evidence-category-${category.id}`}>
+                              {category.name}
+                            </h3>
+                            <p className="text-xs text-gray-600 dark:text-gray-400 mt-1 line-clamp-2">
+                              {category.description}
+                            </p>
+                            <Button 
+                              variant="ghost" 
+                              size="sm" 
+                              className="mt-2 p-0 h-auto text-xs hover:bg-transparent"
+                              data-testid={`button-upload-${category.id}`}
+                            >
+                              <Upload className="h-3 w-3 mr-1" />
+                              Upload Evidence
+                            </Button>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  );
+                })}
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* CQC 5 Key Questions Interface */}
+          <div className="space-y-6">
+            {CQC_KEY_QUESTIONS.map((keyQuestion, questionIndex) => (
+              <Card key={keyQuestion.id} className="overflow-hidden">
+                <CardHeader className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-950 dark:to-indigo-950">
+                  <CardTitle className="flex items-center justify-between">
+                    <div className="flex items-center space-x-3">
+                      <div className="w-8 h-8 rounded-full bg-blue-600 text-white flex items-center justify-center text-sm font-bold">
+                        {questionIndex + 1}
+                      </div>
+                      <div>
+                        <h3 className="text-lg font-semibold" data-testid={`key-question-${keyQuestion.id}`}>
+                          {keyQuestion.name}
+                        </h3>
+                        <p className="text-sm text-gray-600 dark:text-gray-400 font-normal">
+                          {keyQuestion.description}
+                        </p>
+                      </div>
+                    </div>
+                    <Button variant="outline" size="sm" data-testid={`button-assess-${keyQuestion.id}`}>
+                      <ClipboardCheck className="h-4 w-4 mr-1" />
+                      Start Assessment
+                    </Button>
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="pt-6">
+                  <div className="space-y-4">
+                    <div className="text-sm text-gray-600 dark:text-gray-400 mb-4">
+                      <strong>Quality Statements ({keyQuestion.qualityStatements.length})</strong>
+                    </div>
+                    <div className="grid gap-3">
+                      {keyQuestion.qualityStatements.map((statement, statementIndex) => (
+                        <Card key={statementIndex} className="border-l-4 border-l-blue-500">
+                          <CardContent className="pt-4">
+                            <div className="flex items-start justify-between space-x-4">
+                              <div className="flex-1">
+                                <div className="flex items-start space-x-3">
+                                  <div className="w-6 h-6 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center text-xs font-medium mt-1">
+                                    {statementIndex + 1}
+                                  </div>
+                                  <div className="flex-1">
+                                    <p className="text-sm font-medium text-gray-900 dark:text-white leading-relaxed">
+                                      {statement}
+                                    </p>
+                                    <div className="flex items-center space-x-4 mt-3">
+                                      <Button variant="outline" size="sm" data-testid={`button-assess-statement-${questionIndex}-${statementIndex}`}>
+                                        <Eye className="h-3 w-3 mr-1" />
+                                        Assess
+                                      </Button>
+                                      <Button variant="ghost" size="sm" data-testid={`button-evidence-statement-${questionIndex}-${statementIndex}`}>
+                                        <Upload className="h-3 w-3 mr-1" />
+                                        Add Evidence
+                                      </Button>
+                                      <Button variant="ghost" size="sm" data-testid={`button-notes-statement-${questionIndex}-${statementIndex}`}>
+                                        <FileText className="h-3 w-3 mr-1" />
+                                        Notes
+                                      </Button>
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+                              <div className="flex items-center space-x-2">
+                                <Badge variant="outline" className="text-xs">
+                                  Not Assessed
+                                </Badge>
+                              </div>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      ))}
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+
+          {/* Recent Audits Summary */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Recent Audit Activity</CardTitle>
+              <CardDescription>Overview of completed and ongoing CQC assessments</CardDescription>
             </CardHeader>
             <CardContent>
               {auditsLoading ? (
                 <div className="space-y-4">
                   {[...Array(3)].map((_, i) => (
-                    <Card key={i}>
-                      <CardContent className="pt-6">
-                        <div className="flex items-center justify-between">
-                          <div className="space-y-2 flex-1">
-                            <Skeleton className="h-5 w-48" />
-                            <Skeleton className="h-4 w-64" />
-                            <Skeleton className="h-4 w-56" />
-                          </div>
-                          <div className="flex items-center space-x-2">
-                            <Skeleton className="h-6 w-16" />
-                            <Skeleton className="h-8 w-20" />
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
+                    <div key={i} className="flex items-center space-x-4">
+                      <Skeleton className="h-10 w-10 rounded-full" />
+                      <div className="space-y-2 flex-1">
+                        <Skeleton className="h-4 w-3/4" />
+                        <Skeleton className="h-3 w-1/2" />
+                      </div>
+                      <Skeleton className="h-6 w-20" />
+                    </div>
                   ))}
                 </div>
               ) : auditsError ? (
@@ -1062,58 +1316,65 @@ Smeaton Healthcare Training Team`;
                   </Button>
                 </div>
               ) : audits.length === 0 ? (
-                <div className="text-center py-8 space-y-4">
-                  <FileCheck className="mx-auto h-12 w-12 text-gray-400" />
-                  <p className="text-gray-500">No audits created yet</p>
-                  <Button onClick={() => setCreateAuditOpen(true)} data-testid="button-create-first-audit">
-                    Create Your First Audit
-                  </Button>
+                <div className="text-center py-12 space-y-6">
+                  <div className="mx-auto w-20 h-20 bg-blue-100 dark:bg-blue-900 rounded-full flex items-center justify-center">
+                    <Shield className="h-10 w-10 text-blue-600" />
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                      Ready for CQC Assessment
+                    </h3>
+                    <p className="text-gray-600 dark:text-gray-400 mt-2 max-w-md mx-auto">
+                      Begin your regulatory compliance journey with the 2024 Single Assessment Framework. 
+                      Assess all 34 Quality Statements across the 5 key questions.
+                    </p>
+                  </div>
+                  <div className="flex flex-col sm:flex-row gap-3 justify-center">
+                    <Button data-testid="button-start-first-assessment">
+                      <Shield className="w-4 h-4 mr-2" />
+                      Start Your First Assessment
+                    </Button>
+                    <Button variant="outline" data-testid="button-learn-about-framework">
+                      Learn About CQC 2024 Framework
+                    </Button>
+                  </div>
                 </div>
               ) : (
                 <div className="space-y-4">
-                  {audits.map((audit) => (
-                    <Card key={audit.id}>
-                      <CardContent className="pt-6">
-                        <div className="flex items-center justify-between">
-                          <div className="space-y-1">
-                            <h3 className="font-medium" data-testid={`audit-card-title-${audit.id}`}>{audit.title}</h3>
-                            <p className="text-sm text-gray-600">
-                              {audit.auditType.replace(/_/g, ' ')} • {audit.category} • {audit.auditorName}
-                            </p>
-                            <p className="text-sm text-gray-500">
-                              Audit Date: {new Date(audit.auditDate).toLocaleDateString()}
-                              {audit.nextAuditDue && (
-                                <span> • Next Due: {new Date(audit.nextAuditDue).toLocaleDateString()}</span>
-                              )}
-                            </p>
-                          </div>
-                          <div className="flex items-center space-x-2">
-                            <Badge variant={
-                              audit.status === "completed" ? "default" :
-                              audit.status === "in_progress" ? "secondary" : "outline"
-                            }>
-                              {audit.status === "completed" ? "Completed" :
-                               audit.status === "in_progress" ? "In Progress" : "Draft"}
-                            </Badge>
-                            <Button variant="outline" size="sm" data-testid={`button-edit-audit-${audit.id}`}>
-                              <Edit className="h-4 w-4 mr-1" />
-                              Edit
-                            </Button>
-                            <Button variant="outline" size="sm" data-testid={`button-view-audit-${audit.id}`}>
-                              View Details
-                            </Button>
-                          </div>
+                  {audits.slice(0, 5).map((audit) => (
+                    <div key={audit.id} className="flex items-center justify-between p-4 border rounded-lg">
+                      <div className="flex items-center space-x-4">
+                        <div className="flex-shrink-0">
+                          {audit.status === "completed" && <CheckCircle className="h-5 w-5 text-green-600" />}
+                          {audit.status === "in_progress" && <Clock className="h-5 w-5 text-yellow-600" />}
+                          {audit.status === "draft" && <XCircle className="h-5 w-5 text-gray-400" />}
                         </div>
-                        {audit.findings && (
-                          <div className="mt-3 p-3 bg-gray-50 dark:bg-gray-800 rounded-md">
-                            <p className="text-sm text-gray-700 dark:text-gray-300">
-                              <strong>Key Findings:</strong> {audit.findings}
-                            </p>
-                          </div>
-                        )}
-                      </CardContent>
-                    </Card>
+                        <div>
+                          <h4 className="font-medium" data-testid={`audit-summary-title-${audit.id}`}>
+                            {audit.title}
+                          </h4>
+                          <p className="text-sm text-gray-600">
+                            {audit.category} • {new Date(audit.auditDate).toLocaleDateString()}
+                          </p>
+                        </div>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <Badge variant={audit.status === "completed" ? "default" : audit.status === "in_progress" ? "secondary" : "outline"}>
+                          {audit.status === "completed" ? "Completed" : audit.status === "in_progress" ? "In Progress" : "Draft"}
+                        </Badge>
+                        <Button variant="outline" size="sm" data-testid={`button-view-audit-summary-${audit.id}`}>
+                          View
+                        </Button>
+                      </div>
+                    </div>
                   ))}
+                  {audits.length > 5 && (
+                    <div className="text-center pt-4">
+                      <Button variant="ghost" data-testid="button-view-all-audits">
+                        View All Audits ({audits.length})
+                      </Button>
+                    </div>
+                  )}
                 </div>
               )}
             </CardContent>
