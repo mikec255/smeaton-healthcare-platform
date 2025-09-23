@@ -17,9 +17,6 @@ export default function AdminTools() {
     nationalInsurance: 15.0, // Employer NI rate %
     pensionContribution: 3.0, // Minimum auto-enrolment rate %
     holidayPay: 12.07, // Statutory holiday pay %
-    insurance: 2.0, // Employer liability insurance %
-    training: 1.5, // Training costs %
-    adminOverhead: 5.0, // Admin/management overhead %
   });
 
   const [results, setResults] = useState({
@@ -53,12 +50,8 @@ export default function AdminTools() {
     const nationalInsuranceCost = grossWage * (calculation.nationalInsurance / 100);
     const pensionCost = grossWage * (calculation.pensionContribution / 100);
     const holidayPayCost = grossWage * (calculation.holidayPay / 100);
-    const insuranceCost = grossWage * (calculation.insurance / 100);
-    const trainingCost = grossWage * (calculation.training / 100);
-    const adminCost = grossWage * (calculation.adminOverhead / 100);
     
-    const totalStaffCost = grossWage + nationalInsuranceCost + pensionCost + 
-                          holidayPayCost + insuranceCost + trainingCost + adminCost;
+    const totalStaffCost = grossWage + nationalInsuranceCost + pensionCost + holidayPayCost;
     
     const totalCosts = totalStaffCost + travelCosts;
     const shiftMargin = totalRevenue - totalCosts;
@@ -72,9 +65,6 @@ export default function AdminTools() {
       nationalInsuranceCost,
       pensionCost,
       holidayPayCost,
-      insuranceCost,
-      trainingCost,
-      adminCost,
       travelCostTotal: travelCosts,
       totalCosts,
       shiftMargin,
@@ -218,18 +208,6 @@ export default function AdminTools() {
                     <span>Holiday Pay:</span>
                     <Badge variant="secondary">{formatPercentage(calculation.holidayPay)}</Badge>
                   </div>
-                  <div className="flex justify-between">
-                    <span>Insurance:</span>
-                    <Badge variant="secondary">{formatPercentage(calculation.insurance)}</Badge>
-                  </div>
-                  <div className="flex justify-between">
-                    <span>Training:</span>
-                    <Badge variant="secondary">{formatPercentage(calculation.training)}</Badge>
-                  </div>
-                  <div className="flex justify-between">
-                    <span>Admin Overhead:</span>
-                    <Badge variant="secondary">{formatPercentage(calculation.adminOverhead)}</Badge>
-                  </div>
                 </div>
               </div>
             </div>
@@ -270,18 +248,6 @@ export default function AdminTools() {
                     <div className="flex justify-between">
                       <span>Holiday Pay:</span>
                       <span className="font-medium">{formatCurrency(results.holidayPayCost)}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span>Insurance:</span>
-                      <span className="font-medium">{formatCurrency(results.insuranceCost)}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span>Training:</span>
-                      <span className="font-medium">{formatCurrency(results.trainingCost)}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span>Admin Overhead:</span>
-                      <span className="font-medium">{formatCurrency(results.adminCost)}</span>
                     </div>
                     <Separator />
                     <div className="flex justify-between font-semibold">
@@ -372,9 +338,6 @@ export default function AdminTools() {
                     <li>National Insurance: Employer contribution rate (15.0% current rate)</li>
                     <li>Pension: Minimum auto-enrolment employer contribution (3%)</li>
                     <li>Holiday Pay: Statutory holiday entitlement calculation (12.07%)</li>
-                    <li>Insurance: Employer liability and professional indemnity insurance</li>
-                    <li>Training: Ongoing training and certification costs</li>
-                    <li>Admin Overhead: Management, payroll, and administrative costs</li>
                   </ul>
                   <p className="mt-2 text-xs opacity-80">
                     These rates are indicative and may vary based on specific employment arrangements and current legislation.
