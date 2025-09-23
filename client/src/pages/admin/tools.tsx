@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Calculator, TrendingUp, Clock, Users, Pound, Info, ArrowRight } from "lucide-react";
+import { Calculator, TrendingUp, Clock, Users, DollarSign, Info, ArrowRight } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -137,7 +137,7 @@ export default function AdminTools() {
               <div className="space-y-2">
                 <Label htmlFor="charge-rate">Charge Rate (per hour)</Label>
                 <div className="relative">
-                  <Pound className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-500" />
+                  <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-500" />
                   <Input
                     id="charge-rate"
                     type="number"
@@ -188,7 +188,7 @@ export default function AdminTools() {
               <div className="space-y-2">
                 <Label htmlFor="travel-costs">Travel Costs (total)</Label>
                 <div className="relative">
-                  <Pound className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-500" />
+                  <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-500" />
                   <Input
                     id="travel-costs"
                     type="number"
