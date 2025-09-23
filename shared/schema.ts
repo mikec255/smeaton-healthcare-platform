@@ -384,6 +384,114 @@ export const insertAuditLogSchema = createInsertSchema(auditLogs).omit({
   createdAt: true,
 });
 
+// CQC Audit and Compliance Tables
+export const cqcAudits = pgTable("cqc_audits", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  title: text("title").notNull(),
+  auditType: text("audit_type").notNull(), // fundamental_standards, staff_recruitment, training_compliance, supervision_monitoring, record_keeping
+  category: text("category").notNull(), // safe, effective, caring, responsive, well_led, dbs_checks, training, supervision, documentation
+  status: text("status").default("draft"), // draft, in_progress, completed, approved
+  auditDate: timestamp("audit_date").notNull(),
+  auditorId: varchar("auditor_id").references(() => users.id).notNull(),
+  auditorName: text("auditor_name").notNull(), // Denormalized for faster queries
+  score: integer("score"), // Overall percentage score
+  totalItems: integer("total_items"), // Total checklist items
+  compliantItems: integer("compliant_items"), // Number of compliant items
+  actionItemsCount: integer("action_items_count"), // Items requiring action
+  findings: text("findings"), // General audit findings
+  recommendations: text("recommendations"), // Recommendations for improvement
+  nextAuditDue: timestamp("next_audit_due"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const cqcAuditCategories = pgTable("cqc_audit_categories", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  name: text("name").notNull(),
+  description: text("description").notNull(),
+  auditType: text("audit_type").notNull(), // fundamental_standards, compliance_specific
+  isActive: boolean("is_active").default(true),
+  sortOrder: integer("sort_order").default(0),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const cqcChecklistItems = pgTable("cqc_checklist_items", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  categoryId: varchar("category_id").references(() => cqcAuditCategories.id).notNull(),
+  itemText: text("item_text").notNull(),
+  guidance: text("guidance"), // Additional guidance for the checklist item
+  regulationReference: text("regulation_reference"), // e.g., "Regulation 18", "Regulation 19"
+  isRequired: boolean("is_required").default(true), // Is this a mandatory requirement
+  section: text("section"), // Sub-section within the category
+  sortOrder: integer("sort_order").default(0),
+  isActive: boolean("is_active").default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const cqcAuditResponses = pgTable("cqc_audit_responses", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  auditId: varchar("audit_id").references(() => cqcAudits.id, { onDelete: "cascade" }).notNull(),
+  checklistItemId: varchar("checklist_item_id").references(() => cqcChecklistItems.id).notNull(),
+  isCompliant: boolean("is_compliant").notNull(),
+  evidence: text("evidence"), // Evidence/notes for compliance
+  actionRequired: text("action_required"), // What action is needed if non-compliant
+  actionDueDate: timestamp("action_due_date"),
+  actionOwner: text("action_owner"), // Who is responsible for the action
+  actionStatus: text("action_status").default("pending"), // pending, in_progress, completed, overdue
+  actionCompletedDate: timestamp("action_completed_date"),
+  notes: text("notes"), // Additional notes
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const cqcComplianceRecords = pgTable("cqc_compliance_records", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  staffId: text("staff_id"), // If related to specific staff member
+  staffName: text("staff_name"), // Name of staff member
+  recordType: text("record_type").notNull(), // dbs_check, training_record, supervision_record, reference_check, professional_registration
+  title: text("title").notNull(),
+  issueDate: timestamp("issue_date"),
+  expiryDate: timestamp("expiry_date"),
+  renewalDue: timestamp("renewal_due"),
+  status: text("status").default("active"), // active, expired, pending_renewal, overdue
+  certificateNumber: text("certificate_number"),
+  issuingBody: text("issuing_body"),
+  documentPath: text("document_path"), // Path to uploaded document
+  notes: text("notes"),
+  reminderSent: boolean("reminder_sent").default(false),
+  lastReminderDate: timestamp("last_reminder_date"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const insertCqcAuditSchema = createInsertSchema(cqcAudits).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertCqcAuditCategorySchema = createInsertSchema(cqcAuditCategories).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertCqcChecklistItemSchema = createInsertSchema(cqcChecklistItems).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertCqcAuditResponseSchema = createInsertSchema(cqcAuditResponses).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertCqcComplianceRecordSchema = createInsertSchema(cqcComplianceRecords).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type User = typeof users.$inferSelect;
 export type InsertJob = z.infer<typeof insertJobSchema>;
@@ -412,3 +520,13 @@ export type InsertBlogPost = z.infer<typeof insertBlogPostSchema>;
 export type BlogPost = typeof blogPosts.$inferSelect;
 export type InsertAuditLog = z.infer<typeof insertAuditLogSchema>;
 export type AuditLog = typeof auditLogs.$inferSelect;
+export type InsertCqcAudit = z.infer<typeof insertCqcAuditSchema>;
+export type CqcAudit = typeof cqcAudits.$inferSelect;
+export type InsertCqcAuditCategory = z.infer<typeof insertCqcAuditCategorySchema>;
+export type CqcAuditCategory = typeof cqcAuditCategories.$inferSelect;
+export type InsertCqcChecklistItem = z.infer<typeof insertCqcChecklistItemSchema>;
+export type CqcChecklistItem = typeof cqcChecklistItems.$inferSelect;
+export type InsertCqcAuditResponse = z.infer<typeof insertCqcAuditResponseSchema>;
+export type CqcAuditResponse = typeof cqcAuditResponses.$inferSelect;
+export type InsertCqcComplianceRecord = z.infer<typeof insertCqcComplianceRecordSchema>;
+export type CqcComplianceRecord = typeof cqcComplianceRecords.$inferSelect;
