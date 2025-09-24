@@ -396,7 +396,7 @@ export default function CqcToolkit() {
   // Helper functions
   const generateQRCode = async (questionnaire: KnowledgeQuestionnaire) => {
     const assessmentUrl = `${window.location.origin}/assessment/${questionnaire.shareableLink}`;
-    setQrCodeData({ url: assessmentUrl, title: questionnaire.title });
+    setQrCodeData({ url: assessmentUrl, title: `Smeaton Healthcare - ${questionnaire.title}` });
     
     // Generate QR code data URL
     try {
@@ -418,33 +418,39 @@ export default function CqcToolkit() {
 
   const generateEmailTemplate = (questionnaire: KnowledgeQuestionnaire) => {
     const assessmentUrl = `${window.location.origin}/assessment/${questionnaire.shareableLink}`;
-    const subject = `Staff Knowledge Assessment: ${questionnaire.title}`;
+    const subject = `Smeaton Healthcare Professional Assessment: ${questionnaire.title}`;
     const body = `Dear Team Member,
 
-You have been selected to complete a knowledge assessment as part of our ongoing training and compliance program.
+You have been assigned a professional knowledge assessment as part of Smeaton Healthcare's commitment to excellence in care delivery.
 
+🏥 SMEATON HEALTHCARE ASSESSMENT DETAILS:
 Assessment: ${questionnaire.title}
 Category: ${questionnaire.category.replace('_', ' ').toUpperCase()}
 Specific Topic: ${questionnaire.subcategory.replace('_', ' ')}
 Time Limit: ${questionnaire.timeLimit ? questionnaire.timeLimit + ' minutes' : 'No time limit'}
 Passing Score: ${questionnaire.passingScore}%
 
-Please complete the assessment by clicking the link below:
+🌟 Complete your Smeaton Healthcare assessment here:
 ${assessmentUrl}
 
 Instructions:
-${questionnaire.instructions || 'Complete all questions to the best of your ability. This assessment tests your knowledge of healthcare practices and compliance requirements.'}
+${questionnaire.instructions || 'Complete all questions to the best of your ability. This assessment ensures our team maintains the highest standards in healthcare delivery and CQC compliance.'}
 
 Important Notes:
-• This is a random knowledge test as part of our continuous professional development
-• Multiple staff members can complete this assessment using the same link
-• Results will be reviewed and feedback provided as appropriate
-• Contact your supervisor if you have any technical difficulties
+• This assessment is part of Smeaton Healthcare's professional development program
+• Multiple team members can complete this assessment using the same link
+• Results will be reviewed by your supervisor with feedback provided
+• Contact your line manager if you experience any technical difficulties
+• Your participation helps maintain our reputation for exceptional care
 
-Thank you for your commitment to maintaining high standards of care.
+Thank you for your continued dedication to excellence in healthcare.
 
-Best regards,
-Smeaton Healthcare Training Team`;
+With appreciation,
+The Smeaton Healthcare Professional Development Team
+
+---
+🌟 Smeaton Healthcare - Excellence in Care, Excellence in Training
+Delivering outstanding healthcare across Devon & Cornwall`;
     
     const mailtoLink = `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
     window.open(mailtoLink, '_blank');
@@ -2298,7 +2304,7 @@ Smeaton Healthcare Training Team`;
                         <div className="mt-4 p-4 bg-gray-50 dark:bg-gray-800 rounded-md">
                           <div className="flex items-center justify-between">
                             <div className="text-sm">
-                              <strong>Assessment Link:</strong>
+                              <strong>🏥 Smeaton Healthcare Assessment Link:</strong>
                               <br />
                               <span className="font-mono text-xs bg-white dark:bg-gray-700 px-2 py-1 rounded border">
                                 {window.location.origin}/assessment/{questionnaire.shareableLink}
