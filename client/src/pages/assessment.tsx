@@ -328,7 +328,42 @@ export default function Assessment() {
     );
   }
 
+  // Safety check: ensure we have valid data before proceeding
+  if (!assessmentData?.questions || assessmentData.questions.length === 0) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-pink-50 dark:from-gray-900 dark:to-gray-800 flex items-center justify-center p-4">
+        <Card className="w-full max-w-md">
+          <CardContent className="p-8 text-center">
+            <AlertTriangle className="h-16 w-16 text-red-500 mx-auto mb-4" />
+            <h2 className="text-xl font-semibold mb-2">No Questions Available</h2>
+            <p className="text-muted-foreground">
+              This assessment has no questions configured.
+            </p>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
   const currentQuestion = assessmentData.questions[currentQuestionIndex];
+  
+  // Additional safety check for current question
+  if (!currentQuestion) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-pink-50 dark:from-gray-900 dark:to-gray-800 flex items-center justify-center p-4">
+        <Card className="w-full max-w-md">
+          <CardContent className="p-8 text-center">
+            <AlertTriangle className="h-16 w-16 text-red-500 mx-auto mb-4" />
+            <h2 className="text-xl font-semibold mb-2">Question Not Found</h2>
+            <p className="text-muted-foreground">
+              Unable to load the current question. Please refresh and try again.
+            </p>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
   const progress = ((currentQuestionIndex + 1) / assessmentData.questions.length) * 100;
 
   return (
