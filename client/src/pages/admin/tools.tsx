@@ -427,7 +427,7 @@ export default function AdminTools() {
   };
 
   return (
-    <div className="space-y-8 max-w-4xl mx-auto px-8 lg:px-16 xl:px-24">
+    <div className="space-y-8 max-w-5xl mx-auto px-4 lg:px-8 xl:px-12">
       <PageHeader
         title="Package Calculators"
         description="Calculate care package costs and margins with UK employment overheads"
@@ -435,7 +435,7 @@ export default function AdminTools() {
       />
 
       {/* Package Calculators */}
-      <Tabs defaultValue="hourly" className="w-full px-4 sm:px-8 lg:px-12" onValueChange={setActiveCalculator}>
+      <Tabs defaultValue="hourly" className="w-full px-2 sm:px-4 lg:px-6" onValueChange={setActiveCalculator}>
         <TabsList className="grid w-full grid-cols-2 md:grid-cols-4 gap-1">
           <TabsTrigger value="hourly" data-testid="tab-hourly-care" className="text-xs sm:text-sm">
             <Clock className="h-4 w-4 mr-2" />
@@ -613,6 +613,84 @@ export default function AdminTools() {
                       </div>
                     </CardContent>
                   </Card>
+                  
+                  {/* Generate Quote Button */}
+                  <div className="flex justify-center mt-6">
+                    <Dialog>
+                      <DialogTrigger asChild>
+                        <Button 
+                          variant="outline" 
+                          className="w-64"
+                          disabled={hourlyResults.totalRevenue === 0}
+                          data-testid="button-generate-quote-hourly"
+                        >
+                          <Download className="w-4 h-4 mr-2" />
+                          Generate Quote
+                        </Button>
+                      </DialogTrigger>
+                      <DialogContent className="max-w-md">
+                        <DialogHeader>
+                          <DialogTitle>Generate Customer Quote</DialogTitle>
+                          <DialogDescription>
+                            Enter customer details to generate a professional quote
+                          </DialogDescription>
+                        </DialogHeader>
+                        <div className="space-y-4">
+                          <div className="space-y-2">
+                            <Label htmlFor="customer-name">Customer Name</Label>
+                            <Input
+                              id="customer-name"
+                              placeholder="Enter customer name"
+                              value={quoteDetails.customerName}
+                              onChange={(e) => setQuoteDetails(prev => ({ ...prev, customerName: e.target.value }))}
+                              data-testid="input-customer-name"
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <Label htmlFor="relating-to">Relating To</Label>
+                            <Input
+                              id="relating-to"
+                              placeholder="e.g., John Smith (father)"
+                              value={quoteDetails.relatingTo}
+                              onChange={(e) => setQuoteDetails(prev => ({ ...prev, relatingTo: e.target.value }))}
+                              data-testid="input-relating-to"
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <Label htmlFor="selected-service">Service Type</Label>
+                            <Select value={quoteDetails.selectedService} onValueChange={(value) => setQuoteDetails(prev => ({ ...prev, selectedService: value }))}>
+                              <SelectTrigger data-testid="select-service-type">
+                                <SelectValue placeholder="Select service type" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="hourly-care">Hourly Care</SelectItem>
+                                <SelectItem value="live-in-care">Live-In Care</SelectItem>
+                                <SelectItem value="24x7-care">24/7 Care</SelectItem>
+                                <SelectItem value="short-visits">Short Visits</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
+                          <div className="space-y-2">
+                            <Label htmlFor="care-needs">Care Requirements</Label>
+                            <Textarea
+                              id="care-needs"
+                              placeholder="Describe the care requirements..."
+                              value={quoteDetails.careNeeds}
+                              onChange={(e) => setQuoteDetails(prev => ({ ...prev, careNeeds: e.target.value }))}
+                              data-testid="textarea-care-needs"
+                            />
+                          </div>
+                          <Button 
+                            onClick={() => setShowQuote(true)}
+                            disabled={!quoteDetails.customerName || !quoteDetails.selectedService}
+                            data-testid="button-create-quote"
+                          >
+                            Create Quote
+                          </Button>
+                        </div>
+                      </DialogContent>
+                    </Dialog>
+                  </div>
                 </div>
               </div>
             </CardContent>
@@ -1329,90 +1407,6 @@ export default function AdminTools() {
           </Card>
         </TabsContent>
       </Tabs>
-
-      {/* Quote Generation Button */}
-      <div className="flex justify-center">
-        <Dialog>
-          <DialogTrigger asChild>
-            <Button 
-              variant="outline" 
-              className="w-64"
-              disabled={
-                (activeCalculator === 'short-visits' && shortVisitsResults.chargeRevenue === 0) ||
-                (activeCalculator !== 'short-visits' && 
-                  ((activeCalculator === 'hourly' && hourlyResults.totalRevenue === 0) ||
-                   (activeCalculator === 'live-in' && liveInResults.totalRevenue === 0) ||
-                   (activeCalculator === 'care24x7' && care24x7Results.totalRevenue === 0)))
-              }
-              data-testid="button-generate-quote"
-            >
-              <Download className="w-4 h-4 mr-2" />
-              Generate Quote
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="max-w-md">
-            <DialogHeader>
-              <DialogTitle>Generate Customer Quote</DialogTitle>
-              <DialogDescription>
-                Enter customer details to generate a professional quote
-              </DialogDescription>
-            </DialogHeader>
-            <div className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="customer-name">Customer Name</Label>
-                <Input
-                  id="customer-name"
-                  placeholder="Enter customer name"
-                  value={quoteDetails.customerName}
-                  onChange={(e) => setQuoteDetails(prev => ({ ...prev, customerName: e.target.value }))}
-                  data-testid="input-customer-name"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="relating-to">Relating To</Label>
-                <Input
-                  id="relating-to"
-                  placeholder="e.g., John Smith (father)"
-                  value={quoteDetails.relatingTo}
-                  onChange={(e) => setQuoteDetails(prev => ({ ...prev, relatingTo: e.target.value }))}
-                  data-testid="input-relating-to"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="selected-service">Service Type</Label>
-                <Select value={quoteDetails.selectedService} onValueChange={(value) => setQuoteDetails(prev => ({ ...prev, selectedService: value }))}>
-                  <SelectTrigger data-testid="select-service-type">
-                    <SelectValue placeholder="Select service type" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="hourly-care">Hourly Care</SelectItem>
-                    <SelectItem value="live-in-care">Live-In Care</SelectItem>
-                    <SelectItem value="24x7-care">24/7 Care</SelectItem>
-                    <SelectItem value="short-visits">Short Visits</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="care-needs">Care Requirements</Label>
-                <Textarea
-                  id="care-needs"
-                  placeholder="Describe the care requirements..."
-                  value={quoteDetails.careNeeds}
-                  onChange={(e) => setQuoteDetails(prev => ({ ...prev, careNeeds: e.target.value }))}
-                  data-testid="textarea-care-needs"
-                />
-              </div>
-              <Button 
-                onClick={() => setShowQuote(true)}
-                disabled={!quoteDetails.customerName || !quoteDetails.selectedService}
-                data-testid="button-create-quote"
-              >
-                Create Quote
-              </Button>
-            </div>
-          </DialogContent>
-        </Dialog>
-      </div>
 
       {/* Information Panel */}
       <Card className="border-amber-200 bg-amber-50 dark:bg-amber-950 dark:border-amber-800">
