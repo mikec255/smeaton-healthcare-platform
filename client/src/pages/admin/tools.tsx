@@ -18,7 +18,8 @@ import {
   Info, 
   Download,
   ArrowRight,
-  Utensils
+  Utensils,
+  FileText
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { jsPDF } from 'jspdf';
@@ -890,6 +891,57 @@ export default function AdminTools() {
                       </div>
                     </CardContent>
                   </Card>
+
+                  {/* Generate Quote Button */}
+                  <div className="mt-6">
+                    <Dialog>
+                      <DialogTrigger asChild>
+                        <Button className="w-full bg-blue-600 hover:bg-blue-700 text-white" data-testid="button-generate-livein-quote">
+                          <FileText className="h-4 w-4 mr-2" />
+                          Generate Care Package Quote
+                        </Button>
+                      </DialogTrigger>
+                      <DialogContent className="max-w-2xl">
+                        <DialogHeader>
+                          <DialogTitle>Care Package Quote - Live-In Care</DialogTitle>
+                          <DialogDescription>
+                            Professional quote for live-in care services
+                          </DialogDescription>
+                        </DialogHeader>
+                        <div className="space-y-4">
+                          <div className="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg">
+                            <h4 className="font-semibold mb-2">Service Summary</h4>
+                            <div className="grid grid-cols-2 gap-4 text-sm">
+                              <div>Service Type: Live-In Care</div>
+                              <div>Duration: {liveInCalc.weeks} weeks</div>
+                              <div>Hourly Rate: {formatCurrency(liveInCalc.hourlyRate)}</div>
+                              <div>Travel Distance: {liveInCalc.travelDistance} miles</div>
+                            </div>
+                          </div>
+                          <div className="bg-blue-50 dark:bg-blue-900 p-4 rounded-lg">
+                            <h4 className="font-semibold mb-2">Financial Summary</h4>
+                            <div className="space-y-2 text-sm">
+                              <div className="flex justify-between">
+                                <span>Total Revenue:</span>
+                                <span className="font-semibold">{formatCurrency(liveInResults.totalRevenue)}</span>
+                              </div>
+                              <div className="flex justify-between">
+                                <span>Total Staff Cost:</span>
+                                <span className="font-semibold">{formatCurrency(liveInResults.totalStaffCost)}</span>
+                              </div>
+                              <div className="flex justify-between border-t pt-2">
+                                <span className="font-semibold">Gross Margin:</span>
+                                <span className="font-bold text-blue-600 dark:text-blue-400">{formatCurrency(liveInResults.grossMargin)} ({liveInResults.marginPercentage.toFixed(2)}%)</span>
+                              </div>
+                            </div>
+                          </div>
+                          <div className="text-xs text-gray-500 dark:text-gray-400">
+                            * Quote generated on {new Date().toLocaleDateString()} - Valid for 30 days
+                          </div>
+                        </div>
+                      </DialogContent>
+                    </Dialog>
+                  </div>
                 </div>
               </div>
             </CardContent>
@@ -1197,6 +1249,57 @@ export default function AdminTools() {
                       </div>
                     </CardContent>
                   </Card>
+
+                  {/* Generate Quote Button */}
+                  <div className="mt-6">
+                    <Dialog>
+                      <DialogTrigger asChild>
+                        <Button className="w-full bg-blue-600 hover:bg-blue-700 text-white" data-testid="button-generate-24x7-quote">
+                          <FileText className="h-4 w-4 mr-2" />
+                          Generate Care Package Quote
+                        </Button>
+                      </DialogTrigger>
+                      <DialogContent className="max-w-2xl">
+                        <DialogHeader>
+                          <DialogTitle>Care Package Quote - 24/7 Care</DialogTitle>
+                          <DialogDescription>
+                            Professional quote for 24/7 care services
+                          </DialogDescription>
+                        </DialogHeader>
+                        <div className="space-y-4">
+                          <div className="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg">
+                            <h4 className="font-semibold mb-2">Service Summary</h4>
+                            <div className="grid grid-cols-2 gap-4 text-sm">
+                              <div>Service Type: 24/7 Care</div>
+                              <div>Calculation Mode: {care24x7Calc.calcMode}</div>
+                              <div>Day Rate: {formatCurrency(care24x7Calc.dayRate)}</div>
+                              <div>Night Rate: {formatCurrency(care24x7Calc.nightRate)}</div>
+                            </div>
+                          </div>
+                          <div className="bg-blue-50 dark:bg-blue-900 p-4 rounded-lg">
+                            <h4 className="font-semibold mb-2">Financial Summary</h4>
+                            <div className="space-y-2 text-sm">
+                              <div className="flex justify-between">
+                                <span>Total Revenue:</span>
+                                <span className="font-semibold">{formatCurrency(care24x7Results.totalRevenue)}</span>
+                              </div>
+                              <div className="flex justify-between">
+                                <span>Total Staff Cost:</span>
+                                <span className="font-semibold">{formatCurrency(care24x7Results.totalStaffCost)}</span>
+                              </div>
+                              <div className="flex justify-between border-t pt-2">
+                                <span className="font-semibold">Gross Margin:</span>
+                                <span className="font-bold text-blue-600 dark:text-blue-400">{formatCurrency(care24x7Results.grossMargin)} ({care24x7Results.marginPercentage.toFixed(2)}%)</span>
+                              </div>
+                            </div>
+                          </div>
+                          <div className="text-xs text-gray-500 dark:text-gray-400">
+                            * Quote generated on {new Date().toLocaleDateString()} - Valid for 30 days
+                          </div>
+                        </div>
+                      </DialogContent>
+                    </Dialog>
+                  </div>
                 </div>
               </div>
             </CardContent>
@@ -1401,6 +1504,57 @@ export default function AdminTools() {
                       </div>
                     </CardContent>
                   </Card>
+
+                  {/* Generate Quote Button */}
+                  <div className="mt-6">
+                    <Dialog>
+                      <DialogTrigger asChild>
+                        <Button className="w-full bg-blue-600 hover:bg-blue-700 text-white" data-testid="button-generate-shortvisits-quote">
+                          <FileText className="h-4 w-4 mr-2" />
+                          Generate Care Package Quote
+                        </Button>
+                      </DialogTrigger>
+                      <DialogContent className="max-w-2xl">
+                        <DialogHeader>
+                          <DialogTitle>Care Package Quote - Short Visits</DialogTitle>
+                          <DialogDescription>
+                            Professional quote for short visit care services
+                          </DialogDescription>
+                        </DialogHeader>
+                        <div className="space-y-4">
+                          <div className="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg">
+                            <h4 className="font-semibold mb-2">Service Summary</h4>
+                            <div className="grid grid-cols-2 gap-4 text-sm">
+                              <div>Service Type: Short Visits</div>
+                              <div>Charge Rate: {formatCurrency(shortVisitsCalc.chargeRate)}</div>
+                              <div>Care Pay Rate: {formatCurrency(shortVisitsCalc.carePayRate)}</div>
+                              <div>Care Hours: {shortVisitsCalc.careHoursDelivered}</div>
+                            </div>
+                          </div>
+                          <div className="bg-blue-50 dark:bg-blue-900 p-4 rounded-lg">
+                            <h4 className="font-semibold mb-2">Financial Summary</h4>
+                            <div className="space-y-2 text-sm">
+                              <div className="flex justify-between">
+                                <span>Total Revenue:</span>
+                                <span className="font-semibold">{formatCurrency(shortVisitsResults.chargeRevenue)}</span>
+                              </div>
+                              <div className="flex justify-between">
+                                <span>Total Staff Cost:</span>
+                                <span className="font-semibold">{formatCurrency(shortVisitsResults.totalPayCost)}</span>
+                              </div>
+                              <div className="flex justify-between border-t pt-2">
+                                <span className="font-semibold">Gross Margin:</span>
+                                <span className="font-bold text-blue-600 dark:text-blue-400">{formatCurrency(shortVisitsResults.margin)} ({shortVisitsResults.marginPercentage.toFixed(2)}%)</span>
+                              </div>
+                            </div>
+                          </div>
+                          <div className="text-xs text-gray-500 dark:text-gray-400">
+                            * Quote generated on {new Date().toLocaleDateString()} - Valid for 30 days
+                          </div>
+                        </div>
+                      </DialogContent>
+                    </Dialog>
+                  </div>
                 </div>
               </div>
             </CardContent>
