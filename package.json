@@ -52,6 +52,7 @@
     "@types/bcryptjs": "^2.4.6",
     "@types/dompurify": "^3.0.5",
     "@types/multer": "^2.0.0",
+    "@types/qrcode": "^1.5.5",
     "@uppy/aws-s3": "^5.0.0",
     "@uppy/core": "^5.0.1",
     "@uppy/dashboard": "^5.0.1",

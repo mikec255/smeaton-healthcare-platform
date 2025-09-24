@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Calculator, TrendingUp, Clock, Users, DollarSign, Info, ArrowRight, Calendar, Utensils, Download, FileText, Shield, FileCheck } from "lucide-react";
+import { Calculator, TrendingUp, Clock, Users, DollarSign, Info, ArrowRight, Calendar, Utensils, Download, FileText, Shield, FileCheck, Brain, Plus, Eye, Edit, Trash2, Copy, QrCode, Mail } from "lucide-react";
 import { Link } from "wouter";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -11,11 +11,76 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { apiRequest } from "@/lib/queryClient";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+import QRCode from "qrcode";
 import logoImage from "@/assets/logo.png";
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
 
+// Types for knowledge questionnaires
+type KnowledgeQuestionnaire = {
+  id: string;
+  title: string;
+  description: string;
+  category: string;
+  subcategory: string;
+  isActive: boolean;
+  timeLimit: number | null;
+  passingScore: number;
+  instructions: string | null;
+  shareableLink: string | null;
+  qrCode: string | null;
+  emailTemplate: string | null;
+  createdBy: string;
+  createdAt: Date;
+  updatedAt: Date;
+};
+
+type KnowledgeQuestion = {
+  id: string;
+  questionnaireId: string;
+  questionText: string;
+  questionType: string;
+  options: string[] | null;
+  correctAnswer: string | null;
+  explanation: string | null;
+  points: number;
+  sortOrder: number;
+  isRequired: boolean;
+  createdAt: Date;
+};
+
+// Schemas for form validation
+const questionnaireSchema = z.object({
+  title: z.string().min(1, "Title is required"),
+  description: z.string().min(1, "Description is required"),
+  category: z.string().min(1, "Category is required"),
+  subcategory: z.string().min(1, "Subcategory is required"),
+  timeLimit: z.number().min(1).optional(),
+  passingScore: z.number().min(0).max(100).default(70),
+  instructions: z.string().optional(),
+});
+
+const questionSchema = z.object({
+  questionText: z.string().min(1, "Question text is required"),
+  questionType: z.string().min(1, "Question type is required"),
+  options: z.array(z.string()).optional(),
+  correctAnswer: z.string().optional(),
+  explanation: z.string().optional(),
+  points: z.number().min(1).default(1),
+  isRequired: z.boolean().default(true),
+});
+
 export default function AdminTools() {
+  const [activeTab, setActiveTab] = useState('calculator');
   const [packageType, setPackageType] = useState('hourly'); // 'hourly', 'live-in', or 'care24x7'
   const [calculation, setCalculation] = useState({
     chargeRate: '',
@@ -73,6 +138,159 @@ export default function AdminTools() {
     selectedService: ''
   });
   const [showQuote, setShowQuote] = useState(false);
+
+  // Knowledge questionnaire state
+  const [showQuestionnaireDialog, setShowQuestionnaireDialog] = useState(false);
+  const [showQuestionDialog, setShowQuestionDialog] = useState(false);
+  const [selectedQuestionnaire, setSelectedQuestionnaire] = useState<KnowledgeQuestionnaire | null>(null);
+  const [editingQuestion, setEditingQuestion] = useState<KnowledgeQuestion | null>(null);
+
+  const queryClient = useQueryClient();
+
+  // Questionnaire form
+  const questionnaireForm = useForm<z.infer<typeof questionnaireSchema>>({
+    resolver: zodResolver(questionnaireSchema),
+    defaultValues: {
+      title: "",
+      description: "",
+      category: "",
+      subcategory: "",
+      passingScore: 70,
+      instructions: "",
+    },
+  });
+
+  // Question form
+  const questionForm = useForm<z.infer<typeof questionSchema>>({
+    resolver: zodResolver(questionSchema),
+    defaultValues: {
+      questionText: "",
+      questionType: "",
+      options: [],
+      correctAnswer: "",
+      explanation: "",
+      points: 1,
+      isRequired: true,
+    },
+  });
+
+  // Fetch questionnaires
+  const { data: questionnaires = [], isLoading: loadingQuestionnaires } = useQuery<KnowledgeQuestionnaire[]>({
+    queryKey: ["/api/knowledge/questionnaires"],
+    enabled: activeTab === 'knowledge',
+  });
+
+  // Fetch questions for selected questionnaire
+  const { data: questions = [] } = useQuery<KnowledgeQuestion[]>({
+    queryKey: ["/api/knowledge/questionnaires", selectedQuestionnaire?.id, "questions"],
+    enabled: !!selectedQuestionnaire?.id,
+  });
+
+  // Create questionnaire mutation
+  const createQuestionnaireMutation = useMutation({
+    mutationFn: async (data: z.infer<typeof questionnaireSchema>) => {
+      const response = await fetch("/api/knowledge/questionnaires", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(data),
+      });
+      if (!response.ok) throw new Error("Failed to create questionnaire");
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/knowledge/questionnaires"] });
+      setShowQuestionnaireDialog(false);
+      questionnaireForm.reset();
+    },
+  });
+
+  // Create question mutation
+  const createQuestionMutation = useMutation({
+    mutationFn: async (data: z.infer<typeof questionSchema> & { questionnaireId: string }) => {
+      const response = await fetch(`/api/knowledge/questionnaires/${data.questionnaireId}/questions`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(data),
+      });
+      if (!response.ok) throw new Error("Failed to create question");
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ 
+        queryKey: ["/api/knowledge/questionnaires", selectedQuestionnaire?.id, "questions"] 
+      });
+      setShowQuestionDialog(false);
+      questionForm.reset();
+      setEditingQuestion(null);
+    },
+  });
+
+  // Delete questionnaire mutation
+  const deleteQuestionnaireMutation = useMutation({
+    mutationFn: async (id: string) => {
+      const response = await fetch(`/api/knowledge/questionnaires/${id}`, {
+        method: "DELETE",
+      });
+      if (!response.ok) throw new Error("Failed to delete questionnaire");
+      return response.ok;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/knowledge/questionnaires"] });
+    },
+  });
+
+  // Generate QR code for questionnaire
+  const generateQRCode = async (questionnaire: KnowledgeQuestionnaire) => {
+    if (!questionnaire.shareableLink) return;
+    
+    const assessmentUrl = `${window.location.origin}/assessment/${questionnaire.shareableLink}`;
+    try {
+      const qrCodeDataUrl = await QRCode.toDataURL(assessmentUrl, {
+        width: 200,
+        margin: 2,
+      });
+      
+      // Create download link
+      const link = document.createElement('a');
+      link.href = qrCodeDataUrl;
+      link.download = `${questionnaire.title.replace(/\s+/g, '_')}_QR_Code.png`;
+      link.click();
+    } catch (error) {
+      console.error('Error generating QR code:', error);
+    }
+  };
+
+  // Copy shareable link to clipboard
+  const copyShareableLink = async (questionnaire: KnowledgeQuestionnaire) => {
+    if (!questionnaire.shareableLink) return;
+    
+    const assessmentUrl = `${window.location.origin}/assessment/${questionnaire.shareableLink}`;
+    try {
+      await navigator.clipboard.writeText(assessmentUrl);
+      // Could add a toast notification here
+    } catch (error) {
+      console.error('Error copying to clipboard:', error);
+    }
+  };
+
+  // Submit questionnaire form
+  const onQuestionnaireSubmit = (data: z.infer<typeof questionnaireSchema>) => {
+    createQuestionnaireMutation.mutate(data);
+  };
+
+  // Submit question form
+  const onQuestionSubmit = (data: z.infer<typeof questionSchema>) => {
+    if (!selectedQuestionnaire) return;
+    
+    createQuestionMutation.mutate({
+      ...data,
+      questionnaireId: selectedQuestionnaire.id,
+    });
+  };
 
   const serviceOptions = [
     'Short Visits',
@@ -283,37 +501,20 @@ export default function AdminTools() {
         <Calculator className="h-8 w-8 text-pink-600" />
       </div>
       
-      {/* Tool Navigation */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-        <Card className="border-2 border-pink-200 bg-gradient-to-r from-pink-50 to-pink-100 dark:from-pink-950 dark:to-pink-900">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-3">
-              <Calculator className="h-6 w-6 text-pink-600" />
-              Package Calculator
-            </CardTitle>
-            <CardDescription>
-              Calculate care package costs, staff wages, UK employment overheads, and profit margins with professional quote generation
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="flex items-center justify-between">
-              <Badge variant="secondary" className="bg-pink-100 text-pink-800 dark:bg-pink-800 dark:text-pink-100">
-                Current Tool
-              </Badge>
-              <Button 
-                variant="outline" 
-                size="sm" 
-                disabled
-                className="border-pink-300 text-pink-700 hover:bg-pink-50"
-                data-testid="button-package-calculator"
-              >
-                Active
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-        
-      </div>
+      {/* Tool Tabs */}
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+        <TabsList className="grid w-full grid-cols-2 mb-8">
+          <TabsTrigger value="calculator" className="flex items-center gap-2">
+            <Calculator className="h-4 w-4" />
+            Package Calculator
+          </TabsTrigger>
+          <TabsTrigger value="knowledge" className="flex items-center gap-2">
+            <Brain className="h-4 w-4" />
+            Staff Knowledge Questionnaires
+          </TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="calculator">
 
       {/* Package Calculator */}
       <Card className="w-full">
@@ -979,6 +1180,496 @@ export default function AdminTools() {
           </Card>
         </CardContent>
       </Card>
+        </TabsContent>
+
+        <TabsContent value="knowledge">
+          <div className="space-y-6">
+            {/* Knowledge Questionnaires Header */}
+            <div className="flex items-center justify-between">
+              <div>
+                <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Staff Knowledge Questionnaires</h2>
+                <p className="text-gray-600 dark:text-gray-400 mt-1">
+                  Create and manage knowledge assessments for staff training and compliance
+                </p>
+              </div>
+              <Dialog open={showQuestionnaireDialog} onOpenChange={setShowQuestionnaireDialog}>
+                <DialogTrigger asChild>
+                  <Button className="flex items-center gap-2" data-testid="button-create-questionnaire">
+                    <Plus className="h-4 w-4" />
+                    Create Questionnaire
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="max-w-2xl">
+                  <DialogHeader>
+                    <DialogTitle>Create Knowledge Questionnaire</DialogTitle>
+                    <DialogDescription>
+                      Create a new knowledge assessment for staff training and compliance
+                    </DialogDescription>
+                  </DialogHeader>
+                  <Form {...questionnaireForm}>
+                    <form onSubmit={questionnaireForm.handleSubmit(onQuestionnaireSubmit)} className="space-y-4">
+                      <div className="grid grid-cols-2 gap-4">
+                        <FormField
+                          control={questionnaireForm.control}
+                          name="title"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Title</FormLabel>
+                              <FormControl>
+                                <Input placeholder="e.g., Safeguarding Essentials" {...field} data-testid="input-questionnaire-title" />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        <FormField
+                          control={questionnaireForm.control}
+                          name="category"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Category</FormLabel>
+                              <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                <FormControl>
+                                  <SelectTrigger data-testid="select-category">
+                                    <SelectValue placeholder="Select category" />
+                                  </SelectTrigger>
+                                </FormControl>
+                                <SelectContent>
+                                  <SelectItem value="mandatory_core">Mandatory Core</SelectItem>
+                                  <SelectItem value="care_specific">Care Specific</SelectItem>
+                                  <SelectItem value="professional_standards">Professional Standards</SelectItem>
+                                  <SelectItem value="specialized">Specialized</SelectItem>
+                                  <SelectItem value="scenario_testing">Scenario Testing</SelectItem>
+                                </SelectContent>
+                              </Select>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      </div>
+                      <FormField
+                        control={questionnaireForm.control}
+                        name="subcategory"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Subcategory</FormLabel>
+                            <FormControl>
+                              <Input placeholder="e.g., safeguarding, mental_capacity, health_safety" {...field} data-testid="input-subcategory" />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={questionnaireForm.control}
+                        name="description"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Description</FormLabel>
+                            <FormControl>
+                              <Textarea 
+                                placeholder="Describe what this assessment covers..."
+                                {...field} 
+                                data-testid="textarea-description"
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <div className="grid grid-cols-2 gap-4">
+                        <FormField
+                          control={questionnaireForm.control}
+                          name="passingScore"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Passing Score (%)</FormLabel>
+                              <FormControl>
+                                <Input 
+                                  type="number" 
+                                  min="0" 
+                                  max="100" 
+                                  {...field}
+                                  onChange={(e) => field.onChange(parseInt(e.target.value))}
+                                  data-testid="input-passing-score"
+                                />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        <FormField
+                          control={questionnaireForm.control}
+                          name="timeLimit"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Time Limit (minutes)</FormLabel>
+                              <FormControl>
+                                <Input 
+                                  type="number" 
+                                  min="1"
+                                  placeholder="Optional"
+                                  {...field}
+                                  onChange={(e) => field.onChange(e.target.value ? parseInt(e.target.value) : undefined)}
+                                  data-testid="input-time-limit"
+                                />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      </div>
+                      <FormField
+                        control={questionnaireForm.control}
+                        name="instructions"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Instructions (Optional)</FormLabel>
+                            <FormControl>
+                              <Textarea 
+                                placeholder="Special instructions for completing this assessment..."
+                                {...field} 
+                                data-testid="textarea-instructions"
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <div className="flex justify-end gap-2">
+                        <Button
+                          type="button"
+                          variant="outline"
+                          onClick={() => setShowQuestionnaireDialog(false)}
+                          data-testid="button-cancel-questionnaire"
+                        >
+                          Cancel
+                        </Button>
+                        <Button 
+                          type="submit" 
+                          disabled={createQuestionnaireMutation.isPending}
+                          data-testid="button-save-questionnaire"
+                        >
+                          {createQuestionnaireMutation.isPending ? "Creating..." : "Create Questionnaire"}
+                        </Button>
+                      </div>
+                    </form>
+                  </Form>
+                </DialogContent>
+              </Dialog>
+            </div>
+
+            {/* Questionnaires List */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <FileCheck className="h-5 w-5" />
+                  Knowledge Questionnaires
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                {loadingQuestionnaires ? (
+                  <div className="text-center py-8">Loading questionnaires...</div>
+                ) : questionnaires.length === 0 ? (
+                  <div className="text-center py-8">
+                    <Brain className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                    <p className="text-gray-500">No questionnaires created yet</p>
+                    <p className="text-sm text-gray-400 mt-2">Create your first knowledge assessment to get started</p>
+                  </div>
+                ) : (
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Title</TableHead>
+                        <TableHead>Category</TableHead>
+                        <TableHead>Questions</TableHead>
+                        <TableHead>Status</TableHead>
+                        <TableHead>Actions</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {questionnaires.map((questionnaire: KnowledgeQuestionnaire) => (
+                        <TableRow key={questionnaire.id}>
+                          <TableCell>
+                            <div>
+                              <div className="font-medium">{questionnaire.title}</div>
+                              <div className="text-sm text-gray-500">{questionnaire.description}</div>
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <Badge variant="outline">
+                              {questionnaire.category.replace('_', ' ')}
+                            </Badge>
+                          </TableCell>
+                          <TableCell>
+                            <Button
+                              variant="link"
+                              className="p-0 h-auto"
+                              onClick={() => setSelectedQuestionnaire(questionnaire)}
+                              data-testid={`button-view-questions-${questionnaire.id}`}
+                            >
+                              View Questions
+                            </Button>
+                          </TableCell>
+                          <TableCell>
+                            <Badge variant={questionnaire.isActive ? "default" : "secondary"}>
+                              {questionnaire.isActive ? "Active" : "Inactive"}
+                            </Badge>
+                          </TableCell>
+                          <TableCell>
+                            <div className="flex items-center gap-2">
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => copyShareableLink(questionnaire)}
+                                data-testid={`button-copy-link-${questionnaire.id}`}
+                              >
+                                <Copy className="h-4 w-4" />
+                              </Button>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => generateQRCode(questionnaire)}
+                                data-testid={`button-qr-code-${questionnaire.id}`}
+                              >
+                                <QrCode className="h-4 w-4" />
+                              </Button>
+                              <AlertDialog>
+                                <AlertDialogTrigger asChild>
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    data-testid={`button-delete-${questionnaire.id}`}
+                                  >
+                                    <Trash2 className="h-4 w-4" />
+                                  </Button>
+                                </AlertDialogTrigger>
+                                <AlertDialogContent>
+                                  <AlertDialogHeader>
+                                    <AlertDialogTitle>Delete Questionnaire</AlertDialogTitle>
+                                    <AlertDialogDescription>
+                                      Are you sure you want to delete "{questionnaire.title}"? This action cannot be undone.
+                                    </AlertDialogDescription>
+                                  </AlertDialogHeader>
+                                  <AlertDialogFooter>
+                                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                    <AlertDialogAction
+                                      onClick={() => deleteQuestionnaireMutation.mutate(questionnaire.id)}
+                                      data-testid="button-confirm-delete"
+                                    >
+                                      Delete
+                                    </AlertDialogAction>
+                                  </AlertDialogFooter>
+                                </AlertDialogContent>
+                              </AlertDialog>
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                )}
+              </CardContent>
+            </Card>
+
+            {/* Questions Management Dialog */}
+            {selectedQuestionnaire && (
+              <Dialog open={!!selectedQuestionnaire} onOpenChange={() => setSelectedQuestionnaire(null)}>
+                <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+                  <DialogHeader>
+                    <DialogTitle className="flex items-center gap-2">
+                      <FileText className="h-5 w-5" />
+                      {selectedQuestionnaire.title} - Questions
+                    </DialogTitle>
+                    <DialogDescription>
+                      Manage questions for this knowledge assessment
+                    </DialogDescription>
+                  </DialogHeader>
+                  
+                  <div className="space-y-4">
+                    <div className="flex justify-between items-center">
+                      <p className="text-sm text-gray-600">
+                        {questions.length} question(s) in this assessment
+                      </p>
+                      <Dialog open={showQuestionDialog} onOpenChange={setShowQuestionDialog}>
+                        <DialogTrigger asChild>
+                          <Button size="sm" data-testid="button-add-question">
+                            <Plus className="h-4 w-4 mr-2" />
+                            Add Question
+                          </Button>
+                        </DialogTrigger>
+                        <DialogContent className="max-w-2xl">
+                          <DialogHeader>
+                            <DialogTitle>Add Question</DialogTitle>
+                            <DialogDescription>
+                              Add a new question to the assessment
+                            </DialogDescription>
+                          </DialogHeader>
+                          <Form {...questionForm}>
+                            <form onSubmit={questionForm.handleSubmit(onQuestionSubmit)} className="space-y-4">
+                              <FormField
+                                control={questionForm.control}
+                                name="questionText"
+                                render={({ field }) => (
+                                  <FormItem>
+                                    <FormLabel>Question Text</FormLabel>
+                                    <FormControl>
+                                      <Textarea 
+                                        placeholder="Enter your question here..."
+                                        {...field} 
+                                        data-testid="textarea-question-text"
+                                      />
+                                    </FormControl>
+                                    <FormMessage />
+                                  </FormItem>
+                                )}
+                              />
+                              <div className="grid grid-cols-2 gap-4">
+                                <FormField
+                                  control={questionForm.control}
+                                  name="questionType"
+                                  render={({ field }) => (
+                                    <FormItem>
+                                      <FormLabel>Question Type</FormLabel>
+                                      <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                        <FormControl>
+                                          <SelectTrigger data-testid="select-question-type">
+                                            <SelectValue placeholder="Select type" />
+                                          </SelectTrigger>
+                                        </FormControl>
+                                        <SelectContent>
+                                          <SelectItem value="multiple_choice">Multiple Choice</SelectItem>
+                                          <SelectItem value="true_false">True/False</SelectItem>
+                                          <SelectItem value="short_answer">Short Answer</SelectItem>
+                                          <SelectItem value="scenario_based">Scenario Based</SelectItem>
+                                        </SelectContent>
+                                      </Select>
+                                      <FormMessage />
+                                    </FormItem>
+                                  )}
+                                />
+                                <FormField
+                                  control={questionForm.control}
+                                  name="points"
+                                  render={({ field }) => (
+                                    <FormItem>
+                                      <FormLabel>Points</FormLabel>
+                                      <FormControl>
+                                        <Input 
+                                          type="number" 
+                                          min="1"
+                                          {...field}
+                                          onChange={(e) => field.onChange(parseInt(e.target.value))}
+                                          data-testid="input-points"
+                                        />
+                                      </FormControl>
+                                      <FormMessage />
+                                    </FormItem>
+                                  )}
+                                />
+                              </div>
+                              <FormField
+                                control={questionForm.control}
+                                name="correctAnswer"
+                                render={({ field }) => (
+                                  <FormItem>
+                                    <FormLabel>Correct Answer</FormLabel>
+                                    <FormControl>
+                                      <Input 
+                                        placeholder="Enter the correct answer..."
+                                        {...field} 
+                                        data-testid="input-correct-answer"
+                                      />
+                                    </FormControl>
+                                    <FormMessage />
+                                  </FormItem>
+                                )}
+                              />
+                              <FormField
+                                control={questionForm.control}
+                                name="explanation"
+                                render={({ field }) => (
+                                  <FormItem>
+                                    <FormLabel>Explanation (Optional)</FormLabel>
+                                    <FormControl>
+                                      <Textarea 
+                                        placeholder="Explain why this is the correct answer..."
+                                        {...field} 
+                                        data-testid="textarea-explanation"
+                                      />
+                                    </FormControl>
+                                    <FormMessage />
+                                  </FormItem>
+                                )}
+                              />
+                              <div className="flex justify-end gap-2">
+                                <Button
+                                  type="button"
+                                  variant="outline"
+                                  onClick={() => {
+                                    setShowQuestionDialog(false);
+                                    questionForm.reset();
+                                  }}
+                                  data-testid="button-cancel-question"
+                                >
+                                  Cancel
+                                </Button>
+                                <Button 
+                                  type="submit" 
+                                  disabled={createQuestionMutation.isPending}
+                                  data-testid="button-save-question"
+                                >
+                                  {createQuestionMutation.isPending ? "Adding..." : "Add Question"}
+                                </Button>
+                              </div>
+                            </form>
+                          </Form>
+                        </DialogContent>
+                      </Dialog>
+                    </div>
+                    
+                    {questions.length === 0 ? (
+                      <div className="text-center py-8">
+                        <FileText className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                        <p className="text-gray-500">No questions added yet</p>
+                        <p className="text-sm text-gray-400 mt-2">Add your first question to get started</p>
+                      </div>
+                    ) : (
+                      <div className="space-y-4">
+                        {questions.map((question: KnowledgeQuestion, index: number) => (
+                          <Card key={question.id} className="border-l-4 border-l-blue-500">
+                            <CardContent className="pt-4">
+                              <div className="flex justify-between items-start">
+                                <div className="flex-1">
+                                  <div className="flex items-center gap-2 mb-2">
+                                    <Badge variant="outline">{question.questionType.replace('_', ' ')}</Badge>
+                                    <Badge variant="secondary">{question.points} point(s)</Badge>
+                                  </div>
+                                  <p className="font-medium mb-2">Q{index + 1}: {question.questionText}</p>
+                                  {question.correctAnswer && (
+                                    <p className="text-sm text-green-600 dark:text-green-400">
+                                      <strong>Answer:</strong> {question.correctAnswer}
+                                    </p>
+                                  )}
+                                  {question.explanation && (
+                                    <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                                      <strong>Explanation:</strong> {question.explanation}
+                                    </p>
+                                  )}
+                                </div>
+                              </div>
+                            </CardContent>
+                          </Card>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </DialogContent>
+              </Dialog>
+            )}
+          </div>
+        </TabsContent>
+      </Tabs>
 
       {/* Quote Preview Modal */}
       <Dialog open={showQuote} onOpenChange={setShowQuote}>
