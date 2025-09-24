@@ -252,6 +252,7 @@ export default function CqcToolkit() {
         serviceType: "administrative",
         keyQuestion: "well_led",
         auditDate: new Date(),
+        auditorId: session?.user?.id || "unknown-auditor", // Provide fallback for missing session
         auditorName: currentUser?.username || "Unknown",
         findings: JSON.stringify({
           hasCurrentInsurance: data.hasCurrentInsurance,
@@ -266,7 +267,8 @@ export default function CqcToolkit() {
         actionPlan: data.actions,
       };
       
-      const createdAudit = await apiRequest('POST', '/api/cqc/audits', auditData);
+      const response = await apiRequest('POST', '/api/cqc/audits', auditData);
+      const createdAudit = await response.json();
       
       // If there are evidence files, try to upload them using the existing evidence upload system
       if (selectedEvidenceFiles.length > 0) {
