@@ -1409,7 +1409,7 @@ export default function AdminTools() {
       </Tabs>
 
       {/* Information Panel */}
-      <Card className="border-amber-200 bg-amber-50 dark:bg-amber-950 dark:border-amber-800 !mt-16">
+      <Card className="border-amber-200 bg-amber-50 dark:bg-amber-950 dark:border-amber-800 mb-8">
         <CardContent className="pt-4">
           <div className="flex items-start gap-3">
             <Info className="h-5 w-5 text-amber-600 dark:text-amber-400 mt-0.5" />
