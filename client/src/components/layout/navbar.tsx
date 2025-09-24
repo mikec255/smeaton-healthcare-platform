@@ -39,7 +39,7 @@ export default function Navbar() {
   ];
 
   return (
-    <nav className="fixed top-0 left-0 right-0 h-14 md:h-20 bg-white border-b border-gray-200 shadow-sm z-40 flex items-center">
+    <nav className="fixed top-0 left-0 right-0 h-24 md:h-44 bg-white border-b border-gray-200 shadow-sm z-40 flex items-center">
       <div className="container mx-auto px-4 flex justify-between items-center">
         {/* Logo Section */}
         <div className="flex items-center gap-6">
@@ -328,7 +328,7 @@ export default function Navbar() {
 
       {/* Mobile Menu - Simple overlay with consistent spacing */}
       {mobileMenuOpen && (
-        <div className="fixed inset-0 top-14 md:top-20 bg-white border-t border-gray-200 z-50 lg:hidden overflow-y-auto">
+        <div className="fixed inset-0 top-24 md:top-44 bg-white border-t border-gray-200 z-50 lg:hidden overflow-y-auto">
           <div className="container mx-auto px-4 py-4 space-y-6">
             {/* Home Link */}
             <Link 
