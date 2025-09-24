@@ -217,7 +217,7 @@ export default function ShortVisits() {
                   <Card className="lg:absolute lg:-top-12 lg:-left-12 p-4 sm:p-6 bg-secondary text-white shadow-xl border-0 lg:rotate-3 hover:lg:rotate-0 transition-transform duration-300">
                     <div className="text-center">
                       <div className="text-lg sm:text-xl font-bold">Rates from</div>
-                      <div className="text-sm sm:text-base opacity-90">£28.00 per hour</div>
+                      <div className="text-sm sm:text-base opacity-90">£25.00</div>
                     </div>
                   </Card>
                   
