@@ -252,7 +252,7 @@ export default function CqcToolkit() {
         serviceType: "administrative",
         keyQuestion: "well_led",
         auditDate: new Date(),
-        auditorId: session?.user?.id || "unknown-auditor", // Provide fallback for missing session
+        auditorId: currentUser?.id || "unknown-auditor", // Provide fallback for missing session
         auditorName: currentUser?.username || "Unknown",
         findings: JSON.stringify({
           hasCurrentInsurance: data.hasCurrentInsurance,
