@@ -11,7 +11,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { 
   Calculator, 
   TrendingUp, 
-  DollarSign, 
+  PoundSterling, 
   Users, 
   Clock, 
   Calendar, 
@@ -476,7 +476,7 @@ export default function AdminTools() {
                   <div className="space-y-2">
                     <Label htmlFor="hourly-charge-rate">Charge Rate (per hour)</Label>
                     <div className="relative">
-                      <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-500" />
+                      <PoundSterling className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-500" />
                       <Input
                         id="hourly-charge-rate"
                         type="number"
@@ -527,7 +527,7 @@ export default function AdminTools() {
                   <div className="space-y-2">
                     <Label htmlFor="hourly-travel-costs">Travel Costs (per shift)</Label>
                     <div className="relative">
-                      <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-500" />
+                      <PoundSterling className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-500" />
                       <Input
                         id="hourly-travel-costs"
                         type="number"
@@ -636,7 +636,7 @@ export default function AdminTools() {
                   <div className="space-y-2">
                     <Label htmlFor="livein-charge-rate">Charge Rate (per hour)</Label>
                     <div className="relative">
-                      <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-500" />
+                      <PoundSterling className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-500" />
                       <Input
                         id="livein-charge-rate"
                         type="number"
@@ -704,7 +704,7 @@ export default function AdminTools() {
                   <div className="space-y-2">
                     <Label htmlFor="livein-travel-costs">Travel Costs (one-time for period)</Label>
                     <div className="relative">
-                      <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-500" />
+                      <PoundSterling className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-500" />
                       <Input
                         id="livein-travel-costs"
                         type="number"
@@ -875,14 +875,14 @@ export default function AdminTools() {
                   {/* Day Rates Section */}
                   <div className="bg-yellow-50 dark:bg-yellow-950 p-4 rounded-lg border border-yellow-200 dark:border-yellow-800">
                     <h4 className="font-semibold text-yellow-900 dark:text-yellow-100 mb-3 flex items-center gap-2">
-                      <DollarSign className="h-4 w-4" />
+                      <PoundSterling className="h-4 w-4" />
                       Day Shift Rates
                     </h4>
                     <div className="grid grid-cols-2 gap-4">
                       <div className="space-y-2">
                         <Label htmlFor="day-charge-rate">Day Charge Rate (per hour)</Label>
                         <div className="relative">
-                          <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-500" />
+                          <PoundSterling className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-500" />
                           <Input
                             id="day-charge-rate"
                             type="number"
@@ -949,14 +949,14 @@ export default function AdminTools() {
                   {/* Night Rates Section */}
                   <div className="bg-blue-50 dark:bg-blue-950 p-4 rounded-lg border border-blue-200 dark:border-blue-800">
                     <h4 className="font-semibold text-blue-900 dark:text-blue-100 mb-3 flex items-center gap-2">
-                      <DollarSign className="h-4 w-4" />
+                      <PoundSterling className="h-4 w-4" />
                       Night Shift Rates
                     </h4>
                     <div className="grid grid-cols-2 gap-4">
                       <div className="space-y-2">
                         <Label htmlFor="night-charge-rate">Night Charge Rate (per hour)</Label>
                         <div className="relative">
-                          <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-500" />
+                          <PoundSterling className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-500" />
                           <Input
                             id="night-charge-rate"
                             type="number"
@@ -1142,7 +1142,7 @@ export default function AdminTools() {
                   <div className="space-y-2">
                     <Label htmlFor="shortvisits-charge-rate">Charge Rate (per hour)</Label>
                     <div className="relative">
-                      <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-500" />
+                      <PoundSterling className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-500" />
                       <Input
                         id="shortvisits-charge-rate"
                         type="number"
@@ -1165,7 +1165,7 @@ export default function AdminTools() {
                       <div className="space-y-2">
                         <Label htmlFor="shortvisits-hourly-pay">Hourly Pay (to staff)</Label>
                         <div className="relative">
-                          <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-500" />
+                          <PoundSterling className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-500" />
                           <Input
                             id="shortvisits-hourly-pay"
                             type="number"
