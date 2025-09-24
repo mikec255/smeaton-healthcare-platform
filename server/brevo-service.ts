@@ -77,7 +77,7 @@ class BrevoService {
         htmlContent: this.getWelcomeEmailHtml(username, email, password, role),
         textContent: this.getWelcomeEmailText(username, email, password, role),
         sender: {
-          email: 'noreply@brevosend.com',
+          email: 'hello@smeatonhealthcare.co.uk',
           name: 'Smeaton Healthcare'
         }
       });
@@ -106,7 +106,7 @@ class BrevoService {
         htmlContent: this.getPasswordCreationEmailHtml(username, email, token, role),
         textContent: this.getPasswordCreationEmailText(username, email, token, role),
         sender: {
-          email: 'noreply@brevosend.com',
+          email: 'hello@smeatonhealthcare.co.uk',
           name: 'Smeaton Healthcare'
         }
       });
@@ -134,14 +134,14 @@ class BrevoService {
     try {
       const result = await this.emailApi.sendTransacEmail({
         to: [{
-          email: 'noreply@brevosend.com',
+          email: 'hello@smeatonhealthcare.co.uk',
           name: 'Smeaton Healthcare'
         }],
         subject: `New Contact Form Submission: ${contactData.reason}`,
         htmlContent: this.getContactFormEmailHtml(contactData),
         textContent: this.getContactFormEmailText(contactData),
         sender: {
-          email: 'noreply@brevosend.com',
+          email: 'hello@smeatonhealthcare.co.uk',
           name: 'Smeaton Healthcare'
         },
         replyTo: {
@@ -167,14 +167,14 @@ class BrevoService {
     try {
       const result = await this.emailApi.sendTransacEmail({
         to: [{
-          email: 'noreply@brevosend.com',
+          email: 'hello@smeatonhealthcare.co.uk',
           name: 'Smeaton Healthcare Team'
         }],
         subject: `New Care Referral - ${referralData.clientName}`,
         htmlContent: this.getReferralEmailHtml(referralData),
         textContent: this.getReferralEmailText(referralData),
         sender: {
-          email: 'noreply@brevosend.com',
+          email: 'hello@smeatonhealthcare.co.uk',
           name: 'Smeaton Healthcare'
         }
       });
@@ -222,7 +222,7 @@ class BrevoService {
         htmlContent: this.getPreScreenApplicationEmailHtml(applicationData),
         textContent: this.getPreScreenApplicationEmailText(applicationData),
         sender: {
-          email: 'noreply@brevosend.com',
+          email: 'recruitment@smeatonhealthcare.co.uk',
           name: 'Smeaton Healthcare'
         }
       });
