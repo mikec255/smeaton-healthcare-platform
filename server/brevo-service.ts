@@ -272,7 +272,7 @@ class BrevoService {
             </div>
             
             <p>You can access the admin portal at:</p>
-            <a href="${process.env.REPLIT_DEV_DOMAIN ? `https://${process.env.REPLIT_DEV_DOMAIN}/admin` : 'https://your-domain.com/admin'}" class="button">
+            <a href="https://www.smeatonhealthcare.co.uk/admin" class="button">
               Access Admin Portal
             </a>
             
@@ -309,7 +309,7 @@ Your Login Details:
 - Password: ${password}
 - Role: ${role}
 
-You can access the admin portal at: ${process.env.REPLIT_DEV_DOMAIN ? `https://${process.env.REPLIT_DEV_DOMAIN}/admin` : 'https://your-domain.com/admin'}
+You can access the admin portal at: https://www.smeatonhealthcare.co.uk/admin
 
 Important Security Notes:
 - Please change your password after your first login
@@ -324,7 +324,7 @@ Healthcare staffing solutions across Devon and Cornwall
   }
 
   private getPasswordCreationEmailHtml(username: string, email: string, token: string, role: string): string {
-    const passwordCreationUrl = `${process.env.REPLIT_DEV_DOMAIN ? `https://${process.env.REPLIT_DEV_DOMAIN}` : 'https://your-domain.com'}/create-password?token=${token}`;
+    const passwordCreationUrl = `https://www.smeatonhealthcare.co.uk/create-password?token=${token}`;
     console.log('Generated password creation URL:', passwordCreationUrl);
     
     return `
@@ -392,7 +392,7 @@ Healthcare staffing solutions across Devon and Cornwall
   }
 
   private getPasswordCreationEmailText(username: string, email: string, token: string, role: string): string {
-    const passwordCreationUrl = `${process.env.REPLIT_DEV_DOMAIN ? `https://${process.env.REPLIT_DEV_DOMAIN}` : 'https://your-domain.com'}/create-password?token=${token}`;
+    const passwordCreationUrl = `https://www.smeatonhealthcare.co.uk/create-password?token=${token}`;
     
     return `
 Welcome to Smeaton Healthcare Admin Portal!
