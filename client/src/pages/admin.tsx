@@ -139,37 +139,6 @@ export default function Admin() {
   // Organized management categories
   const managementCategories = [
     {
-      id: "resources",
-      title: "Resources",
-      description: "Manage content and communications",
-      areas: [
-        {
-          title: "Blog",
-          description: "Create, edit and publish blog posts for the resources section",
-          icon: BookOpen,
-          link: "/admin/blog",
-          stats: {
-            total: blogPosts.length,
-            published: blogPosts.filter(p => p.isPublished).length,
-            drafts: blogPosts.filter(p => !p.isPublished).length
-          },
-          color: "bg-blue-600 text-white hover:bg-blue-700"
-        },
-        {
-          title: "Newsletter",
-          description: "Create, edit and send newsletters to subscribers",
-          icon: Mail,
-          link: "/admin/newsletters",
-          stats: {
-            total: newsletters.length,
-            published: newsletters.filter(n => n.status === 'published').length,
-            drafts: newsletters.filter(n => n.status === 'draft').length
-          },
-          color: "bg-blue-600 text-white hover:bg-blue-700"
-        }
-      ]
-    },
-    {
       id: "recruitment",
       title: "Recruitment", 
       description: "Manage hiring and applications",
@@ -252,7 +221,7 @@ export default function Admin() {
     }
   ];
 
-  // Add Tools & Compliance category for superadmin users
+  // Add Tools & Compliance, Resources, and Admin categories for superadmin users
   if (authUser?.user?.role === "superadmin") {
     managementCategories.push(
       {
@@ -292,6 +261,37 @@ export default function Admin() {
               info: "GDPR Ready"
             },
             color: "bg-green-600 text-white hover:bg-green-700"
+          }
+        ]
+      },
+      {
+        id: "resources",
+        title: "Resources",
+        description: "Manage content and communications",
+        areas: [
+          {
+            title: "Blog",
+            description: "Create, edit and publish blog posts for the resources section",
+            icon: BookOpen,
+            link: "/admin/blog",
+            stats: {
+              total: blogPosts.length,
+              published: blogPosts.filter(p => p.isPublished).length,
+              drafts: blogPosts.filter(p => !p.isPublished).length
+            },
+            color: "bg-blue-600 text-white hover:bg-blue-700"
+          },
+          {
+            title: "Newsletter",
+            description: "Create, edit and send newsletters to subscribers",
+            icon: Mail,
+            link: "/admin/newsletters",
+            stats: {
+              total: newsletters.length,
+              published: newsletters.filter(n => n.status === 'published').length,
+              drafts: newsletters.filter(n => n.status === 'draft').length
+            },
+            color: "bg-blue-600 text-white hover:bg-blue-700"
           }
         ]
       },
