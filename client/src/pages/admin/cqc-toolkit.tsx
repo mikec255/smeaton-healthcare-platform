@@ -1202,7 +1202,7 @@ Delivering outstanding healthcare across Devon & Cornwall`;
             <CardContent>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {/* Insurance Audit Form */}
-                <Dialog>
+                <Dialog open={insuranceAuditOpen} onOpenChange={setInsuranceAuditOpen}>
                   <DialogTrigger asChild>
                     <Card className="cursor-pointer hover:shadow-md transition-shadow border-2 border-orange-200 dark:border-orange-800 bg-orange-50 dark:bg-orange-950/20">
                       <CardContent className="p-6">
