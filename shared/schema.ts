@@ -389,6 +389,7 @@ export const cqcAudits = pgTable("cqc_audits", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   title: text("title").notNull(),
   auditType: text("audit_type").notNull(), // single_assessment, targeted_inspection, comprehensive_inspection
+  category: text("category").notNull(), // insurance, safeguarding, health_safety, etc.
   serviceType: text("service_type").notNull(), // domiciliary_care, residential_care, supported_living, community_health
   keyQuestion: text("key_question").notNull(), // safe, effective, caring, responsive, well_led, overall
   status: text("status").default("draft"), // draft, in_progress, completed, approved, submitted_to_cqc
