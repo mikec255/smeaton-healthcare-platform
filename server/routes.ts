@@ -1739,11 +1739,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/cqc/audits", requireAdmin, async (req, res) => {
     try {
-      // Convert date string to Date object before validation
+      // Convert date string to Date object and ensure required fields
       const bodyWithDateFixed = {
         ...req.body,
         auditDate: new Date(req.body.auditDate),
-        nextReviewDate: req.body.nextReviewDate ? new Date(req.body.nextReviewDate) : undefined
+        nextReviewDate: req.body.nextReviewDate ? new Date(req.body.nextReviewDate) : undefined,
+        // Fix category mapping for insurance audits
+        category: req.body.category || "insurance", // Default to "insurance" if not provided
+        auditorName: req.body.auditorName || req.user?.username || "System Admin",
+        auditorId: req.body.auditorId || req.user?.id || "system"
       };
       const validatedData = insertCqcAuditSchema.parse(bodyWithDateFixed);
       const audit = await storage.createCqcAudit(validatedData);
