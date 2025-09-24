@@ -1710,7 +1710,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/cqc/audits", requireAdmin, async (req, res) => {
     try {
-      const validatedData = insertCqcAuditSchema.parse(req.body);
+      // Convert date string to Date object before validation
+      const bodyWithDateFixed = {
+        ...req.body,
+        auditDate: new Date(req.body.auditDate),
+        nextReviewDate: req.body.nextReviewDate ? new Date(req.body.nextReviewDate) : undefined
+      };
+      const validatedData = insertCqcAuditSchema.parse(bodyWithDateFixed);
       const audit = await storage.createCqcAudit(validatedData);
       
       // Create audit log for compliance tracking
