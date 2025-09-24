@@ -22,7 +22,6 @@ async function requireAdmin(req: any, res: any, next: any) {
     console.log("RequireAdmin debug - Session contents:", req.session);
     if (req.session?.user) {
       console.log("RequireAdmin debug - Session.user.id:", req.session.user.id);
-      console.log("RequireAdmin debug - Session.user.role:", req.session.user.role);
     }
   }
 
@@ -86,14 +85,8 @@ async function requireAdmin(req: any, res: any, next: any) {
   
   // CRITICAL FIX: If we have a user from token but no session user, populate the session
   if (user && !req.session?.user) {
-    req.session.user = {
-      id: user.id,
-      username: user.username,
-      role: user.role,
-      isActive: user.isActive,
-      createdAt: user.createdAt,
-    };
-    console.log("FIXED: Populated session with user from token:", user.username);
+    req.session.user = { id: user.id };
+    console.log("FIXED: Populated session with user ID from token:", user.username);
   }
   
   if (!user) {
@@ -165,14 +158,8 @@ async function requireSuperAdmin(req: any, res: any, next: any) {
   
   // CRITICAL FIX: If we have a user from token but no session user, populate the session
   if (user && !req.session?.user) {
-    req.session.user = {
-      id: user.id,
-      username: user.username,
-      role: user.role,
-      isActive: user.isActive,
-      createdAt: user.createdAt,
-    };
-    console.log("FIXED: Populated session with superadmin from token:", user.username);
+    req.session.user = { id: user.id };
+    console.log("FIXED: Populated session with user ID from token:", user.username);
   }
 
   if (!user) {
@@ -447,14 +434,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       // Create a simple token for Replit compatibility (base64 encoded user info)
-      // Store user info in session (excluding password) - simplified approach
-      req.session.user = {
-        id: user.id,
-        username: user.username,
-        role: user.role,
-        isActive: user.isActive,
-        createdAt: user.createdAt,
-      };
+      // Store minimal user info in session (ID only) for security
+      req.session.user = { id: user.id };
       
       // Production: Only log successful login, never session details
       if (process.env.NODE_ENV === 'production') {
