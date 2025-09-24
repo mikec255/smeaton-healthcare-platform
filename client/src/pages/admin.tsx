@@ -236,7 +236,8 @@ export default function Admin() {
             link: "/admin/tools",
             stats: {
               total: 3,
-              info: "UK Ready"
+              active: 3,
+              inactive: 0
             },
             color: "bg-purple-600 text-white hover:bg-purple-700"
           },
@@ -247,7 +248,8 @@ export default function Admin() {
             link: "/admin/cqc-toolkit",
             stats: {
               total: 34,
-              info: "CQC Ready"
+              active: 34,
+              inactive: 0
             },
             color: "bg-blue-600 text-white hover:bg-blue-700"
           },
@@ -258,7 +260,8 @@ export default function Admin() {
             link: "/admin/audit-logs",
             stats: {
               total: 1,
-              info: "GDPR Ready"
+              active: 1,
+              inactive: 0
             },
             color: "bg-green-600 text-white hover:bg-green-700"
           }
@@ -276,8 +279,8 @@ export default function Admin() {
             link: "/admin/blog",
             stats: {
               total: blogPosts.length,
-              published: blogPosts.filter(p => p.isPublished).length,
-              drafts: blogPosts.filter(p => !p.isPublished).length
+              active: blogPosts.filter(p => p.isPublished).length,
+              inactive: blogPosts.filter(p => !p.isPublished).length
             },
             color: "bg-blue-600 text-white hover:bg-blue-700"
           },
@@ -288,8 +291,8 @@ export default function Admin() {
             link: "/admin/newsletters",
             stats: {
               total: newsletters.length,
-              published: newsletters.filter(n => n.status === 'published').length,
-              drafts: newsletters.filter(n => n.status === 'draft').length
+              active: newsletters.filter(n => n.status === 'published').length,
+              inactive: newsletters.filter(n => n.status === 'draft').length
             },
             color: "bg-blue-600 text-white hover:bg-blue-700"
           }
@@ -319,8 +322,9 @@ export default function Admin() {
             link: "#",
             isEmailSettings: true,
             stats: {
-              configured: emailConfig.configured,
-              info: emailConfig.configured ? "Configured" : "Not configured"
+              total: 1,
+              active: emailConfig.configured ? 1 : 0,
+              inactive: emailConfig.configured ? 0 : 1
             },
             color: emailConfig.configured ? "bg-slate-600 text-white hover:bg-slate-700" : "bg-slate-600 text-white hover:bg-slate-700"
           }
