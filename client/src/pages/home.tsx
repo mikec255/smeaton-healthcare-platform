@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -38,11 +38,148 @@ import {
   Rocket,
   Briefcase,
   User,
-  Mail
+  Mail,
+  X
 } from "lucide-react";
 
 export default function Home({ heroTab = "find-care", onHeroTabChange }: { heroTab?: string, onHeroTabChange?: (value: string) => void }) {
   const [shouldPulsate, setShouldPulsate] = useState(true);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [showSearchResults, setShowSearchResults] = useState(false);
+
+  // Searchable content data structure
+  const searchableContent = useMemo(() => [
+    {
+      title: "Short Visits Care",
+      description: "Flexible care visits from 1 hour upwards, personal care, household support, companionship",
+      keywords: ["short visits", "personal care", "household support", "companionship", "medication", "flexible care", "home care"],
+      url: "/services/short-visits",
+      category: "Services"
+    },
+    {
+      title: "Supported Living",
+      description: "Live independently in your own home with person-centered care plans and skills development",
+      keywords: ["supported living", "independent living", "skills development", "community integration", "daily living support"],
+      url: "/services/supported-living",
+      category: "Services"
+    },
+    {
+      title: "24/7 Care",
+      description: "Round-the-clock care with immediate assistance, continuous monitoring for safety and security",
+      keywords: ["24/7 care", "round the clock", "continuous care", "emergency care", "monitoring", "safety", "security"],
+      url: "/services/care-24-7",
+      category: "Services"
+    },
+    {
+      title: "Enablement Care",
+      description: "Support to grow confidence and independence, learn everyday life skills with guidance",
+      keywords: ["enablement", "independence", "confidence building", "life skills", "empowerment", "rehabilitation"],
+      url: "/services/enablements",
+      category: "Services"
+    },
+    {
+      title: "Respite Care",
+      description: "Professional short-term care from a few hours to several days, giving families a break",
+      keywords: ["respite care", "short term care", "family break", "temporary care", "emergency respite"],
+      url: "/services/respite",
+      category: "Services"
+    },
+    {
+      title: "Live-In Care",
+      description: "Dedicated live-in carers providing 24-hour support in the comfort of your own home",
+      keywords: ["live in care", "live-in carer", "24 hour support", "home care", "dedicated carer"],
+      url: "/services/live-in-care",
+      category: "Services"
+    },
+    {
+      title: "Career Opportunities",
+      description: "Join our compassionate team and make a difference in people's lives with competitive pay and benefits",
+      keywords: ["jobs", "careers", "employment", "healthcare jobs", "carer jobs", "nursing jobs", "competitive pay", "benefits"],
+      url: "/jobs",
+      category: "Careers"
+    },
+    {
+      title: "Contact Us",
+      description: "Get in touch with our team for care needs, questions, or general enquiries",
+      keywords: ["contact", "get in touch", "enquiries", "phone", "email", "address", "help", "support"],
+      url: "/contact",
+      category: "Contact"
+    },
+    {
+      title: "Make a Referral",
+      description: "Make a referral for care services with free, no-obligation assessment and quick response",
+      keywords: ["referral", "assessment", "care referral", "free assessment", "no obligation", "quick response"],
+      url: "/referral",
+      category: "Services"
+    },
+    {
+      title: "Resources & Blog",
+      description: "Healthcare insights, career guidance, industry news, and professional development resources",
+      keywords: ["resources", "blog", "articles", "healthcare insights", "career guidance", "industry news", "professional development"],
+      url: "/resources",
+      category: "Resources"
+    },
+    {
+      title: "About Smeaton Healthcare",
+      description: "Compassionate care services across Devon and Cornwall since 2019, CQC-registered provider",
+      keywords: ["about us", "smeaton healthcare", "devon", "cornwall", "CQC registered", "compassionate care", "2019", "mission", "values"],
+      url: "/",
+      category: "About"
+    }
+  ], []);
+
+  // Search function
+  const searchResults = useMemo(() => {
+    if (!searchQuery.trim()) return [];
+    
+    const query = searchQuery.toLowerCase().trim();
+    const words = query.split(/\s+/);
+    
+    return searchableContent.filter(item => {
+      const searchText = `${item.title} ${item.description} ${item.keywords.join(' ')}`.toLowerCase();
+      
+      // Check if any word in the query matches
+      return words.some(word => 
+        searchText.includes(word) || 
+        item.title.toLowerCase().includes(word) ||
+        item.category.toLowerCase().includes(word)
+      );
+    }).sort((a, b) => {
+      // Sort by relevance - exact title matches first
+      const aExactTitle = a.title.toLowerCase().includes(query);
+      const bExactTitle = b.title.toLowerCase().includes(query);
+      if (aExactTitle && !bExactTitle) return -1;
+      if (!aExactTitle && bExactTitle) return 1;
+      return 0;
+    });
+  }, [searchQuery, searchableContent]);
+
+  // Handle search input
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    setSearchQuery(value);
+    setShowSearchResults(value.trim().length > 0);
+  };
+
+  // Clear search
+  const clearSearch = () => {
+    setSearchQuery("");
+    setShowSearchResults(false);
+  };
+
+  // Handle click outside to close search results
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as Element;
+      const searchContainer = target.closest('[data-search-container]');
+      if (!searchContainer && showSearchResults) {
+        setShowSearchResults(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [showSearchResults]);
   
   useEffect(() => {
     // Stop pulsating after 5 seconds
@@ -233,14 +370,76 @@ export default function Home({ heroTab = "find-care", onHeroTabChange }: { heroT
                 <div className="grid lg:grid-cols-2 gap-16 items-center w-full">
                   <div className="space-y-8">
                     <div className="max-w-xl w-full mx-auto lg:mx-0">
-                      <div className="relative">
-                        <Search className="absolute left-4 sm:left-6 top-1/2 transform -translate-y-1/2 h-5 w-5 sm:h-6 sm:w-6 text-slate-400" />
+                      <div className="relative" data-search-container>
+                        <Search className="absolute left-4 sm:left-6 top-1/2 transform -translate-y-1/2 h-5 w-5 sm:h-6 sm:w-6 text-slate-400 z-10" />
                         <input
                           type="text"
                           placeholder="Search for care services..."
-                          className="w-full pl-12 sm:pl-16 pr-4 sm:pr-6 py-3 sm:py-4 text-base sm:text-lg text-slate-700 bg-white/80 backdrop-blur-sm rounded-xl border border-slate-400 focus:ring-1 focus:ring-accent-bright focus:outline-none shadow-sm placeholder:text-slate-600"
+                          value={searchQuery}
+                          onChange={handleSearchChange}
+                          className="w-full pl-12 sm:pl-16 pr-12 sm:pr-16 py-3 sm:py-4 text-base sm:text-lg text-slate-700 bg-white/80 backdrop-blur-sm rounded-xl border border-slate-400 focus:ring-1 focus:ring-accent-bright focus:outline-none shadow-sm placeholder:text-slate-600"
                           data-testid="hero-search-care"
                         />
+                        {searchQuery && (
+                          <button
+                            onClick={clearSearch}
+                            className="absolute right-4 sm:right-6 top-1/2 transform -translate-y-1/2 h-5 w-5 sm:h-6 sm:w-6 text-slate-400 hover:text-slate-600 z-10"
+                            data-testid="button-clear-search"
+                          >
+                            <X className="h-full w-full" />
+                          </button>
+                        )}
+                        
+                        {/* Search Results */}
+                        {showSearchResults && (
+                          <div className="absolute top-full left-0 right-0 mt-2 bg-white rounded-xl shadow-lg border border-slate-200 max-h-96 overflow-y-auto z-50">
+                            {searchResults.length > 0 ? (
+                              <>
+                                <div className="p-3 border-b border-slate-100">
+                                  <p className="text-sm text-slate-600">
+                                    Found {searchResults.length} result{searchResults.length !== 1 ? 's' : ''}
+                                  </p>
+                                </div>
+                                <div className="p-2">
+                                  {searchResults.map((result, index) => (
+                                    <Link
+                                      key={index}
+                                      href={result.url}
+                                      onClick={clearSearch}
+                                      className="block p-3 rounded-lg hover:bg-slate-50 transition-colors group"
+                                      data-testid={`search-result-${index}`}
+                                    >
+                                      <div className="flex items-start justify-between">
+                                        <div className="flex-1">
+                                          <div className="flex items-center gap-2 mb-1">
+                                            <Badge variant="outline" className="text-xs">
+                                              {result.category}
+                                            </Badge>
+                                            <h4 className="font-semibold text-slate-900 group-hover:text-primary transition-colors">
+                                              {result.title}
+                                            </h4>
+                                          </div>
+                                          <p className="text-sm text-slate-600 line-clamp-2">
+                                            {result.description}
+                                          </p>
+                                        </div>
+                                        <ArrowRight className="h-4 w-4 text-slate-400 group-hover:text-primary transition-colors ml-2 flex-shrink-0" />
+                                      </div>
+                                    </Link>
+                                  ))}
+                                </div>
+                              </>
+                            ) : (
+                              <div className="p-6 text-center">
+                                <Search className="h-8 w-8 text-slate-300 mx-auto mb-2" />
+                                <p className="text-slate-600 font-medium">No results found</p>
+                                <p className="text-sm text-slate-500">
+                                  Try searching for "care", "jobs", "contact", or "services"
+                                </p>
+                              </div>
+                            )}
+                          </div>
+                        )}
                       </div>
                     </div>
                     
