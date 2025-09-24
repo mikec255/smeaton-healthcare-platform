@@ -36,10 +36,20 @@ const createComplianceRecordSchema = insertCqcComplianceRecordSchema.extend({
 const createKnowledgeQuestionnaireSchema = insertKnowledgeQuestionnaireSchema.omit({ createdBy: true, shareableLink: true });
 const createKnowledgeQuestionSchema = insertKnowledgeQuestionSchema;
 
+// Insurance audit form schema
+const insuranceAuditSchema = z.object({
+  hasCurrentInsurance: z.string().min(1, "Please select an option"),
+  insuranceCompanyName: z.string().min(1, "Insurance company name is required"),
+  coverageDetails: z.string().min(1, "Coverage details are required"),
+  furtherInformation: z.string().optional(),
+  actions: z.string().min(1, "Actions are required"),
+});
+
 type CreateAuditFormData = z.infer<typeof createAuditSchema>;
 type CreateComplianceRecordFormData = z.infer<typeof createComplianceRecordSchema>;
 type CreateKnowledgeQuestionnaireFormData = z.infer<typeof createKnowledgeQuestionnaireSchema>;
 type CreateKnowledgeQuestionFormData = z.infer<typeof createKnowledgeQuestionSchema>;
+type InsuranceAuditFormData = z.infer<typeof insuranceAuditSchema>;
 
 // Icon mapping for evidence categories
 const EVIDENCE_CATEGORY_ICONS: Record<string, any> = {
@@ -71,6 +81,7 @@ export default function CqcToolkit() {
   const [selectedQuestionnaire, setSelectedQuestionnaire] = useState<string | null>(null);
   const [qrCodeData, setQrCodeData] = useState<{ url: string; title: string } | null>(null);
   const [qrCodeDataUrl, setQrCodeDataUrl] = useState<string | null>(null);
+  const [insuranceAuditOpen, setInsuranceAuditOpen] = useState(false);
   const queryClient = useQueryClient();
   const { toast } = useToast();
 
@@ -240,6 +251,44 @@ export default function CqcToolkit() {
     },
   });
 
+  const createInsuranceAuditMutation = useMutation({
+    mutationFn: async (data: InsuranceAuditFormData): Promise<void> => {
+      // For now, we'll save this as a simple audit record
+      const auditData = {
+        title: "Insurance Audit",
+        auditType: "compliance_specific",
+        serviceType: "administrative",
+        keyQuestion: "well_led",
+        auditDate: new Date(),
+        auditorName: currentUser?.username || "Unknown",
+        findings: JSON.stringify({
+          hasCurrentInsurance: data.hasCurrentInsurance,
+          insuranceCompanyName: data.insuranceCompanyName,
+          coverageDetails: data.coverageDetails,
+          furtherInformation: data.furtherInformation,
+          actions: data.actions,
+          auditType: "insurance"
+        }),
+        actionPlan: data.actions,
+      };
+      
+      return apiRequest('/api/cqc/audits', {
+        method: 'POST',
+        body: JSON.stringify(auditData),
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/cqc/audits"] });
+      setInsuranceAuditOpen(false);
+      insuranceAuditForm.reset();
+      toast({ title: "Success", description: "Insurance audit saved successfully" });
+    },
+    onError: (error: Error) => {
+      console.error('Create insurance audit error:', error);
+      toast({ title: "Error", description: error.message || "Failed to save insurance audit", variant: "destructive" });
+    },
+  });
+
   // Forms
   const auditForm = useForm({
     resolver: zodResolver(createAuditSchema),
@@ -300,6 +349,17 @@ export default function CqcToolkit() {
       points: 1,
       sortOrder: 0,
       isRequired: true,
+    },
+  });
+
+  const insuranceAuditForm = useForm<InsuranceAuditFormData>({
+    resolver: zodResolver(insuranceAuditSchema),
+    defaultValues: {
+      hasCurrentInsurance: "",
+      insuranceCompanyName: "",
+      coverageDetails: "",
+      furtherInformation: "",
+      actions: "",
     },
   });
 
@@ -1092,6 +1152,276 @@ Smeaton Healthcare Training Team`;
         </TabsContent>
 
         <TabsContent value="audits" className="space-y-6">
+          {/* Quick Start Audit Forms */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <ClipboardCheck className="h-5 w-5" />
+                Quick Start Audit Forms
+              </CardTitle>
+              <CardDescription>
+                Predefined audit forms for common compliance requirements and regulatory standards
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {/* Insurance Audit Form */}
+                <Dialog>
+                  <DialogTrigger asChild>
+                    <Card className="cursor-pointer hover:shadow-md transition-shadow border-2 border-orange-200 dark:border-orange-800 bg-orange-50 dark:bg-orange-950/20">
+                      <CardContent className="p-6">
+                        <div className="flex items-start space-x-3">
+                          <div className="p-2 rounded-lg bg-orange-100 dark:bg-orange-900 text-orange-600 dark:text-orange-400">
+                            <Shield className="h-5 w-5" />
+                          </div>
+                          <div className="flex-1">
+                            <h3 className="font-semibold text-orange-900 dark:text-orange-100">Insurance Audit</h3>
+                            <p className="text-sm text-orange-700 dark:text-orange-300 mt-1">
+                              Verify current insurance coverage and policies
+                            </p>
+                            <Badge className="mt-2 bg-orange-200 text-orange-800 dark:bg-orange-800 dark:text-orange-200">
+                              6 Point Scoring
+                            </Badge>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </DialogTrigger>
+                  <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+                    <DialogHeader>
+                      <DialogTitle className="flex items-center gap-2">
+                        <Shield className="h-5 w-5 text-orange-600" />
+                        Insurance Audit Form
+                      </DialogTitle>
+                      <DialogDescription>
+                        Complete audit of insurance coverage and compliance requirements
+                      </DialogDescription>
+                    </DialogHeader>
+                    
+                    <div className="space-y-6">
+                      {/* Insurance Audit Form Content */}
+                      <Form {...insuranceAuditForm}>
+                        <form 
+                          onSubmit={insuranceAuditForm.handleSubmit(createInsuranceAuditMutation.mutate)}
+                          className="space-y-6"
+                        >
+                          {/* Primary Insurance Question */}
+                          <Card className="border-orange-200 dark:border-orange-800">
+                            <CardHeader className="pb-3">
+                              <CardTitle className="text-lg flex items-center gap-2">
+                                <div className="w-6 h-6 rounded-full bg-orange-600 text-white flex items-center justify-center text-sm font-bold">1</div>
+                                Current Insurance Status
+                              </CardTitle>
+                            </CardHeader>
+                            <CardContent className="space-y-4">
+                              <FormField
+                                control={insuranceAuditForm.control}
+                                name="hasCurrentInsurance"
+                                render={({ field }) => (
+                                  <FormItem>
+                                    <FormLabel className="text-base font-medium">Do we have current and up to date insurance? *</FormLabel>
+                                    <FormControl>
+                                      <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                        <SelectTrigger data-testid="select-insurance-status">
+                                          <SelectValue placeholder="Select response" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                          <SelectItem value="yes">Yes</SelectItem>
+                                          <SelectItem value="no">NO</SelectItem>
+                                        </SelectContent>
+                                      </Select>
+                                    </FormControl>
+                                    <FormMessage />
+                                  </FormItem>
+                                )}
+                              />
+                              
+                              <FormField
+                                control={insuranceAuditForm.control}
+                                name="insuranceCompanyName"
+                                render={({ field }) => (
+                                  <FormItem>
+                                    <FormLabel className="text-base font-medium">Insurance Company Name: *</FormLabel>
+                                    <FormControl>
+                                      <Input 
+                                        {...field} 
+                                        placeholder="Enter insurance company name"
+                                        data-testid="input-insurance-company"
+                                      />
+                                    </FormControl>
+                                    <FormMessage />
+                                  </FormItem>
+                                )}
+                              />
+                              
+                              <FormField
+                                control={insuranceAuditForm.control}
+                                name="coverageDetails"
+                                render={({ field }) => (
+                                  <FormItem>
+                                    <FormLabel className="text-base font-medium">Please provide details (E.g Level of Cover) *</FormLabel>
+                                    <FormControl>
+                                      <Textarea 
+                                        {...field} 
+                                        placeholder="Describe the level of coverage, policy limits, and any specific coverage areas..."
+                                        rows={4}
+                                        data-testid="textarea-coverage-details"
+                                      />
+                                    </FormControl>
+                                    <FormMessage />
+                                  </FormItem>
+                                )}
+                              />
+                              
+                              <div>
+                                <FormLabel className="text-base font-medium">Evidence *</FormLabel>
+                                <div className="mt-2 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-6 text-center">
+                                  <Upload className="h-8 w-8 text-gray-400 mx-auto mb-2" />
+                                  <p className="text-sm text-gray-600 dark:text-gray-400">Drop files here to upload</p>
+                                  <p className="text-xs text-gray-500 dark:text-gray-500 mt-1">
+                                    Upload insurance certificates, policy documents, and coverage evidence
+                                  </p>
+                                  <Button 
+                                    type="button" 
+                                    variant="outline" 
+                                    size="sm" 
+                                    className="mt-2"
+                                    data-testid="button-upload-evidence"
+                                  >
+                                    Browse Files
+                                  </Button>
+                                </div>
+                              </div>
+                            </CardContent>
+                          </Card>
+                          
+                          {/* Scoring System */}
+                          <Card className="border-blue-200 dark:border-blue-800 bg-blue-50 dark:bg-blue-950/20">
+                            <CardHeader className="pb-3">
+                              <CardTitle className="text-lg flex items-center gap-2">
+                                <BarChart3 className="h-5 w-5 text-blue-600" />
+                                Audit Scoring Breakdown (Out of 6 Total Points)
+                              </CardTitle>
+                            </CardHeader>
+                            <CardContent>
+                              <div className="space-y-3">
+                                <div className="flex items-center justify-between p-3 bg-red-50 dark:bg-red-950/20 rounded-lg border border-red-200 dark:border-red-800">
+                                  <div className="flex items-center gap-2">
+                                    <AlertTriangle className="h-4 w-4 text-red-600" />
+                                    <span className="font-medium text-red-900 dark:text-red-100">POOR: 0 - 4</span>
+                                  </div>
+                                  <Badge className="bg-red-200 text-red-800 dark:bg-red-800 dark:text-red-200">
+                                    Urgent Action Required
+                                  </Badge>
+                                </div>
+                                
+                                <div className="flex items-center justify-between p-3 bg-yellow-50 dark:bg-yellow-950/20 rounded-lg border border-yellow-200 dark:border-yellow-800">
+                                  <div className="flex items-center gap-2">
+                                    <Clock className="h-4 w-4 text-yellow-600" />
+                                    <span className="font-medium text-yellow-900 dark:text-yellow-100">OK: 5</span>
+                                  </div>
+                                  <Badge className="bg-yellow-200 text-yellow-800 dark:bg-yellow-800 dark:text-yellow-200">
+                                    Action Required
+                                  </Badge>
+                                </div>
+                                
+                                <div className="flex items-center justify-between p-3 bg-green-50 dark:bg-green-950/20 rounded-lg border border-green-200 dark:border-green-800">
+                                  <div className="flex items-center gap-2">
+                                    <CheckCircle className="h-4 w-4 text-green-600" />
+                                    <span className="font-medium text-green-900 dark:text-green-100">GOOD: 6</span>
+                                  </div>
+                                  <Badge className="bg-green-200 text-green-800 dark:bg-green-800 dark:text-green-200">
+                                    Minor or no Action Required
+                                  </Badge>
+                                </div>
+                              </div>
+                            </CardContent>
+                          </Card>
+                          
+                          {/* Additional Information and Actions */}
+                          <Card>
+                            <CardHeader className="pb-3">
+                              <CardTitle className="text-lg">Additional Information & Actions</CardTitle>
+                            </CardHeader>
+                            <CardContent className="space-y-4">
+                              <FormField
+                                control={insuranceAuditForm.control}
+                                name="furtherInformation"
+                                render={({ field }) => (
+                                  <FormItem>
+                                    <FormLabel>Further Information: (If required)</FormLabel>
+                                    <FormControl>
+                                      <Textarea 
+                                        {...field} 
+                                        placeholder="Add any additional information, notes, or observations..."
+                                        rows={3}
+                                        data-testid="textarea-further-info"
+                                      />
+                                    </FormControl>
+                                    <FormMessage />
+                                  </FormItem>
+                                )}
+                              />
+                              
+                              <FormField
+                                control={insuranceAuditForm.control}
+                                name="actions"
+                                render={({ field }) => (
+                                  <FormItem>
+                                    <FormLabel className="font-medium">Actions *</FormLabel>
+                                    <FormControl>
+                                      <Textarea 
+                                        {...field} 
+                                        placeholder="Specify required actions, improvements, or follow-up tasks..."
+                                        rows={4}
+                                        data-testid="textarea-actions"
+                                      />
+                                    </FormControl>
+                                    <FormMessage />
+                                  </FormItem>
+                                )}
+                              />
+                            </CardContent>
+                          </Card>
+                          
+                          <div className="flex justify-end gap-2 pt-4">
+                            <Button 
+                              type="button" 
+                              variant="outline"
+                              onClick={() => setInsuranceAuditOpen(false)}
+                              data-testid="button-close-insurance-audit"
+                            >
+                              Close
+                            </Button>
+                            <Button 
+                              type="submit"
+                              disabled={createInsuranceAuditMutation.isPending}
+                              className="bg-orange-600 hover:bg-orange-700 text-white"
+                              data-testid="button-save-insurance-audit"
+                            >
+                              {createInsuranceAuditMutation.isPending ? "Saving..." : "Save Insurance Audit"}
+                            </Button>
+                          </div>
+                        </form>
+                      </Form>
+                    </div>
+                  </DialogContent>
+                </Dialog>
+                
+                {/* Placeholder for additional audit forms */}
+                <Card className="cursor-pointer hover:shadow-md transition-shadow border-2 border-dashed border-gray-300 dark:border-gray-600">
+                  <CardContent className="p-6 text-center">
+                    <div className="text-gray-400 dark:text-gray-500">
+                      <Plus className="h-8 w-8 mx-auto mb-2" />
+                      <p className="text-sm">More audit forms</p>
+                      <p className="text-xs">Coming soon</p>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+            </CardContent>
+          </Card>
+
           {/* CQC 2024 Single Assessment Framework Header */}
           <Card>
             <CardHeader>
