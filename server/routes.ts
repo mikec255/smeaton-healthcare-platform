@@ -240,6 +240,108 @@ async function optionalAdmin(req: any, res: any, next: any) {
   next();
 }
 
+// Permission-based middleware functions for granular access control
+function requirePermission(permission: keyof {
+  overview: boolean;
+  recruitment: boolean;
+  customerRelations: boolean;
+  feedback: boolean;
+  tools: boolean;
+  resources: boolean;
+  system: boolean;
+}) {
+  return async (req: any, res: any, next: any) => {
+    // First check if user is authenticated
+    const user = await getAuthenticatedUser(req);
+    
+    if (!user) {
+      return res.status(401).json({ message: "Unauthorized: Please log in" });
+    }
+    
+    if (!user.isActive) {
+      return res.status(401).json({ message: "Unauthorized: Account is inactive" });
+    }
+    
+    // Superadmin always has access to everything
+    if (user.role === "superadmin") {
+      req.user = user;
+      return next();
+    }
+    
+    // Check if user has required permission
+    const permissions = user.permissions;
+    if (!permissions || !permissions[permission]) {
+      return res.status(403).json({ 
+        message: `Forbidden: ${permission} access required` 
+      });
+    }
+    
+    req.user = user;
+    next();
+  };
+}
+
+// Helper function to get authenticated user (reused logic from requireAdmin)
+async function getAuthenticatedUser(req: any) {
+  let user = null;
+  
+  // Production: Only use secure session-based auth
+  if (process.env.NODE_ENV === 'production') {
+    if (!req.session?.user) {
+      return null;
+    }
+    
+    // Always verify user still exists and is active from database
+    const dbUser = await storage.getUserById(req.session.user.id);
+    if (!dbUser || !dbUser.isActive) {
+      return null;
+    }
+    
+    return dbUser;
+  }
+  
+  // Development: Support both session and token auth
+  const authHeader = req.headers.authorization;
+  if (authHeader && authHeader.startsWith('Bearer ')) {
+    try {
+      const token = authHeader.substring(7);
+      const decoded = JSON.parse(Buffer.from(token, 'base64').toString());
+      
+      if (Date.now() - decoded.timestamp > 24 * 60 * 60 * 1000) {
+        return null;
+      }
+      
+      const dbUser = await storage.getUserById(decoded.userId);
+      if (!dbUser || !dbUser.isActive) {
+        return null;
+      }
+      
+      return dbUser;
+    } catch (error) {
+      // Fall through to session check
+    }
+  }
+  
+  // Fallback to session
+  if (req.session?.user) {
+    const dbUser = await storage.getUserById(req.session.user.id);
+    if (dbUser && dbUser.isActive) {
+      return dbUser;
+    }
+  }
+  
+  return null;
+}
+
+// Convenience middleware for specific permissions
+const requireOverview = requirePermission('overview');
+const requireRecruitment = requirePermission('recruitment');
+const requireCustomerRelations = requirePermission('customerRelations');
+const requireFeedback = requirePermission('feedback');
+const requireTools = requirePermission('tools');
+const requireResources = requirePermission('resources');
+const requireSystem = requirePermission('system');
+
 export async function registerRoutes(app: Express): Promise<Server> {
   // Trust proxy for Azure deployment
   if (process.env.NODE_ENV === 'production') {
@@ -505,7 +607,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // User management routes (superadmin only)
+  // User management routes (superadmin only - critical security requirement)
   app.get("/api/users", requireSuperAdmin, async (req, res) => {
     try {
       const users = await storage.getAllUsers();
@@ -722,8 +824,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Admin endpoint that returns ALL jobs (both active and inactive)
-  app.get("/api/admin/jobs", requireAdmin, async (req, res) => {
+  // Admin endpoint that returns ALL jobs (both active and inactive) - requires recruitment permission
+  app.get("/api/admin/jobs", requireRecruitment, async (req, res) => {
     try {
       const { location, type, salaryRange, status } = req.query;
       const jobs = await storage.getAllJobsForAdmin({
@@ -1135,7 +1237,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.put("/api/feedback/:id", requireAdmin, async (req, res) => {
+  app.put("/api/feedback/:id", requireFeedback, async (req, res) => {
     try {
       const validatedData = insertFeedbackSchema.partial().parse(req.body);
       const feedback = await storage.updateFeedback(req.params.id, validatedData);
@@ -1152,7 +1254,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.delete("/api/feedback/:id", requireAdmin, async (req, res) => {
+  app.delete("/api/feedback/:id", requireFeedback, async (req, res) => {
     try {
       const success = await storage.deleteFeedback(req.params.id);
       if (!success) {
