@@ -1739,6 +1739,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/cqc/audits", requireAdmin, async (req, res) => {
     try {
+      // Debug what's being sent
+      console.log("CREATE AUDIT DEBUG - Original req.body:", JSON.stringify(req.body, null, 2));
+      
       // Convert date string to Date object and ensure required fields
       const bodyWithDateFixed = {
         ...req.body,
@@ -1749,7 +1752,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         auditorName: req.body.auditorName || req.user?.username || "System Admin",
         auditorId: req.body.auditorId || req.user?.id || "system"
       };
+      
+      console.log("CREATE AUDIT DEBUG - Fixed body:", JSON.stringify(bodyWithDateFixed, null, 2));
+      
       const validatedData = insertCqcAuditSchema.parse(bodyWithDateFixed);
+      
+      console.log("CREATE AUDIT DEBUG - Validated data:", JSON.stringify(validatedData, null, 2));
       const audit = await storage.createCqcAudit(validatedData);
       
       // Create audit log for compliance tracking
