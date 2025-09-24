@@ -58,7 +58,7 @@ class BrevoService {
         htmlContent: this.getWelcomeEmailHtml(username, email, password, role),
         textContent: this.getWelcomeEmailText(username, email, password, role),
         sender: {
-          email: 'hello@smeatonhealthcare.co.uk',
+          email: 'recruitment@smeatonhealthcare.co.uk',
           name: 'Smeaton Healthcare'
         }
       });
@@ -87,7 +87,7 @@ class BrevoService {
         htmlContent: this.getPasswordCreationEmailHtml(username, email, token, role),
         textContent: this.getPasswordCreationEmailText(username, email, token, role),
         sender: {
-          email: 'hello@smeatonhealthcare.co.uk',
+          email: 'recruitment@smeatonhealthcare.co.uk',
           name: 'Smeaton Healthcare'
         }
       });
@@ -122,7 +122,7 @@ class BrevoService {
         htmlContent: this.getContactFormEmailHtml(contactData),
         textContent: this.getContactFormEmailText(contactData),
         sender: {
-          email: 'hello@smeatonhealthcare.co.uk',
+          email: 'recruitment@smeatonhealthcare.co.uk',
           name: 'Smeaton Healthcare'
         },
         replyTo: {
@@ -155,7 +155,7 @@ class BrevoService {
         htmlContent: this.getReferralEmailHtml(referralData),
         textContent: this.getReferralEmailText(referralData),
         sender: {
-          email: 'hello@smeatonhealthcare.co.uk',
+          email: 'recruitment@smeatonhealthcare.co.uk',
           name: 'Smeaton Healthcare'
         }
       });
