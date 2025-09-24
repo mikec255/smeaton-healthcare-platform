@@ -69,5 +69,38 @@ app.use((req, res, next) => {
     reusePort: true,
   }, () => {
     log(`serving on port ${port}`);
+    
+    // Set up daily CQC audit reminder check (runs every hour but only executes at 9 AM)
+    setInterval(async () => {
+      try {
+        const now = new Date();
+        
+        // Only run the check at 9 AM (adjust timezone as needed)
+        if (now.getHours() === 9 && now.getMinutes() < 60) {
+          console.log('Running daily CQC audit reminder check...');
+          
+          // Make internal API call to check reminders
+          const response = await fetch(`http://localhost:${port}/api/cqc/check-reminders`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              // Note: In production, you'd need proper authentication for this internal call
+              // For now, this is an internal system call
+            }
+          });
+          
+          if (response.ok) {
+            const result = await response.json();
+            console.log('Daily CQC reminder check completed:', result.message);
+          } else {
+            console.error('Daily CQC reminder check failed:', response.statusText);
+          }
+        }
+      } catch (error) {
+        console.error('Error in daily CQC reminder check:', error);
+      }
+    }, 60 * 60 * 1000); // Check every hour
+    
+    console.log('CQC audit reminder system initialized - will check daily at 9 AM');
   });
 })();

@@ -862,6 +862,214 @@ This application was submitted through the Smeaton Healthcare website.
 Healthcare staffing solutions across Devon and Cornwall
     `;
   }
+
+  async sendAuditReviewReminderEmail(auditData: {
+    auditTitle: string;
+    auditType: string;
+    serviceType: string;
+    completedDate: string;
+    nextReviewDate: string;
+    daysUntilDue: number;
+    auditorName: string;
+    overallRating?: string;
+    areasForImprovement?: string;
+  }) {
+    if (!this.isConfigured) {
+      console.warn('Brevo not configured - skipping audit reminder email send');
+      return;
+    }
+
+    try {
+      const result = await this.emailApi.sendTransacEmail({
+        to: [{
+          email: 'michael@smeatonhealthcare.co.uk',
+          name: 'Michael Smeaton'
+        }],
+        sender: {
+          email: 'hello@smeatonhealthcare.co.uk',
+          name: 'Smeaton Healthcare CQC System'
+        },
+        subject: `CQC Audit Review Due in ${auditData.daysUntilDue} days - ${auditData.auditTitle}`,
+        htmlContent: this.getAuditReminderEmailHtml(auditData),
+        textContent: this.getAuditReminderEmailText(auditData)
+      });
+
+      console.log('Audit review reminder email sent successfully:', result.response);
+    } catch (error) {
+      console.error('Failed to send audit review reminder email:', error);
+      throw error;
+    }
+  }
+
+  private getAuditReminderEmailHtml(auditData: {
+    auditTitle: string;
+    auditType: string;
+    serviceType: string;
+    completedDate: string;
+    nextReviewDate: string;
+    daysUntilDue: number;
+    auditorName: string;
+    overallRating?: string;
+    areasForImprovement?: string;
+  }): string {
+    return `
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>CQC Audit Review Reminder</title>
+    <style>
+        body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px; }
+        .header { background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%); color: white; padding: 30px; text-align: center; border-radius: 8px 8px 0 0; }
+        .logo { font-size: 24px; font-weight: bold; margin-bottom: 10px; }
+        .content { background: #f8fafc; padding: 30px; border-radius: 0 0 8px 8px; border: 1px solid #e2e8f0; }
+        .audit-details { background: white; padding: 20px; border-radius: 6px; margin: 20px 0; border-left: 4px solid #f59e0b; }
+        .urgency-notice { background: #fef3c7; border: 1px solid #f59e0b; padding: 15px; border-radius: 6px; margin: 20px 0; }
+        .footer { text-align: center; margin-top: 30px; padding: 20px; color: #64748b; font-size: 14px; }
+        .btn { display: inline-block; background: #1e40af; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; margin: 10px 0; }
+        .rating-badge { display: inline-block; padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: bold; text-transform: uppercase; }
+        .outstanding { background: #dcfce7; color: #166534; }
+        .good { background: #dbeafe; color: #1d4ed8; }
+        .requires_improvement { background: #fef3c7; color: #b45309; }
+        .inadequate { background: #fee2e2; color: #dc2626; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="logo">🏥 Smeaton Healthcare</div>
+        <h1>CQC Audit Review Reminder</h1>
+    </div>
+    
+    <div class="content">
+        <div class="urgency-notice">
+            <strong>⚠️ Review Required in ${auditData.daysUntilDue} days</strong><br>
+            This CQC audit is due for review on <strong>${auditData.nextReviewDate}</strong>
+        </div>
+
+        <p>Dear Michael,</p>
+        
+        <p>This is an automated reminder that one of your CQC audits is approaching its review date. Please ensure this audit is reviewed and updated as necessary to maintain compliance.</p>
+
+        <div class="audit-details">
+            <h3>📋 Audit Details</h3>
+            <table style="width: 100%; border-collapse: collapse;">
+                <tr>
+                    <td style="padding: 8px 0; border-bottom: 1px solid #e2e8f0;"><strong>Audit Title:</strong></td>
+                    <td style="padding: 8px 0; border-bottom: 1px solid #e2e8f0;">${auditData.auditTitle}</td>
+                </tr>
+                <tr>
+                    <td style="padding: 8px 0; border-bottom: 1px solid #e2e8f0;"><strong>Audit Type:</strong></td>
+                    <td style="padding: 8px 0; border-bottom: 1px solid #e2e8f0;">${auditData.auditType.replace('_', ' ').toUpperCase()}</td>
+                </tr>
+                <tr>
+                    <td style="padding: 8px 0; border-bottom: 1px solid #e2e8f0;"><strong>Service Type:</strong></td>
+                    <td style="padding: 8px 0; border-bottom: 1px solid #e2e8f0;">${auditData.serviceType.replace('_', ' ').toUpperCase()}</td>
+                </tr>
+                <tr>
+                    <td style="padding: 8px 0; border-bottom: 1px solid #e2e8f0;"><strong>Completed Date:</strong></td>
+                    <td style="padding: 8px 0; border-bottom: 1px solid #e2e8f0;">${auditData.completedDate}</td>
+                </tr>
+                <tr>
+                    <td style="padding: 8px 0; border-bottom: 1px solid #e2e8f0;"><strong>Auditor:</strong></td>
+                    <td style="padding: 8px 0; border-bottom: 1px solid #e2e8f0;">${auditData.auditorName}</td>
+                </tr>
+                ${auditData.overallRating ? `
+                <tr>
+                    <td style="padding: 8px 0; border-bottom: 1px solid #e2e8f0;"><strong>Current Rating:</strong></td>
+                    <td style="padding: 8px 0; border-bottom: 1px solid #e2e8f0;">
+                        <span class="rating-badge ${auditData.overallRating}">${auditData.overallRating.replace('_', ' ').toUpperCase()}</span>
+                    </td>
+                </tr>
+                ` : ''}
+                <tr>
+                    <td style="padding: 8px 0;"><strong>Review Due:</strong></td>
+                    <td style="padding: 8px 0; color: #f59e0b; font-weight: bold;">${auditData.nextReviewDate}</td>
+                </tr>
+            </table>
+        </div>
+
+        ${auditData.areasForImprovement ? `
+        <div style="background: #fef3c7; padding: 15px; border-radius: 6px; margin: 20px 0;">
+            <h4>📝 Areas for Improvement (from last review):</h4>
+            <p style="margin: 0;">${auditData.areasForImprovement}</p>
+        </div>
+        ` : ''}
+
+        <div style="margin: 30px 0; text-align: center;">
+            <a href="${process.env.REPLIT_DOMAIN || 'https://your-domain.com'}/admin/cqc-toolkit" class="btn">
+                Review Audit in CQC Toolkit
+            </a>
+        </div>
+
+        <p><strong>Next Steps:</strong></p>
+        <ul>
+            <li>Review the current audit findings and evidence</li>
+            <li>Update any areas for improvement that have been addressed</li>
+            <li>Collect new evidence if required</li>
+            <li>Schedule the next review date</li>
+            <li>Ensure all documentation is CQC-ready</li>
+        </ul>
+
+        <p><strong>Important:</strong> Regular audit reviews are essential for maintaining CQC compliance and ensuring continuous improvement in care quality.</p>
+    </div>
+
+    <div class="footer">
+        <p>This automated reminder was sent from the Smeaton Healthcare CQC Compliance System</p>
+        <p>© ${new Date().getFullYear()} Smeaton Healthcare. All rights reserved.</p>
+        <p>Healthcare staffing solutions across Devon and Cornwall</p>
+    </div>
+</body>
+</html>
+    `;
+  }
+
+  private getAuditReminderEmailText(auditData: {
+    auditTitle: string;
+    auditType: string;
+    serviceType: string;
+    completedDate: string;
+    nextReviewDate: string;
+    daysUntilDue: number;
+    auditorName: string;
+    overallRating?: string;
+    areasForImprovement?: string;
+  }): string {
+    return `
+CQC AUDIT REVIEW REMINDER
+
+Dear Michael,
+
+This is an automated reminder that one of your CQC audits is approaching its review date in ${auditData.daysUntilDue} days.
+
+AUDIT DETAILS:
+- Title: ${auditData.auditTitle}
+- Type: ${auditData.auditType.replace('_', ' ').toUpperCase()}
+- Service: ${auditData.serviceType.replace('_', ' ').toUpperCase()}
+- Completed: ${auditData.completedDate}
+- Auditor: ${auditData.auditorName}
+${auditData.overallRating ? `- Current Rating: ${auditData.overallRating.replace('_', ' ').toUpperCase()}` : ''}
+- REVIEW DUE: ${auditData.nextReviewDate}
+
+${auditData.areasForImprovement ? `AREAS FOR IMPROVEMENT (from last review):
+${auditData.areasForImprovement}
+
+` : ''}NEXT STEPS:
+1. Review the current audit findings and evidence
+2. Update any areas for improvement that have been addressed
+3. Collect new evidence if required
+4. Schedule the next review date
+5. Ensure all documentation is CQC-ready
+
+Access the CQC Toolkit: ${process.env.REPLIT_DOMAIN || 'https://your-domain.com'}/admin/cqc-toolkit
+
+Regular audit reviews are essential for maintaining CQC compliance and ensuring continuous improvement in care quality.
+
+---
+This automated reminder was sent from the Smeaton Healthcare CQC Compliance System
+© ${new Date().getFullYear()} Smeaton Healthcare. All rights reserved.
+Healthcare staffing solutions across Devon and Cornwall
+    `;
+  }
 }
 
 export const brevoService = new BrevoService();

@@ -2653,6 +2653,115 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // CQC Audit Reminder System
+  app.post("/api/cqc/check-reminders", requireSuperAdmin, async (req, res) => {
+    try {
+      console.log('Checking for CQC audit reminders...');
+      
+      // Get all completed audits
+      const allAudits = await storage.getAllCqcAudits({ status: 'completed' });
+      
+      const today = new Date();
+      const sevenDaysFromNow = new Date();
+      sevenDaysFromNow.setDate(today.getDate() + 7);
+      
+      // Filter audits that need reminders (7 days before due date)
+      const auditsNeedingReminders = allAudits.filter(audit => {
+        if (!audit.nextAuditDue) return false;
+        
+        const dueDate = new Date(audit.nextAuditDue);
+        const diffTime = dueDate.getTime() - today.getTime();
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+        
+        // Send reminder exactly 7 days before (within 24 hour window)
+        return diffDays >= 7 && diffDays <= 8;
+      });
+      
+      console.log(`Found ${auditsNeedingReminders.length} audits needing reminders`);
+      
+      let emailsSent = 0;
+      let emailErrors = 0;
+      
+      for (const audit of auditsNeedingReminders) {
+        try {
+          const dueDate = new Date(audit.nextAuditDue!);
+          const diffTime = dueDate.getTime() - today.getTime();
+          const daysUntilDue = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+          
+          await brevoService.sendAuditReviewReminderEmail({
+            auditTitle: audit.title,
+            auditType: audit.auditType,
+            serviceType: audit.serviceType,
+            completedDate: new Date(audit.auditDate).toLocaleDateString('en-GB'),
+            nextReviewDate: dueDate.toLocaleDateString('en-GB'),
+            daysUntilDue: daysUntilDue,
+            auditorName: audit.auditorName,
+            overallRating: audit.overallRating || undefined,
+            areasForImprovement: audit.areasForImprovement || undefined
+          });
+          
+          emailsSent++;
+          console.log(`Reminder email sent for audit: ${audit.title}`);
+          
+        } catch (emailError) {
+          console.error(`Failed to send reminder for audit ${audit.title}:`, emailError);
+          emailErrors++;
+        }
+      }
+      
+      res.json({
+        success: true,
+        message: `Reminder check completed. Emails sent: ${emailsSent}, Errors: ${emailErrors}`,
+        auditsChecked: allAudits.length,
+        remindersNeeded: auditsNeedingReminders.length,
+        emailsSent,
+        emailErrors
+      });
+      
+    } catch (error) {
+      console.error('Error checking audit reminders:', error);
+      res.status(500).json({ 
+        success: false, 
+        message: 'Failed to check audit reminders',
+        error: error instanceof Error ? error.message : 'Unknown error'
+      });
+    }
+  });
+
+  // Trigger reminder check when an audit is completed
+  app.post("/api/cqc/audits/:id/complete", requireAdmin, async (req, res) => {
+    try {
+      const auditId = req.params.id;
+      const { nextAuditDue } = req.body;
+      
+      // Update audit status to completed and set next audit due date
+      const updatedAudit = await storage.updateCqcAudit(auditId, {
+        status: 'completed',
+        nextAuditDue: nextAuditDue ? new Date(nextAuditDue) : undefined,
+        updatedAt: new Date()
+      });
+      
+      if (!updatedAudit) {
+        return res.status(404).json({ message: "Audit not found" });
+      }
+      
+      console.log(`Audit ${auditId} marked as completed. Next review due: ${nextAuditDue}`);
+      
+      res.json({
+        success: true,
+        message: "Audit marked as completed",
+        audit: updatedAudit
+      });
+      
+    } catch (error) {
+      console.error('Error completing audit:', error);
+      res.status(500).json({ 
+        message: "Failed to complete audit",
+        error: error instanceof Error ? error.message : 'Unknown error'
+      });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }
