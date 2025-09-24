@@ -23,6 +23,9 @@ import {
 import { useToast } from '@/hooks/use-toast';
 import { jsPDF } from 'jspdf';
 import html2canvas from 'html2canvas';
+import { useLocation } from 'wouter';
+import { PageHeader } from '@/components/layout/page-header';
+import { generateBreadcrumbs } from '@/config/admin-nav';
 
 // Fixed employment rates - NOT editable
 const EMPLOYMENT_RATES = {
@@ -103,6 +106,8 @@ interface QuoteDetails {
 }
 
 export default function AdminTools() {
+  const [location] = useLocation();
+  const breadcrumbs = generateBreadcrumbs(location);
   const [hourlyCalc, setHourlyCalc] = useState<HourlyCalculation>({
     chargeRate: '',
     hours: '',
@@ -423,16 +428,12 @@ export default function AdminTools() {
 
   return (
     <div className="space-y-8">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Business Tools</h1>
-          <p className="text-gray-600 dark:text-gray-400 mt-2">
-            Calculate care package costs and margins with UK employment overheads
-          </p>
-        </div>
-        <Calculator className="h-8 w-8 text-pink-600" />
-      </div>
+      <PageHeader
+        title="Package Calculators"
+        description="Calculate care package costs and margins with UK employment overheads"
+        breadcrumbs={breadcrumbs}
+        icon={Calculator}
+      />
 
       {/* Package Calculators */}
       <Tabs defaultValue="hourly" className="w-full" onValueChange={setActiveCalculator}>
