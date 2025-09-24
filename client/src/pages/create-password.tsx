@@ -36,8 +36,7 @@ const CreatePasswordPage = () => {
     // Validate token and get user info
     const validateToken = async () => {
       try {
-        console.log('Validating token:', tokenParam);
-        const response = await fetch(`/api/auth/password-creation-info/${tokenParam}`);
+        const response = await fetch(`/api/auth/password-creation-info/${encodeURIComponent(tokenParam)}`);
         const data = await response.json();
         console.log('Token validation response:', response.status, data);
         

@@ -324,8 +324,7 @@ Healthcare staffing solutions across Devon and Cornwall
   }
 
   private getPasswordCreationEmailHtml(username: string, email: string, token: string, role: string): string {
-    const passwordCreationUrl = `https://www.smeatonhealthcare.co.uk/create-password?token=${token}`;
-    console.log('Generated password creation URL:', passwordCreationUrl);
+    const passwordCreationUrl = `https://www.smeatonhealthcare.co.uk/create-password?token=${encodeURIComponent(token)}`;
     
     return `
       <!DOCTYPE html>
@@ -392,7 +391,7 @@ Healthcare staffing solutions across Devon and Cornwall
   }
 
   private getPasswordCreationEmailText(username: string, email: string, token: string, role: string): string {
-    const passwordCreationUrl = `https://www.smeatonhealthcare.co.uk/create-password?token=${token}`;
+    const passwordCreationUrl = `https://www.smeatonhealthcare.co.uk/create-password?token=${encodeURIComponent(token)}`;
     
     return `
 Welcome to Smeaton Healthcare Admin Portal!
