@@ -17,16 +17,9 @@ import JobFormModal from "@/components/admin/job-form-modal";
 import { Plus, Briefcase, UserPlus, Clock, CheckCircle, FileText, Send, Edit, ArrowRight, MessageSquare, Star, Mail, Users, UserCheck, Settings, BookOpen, LogOut, ChevronDown, ChevronRight, BarChart3, Shield, Calculator } from "lucide-react";
 import { type Job, type Newsletter, type Feedback, type BlogPost, type User } from "@shared/schema";
 
-// Email configuration schema
-const emailConfigSchema = z.object({
-  apiKey: z.string().min(50, "API key must be at least 50 characters").regex(/^x(keys|smtps)ib-/, "Invalid Brevo API key format")
-});
-
-type EmailConfigFormData = z.infer<typeof emailConfigSchema>;
 
 export default function Admin() {
   const [, setLocation] = useLocation();
-  const [emailDialogOpen, setEmailDialogOpen] = useState(false);
   const { toast } = useToast();
 
   // All hooks must be called at the top level before any early returns
@@ -77,40 +70,6 @@ export default function Admin() {
     enabled: !!authUser && authUser.user?.role === "superadmin",
   });
 
-  // Email configuration form
-  const emailForm = useForm<EmailConfigFormData>({
-    resolver: zodResolver(emailConfigSchema),
-    defaultValues: {
-      apiKey: ""
-    }
-  });
-
-  // Email configuration mutation
-  const emailConfigMutation = useMutation({
-    mutationFn: async (data: EmailConfigFormData) => {
-      return await apiRequest("POST", "/api/admin/email-config", data);
-    },
-    onSuccess: () => {
-      toast({
-        title: "Email service configured",
-        description: "Email integration is now active and ready to send notifications.",
-      });
-      queryClient.invalidateQueries({ queryKey: ["/api/admin/email-config/status"] });
-      setEmailDialogOpen(false);
-      emailForm.reset();
-    },
-    onError: (error: any) => {
-      toast({
-        title: "Configuration failed",
-        description: error?.message || "Failed to configure email service. Please check your API key.",
-        variant: "destructive",
-      });
-    },
-  });
-
-  const onEmailConfigSubmit = (data: EmailConfigFormData) => {
-    emailConfigMutation.mutate(data);
-  };
 
   // Redirect to login if not authenticated
   useEffect(() => {
@@ -317,7 +276,7 @@ export default function Admin() {
           },
           {
             title: "Email Settings",
-            description: "Configure email services for automated notifications and communications",
+            description: `Email service ${emailConfig.configured ? 'configured' : 'requires environment setup'}`,
             icon: Mail,
             link: "#",
             isEmailSettings: true,
@@ -326,7 +285,7 @@ export default function Admin() {
               active: emailConfig.configured ? 1 : 0,
               inactive: emailConfig.configured ? 0 : 1
             },
-            color: emailConfig.configured ? "bg-slate-600 text-white hover:bg-slate-700" : "bg-slate-600 text-white hover:bg-slate-700"
+            color: emailConfig.configured ? "bg-green-600 text-white" : "bg-red-600 text-white"
           }
         ]
       }
@@ -363,62 +322,17 @@ export default function Admin() {
                 return (
                   <div key={areaIndex} data-testid={`management-box-${category.id}-${areaIndex}`}>
                     {isEmailSettings ? (
-                      <Dialog open={emailDialogOpen} onOpenChange={setEmailDialogOpen}>
-                        <DialogTrigger asChild>
-                          <div className="bg-white dark:bg-gray-800 border rounded-lg p-4 hover:shadow-md transition-all duration-200 cursor-pointer min-w-[160px]" data-testid="button-open-email-settings">
-                            <div className="flex items-center gap-3">
-                              <div className={`${area.color} rounded-lg p-2`}>
-                                <IconComponent className="h-5 w-5" />
-                              </div>
-                              <span className="font-medium text-sm">{area.title}</span>
-                            </div>
+                      <div className="bg-white dark:bg-gray-800 border rounded-lg p-4 min-w-[160px] opacity-75" data-testid="email-status-display">
+                        <div className="flex items-center gap-3">
+                          <div className={`${area.color} rounded-lg p-2`}>
+                            <IconComponent className="h-5 w-5" />
                           </div>
-                        </DialogTrigger>
-                        <DialogContent className="sm:max-w-md">
-                          <DialogHeader>
-                            <DialogTitle>Email Settings</DialogTitle>
-                          </DialogHeader>
-                          <Form {...emailForm}>
-                            <form onSubmit={emailForm.handleSubmit(onEmailConfigSubmit)} className="space-y-4">
-                              <FormField
-                                control={emailForm.control}
-                                name="apiKey"
-                                render={({ field }) => (
-                                  <FormItem>
-                                    <FormLabel>Brevo API Key</FormLabel>
-                                    <FormControl>
-                                      <Input 
-                                        type="password" 
-                                        placeholder="xkeysib-..." 
-                                        {...field}
-                                        data-testid="input-api-key"
-                                      />
-                                    </FormControl>
-                                    <FormMessage />
-                                  </FormItem>
-                                )}
-                              />
-                              <div className="flex justify-end space-x-2">
-                                <Button 
-                                  type="button" 
-                                  variant="outline" 
-                                  onClick={() => setEmailDialogOpen(false)}
-                                  data-testid="button-cancel"
-                                >
-                                  Cancel
-                                </Button>
-                                <Button 
-                                  type="submit" 
-                                  disabled={emailConfigMutation.isPending}
-                                  data-testid="button-save-config"
-                                >
-                                  {emailConfigMutation.isPending ? "Saving..." : "Save & Test"}
-                                </Button>
-                              </div>
-                            </form>
-                          </Form>
-                        </DialogContent>
-                      </Dialog>
+                          <div className="flex-1">
+                            <span className="font-medium text-sm block">{area.title}</span>
+                            <span className="text-xs text-muted-foreground">{area.description}</span>
+                          </div>
+                        </div>
+                      </div>
                     ) : (
                       <Link href={area.link} data-testid={`link-${category.id}-${areaIndex}`}>
                         <div className="bg-white dark:bg-gray-800 border rounded-lg p-4 hover:shadow-md transition-all duration-200 min-w-[160px]">

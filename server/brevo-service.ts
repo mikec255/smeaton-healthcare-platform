@@ -30,26 +30,7 @@ class BrevoService {
     return trimmed.length > 50 && /^x(keys|smtps)ib-/.test(trimmed);
   }
 
-  // Method to set API key at runtime (bypasses environment variables)
-  setApiKey(apiKey: string): boolean {
-    const trimmed = apiKey.trim();
-    
-    if (!this.isValidApiKey(trimmed)) {
-      console.error('Invalid Brevo API key format');
-      return false;
-    }
-
-    try {
-      this.emailApi.setApiKey(TransactionalEmailsApiApiKeys.apiKey, trimmed);
-      this.isConfigured = true;
-      console.log('Brevo service configured successfully via runtime');
-      return true;
-    } catch (error) {
-      console.error('Failed to configure Brevo service:', error);
-      this.isConfigured = false;
-      return false;
-    }
-  }
+  // SECURITY: Runtime API key configuration removed - environment variables only
 
   // Check if email service is properly configured
   isEmailConfigured(): boolean {

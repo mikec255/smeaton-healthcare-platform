@@ -785,28 +785,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  const emailConfigSchema = z.object({
-    apiKey: z.string().min(50, "API key must be at least 50 characters").regex(/^x(keys|smtps)ib-/, "Invalid Brevo API key format")
-  });
-
-  app.post("/api/admin/email-config", requireSuperAdmin, async (req, res) => {
-    try {
-      const { apiKey } = emailConfigSchema.parse(req.body);
-      
-      const success = brevoService.setApiKey(apiKey);
-      if (success) {
-        res.json({ configured: true, message: "Email service configured successfully" });
-      } else {
-        res.status(400).json({ message: "Failed to configure email service" });
-      }
-    } catch (error) {
-      console.error("Error configuring email service:", error);
-      if (error instanceof z.ZodError) {
-        return res.status(400).json({ message: "Invalid API key format", errors: error.errors });
-      }
-      res.status(500).json({ message: "Failed to configure email service" });
-    }
-  });
+  // SECURITY: API key configuration via UI removed - must be set via environment variables only
 
   // Jobs API
   app.get("/api/jobs", async (req, res) => {
