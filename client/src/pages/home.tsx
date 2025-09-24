@@ -977,8 +977,8 @@ export default function Home({ heroTab = "find-care", onHeroTabChange }: { heroT
                     data-testid="cta-button-contact"
                   >
                     <Building2 className="mr-2 h-4 w-4 sm:h-5 sm:w-5" />
-                    <span className="hidden sm:inline">Book Healthcare Staff</span>
-                    <span className="sm:hidden">Book Staff</span>
+                    <span className="hidden sm:inline">View Jobs</span>
+                    <span className="sm:hidden">View Jobs</span>
                     <ArrowRight className="ml-2 h-4 w-4 sm:h-5 sm:w-5 group-hover:translate-x-1 transition-transform" />
                   </Button>
                 </Link>
