@@ -427,7 +427,7 @@ export default function AdminTools() {
   };
 
   return (
-    <div className="space-y-8 max-w-5xl mx-auto px-4 lg:px-8 xl:px-12">
+    <div className="space-y-8 max-w-5xl mx-auto px-4 lg:px-8 xl:px-12 pb-16">
       <PageHeader
         title="Package Calculators"
         description="Calculate care package costs and margins with UK employment overheads"
