@@ -103,7 +103,6 @@ export default function AdminTools() {
     travelNightPerShift: '',
     // Short Visits specific fields
     hourlyPay: '',
-    hoursPaid: '',
     careHoursDelivered: '',
     travelTimeMinutes: '',
     minimumWage: 12.21, // Fixed minimum wage for travel time
@@ -369,7 +368,6 @@ export default function AdminTools() {
     } else if (packageType === 'short-visits') {
       // Short Visits calculations
       const hourlyPay = parseFloat(calculation.hourlyPay) || 0;
-      const hoursPaid = parseFloat(calculation.hoursPaid) || 0;
       const careHoursDelivered = parseFloat(calculation.careHoursDelivered) || 0;
       const travelTimeMinutes = parseFloat(calculation.travelTimeMinutes) || 0;
       const minimumWage = calculation.minimumWage;
@@ -377,8 +375,8 @@ export default function AdminTools() {
       // Revenue = Care hours delivered × Charge rate
       totalRevenue = careHoursDelivered * chargeRate;
       
-      // Care Pay Cost = Number of hours paid × Hourly pay
-      const carePayCost = hoursPaid * hourlyPay;
+      // Care Pay Cost = Care hours delivered × Hourly pay
+      const carePayCost = careHoursDelivered * hourlyPay;
       
       // Travel Pay Cost = Travel time in minutes ÷ 60 × minimum wage (£12.21)
       const travelPayCost = (travelTimeMinutes / 60) * minimumWage;
@@ -447,12 +445,11 @@ export default function AdminTools() {
 
     if (packageType === 'short-visits') {
       const hourlyPay = parseFloat(calculation.hourlyPay) || 0;
-      const hoursPaid = parseFloat(calculation.hoursPaid) || 0;
       const careHoursDelivered = parseFloat(calculation.careHoursDelivered) || 0;
       const travelTimeMinutes = parseFloat(calculation.travelTimeMinutes) || 0;
       
       chargeRevenue = careHoursDelivered * chargeRate;
-      carePayCost = hoursPaid * hourlyPay;
+      carePayCost = careHoursDelivered * hourlyPay;
       travelPayCost = (travelTimeMinutes / 60) * calculation.minimumWage;
       totalPayCost = carePayCost + travelPayCost;
       shortVisitsMargin = chargeRevenue - totalPayCost;
@@ -950,20 +947,27 @@ export default function AdminTools() {
                         </div>
                       </div>
                       <div className="space-y-2">
-                        <Label htmlFor="hours-paid">Number of Hours Paid</Label>
+                        <Label htmlFor="shift-length">Shift Length (Total)</Label>
                         <div className="relative">
                           <Clock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-500" />
                           <Input
-                            id="hours-paid"
-                            type="number"
-                            step="0.5"
-                            placeholder="6.0"
-                            className="pl-10"
-                            value={calculation.hoursPaid}
-                            onChange={(e) => handleInputChange('hoursPaid', e.target.value)}
-                            data-testid="input-hours-paid"
+                            id="shift-length"
+                            type="text"
+                            className="pl-10 bg-gray-50 dark:bg-gray-800"
+                            value={(() => {
+                              const careHours = parseFloat(calculation.careHoursDelivered) || 0;
+                              const travelMinutes = parseFloat(calculation.travelTimeMinutes) || 0;
+                              const travelHours = travelMinutes / 60;
+                              const totalHours = careHours + travelHours;
+                              return totalHours > 0 ? `${totalHours.toFixed(2)} hours` : 'Auto-calculated';
+                            })()}
+                            readOnly
+                            data-testid="display-shift-length"
                           />
                         </div>
+                        <p className="text-xs text-gray-500 dark:text-gray-400">
+                          Automatically calculated: Care Hours + Travel Time
+                        </p>
                       </div>
                       <div className="space-y-2">
                         <Label htmlFor="care-hours-delivered">Care Hours Delivered</Label>
