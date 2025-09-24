@@ -1225,51 +1225,47 @@ export default function AdminTools() {
                 <div className="space-y-4">
                   <h3 className="text-lg font-semibold mb-4">Financial Analysis</h3>
 
-                  <Card className="bg-green-50 dark:bg-green-950 border-green-200 dark:border-green-800">
+                  <Card>
                     <CardContent className="pt-4">
                       <div className="space-y-3">
                         <div className="flex justify-between items-center">
-                          <span className="text-sm font-medium text-green-900 dark:text-green-100">Revenue (Care Hours × Rate)</span>
-                          <span className="text-lg font-bold text-green-900 dark:text-green-100" data-testid="result-shortvisits-charge-revenue">
+                          <span className="text-sm font-medium text-green-600 dark:text-green-400">Total Revenue</span>
+                          <span className="text-lg font-bold text-green-600 dark:text-green-400" data-testid="result-shortvisits-charge-revenue">
                             {formatCurrency(shortVisitsResults.chargeRevenue)}
                           </span>
                         </div>
                         
-                        <div className="border-t border-green-300 dark:border-green-700 pt-2">
-                          <div className="text-sm font-medium text-green-900 dark:text-green-100 mb-2">Cost Breakdown:</div>
+                        <div className="border-t border-gray-200 dark:border-gray-700 pt-2">
+                          <div className="text-sm font-medium text-red-600 dark:text-red-400 mb-2">Cost Breakdown:</div>
                           
                           <div className="flex justify-between items-center text-sm">
-                            <span className="text-green-800 dark:text-green-200">Care Pay Cost</span>
-                            <span className="text-green-800 dark:text-green-200" data-testid="result-shortvisits-care-pay-cost">
-                              {formatCurrency(shortVisitsResults.carePayCost)}
-                            </span>
+                            <span className="text-gray-600 dark:text-gray-400">Care Pay Cost</span>
+                            <span data-testid="result-shortvisits-care-pay-cost">{formatCurrency(shortVisitsResults.carePayCost)}</span>
                           </div>
                           
                           <div className="flex justify-between items-center text-sm">
-                            <span className="text-green-800 dark:text-green-200">Travel Pay Cost</span>
-                            <span className="text-green-800 dark:text-green-200" data-testid="result-shortvisits-travel-pay-cost">
-                              {formatCurrency(shortVisitsResults.travelPayCost)}
-                            </span>
+                            <span className="text-gray-600 dark:text-gray-400">Travel Pay Cost (@ £{shortVisitsCalc.minimumWage}/hr)</span>
+                            <span data-testid="result-shortvisits-travel-pay-cost">{formatCurrency(shortVisitsResults.travelPayCost)}</span>
                           </div>
                           
-                          <div className="flex justify-between items-center border-t border-green-300 dark:border-green-700 pt-2 text-sm font-medium">
-                            <span className="text-green-900 dark:text-green-100">Total Pay Cost</span>
-                            <span className="text-green-900 dark:text-green-100" data-testid="result-shortvisits-total-pay-cost">
+                          <div className="flex justify-between items-center text-sm font-medium border-t border-gray-200 dark:border-gray-700 pt-2">
+                            <span className="text-red-600 dark:text-red-400">Total Staff Cost</span>
+                            <span className="text-red-600 dark:text-red-400" data-testid="result-shortvisits-total-pay-cost">
                               {formatCurrency(shortVisitsResults.totalPayCost)}
                             </span>
                           </div>
                         </div>
                         
-                        <div className="border-t border-green-300 dark:border-green-700 pt-2">
+                        <div className="border-t border-gray-200 dark:border-gray-700 pt-2">
                           <div className="flex justify-between items-center">
-                            <span className="font-semibold text-green-900 dark:text-green-100">Gross Margin</span>
-                            <span className="text-xl font-bold text-green-900 dark:text-green-100" data-testid="result-shortvisits-margin">
+                            <span className="font-semibold text-blue-600 dark:text-blue-400">Gross Margin</span>
+                            <span className="text-xl font-bold text-blue-600 dark:text-blue-400" data-testid="result-shortvisits-margin">
                               {formatCurrency(shortVisitsResults.margin)}
                             </span>
                           </div>
-                          <div className="flex justify-between items-center">
-                            <span className="font-semibold text-green-900 dark:text-green-100">Margin %</span>
-                            <span className="text-xl font-bold text-green-900 dark:text-green-100" data-testid="result-shortvisits-margin-percentage">
+                          <div className="flex justify-between items-center mt-1">
+                            <span className="font-semibold text-blue-600 dark:text-blue-400">Margin %</span>
+                            <span className="text-xl font-bold text-blue-600 dark:text-blue-400" data-testid="result-shortvisits-margin-percentage">
                               {shortVisitsResults.marginPercentage.toFixed(2)}%
                             </span>
                           </div>
