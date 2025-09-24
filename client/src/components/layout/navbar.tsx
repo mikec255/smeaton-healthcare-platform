@@ -339,9 +339,9 @@ export default function Navbar() {
           </div>
         </div>
 
-        {/* Mobile Menu Button */}
+        {/* Mobile Menu Button - Only show on mobile screens */}
         <button
-          className="block md:block lg:hidden xl:hidden"
+          className="block lg:hidden"
           onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
           style={{
             display: 'flex',
@@ -351,44 +351,61 @@ export default function Navbar() {
             height: '40px',
             background: 'none',
             border: 'none',
-            cursor: 'pointer'
+            cursor: 'pointer',
+            color: '#374151'
           }}
+          data-testid="button-mobile-menu"
         >
           <Menu style={{ width: '24px', height: '24px' }} />
         </button>
       </div>
 
-      {/* Mobile Menu */}
+      {/* Mobile Menu - Clean layout with proper spacing */}
       {mobileMenuOpen && (
-        <div style={{
-          position: 'fixed',
-          top: '80px',
-          left: 0,
-          right: 0,
-          bottom: 0,
-          background: 'white',
-          borderTop: '1px solid #e5e7eb',
-          overflowY: 'auto',
-          zIndex: 999
-        }} className="lg:hidden">
-          <div style={{ padding: '16px' }}>
+        <div 
+          style={{
+            position: 'fixed',
+            top: '80px',
+            left: 0,
+            right: 0,
+            bottom: 0,
+            background: 'white',
+            borderTop: '1px solid #e5e7eb',
+            overflowY: 'auto',
+            zIndex: 999
+          }} 
+          className="lg:hidden"
+          data-testid="mobile-menu"
+        >
+          <div style={{ padding: '20px' }}>
             <Link 
               href="/"
               onClick={() => setMobileMenuOpen(false)}
               style={{
                 display: 'block',
-                padding: '12px',
-                fontSize: '16px',
+                padding: '16px 12px',
+                fontSize: '18px',
                 fontWeight: '500',
                 color: isActive("/") ? '#EF2587' : '#374151',
-                textDecoration: 'none'
+                textDecoration: 'none',
+                borderBottom: '1px solid #f3f4f6'
               }}
+              data-testid="mobile-link-home"
             >
               Home
             </Link>
 
-            <div style={{ marginTop: '16px' }}>
-              <div style={{ fontSize: '16px', fontWeight: '600', marginBottom: '8px', paddingLeft: '12px' }}>
+            <div style={{ marginTop: '0' }}>
+              <div style={{ 
+                fontSize: '18px', 
+                fontWeight: '600', 
+                marginBottom: '12px', 
+                paddingLeft: '12px',
+                paddingTop: '16px',
+                paddingBottom: '8px',
+                borderBottom: '1px solid #f3f4f6',
+                color: '#111827'
+              }}>
                 Services
               </div>
               {serviceLinks.map(link => (
@@ -398,19 +415,30 @@ export default function Navbar() {
                   onClick={() => setMobileMenuOpen(false)}
                   style={{
                     display: 'block',
-                    padding: '8px 24px',
-                    fontSize: '14px',
-                    color: '#374151',
-                    textDecoration: 'none'
+                    padding: '12px 24px',
+                    fontSize: '16px',
+                    color: '#6b7280',
+                    textDecoration: 'none',
+                    borderBottom: '1px solid #f9fafb'
                   }}
+                  data-testid={`mobile-link-service-${link.href.split('/').pop()}`}
                 >
                   {link.label}
                 </Link>
               ))}
             </div>
 
-            <div style={{ marginTop: '16px' }}>
-              <div style={{ fontSize: '16px', fontWeight: '600', marginBottom: '8px', paddingLeft: '12px' }}>
+            <div style={{ marginTop: '0' }}>
+              <div style={{ 
+                fontSize: '18px', 
+                fontWeight: '600', 
+                marginBottom: '12px', 
+                paddingLeft: '12px',
+                paddingTop: '16px',
+                paddingBottom: '8px',
+                borderBottom: '1px solid #f3f4f6',
+                color: '#111827'
+              }}>
                 Resources
               </div>
               {resourceLinks.map(link => (
@@ -420,19 +448,30 @@ export default function Navbar() {
                   onClick={() => setMobileMenuOpen(false)}
                   style={{
                     display: 'block',
-                    padding: '8px 24px',
-                    fontSize: '14px',
-                    color: '#374151',
-                    textDecoration: 'none'
+                    padding: '12px 24px',
+                    fontSize: '16px',
+                    color: '#6b7280',
+                    textDecoration: 'none',
+                    borderBottom: '1px solid #f9fafb'
                   }}
+                  data-testid={`mobile-link-resource-${link.href.split('/').pop()}`}
                 >
                   {link.label}
                 </Link>
               ))}
             </div>
 
-            <div style={{ marginTop: '16px' }}>
-              <div style={{ fontSize: '16px', fontWeight: '600', marginBottom: '8px', paddingLeft: '12px' }}>
+            <div style={{ marginTop: '0' }}>
+              <div style={{ 
+                fontSize: '18px', 
+                fontWeight: '600', 
+                marginBottom: '12px', 
+                paddingLeft: '12px',
+                paddingTop: '16px',
+                paddingBottom: '8px',
+                borderBottom: '1px solid #f3f4f6',
+                color: '#111827'
+              }}>
                 Working at Smeaton
               </div>
               {workingLinks.map(link => (
@@ -442,11 +481,13 @@ export default function Navbar() {
                   onClick={() => setMobileMenuOpen(false)}
                   style={{
                     display: 'block',
-                    padding: '8px 24px',
-                    fontSize: '14px',
-                    color: '#374151',
-                    textDecoration: 'none'
+                    padding: '12px 24px',
+                    fontSize: '16px',
+                    color: '#6b7280',
+                    textDecoration: 'none',
+                    borderBottom: '1px solid #f9fafb'
                   }}
+                  data-testid={`mobile-link-working-${link.href.split('/').pop()}`}
                 >
                   {link.label}
                 </Link>
@@ -458,13 +499,15 @@ export default function Navbar() {
               onClick={() => setMobileMenuOpen(false)}
               style={{
                 display: 'block',
-                padding: '12px',
-                fontSize: '16px',
+                padding: '16px 12px',
+                fontSize: '18px',
                 fontWeight: '500',
                 color: isActive("/jobs") ? '#EF2587' : '#374151',
                 textDecoration: 'none',
-                marginTop: '16px'
+                marginTop: '16px',
+                borderBottom: '1px solid #f3f4f6'
               }}
+              data-testid="mobile-link-jobs"
             >
               Find Jobs
             </Link>
@@ -474,17 +517,24 @@ export default function Navbar() {
               onClick={() => setMobileMenuOpen(false)}
               style={{
                 display: 'block',
-                padding: '12px',
-                fontSize: '16px',
+                padding: '16px 12px',
+                fontSize: '18px',
                 fontWeight: '500',
                 color: isActive("/contact") ? '#EF2587' : '#374151',
-                textDecoration: 'none'
+                textDecoration: 'none',
+                borderBottom: '1px solid #f3f4f6'
               }}
+              data-testid="mobile-link-contact"
             >
               Contact
             </Link>
 
-            <div style={{ padding: '16px', borderTop: '1px solid #e5e7eb', marginTop: '16px' }}>
+            <div style={{ 
+              padding: '24px 16px', 
+              borderTop: '2px solid #f3f4f6', 
+              marginTop: '24px',
+              backgroundColor: '#f9fafb'
+            }}>
               <Button 
                 onClick={() => {
                   setMobileMenuOpen(false);
@@ -494,10 +544,13 @@ export default function Navbar() {
                   width: '100%',
                   backgroundColor: '#EF2587',
                   color: 'white',
-                  padding: '12px',
+                  padding: '16px',
                   fontSize: '16px',
-                  marginBottom: '12px'
+                  fontWeight: '600',
+                  marginBottom: '12px',
+                  borderRadius: '8px'
                 }}
+                data-testid="mobile-button-referral"
               >
                 Make a Referral
               </Button>
@@ -510,21 +563,26 @@ export default function Navbar() {
                 }}
                 style={{
                   width: '100%',
-                  padding: '12px',
-                  fontSize: '16px'
+                  padding: '16px',
+                  fontSize: '16px',
+                  fontWeight: '600',
+                  borderRadius: '8px',
+                  marginBottom: '16px'
                 }}
+                data-testid="mobile-button-admin"
               >
                 Admin
               </Button>
 
               <div style={{
                 textAlign: 'center',
-                marginTop: '16px',
-                fontSize: '18px',
+                marginTop: '8px',
+                fontSize: '20px',
                 fontWeight: 'bold',
-                color: '#275799'
+                color: '#275799',
+                letterSpacing: '0.5px'
               }}>
-                0330 165 8880
+                📞 0330 165 8880
               </div>
             </div>
           </div>
