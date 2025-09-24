@@ -2067,7 +2067,7 @@ export class DrizzleStorage implements IStorage {
 
   // CQC 2024 Single Assessment Framework - Evidence Categories Methods
   async getAllCqcEvidenceCategories(): Promise<CqcEvidenceCategory[]> {
-    return await db.select().from(cqcEvidenceCategories).orderBy(cqcEvidenceCategories.name);
+    return await db.select().from(cqcEvidenceCategories).orderBy(cqcEvidenceCategories.categoryName);
   }
 
   async getCqcEvidenceCategory(id: string): Promise<CqcEvidenceCategory | undefined> {
