@@ -21,8 +21,8 @@ const CreatePasswordPage = () => {
   const [error, setError] = useState<string>('');
 
   useEffect(() => {
-    // Extract token from URL
-    const urlParams = new URLSearchParams(location.split('?')[1] || '');
+    // Extract token from URL query string
+    const urlParams = new URLSearchParams(window.location.search);
     const tokenParam = urlParams.get('token');
     
     if (!tokenParam) {
@@ -54,7 +54,7 @@ const CreatePasswordPage = () => {
     };
     
     validateToken();
-  }, [location]);
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
