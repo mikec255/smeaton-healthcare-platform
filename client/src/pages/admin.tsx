@@ -341,10 +341,10 @@ export default function Admin() {
         </p>
       </div>
       
-      {/* Simple Categories with Horizontal Boxes */}
-      <div className="space-y-8">
+      {/* Two Column Layout */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         {managementCategories.map((category) => (
-          <div key={category.id}>
+          <div key={category.id} className="space-y-4">
             {/* Simple Category Header */}
             <h2 className="text-xl font-semibold text-foreground mb-4 pb-2 border-b">
               {category.title}
