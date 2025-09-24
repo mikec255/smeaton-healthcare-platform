@@ -84,6 +84,18 @@ async function requireAdmin(req: any, res: any, next: any) {
     }
   }
   
+  // CRITICAL FIX: If we have a user from token but no session user, populate the session
+  if (user && !req.session?.user) {
+    req.session.user = {
+      id: user.id,
+      username: user.username,
+      role: user.role,
+      isActive: user.isActive,
+      createdAt: user.createdAt,
+    };
+    console.log("FIXED: Populated session with user from token:", user.username);
+  }
+  
   if (!user) {
     return res.status(401).json({ message: "Unauthorized: Please log in" });
   }
