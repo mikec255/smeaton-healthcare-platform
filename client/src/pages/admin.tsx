@@ -14,7 +14,7 @@ import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import JobsTable from "@/components/admin/jobs-table";
 import JobFormModal from "@/components/admin/job-form-modal";
-import { ArrowRight, MessageSquare, Mail, Users, UserCheck, Settings, BookOpen, Calculator, Shield, Briefcase } from "lucide-react";
+import { Plus, Briefcase, UserPlus, Clock, CheckCircle, FileText, Send, Edit, ArrowRight, MessageSquare, Star, Mail, Users, UserCheck, Settings, BookOpen, LogOut, ChevronDown, ChevronRight, BarChart3, Shield, Calculator } from "lucide-react";
 import { type Job, type Newsletter, type Feedback, type BlogPost, type User } from "@shared/schema";
 
 // Email configuration schema
@@ -333,45 +333,66 @@ export default function Admin() {
   }
 
   return (
-    <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-16" data-testid="admin-page">
-      {/* Simple Header */}
-      <div className="mb-12">
-        <h1 className="text-3xl font-bold text-foreground mb-2" data-testid="admin-title">
-          Admin Dashboard
-        </h1>
-        <p className="text-muted-foreground" data-testid="admin-subtitle">
-          Manage your healthcare staffing platform
-        </p>
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16" data-testid="admin-page">
+      {/* Admin Header */}
+      <div className="flex justify-between items-center mb-12">
+        <div>
+          <h1 className="text-4xl font-bold text-foreground mb-4" data-testid="admin-title">
+            Admin Dashboard
+          </h1>
+          <p className="text-xl text-muted-foreground" data-testid="admin-subtitle">
+            Manage your healthcare staffing platform
+          </p>
+        </div>
       </div>
       
-      {/* Simple List */}
-      <div className="space-y-12">
-        {managementCategories.map((category) => (
-          <div key={category.id}>
-            <h2 className="text-xl font-semibold text-foreground mb-6 border-b pb-2">
-              {category.title}
-            </h2>
+      {/* Management Categories with Better Visual Separation */}
+      <div className="space-y-16">
+        {managementCategories.map((category, categoryIndex) => (
+          <div key={category.id} className="relative">
+            {/* Category Header with Enhanced Styling */}
+            <div className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-xl p-8 mb-8 border border-blue-200 dark:border-blue-800">
+              <div className="flex items-center gap-4 mb-4">
+                <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
+                <h2 className="text-3xl font-bold text-foreground">{category.title}</h2>
+              </div>
+              <p className="text-lg text-muted-foreground">{category.description}</p>
+            </div>
             
-            <div className="space-y-3">
+            {/* Category Areas in Grid */}
+            <div className="grid md:grid-cols-2 gap-6">
               {category.areas.map((area, areaIndex) => {
+                const IconComponent = area.icon;
                 const isEmailSettings = 'isEmailSettings' in area && area.isEmailSettings;
                 
                 return (
-                  <div key={areaIndex} className="border rounded-lg p-4 hover:bg-muted/50 transition-colors" data-testid={`management-item-${category.id}-${areaIndex}`}>
+                  <Card key={areaIndex} className="shadow-lg hover:shadow-xl transition-all duration-300 group border-2 hover:border-blue-200 dark:hover:border-blue-700" data-testid={`management-card-${category.id}-${areaIndex}`}>
                     {isEmailSettings ? (
                       <Dialog open={emailDialogOpen} onOpenChange={setEmailDialogOpen}>
                         <DialogTrigger asChild>
-                          <div className="flex items-center justify-between cursor-pointer" data-testid="button-open-email-settings">
-                            <div>
-                              <h3 className="font-medium text-foreground">{area.title}</h3>
-                              <p className="text-sm text-muted-foreground mt-1">{area.description}</p>
-                              <span className={`inline-block text-xs px-2 py-1 rounded mt-2 ${
-                                emailConfig.configured ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
-                              }`}>
-                                {emailConfig.configured ? 'Configured' : 'Not configured'}
-                              </span>
-                            </div>
-                            <ArrowRight className="h-4 w-4 text-muted-foreground" />
+                          <div className="block cursor-pointer" data-testid="button-open-email-settings">
+                            <CardHeader className="pb-4">
+                              <CardTitle className="flex items-center justify-between text-lg">
+                                <span className="flex items-center gap-3">
+                                  <div className={`${area.color} rounded-lg p-3 shadow-md`}>
+                                    <IconComponent className="h-6 w-6" />
+                                  </div>
+                                  {area.title}
+                                </span>
+                                <ArrowRight className="h-5 w-5 text-muted-foreground group-hover:text-foreground group-hover:translate-x-1 transition-all" />
+                              </CardTitle>
+                            </CardHeader>
+                            <CardContent>
+                              <p className="text-muted-foreground mb-4 text-sm leading-relaxed">{area.description}</p>
+                              
+                              <div className="flex items-center justify-between">
+                                <span className={`inline-block text-xs px-3 py-1 rounded-full font-medium ${
+                                  emailConfig.configured ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200' : 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200'
+                                }`}>
+                                  {emailConfig.configured ? 'Configured' : 'Not configured'}
+                                </span>
+                              </div>
+                            </CardContent>
                           </div>
                         </DialogTrigger>
                         <DialogContent className="sm:max-w-md">
@@ -420,40 +441,52 @@ export default function Admin() {
                         </DialogContent>
                       </Dialog>
                     ) : (
-                      <Link href={area.link} className="flex items-center justify-between" data-testid={`link-${category.id}-${areaIndex}`}>
-                        <div>
-                          <h3 className="font-medium text-foreground">{area.title}</h3>
-                          <p className="text-sm text-muted-foreground mt-1">{area.description}</p>
-                          {area.title === "Blog" && (
-                            <span className="inline-block text-xs text-muted-foreground mt-2">
-                              {area.stats.total} total, {('published' in area.stats ? area.stats.published : 0)} published
+                      <Link href={area.link} className="block" data-testid={`link-${category.id}-${areaIndex}`}>
+                        <CardHeader className="pb-4">
+                          <CardTitle className="flex items-center justify-between text-lg">
+                            <span className="flex items-center gap-3">
+                              <div className={`${area.color} rounded-lg p-3 shadow-md`}>
+                                <IconComponent className="h-6 w-6" />
+                              </div>
+                              {area.title}
                             </span>
-                          )}
-                          {area.title === "Newsletter" && (
-                            <span className="inline-block text-xs text-muted-foreground mt-2">
-                              {area.stats.total} total, {('published' in area.stats ? area.stats.published : 0)} published
-                            </span>
-                          )}
-                          {area.title === "Jobs" && (
-                            <span className="inline-block text-xs text-muted-foreground mt-2">
-                              {area.stats.total} total, {('active' in area.stats ? area.stats.active : 0)} active
-                            </span>
-                          )}
-                          {area.title === "Manage Feedback" && (
-                            <span className="inline-block text-xs text-muted-foreground mt-2">
-                              {area.stats.total} total, avg rating {('avgRating' in area.stats ? area.stats.avgRating : '0')}
-                            </span>
-                          )}
-                          {(area.title === "Package Calculators" || area.title === "CQC Audit & Compliance Toolkit" || area.title === "Audit Logs") && (
-                            <span className="inline-block text-xs px-2 py-1 rounded bg-blue-100 text-blue-800 mt-2">
-                              {'info' in area.stats ? area.stats.info : 'Ready'}
-                            </span>
-                          )}
-                        </div>
-                        <ArrowRight className="h-4 w-4 text-muted-foreground" />
+                            <ArrowRight className="h-5 w-5 text-muted-foreground group-hover:text-foreground group-hover:translate-x-1 transition-all" />
+                          </CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                          <p className="text-muted-foreground mb-4 text-sm leading-relaxed">{area.description}</p>
+                          
+                          <div className="flex items-center gap-3 text-xs text-muted-foreground">
+                            {area.title === "Blog" && (
+                              <span className="bg-muted px-2 py-1 rounded">
+                                {area.stats.total} total • {('published' in area.stats ? area.stats.published : 0)} published
+                              </span>
+                            )}
+                            {area.title === "Newsletter" && (
+                              <span className="bg-muted px-2 py-1 rounded">
+                                {area.stats.total} total • {('published' in area.stats ? area.stats.published : 0)} published
+                              </span>
+                            )}
+                            {area.title === "Jobs" && (
+                              <span className="bg-muted px-2 py-1 rounded">
+                                {area.stats.total} total • {('active' in area.stats ? area.stats.active : 0)} active
+                              </span>
+                            )}
+                            {area.title === "Manage Feedback" && (
+                              <span className="bg-muted px-2 py-1 rounded">
+                                {area.stats.total} total • {('avgRating' in area.stats ? area.stats.avgRating : '0')} avg
+                              </span>
+                            )}
+                            {(area.title === "Package Calculators" || area.title === "CQC Audit & Compliance Toolkit" || area.title === "Audit Logs") && (
+                              <span className="bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200 px-2 py-1 rounded font-medium">
+                                {'info' in area.stats ? area.stats.info : 'Ready'}
+                              </span>
+                            )}
+                          </div>
+                        </CardContent>
                       </Link>
                     )}
-                  </div>
+                  </Card>
                 );
               })}
             </div>
