@@ -106,7 +106,7 @@ class BrevoService {
         htmlContent: this.getPasswordCreationEmailHtml(username, email, token, role),
         textContent: this.getPasswordCreationEmailText(username, email, token, role),
         sender: {
-          email: 'admin@smeatonhealthcare.co.uk',
+          email: 'hello@smeatonhealthcare.co.uk',
           name: 'Smeaton Healthcare'
         }
       });
