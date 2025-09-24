@@ -120,7 +120,7 @@ async function requireSuperAdmin(req: any, res: any, next: any) {
   let user = null;
   
   if (req.session?.user) {
-    const dbUser = await storage.getUserById(req.session.user.userId);
+    const dbUser = await storage.getUserById(req.session.user.id);
     if (dbUser && dbUser.isActive) {
       user = dbUser;
     }
