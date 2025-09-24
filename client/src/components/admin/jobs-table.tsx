@@ -135,7 +135,7 @@ export default function JobsTable({ jobs, onEdit }: JobsTableProps) {
 
   return (
     <>
-      <div className="overflow-x-auto" data-testid="jobs-table">
+      <div className="overflow-x-auto rounded-lg border border-gray-200 dark:border-gray-700" data-testid="jobs-table">
         <Table>
           <TableHeader>
             <TableRow>
@@ -193,13 +193,14 @@ export default function JobsTable({ jobs, onEdit }: JobsTableProps) {
                   </Badge>
                 </TableCell>
                 <TableCell className="text-right">
-                  <div className="flex justify-end space-x-2">
+                  <div className="flex justify-end space-x-1 sm:space-x-2">
                     <Button 
                       variant="ghost" 
                       size="sm"
                       onClick={() => onEdit(job)}
-                      className="text-primary hover:text-primary/80 hover:bg-primary/10"
+                      className="text-primary hover:text-primary/80 hover:bg-primary/10 min-w-[2.75rem] h-11"
                       data-testid={`button-edit-${job.id}`}
+                      aria-label={`Edit ${job.title}`}
                     >
                       <Edit className="h-4 w-4" />
                     </Button>
@@ -207,8 +208,9 @@ export default function JobsTable({ jobs, onEdit }: JobsTableProps) {
                       variant="ghost" 
                       size="sm"
                       onClick={() => {/* TODO: Implement view applications */}}
-                      className="text-secondary hover:text-secondary/80 hover:bg-secondary/10"
+                      className="text-secondary hover:text-secondary/80 hover:bg-secondary/10 min-w-[2.75rem] h-11"
                       data-testid={`button-view-applications-${job.id}`}
+                      aria-label={`View applications for ${job.title}`}
                     >
                       <Eye className="h-4 w-4" />
                     </Button>
@@ -216,12 +218,14 @@ export default function JobsTable({ jobs, onEdit }: JobsTableProps) {
                       variant="ghost" 
                       size="sm"
                       onClick={() => handleToggleStatus(job)}
-                      className={job.isActive 
-                        ? "text-orange-600 hover:text-orange-700 hover:bg-orange-50" 
-                        : "text-green-600 hover:text-green-700 hover:bg-green-50"
-                      }
+                      className={`min-w-[2.75rem] h-11 ${
+                        job.isActive 
+                          ? "text-orange-600 hover:text-orange-700 hover:bg-orange-50" 
+                          : "text-green-600 hover:text-green-700 hover:bg-green-50"
+                      }`}
                       disabled={toggleJobStatusMutation.isPending}
                       data-testid={`button-toggle-status-${job.id}`}
+                      aria-label={job.isActive ? `Unpublish ${job.title}` : `Publish ${job.title}`}
                       title={job.isActive ? "Unpublish job" : "Publish job"}
                     >
                       {job.isActive ? <ToggleRight className="h-4 w-4" /> : <ToggleLeft className="h-4 w-4" />}
@@ -230,8 +234,9 @@ export default function JobsTable({ jobs, onEdit }: JobsTableProps) {
                       variant="ghost" 
                       size="sm"
                       onClick={() => handleDelete(job.id)}
-                      className="text-destructive hover:text-destructive/80 hover:bg-destructive/10"
+                      className="text-destructive hover:text-destructive/80 hover:bg-destructive/10 min-w-[2.75rem] h-11"
                       data-testid={`button-delete-${job.id}`}
+                      aria-label={`Delete ${job.title}`}
                     >
                       <Trash2 className="h-4 w-4" />
                     </Button>

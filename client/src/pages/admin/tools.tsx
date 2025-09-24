@@ -437,22 +437,26 @@ export default function AdminTools() {
 
       {/* Package Calculators */}
       <Tabs defaultValue="hourly" className="w-full" onValueChange={setActiveCalculator}>
-        <TabsList className="grid w-full grid-cols-4">
-          <TabsTrigger value="hourly" data-testid="tab-hourly-care">
+        <TabsList className="grid w-full grid-cols-2 md:grid-cols-4 gap-1">
+          <TabsTrigger value="hourly" data-testid="tab-hourly-care" className="text-xs sm:text-sm">
             <Clock className="h-4 w-4 mr-2" />
-            Hourly Care
+            <span className="hidden sm:inline">Hourly Care</span>
+            <span className="sm:hidden">Hourly</span>
           </TabsTrigger>
-          <TabsTrigger value="live-in" data-testid="tab-live-in-care">
+          <TabsTrigger value="live-in" data-testid="tab-live-in-care" className="text-xs sm:text-sm">
             <Calendar className="h-4 w-4 mr-2" />
-            Live-In Care
+            <span className="hidden sm:inline">Live-In Care</span>
+            <span className="sm:hidden">Live-In</span>
           </TabsTrigger>
-          <TabsTrigger value="care24x7" data-testid="tab-24x7-care">
+          <TabsTrigger value="care24x7" data-testid="tab-24x7-care" className="text-xs sm:text-sm">
             <Users className="h-4 w-4 mr-2" />
-            24/7 Care
+            <span className="hidden sm:inline">24/7 Care</span>
+            <span className="sm:hidden">24/7</span>
           </TabsTrigger>
-          <TabsTrigger value="short-visits" data-testid="tab-short-visits">
+          <TabsTrigger value="short-visits" data-testid="tab-short-visits" className="text-xs sm:text-sm">
             <ArrowRight className="h-4 w-4 mr-2" />
-            Short Visits
+            <span className="hidden sm:inline">Short Visits</span>
+            <span className="sm:hidden">Visits</span>
           </TabsTrigger>
         </TabsList>
 

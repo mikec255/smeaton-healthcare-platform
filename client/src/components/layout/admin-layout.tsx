@@ -60,17 +60,22 @@ export function AdminLayout({ children }: AdminLayoutProps) {
         <div 
           className="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden"
           onClick={() => setSidebarOpen(false)}
+          aria-hidden="true"
         />
       )}
 
       {/* Sidebar */}
-      <aside className={`
-        fixed top-0 left-0 z-50 h-full w-64 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700
-        transform transition-transform duration-200 ease-in-out
-        ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}
-        lg:translate-x-0 lg:static lg:z-auto
-      `}>
-        <div className="flex flex-col h-full">
+      <aside 
+        className={`
+          fixed top-0 left-0 z-50 h-full w-64 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700
+          transform transition-transform duration-200 ease-in-out
+          ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}
+          lg:translate-x-0 lg:static lg:z-auto
+        `}
+        aria-label="Main navigation"
+        role="navigation"
+      >
+        <div className="flex flex-col h-full" id="admin-sidebar">
           {/* Logo/Header */}
           <div className="flex items-center justify-between h-16 px-4 border-b border-gray-200 dark:border-gray-700">
             <Link href="/admin" className="flex items-center space-x-2">
@@ -86,6 +91,7 @@ export function AdminLayout({ children }: AdminLayoutProps) {
               size="sm"
               className="lg:hidden"
               onClick={() => setSidebarOpen(false)}
+              aria-label="Close navigation menu"
             >
               <X className="w-4 h-4" />
             </Button>
@@ -109,6 +115,8 @@ export function AdminLayout({ children }: AdminLayoutProps) {
                           ${isCurrentPath(item.href) ? 'bg-pink-50 dark:bg-pink-950 text-pink-700 dark:text-pink-300' : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'}
                         `}
                         onClick={() => toggleMenu(item.id)}
+                        aria-expanded={isExpanded}
+                        aria-controls={`submenu-${item.id}`}
                       >
                         <IconComponent className="w-5 h-5 mr-3 flex-shrink-0" />
                         <span className="flex-1">{item.label}</span>
@@ -137,7 +145,7 @@ export function AdminLayout({ children }: AdminLayoutProps) {
 
                     {/* Submenu */}
                     {hasSubmenu && isExpanded && (
-                      <div className="ml-8 mt-1 space-y-1">
+                      <div className="ml-8 mt-1 space-y-1" id={`submenu-${item.id}`}>
                         {item.submenu!.map((subItem) => {
                           const SubIconComponent = subItem.icon;
                           return (
@@ -210,6 +218,9 @@ export function AdminLayout({ children }: AdminLayoutProps) {
                 size="sm"
                 className="lg:hidden"
                 onClick={() => setSidebarOpen(true)}
+                aria-label="Open navigation menu"
+                aria-expanded={sidebarOpen}
+                aria-controls="admin-sidebar"
               >
                 <Menu className="w-5 h-5" />
               </Button>
