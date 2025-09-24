@@ -18,6 +18,8 @@ async function requireAdmin(req: any, res: any, next: any) {
     console.log("RequireAdmin debug - NODE_ENV:", process.env.NODE_ENV);
     console.log("RequireAdmin debug - Session exists:", !!req.session);
     console.log("RequireAdmin debug - Session.user exists:", !!req.session?.user);
+    console.log("RequireAdmin debug - Session ID:", req.session?.id);
+    console.log("RequireAdmin debug - Session contents:", req.session);
     if (req.session?.user) {
       console.log("RequireAdmin debug - Session.user.id:", req.session.user.id);
       console.log("RequireAdmin debug - Session.user.role:", req.session.user.role);
@@ -360,9 +362,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
           return res.status(500).json({ message: "Login failed" });
         }
         
-        // Production: Only minimal logging
+        // Development: Detailed session debugging
         if (process.env.NODE_ENV !== 'production') {
           console.log("Session saved successfully");
+          console.log("Session ID after save:", req.session.id);
+          console.log("Session contents after save:", req.session);
+          console.log("Session.user after save:", req.session.user);
         }
         
         const response: any = { 
