@@ -8,6 +8,9 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { Users, Mail, Phone, MapPin, Clock, FileText, Briefcase, ArrowLeft, UserCheck, Calendar, Car, Zap, Shield, CheckCircle, XCircle, Info, Filter, Edit, NotebookPen } from "lucide-react";
+import { PageHeader } from "@/components/layout/page-header";
+import { generateBreadcrumbs } from "@/config/admin-nav";
+import { useLocation } from "wouter";
 import { type Application, type Job } from "@shared/schema";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
@@ -17,6 +20,9 @@ type JobWithApplications = Job & {
 };
 
 export default function ApplicationsAdmin() {
+  const [location] = useLocation();
+  const breadcrumbs = generateBreadcrumbs(location);
+  
   const [selectedJob, setSelectedJob] = useState<Job | null>(null);
   const [selectedApplication, setSelectedApplication] = useState<Application | null>(null);
   const [statusFilter, setStatusFilter] = useState<string>("all");
@@ -175,7 +181,12 @@ export default function ApplicationsAdmin() {
 
   if (jobsLoading) {
     return (
-      <div className="p-8">
+      <div className="space-y-8">
+        <PageHeader
+          title="Pre-Screens"
+          description="Manage job applications and candidate screening"
+          breadcrumbs={breadcrumbs}
+        />
         <div className="flex items-center justify-center py-12">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
           <span className="ml-2 text-muted-foreground">Loading jobs...</span>
@@ -186,7 +197,12 @@ export default function ApplicationsAdmin() {
 
   if (jobsError) {
     return (
-      <div className="p-8">
+      <div className="space-y-8">
+        <PageHeader
+          title="Pre-Screens"
+          description="Manage job applications and candidate screening"
+          breadcrumbs={breadcrumbs}
+        />
         <div className="text-center py-12">
           <p className="text-red-600">Error loading jobs. Please try again.</p>
         </div>
@@ -195,44 +211,34 @@ export default function ApplicationsAdmin() {
   }
 
   return (
-    <div className="p-8 max-w-7xl mx-auto">
-      <div className="mb-6">
-        {!selectedJob ? (
-          <>
-            <h1 className="text-3xl font-bold flex items-center gap-2">
-              <Users className="h-8 w-8 text-primary" />
-              Pre-Screens Management
-            </h1>
-            <p className="text-muted-foreground mt-2">
-              Select a job position to view and manage candidate pre-screens
-            </p>
-          </>
-        ) : (
-          <>
-            <div className="flex items-center gap-4 mb-4">
-              <Button 
-                variant="ghost" 
-                onClick={() => {
-                  setSelectedJob(null);
-                  setSelectedApplication(null);
-                }}
-                className="flex items-center gap-2"
-                data-testid="button-back-to-jobs"
-              >
-                <ArrowLeft className="h-4 w-4" />
-                Back to Jobs
-              </Button>
-            </div>
-            <h1 className="text-3xl font-bold flex items-center gap-2">
-              <Briefcase className="h-8 w-8 text-primary" />
-              {selectedJob.title} - Pre-Screens
-            </h1>
-            <p className="text-muted-foreground mt-2">
-              Review candidate pre-screens for {selectedJob.title} position
-            </p>
-          </>
-        )}
-      </div>
+    <div className="space-y-8">
+      {!selectedJob ? (
+        <PageHeader
+          title="Pre-Screens"
+          description="Select a job position to view and manage candidate pre-screens"
+          breadcrumbs={breadcrumbs}
+        />
+      ) : (
+        <PageHeader
+          title={`${selectedJob.title} - Pre-Screens`}
+          description={`Review candidate pre-screens for ${selectedJob.title} position`}
+          breadcrumbs={breadcrumbs}
+          actions={
+            <Button 
+              variant="ghost" 
+              onClick={() => {
+                setSelectedJob(null);
+                setSelectedApplication(null);
+              }}
+              className="flex items-center gap-2"
+              data-testid="button-back-to-jobs"
+            >
+              <ArrowLeft className="h-4 w-4" />
+              Back to Jobs
+            </Button>
+          }
+        />
+      )}
 
       {!selectedJob ? (
         // Jobs List View

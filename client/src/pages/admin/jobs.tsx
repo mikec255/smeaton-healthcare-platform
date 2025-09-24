@@ -7,9 +7,15 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Plus, Search, Briefcase } from "lucide-react";
 import JobsTable from "@/components/admin/jobs-table";
 import JobFormModal from "@/components/admin/job-form-modal";
+import { PageHeader } from "@/components/layout/page-header";
+import { generateBreadcrumbs } from "@/config/admin-nav";
+import { useLocation } from "wouter";
 import { type Job } from "@shared/schema";
 
 export default function JobsAdmin() {
+  const [location] = useLocation();
+  const breadcrumbs = generateBreadcrumbs(location);
+  
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [branchFilter, setBranchFilter] = useState<string>("all");
@@ -52,7 +58,12 @@ export default function JobsAdmin() {
 
   if (error) {
     return (
-      <div className="p-6">
+      <div className="space-y-8">
+        <PageHeader
+          title="Jobs"
+          description="Manage job listings and recruitment"
+          breadcrumbs={breadcrumbs}
+        />
         <div className="text-center py-12">
           <Briefcase className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
           <h3 className="text-lg font-medium mb-2">Failed to load jobs</h3>
@@ -63,20 +74,18 @@ export default function JobsAdmin() {
   }
 
   return (
-    <div className="p-6 space-y-6">
-      {/* Header */}
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">Job Management</h1>
-          <p className="text-muted-foreground">
-            Create, manage, and publish job listings for your organization
-          </p>
-        </div>
-        <Button onClick={handleAddJob} className="gap-2" data-testid="button-add-job">
-          <Plus className="h-4 w-4" />
-          Create Job
-        </Button>
-      </div>
+    <div className="space-y-8">
+      <PageHeader
+        title="Jobs"
+        description="Manage job listings and recruitment"
+        breadcrumbs={breadcrumbs}
+        actions={
+          <Button onClick={handleAddJob} className="gap-2" data-testid="button-add-job">
+            <Plus className="h-4 w-4" />
+            Create Job
+          </Button>
+        }
+      />
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
