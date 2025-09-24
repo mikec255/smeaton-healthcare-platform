@@ -47,7 +47,7 @@ export default function Navbar() {
             <img 
               src={logoImage} 
               alt="Smeaton Healthcare" 
-              className="h-8 md:h-16 w-auto"
+              className="h-20 md:h-40 w-auto"
             />
           </Link>
           <div className="hidden lg:block text-blue-700 text-lg font-bold">
