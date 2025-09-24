@@ -267,7 +267,6 @@ export default function Admin() {
             link: "/admin/tools",
             stats: {
               total: 3,
-              status: "Calculator", 
               info: "UK Ready"
             },
             color: "bg-purple-600 text-white hover:bg-purple-700"
@@ -279,7 +278,6 @@ export default function Admin() {
             link: "/admin/cqc-toolkit",
             stats: {
               total: 34,
-              status: "2024 Framework",
               info: "CQC Ready"
             },
             color: "bg-blue-600 text-white hover:bg-blue-700"
@@ -291,7 +289,6 @@ export default function Admin() {
             link: "/admin/audit-logs",
             stats: {
               total: 1,
-              status: "Compliant",
               info: "GDPR Ready"
             },
             color: "bg-green-600 text-white hover:bg-green-700"
@@ -323,7 +320,7 @@ export default function Admin() {
             isEmailSettings: true,
             stats: {
               configured: emailConfig.configured,
-              status: emailConfig.configured ? "Configured" : "Not configured"
+              info: emailConfig.configured ? "Configured" : "Not configured"
             },
             color: emailConfig.configured ? "bg-green-600 text-white hover:bg-green-700" : "bg-red-600 text-white hover:bg-red-700"
           }
@@ -333,66 +330,44 @@ export default function Admin() {
   }
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16" data-testid="admin-page">
+    <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-16" data-testid="admin-page">
       {/* Admin Header */}
-      <div className="flex justify-between items-center mb-12">
-        <div>
-          <h1 className="text-4xl font-bold text-foreground mb-4" data-testid="admin-title">
-            Admin Dashboard
-          </h1>
-          <p className="text-xl text-muted-foreground" data-testid="admin-subtitle">
-            Manage your healthcare staffing platform
-          </p>
-        </div>
+      <div className="mb-12">
+        <h1 className="text-3xl font-bold text-foreground mb-2" data-testid="admin-title">
+          Admin Dashboard
+        </h1>
+        <p className="text-muted-foreground" data-testid="admin-subtitle">
+          Manage your healthcare staffing platform
+        </p>
       </div>
       
-      {/* Management Categories with Better Visual Separation */}
-      <div className="space-y-16">
-        {managementCategories.map((category, categoryIndex) => (
-          <div key={category.id} className="relative">
-            {/* Category Header with Enhanced Styling */}
-            <div className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-xl p-8 mb-8 border border-blue-200 dark:border-blue-800">
-              <div className="flex items-center gap-4 mb-4">
-                <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
-                <h2 className="text-3xl font-bold text-foreground">{category.title}</h2>
-              </div>
-              <p className="text-lg text-muted-foreground">{category.description}</p>
-            </div>
+      {/* Simple Categories with Horizontal Boxes */}
+      <div className="space-y-8">
+        {managementCategories.map((category) => (
+          <div key={category.id}>
+            {/* Simple Category Header */}
+            <h2 className="text-xl font-semibold text-foreground mb-4 pb-2 border-b">
+              {category.title}
+            </h2>
             
-            {/* Category Areas in Grid */}
-            <div className="grid md:grid-cols-2 gap-6">
+            {/* Horizontal Boxes */}
+            <div className="flex flex-wrap gap-4">
               {category.areas.map((area, areaIndex) => {
                 const IconComponent = area.icon;
                 const isEmailSettings = 'isEmailSettings' in area && area.isEmailSettings;
                 
                 return (
-                  <Card key={areaIndex} className="shadow-lg hover:shadow-xl transition-all duration-300 group border-2 hover:border-blue-200 dark:hover:border-blue-700" data-testid={`management-card-${category.id}-${areaIndex}`}>
+                  <div key={areaIndex} data-testid={`management-box-${category.id}-${areaIndex}`}>
                     {isEmailSettings ? (
                       <Dialog open={emailDialogOpen} onOpenChange={setEmailDialogOpen}>
                         <DialogTrigger asChild>
-                          <div className="block cursor-pointer" data-testid="button-open-email-settings">
-                            <CardHeader className="pb-4">
-                              <CardTitle className="flex items-center justify-between text-lg">
-                                <span className="flex items-center gap-3">
-                                  <div className={`${area.color} rounded-lg p-3 shadow-md`}>
-                                    <IconComponent className="h-6 w-6" />
-                                  </div>
-                                  {area.title}
-                                </span>
-                                <ArrowRight className="h-5 w-5 text-muted-foreground group-hover:text-foreground group-hover:translate-x-1 transition-all" />
-                              </CardTitle>
-                            </CardHeader>
-                            <CardContent>
-                              <p className="text-muted-foreground mb-4 text-sm leading-relaxed">{area.description}</p>
-                              
-                              <div className="flex items-center justify-between">
-                                <span className={`inline-block text-xs px-3 py-1 rounded-full font-medium ${
-                                  emailConfig.configured ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200' : 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200'
-                                }`}>
-                                  {emailConfig.configured ? 'Configured' : 'Not configured'}
-                                </span>
+                          <div className="bg-white dark:bg-gray-800 border rounded-lg p-4 hover:shadow-md transition-all duration-200 cursor-pointer min-w-[160px]" data-testid="button-open-email-settings">
+                            <div className="flex items-center gap-3">
+                              <div className={`${area.color} rounded-lg p-2`}>
+                                <IconComponent className="h-5 w-5" />
                               </div>
-                            </CardContent>
+                              <span className="font-medium text-sm">{area.title}</span>
+                            </div>
                           </div>
                         </DialogTrigger>
                         <DialogContent className="sm:max-w-md">
@@ -441,52 +416,18 @@ export default function Admin() {
                         </DialogContent>
                       </Dialog>
                     ) : (
-                      <Link href={area.link} className="block" data-testid={`link-${category.id}-${areaIndex}`}>
-                        <CardHeader className="pb-4">
-                          <CardTitle className="flex items-center justify-between text-lg">
-                            <span className="flex items-center gap-3">
-                              <div className={`${area.color} rounded-lg p-3 shadow-md`}>
-                                <IconComponent className="h-6 w-6" />
-                              </div>
-                              {area.title}
-                            </span>
-                            <ArrowRight className="h-5 w-5 text-muted-foreground group-hover:text-foreground group-hover:translate-x-1 transition-all" />
-                          </CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                          <p className="text-muted-foreground mb-4 text-sm leading-relaxed">{area.description}</p>
-                          
-                          <div className="flex items-center gap-3 text-xs text-muted-foreground">
-                            {area.title === "Blog" && (
-                              <span className="bg-muted px-2 py-1 rounded">
-                                {area.stats.total} total • {('published' in area.stats ? area.stats.published : 0)} published
-                              </span>
-                            )}
-                            {area.title === "Newsletter" && (
-                              <span className="bg-muted px-2 py-1 rounded">
-                                {area.stats.total} total • {('published' in area.stats ? area.stats.published : 0)} published
-                              </span>
-                            )}
-                            {area.title === "Jobs" && (
-                              <span className="bg-muted px-2 py-1 rounded">
-                                {area.stats.total} total • {('active' in area.stats ? area.stats.active : 0)} active
-                              </span>
-                            )}
-                            {area.title === "Manage Feedback" && (
-                              <span className="bg-muted px-2 py-1 rounded">
-                                {area.stats.total} total • {('avgRating' in area.stats ? area.stats.avgRating : '0')} avg
-                              </span>
-                            )}
-                            {(area.title === "Package Calculators" || area.title === "CQC Audit & Compliance Toolkit" || area.title === "Audit Logs") && (
-                              <span className="bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200 px-2 py-1 rounded font-medium">
-                                {'info' in area.stats ? area.stats.info : 'Ready'}
-                              </span>
-                            )}
+                      <Link href={area.link} data-testid={`link-${category.id}-${areaIndex}`}>
+                        <div className="bg-white dark:bg-gray-800 border rounded-lg p-4 hover:shadow-md transition-all duration-200 min-w-[160px]">
+                          <div className="flex items-center gap-3">
+                            <div className={`${area.color} rounded-lg p-2`}>
+                              <IconComponent className="h-5 w-5" />
+                            </div>
+                            <span className="font-medium text-sm">{area.title}</span>
                           </div>
-                        </CardContent>
+                        </div>
                       </Link>
                     )}
-                  </Card>
+                  </div>
                 );
               })}
             </div>
