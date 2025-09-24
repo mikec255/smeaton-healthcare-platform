@@ -1,139 +1,145 @@
-import { useState, useEffect } from "react";
-import { Calculator, TrendingUp, Clock, Users, DollarSign, Info, ArrowRight, Calendar, Utensils, Download, FileText, Shield, FileCheck, Brain, Plus, Eye, Edit, Trash2, Copy, QrCode, Mail } from "lucide-react";
-import { Link } from "wouter";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Separator } from "@/components/ui/separator";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Textarea } from "@/components/ui/textarea";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { apiRequest } from "@/lib/queryClient";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
-import QRCode from "qrcode";
-import logoImage from "@/assets/logo.png";
-import jsPDF from 'jspdf';
+import { useState } from 'react';
+import { useQuery, useMutation } from '@tanstack/react-query';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Textarea } from '@/components/ui/textarea';
+import { Badge } from '@/components/ui/badge';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { 
+  Calculator, 
+  TrendingUp, 
+  DollarSign, 
+  Users, 
+  Clock, 
+  Calendar, 
+  Info, 
+  Plus,
+  Download,
+  ArrowRight,
+  Utensils,
+  Target,
+  RefreshCw,
+  Edit,
+  MoreHorizontal,
+  Eye,
+  Copy,
+  Trash2,
+  Brain
+} from 'lucide-react';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
+import { queryClient, apiRequest } from '@/lib/queryClient';
+import { useToast } from '@/hooks/use-toast';
+import { jsPDF } from 'jspdf';
 import html2canvas from 'html2canvas';
 
-// Types for knowledge questionnaires
-type KnowledgeQuestionnaire = {
-  id: string;
-  title: string;
-  description: string;
-  category: string;
-  subcategory: string;
-  isActive: boolean;
-  timeLimit: number | null;
-  passingScore: number;
-  instructions: string | null;
-  shareableLink: string | null;
-  qrCode: string | null;
-  emailTemplate: string | null;
-  createdBy: string;
-  createdAt: Date;
-  updatedAt: Date;
-};
+interface CalculationState {
+  chargeRate: string;
+  hours: string;
+  days: string;
+  hoursPerDay: string;
+  carerWage: string;
+  travelCosts: string;
+  nationalInsurance: number;
+  pension: number;
+  holidayPay: number;
+  foodAllowance: string;
+  // 24/7 Care specific fields
+  calcMode: 'hourly' | 'weekly';
+  periodDays: string;
+  dayChargeRate: string;
+  nightChargeRate: string;
+  dayWageRate: string;
+  nightWageRate: string;
+  dayHours: string;
+  nightHours: string;
+  travelDayPerShift: string;
+  travelNightPerShift: string;
+  // Short Visits specific fields
+  hourlyPay: string;
+  careHoursDelivered: string;
+  travelTimeMinutes: string;
+  minimumWage: number;
+}
 
-type KnowledgeQuestion = {
-  id: string;
-  questionnaireId: string;
-  questionText: string;
-  questionType: string;
-  options: string[] | null;
-  correctAnswer: string | null;
-  explanation: string | null;
-  points: number;
-  sortOrder: number;
-  isRequired: boolean;
-  createdAt: Date;
-};
+interface Results {
+  totalRevenue: number;
+  totalStaffCost: number;
+  grossMargin: number;
+  marginPercentage: number;
+  travelCostTotal: number;
+  foodAllowanceTotal: number;
+  // Short Visits specific results
+  chargeRevenue: number;
+  carePayCost: number;
+  travelPayCost: number;
+  totalPayCost: number;
+  shortVisitsMargin: number;
+  shortVisitsMarginPercentage: number;
+}
 
-// Schemas for form validation
+interface QuoteDetails {
+  customerName: string;
+  relatingTo: string;
+  careNeeds: string;
+  selectedService: string;
+}
+
 const questionnaireSchema = z.object({
-  title: z.string().min(1, "Title is required"),
-  description: z.string().min(1, "Description is required"),
-  category: z.string().min(1, "Category is required"),
-  subcategory: z.string().min(1, "Subcategory is required"),
-  timeLimit: z.number().min(1).optional(),
-  passingScore: z.number().min(0).max(100).default(70),
-  instructions: z.string().optional(),
+  title: z.string().min(1, 'Title is required'),
+  category: z.string().min(1, 'Category is required'),
+  description: z.string().min(1, 'Description is required'),
+  passingScore: z.string().min(1, 'Passing score is required'),
+  timeLimit: z.string().optional(),
+  maxAttempts: z.string().optional(),
 });
 
-const questionSchema = z.object({
-  questionText: z.string().min(1, "Question text is required"),
-  questionType: z.string().min(1, "Question type is required"),
-  options: z.array(z.string()).optional(),
-  correctAnswer: z.string().optional(),
-  explanation: z.string().optional(),
-  points: z.number().min(1).default(1),
-  isRequired: z.boolean().default(true),
-});
+type QuestionnaireFormData = z.infer<typeof questionnaireSchema>;
 
 export default function AdminTools() {
-  const [activeTab, setActiveTab] = useState('calculator');
-  const [packageType, setPackageType] = useState('hourly'); // 'hourly', 'live-in', 'care24x7', or 'short-visits'
-  const [calculation, setCalculation] = useState({
+  const [calculation, setCalculation] = useState<CalculationState>({
     chargeRate: '',
     hours: '',
     days: '',
     hoursPerDay: '',
     carerWage: '',
     travelCosts: '',
+    nationalInsurance: 15.0,
+    pension: 3.0,
+    holidayPay: 12.07,
     foodAllowance: '',
-    // 24/7 Care specific fields
+    calcMode: 'hourly',
+    periodDays: '',
     dayChargeRate: '',
     nightChargeRate: '',
     dayWageRate: '',
     nightWageRate: '',
     dayHours: '',
     nightHours: '',
-    periodDays: '7',
-    calcMode: 'weekly', // 'weekly' or 'hourly'
     travelDayPerShift: '',
     travelNightPerShift: '',
-    // Short Visits specific fields
     hourlyPay: '',
     careHoursDelivered: '',
     travelTimeMinutes: '',
-    minimumWage: 12.21, // Fixed minimum wage for travel time
-    // UK overhead rates (these can be made configurable later)
-    nationalInsurance: 15.0, // Employer NI rate %
-    pensionContribution: 3.0, // Minimum auto-enrolment rate %
-    holidayPay: 12.07, // Statutory holiday pay %
+    minimumWage: 12.21,
   });
 
-  const [results, setResults] = useState({
+  const [packageType, setPackageType] = useState<'hourly' | 'live-in' | 'care24x7' | 'short-visits'>('hourly');
+  const [results, setResults] = useState<Results>({
     totalRevenue: 0,
     totalStaffCost: 0,
-    grossWage: 0,
-    nationalInsuranceCost: 0,
-    pensionCost: 0,
-    holidayPayCost: 0,
+    grossMargin: 0,
+    marginPercentage: 0,
     travelCostTotal: 0,
     foodAllowanceTotal: 0,
-    totalCosts: 0,
-    shiftMargin: 0,
-    hourlyMargin: 0,
-    marginPercentage: 0,
-    // 24/7 Care specific results
-    dayRevenue: 0,
-    nightRevenue: 0,
-    dayWage: 0,
-    nightWage: 0,
-    dayMargin: 0,
-    nightMargin: 0,
-    totalHours: 0,
-    // Short Visits specific results
     chargeRevenue: 0,
     carePayCost: 0,
     travelPayCost: 0,
@@ -142,225 +148,112 @@ export default function AdminTools() {
     shortVisitsMarginPercentage: 0,
   });
 
-  const [showQuoteModal, setShowQuoteModal] = useState(false);
-  const [quoteDetails, setQuoteDetails] = useState({
+  const [showQuote, setShowQuote] = useState(false);
+  const [quoteDetails, setQuoteDetails] = useState<QuoteDetails>({
     customerName: '',
     relatingTo: '',
     careNeeds: '',
     selectedService: ''
   });
-  const [showQuote, setShowQuote] = useState(false);
 
-  // Knowledge questionnaire state
-  const [showQuestionnaireDialog, setShowQuestionnaireDialog] = useState(false);
-  const [showQuestionDialog, setShowQuestionDialog] = useState(false);
-  const [selectedQuestionnaire, setSelectedQuestionnaire] = useState<KnowledgeQuestionnaire | null>(null);
-  const [editingQuestion, setEditingQuestion] = useState<KnowledgeQuestion | null>(null);
+  const { toast } = useToast();
 
-  const queryClient = useQueryClient();
+  const questionnairesQuery = useQuery({
+    queryKey: ['/api/knowledge/questionnaires'],
+    enabled: false // We don't need questionnaires anymore
+  });
 
-  // Questionnaire form
-  const questionnaireForm = useForm<z.infer<typeof questionnaireSchema>>({
+  const questionnaireForm = useForm<QuestionnaireFormData>({
     resolver: zodResolver(questionnaireSchema),
     defaultValues: {
-      title: "",
-      description: "",
-      category: "",
-      subcategory: "",
-      passingScore: 70,
-      instructions: "",
-    },
+      title: '',
+      category: '',
+      description: '',
+      passingScore: '80',
+      timeLimit: '30',
+      maxAttempts: '3'
+    }
   });
 
-  // Question form
-  const questionForm = useForm<z.infer<typeof questionSchema>>({
-    resolver: zodResolver(questionSchema),
-    defaultValues: {
-      questionText: "",
-      questionType: "",
-      options: [],
-      correctAnswer: "",
-      explanation: "",
-      points: 1,
-      isRequired: true,
-    },
-  });
-
-  // Fetch questionnaires
-  const { data: questionnaires = [], isLoading: loadingQuestionnaires } = useQuery<KnowledgeQuestionnaire[]>({
-    queryKey: ["/api/knowledge/questionnaires"],
-    enabled: activeTab === 'knowledge',
-  });
-
-  // Fetch questions for selected questionnaire
-  const { data: questions = [] } = useQuery<KnowledgeQuestion[]>({
-    queryKey: ["/api/knowledge/questionnaires", selectedQuestionnaire?.id, "questions"],
-    enabled: !!selectedQuestionnaire?.id,
-  });
-
-  // Create questionnaire mutation
   const createQuestionnaireMutation = useMutation({
-    mutationFn: async (data: z.infer<typeof questionnaireSchema>) => {
-      const response = await fetch("/api/knowledge/questionnaires", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(data),
-      });
-      if (!response.ok) throw new Error("Failed to create questionnaire");
-      return response.json();
-    },
+    mutationFn: (data: QuestionnaireFormData) => 
+      apiRequest('/api/knowledge/questionnaires', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+      }),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/knowledge/questionnaires"] });
-      setShowQuestionnaireDialog(false);
+      queryClient.invalidateQueries({ queryKey: ['/api/knowledge/questionnaires'] });
       questionnaireForm.reset();
-    },
-  });
-
-  // Create question mutation
-  const createQuestionMutation = useMutation({
-    mutationFn: async (data: z.infer<typeof questionSchema> & { questionnaireId: string }) => {
-      const response = await fetch(`/api/knowledge/questionnaires/${data.questionnaireId}/questions`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(data),
+      setShowQuestionnaireDialog(false);
+      toast({ 
+        title: "Success", 
+        description: "Knowledge questionnaire created successfully" 
       });
-      if (!response.ok) throw new Error("Failed to create question");
-      return response.json();
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ 
-        queryKey: ["/api/knowledge/questionnaires", selectedQuestionnaire?.id, "questions"] 
+    onError: (error: any) => {
+      toast({ 
+        title: "Error", 
+        description: error.message || "Failed to create questionnaire",
+        variant: "destructive"
       });
-      setShowQuestionDialog(false);
-      questionForm.reset();
-      setEditingQuestion(null);
-    },
-  });
-
-  // Delete questionnaire mutation
-  const deleteQuestionnaireMutation = useMutation({
-    mutationFn: async (id: string) => {
-      const response = await fetch(`/api/knowledge/questionnaires/${id}`, {
-        method: "DELETE",
-      });
-      if (!response.ok) throw new Error("Failed to delete questionnaire");
-      return response.ok;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/knowledge/questionnaires"] });
-    },
-  });
-
-  // Generate QR code for questionnaire
-  const generateQRCode = async (questionnaire: KnowledgeQuestionnaire) => {
-    if (!questionnaire.shareableLink) return;
-    
-    const assessmentUrl = `${window.location.origin}/assessment/${questionnaire.shareableLink}`;
-    try {
-      const qrCodeDataUrl = await QRCode.toDataURL(assessmentUrl, {
-        width: 200,
-        margin: 2,
-      });
-      
-      // Create download link
-      const link = document.createElement('a');
-      link.href = qrCodeDataUrl;
-      link.download = `${questionnaire.title.replace(/\s+/g, '_')}_QR_Code.png`;
-      link.click();
-    } catch (error) {
-      console.error('Error generating QR code:', error);
     }
+  });
+
+  const [showQuestionnaireDialog, setShowQuestionnaireDialog] = useState(false);
+
+  const handleInputChange = (field: keyof CalculationState, value: string | number) => {
+    setCalculation(prev => ({ ...prev, [field]: value }));
   };
 
-  // Copy shareable link to clipboard
-  const copyShareableLink = async (questionnaire: KnowledgeQuestionnaire) => {
-    if (!questionnaire.shareableLink) return;
-    
-    const assessmentUrl = `${window.location.origin}/assessment/${questionnaire.shareableLink}`;
-    try {
-      await navigator.clipboard.writeText(assessmentUrl);
-      // Could add a toast notification here
-    } catch (error) {
-      console.error('Error copying to clipboard:', error);
-    }
+  const formatCurrency = (amount: number): string => {
+    return new Intl.NumberFormat('en-GB', {
+      style: 'currency',
+      currency: 'GBP'
+    }).format(amount);
   };
 
-  // Submit questionnaire form
-  const onQuestionnaireSubmit = (data: z.infer<typeof questionnaireSchema>) => {
-    createQuestionnaireMutation.mutate(data);
-  };
-
-  // Submit question form
-  const onQuestionSubmit = (data: z.infer<typeof questionSchema>) => {
-    if (!selectedQuestionnaire) return;
-    
-    createQuestionMutation.mutate({
-      ...data,
-      questionnaireId: selectedQuestionnaire.id,
-    });
-  };
-
-  const serviceOptions = [
-    'Short Visits',
-    'Supported Living', 
-    '24/7 Care',
-    'Enabling',
-    'Respite Care',
-    'Live-In Care',
-    'Condition-Led Care'
-  ];
-
-  const calculatePackage = () => {
+  const calculateResults = () => {
     const chargeRate = parseFloat(calculation.chargeRate) || 0;
-    const hours = parseFloat(calculation.hours) || 0;
-    const days = parseFloat(calculation.days) || 0;
-    const hoursPerDay = parseFloat(calculation.hoursPerDay) || 0;
-    const carerWage = parseFloat(calculation.carerWage) || 0;
-    const travelCosts = parseFloat(calculation.travelCosts) || 0;
-    const foodAllowance = parseFloat(calculation.foodAllowance) || 0;
-
-    // 24/7 Care specific values
-    const dayChargeRate = parseFloat(calculation.dayChargeRate) || 0;
-    const nightChargeRate = parseFloat(calculation.nightChargeRate) || 0;
-    const dayWageRate = parseFloat(calculation.dayWageRate) || 0;
-    const nightWageRate = parseFloat(calculation.nightWageRate) || 0;
-    const dayHours = parseFloat(calculation.dayHours) || 0;
-    const nightHours = parseFloat(calculation.nightHours) || 0;
-    const periodDays = parseFloat(calculation.periodDays) || 7;
-    const travelDayPerShift = parseFloat(calculation.travelDayPerShift) || 0;
-    const travelNightPerShift = parseFloat(calculation.travelNightPerShift) || 0;
-
     let totalRevenue = 0;
-    let grossWage = 0;
     let totalHours = 0;
-    let dayRevenue = 0;
-    let nightRevenue = 0;
+    let grossWage = 0;
     let dayWage = 0;
     let nightWage = 0;
 
     if (packageType === 'hourly') {
-      // Hourly package calculations
-      totalRevenue = chargeRate * hours;
-      grossWage = carerWage * hours;
-      totalHours = hours;
+      totalHours = parseFloat(calculation.hours) || 0;
+      totalRevenue = totalHours * chargeRate;
+      grossWage = totalHours * (parseFloat(calculation.carerWage) || 0);
     } else if (packageType === 'live-in') {
-      // Live-in care package calculations: hourly rate × hours per day × number of days
+      const hoursPerDay = parseFloat(calculation.hoursPerDay) || 0;
+      const days = parseFloat(calculation.days) || 0;
       totalHours = hoursPerDay * days;
-      totalRevenue = chargeRate * totalHours;
-      grossWage = carerWage * totalHours;
+      totalRevenue = totalHours * chargeRate;
+      grossWage = totalHours * (parseFloat(calculation.carerWage) || 0);
     } else if (packageType === 'care24x7') {
-      // 24/7 Care calculations
-      const totalDayHours = calculation.calcMode === 'weekly' ? dayHours * periodDays : dayHours;
-      const totalNightHours = calculation.calcMode === 'weekly' ? nightHours * periodDays : nightHours;
-      totalHours = totalDayHours + totalNightHours;
+      const dayChargeRate = parseFloat(calculation.dayChargeRate) || 0;
+      const nightChargeRate = parseFloat(calculation.nightChargeRate) || 0;
+      const dayWageRate = parseFloat(calculation.dayWageRate) || 0;
+      const nightWageRate = parseFloat(calculation.nightWageRate) || 0;
+      const dayHours = parseFloat(calculation.dayHours) || 0;
+      const nightHours = parseFloat(calculation.nightHours) || 0;
       
-      dayRevenue = dayChargeRate * totalDayHours;
-      nightRevenue = nightChargeRate * totalNightHours;
+      let totalDayHours = dayHours;
+      let totalNightHours = nightHours;
+      let dayRevenue = 0;
+      let nightRevenue = 0;
+
+      if (calculation.calcMode === 'weekly') {
+        const periodDays = parseFloat(calculation.periodDays) || 0;
+        totalDayHours = dayHours * periodDays;
+        totalNightHours = nightHours * periodDays;
+      }
+
+      dayRevenue = totalDayHours * dayChargeRate;
+      nightRevenue = totalNightHours * nightChargeRate;
       totalRevenue = dayRevenue + nightRevenue;
+      totalHours = totalDayHours + totalNightHours;
       
       dayWage = dayWageRate * totalDayHours;
       nightWage = nightWageRate * totalNightHours;
@@ -393,49 +286,45 @@ export default function AdminTools() {
 
     // Staff cost calculations
     const nationalInsuranceCost = grossWage * (calculation.nationalInsurance / 100);
-    const pensionCost = grossWage * (calculation.pensionContribution / 100);
+    const pensionCost = grossWage * (calculation.pension / 100);
     const holidayPayCost = grossWage * (calculation.holidayPay / 100);
     
-    const totalStaffCost = grossWage + nationalInsuranceCost + pensionCost + holidayPayCost;
-    
-    // Travel costs and food allowance handling for different package types
-    let totalOtherCosts = 0;
-    if (packageType === 'hourly') {
-      // Hourly care: travel costs per shift, no food allowance
-      totalOtherCosts = travelCosts;
-    } else if (packageType === 'live-in') {
-      // Live-in care: travel costs and food allowance applied once for the entire period
-      totalOtherCosts = travelCosts + foodAllowance;
-    } else if (packageType === 'care24x7') {
-      // 24/7 Care: travel costs per day for day and night shifts
-      const travelMultiplier = calculation.calcMode === 'weekly' ? periodDays : 1;
-      const travelTotal = (travelDayPerShift + travelNightPerShift) * travelMultiplier;
-      const foodTotal = calculation.calcMode === 'weekly' ? foodAllowance : 0;
-      totalOtherCosts = travelTotal + foodTotal;
-    }
-    
-    const totalCosts = totalStaffCost + totalOtherCosts;
-    const shiftMargin = totalRevenue - totalCosts;
-    const hourlyMargin = totalHours > 0 ? shiftMargin / totalHours : 0;
-    const marginPercentage = totalRevenue > 0 ? (shiftMargin / totalRevenue) * 100 : 0;
+    let travelCostTotal = 0;
+    let foodAllowanceTotal = 0;
 
-    // Calculate day/night margin breakdown for 24/7 care
-    let dayMargin = 0;
-    let nightMargin = 0;
-    if (packageType === 'care24x7' && totalHours > 0) {
-      const totalDayHours = calculation.calcMode === 'weekly' ? dayHours * periodDays : dayHours;
-      const totalNightHours = calculation.calcMode === 'weekly' ? nightHours * periodDays : nightHours;
+    if (packageType === 'care24x7') {
+      const travelDayPerShift = parseFloat(calculation.travelDayPerShift) || 0;
+      const travelNightPerShift = parseFloat(calculation.travelNightPerShift) || 0;
       
-      // Apportion overhead and other costs by hours
-      const overheadAndOtherCosts = nationalInsuranceCost + pensionCost + holidayPayCost + totalOtherCosts;
-      const dayCostShare = totalDayHours > 0 ? (totalDayHours / totalHours) * overheadAndOtherCosts : 0;
-      const nightCostShare = totalNightHours > 0 ? (totalNightHours / totalHours) * overheadAndOtherCosts : 0;
-      
-      dayMargin = dayRevenue - (dayWage + dayCostShare);
-      nightMargin = nightRevenue - (nightWage + nightCostShare);
+      if (calculation.calcMode === 'weekly') {
+        const periodDays = parseFloat(calculation.periodDays) || 0;
+        travelCostTotal = (travelDayPerShift + travelNightPerShift) * periodDays;
+        foodAllowanceTotal = parseFloat(calculation.foodAllowance) || 0;
+      } else {
+        travelCostTotal = travelDayPerShift + travelNightPerShift;
+      }
+    } else if (packageType === 'short-visits') {
+      // For short visits, travel cost is already included in the grossWage calculation
+      travelCostTotal = 0;
+    } else {
+      travelCostTotal = parseFloat(calculation.travelCosts) || 0;
+      if (packageType === 'live-in') {
+        foodAllowanceTotal = parseFloat(calculation.foodAllowance) || 0;
+      }
     }
 
-    // Calculate Short Visits specific results
+    let totalStaffCost = 0;
+    if (packageType === 'short-visits') {
+      // For short visits, the total staff cost is just the grossWage (which includes travel pay)
+      totalStaffCost = grossWage;
+    } else {
+      totalStaffCost = grossWage + nationalInsuranceCost + pensionCost + holidayPayCost + travelCostTotal + foodAllowanceTotal;
+    }
+
+    const grossMargin = totalRevenue - totalStaffCost;
+    const marginPercentage = totalRevenue > 0 ? (grossMargin / totalRevenue) * 100 : 0;
+
+    // Short Visits specific calculations for display
     let chargeRevenue = 0;
     let carePayCost = 0;
     let travelPayCost = 0;
@@ -459,28 +348,10 @@ export default function AdminTools() {
     setResults({
       totalRevenue,
       totalStaffCost,
-      grossWage,
-      nationalInsuranceCost,
-      pensionCost,
-      holidayPayCost,
-      travelCostTotal: packageType === 'care24x7' ? 
-        ((travelDayPerShift + travelNightPerShift) * (calculation.calcMode === 'weekly' ? periodDays : 1)) : 
-        travelCosts,
-      foodAllowanceTotal: packageType === 'care24x7' && calculation.calcMode === 'weekly' ? 
-        foodAllowance : (packageType === 'live-in' ? foodAllowance : 0),
-      totalCosts,
-      shiftMargin,
-      hourlyMargin,
+      grossMargin,
       marginPercentage,
-      // 24/7 Care specific results
-      dayRevenue,
-      nightRevenue,
-      dayWage,
-      nightWage,
-      dayMargin,
-      nightMargin,
-      totalHours,
-      // Short Visits specific results
+      travelCostTotal,
+      foodAllowanceTotal,
       chargeRevenue,
       carePayCost,
       travelPayCost,
@@ -490,29 +361,10 @@ export default function AdminTools() {
     });
   };
 
-  useEffect(() => {
-    calculatePackage();
-  }, [calculation, packageType]);
-
-  const handleInputChange = (field: string, value: string) => {
-    setCalculation(prev => ({
-      ...prev,
-      [field]: value
-    }));
+  const onQuestionnaireSubmit = (data: QuestionnaireFormData) => {
+    createQuestionnaireMutation.mutate(data);
   };
 
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('en-GB', {
-      style: 'currency',
-      currency: 'GBP'
-    }).format(amount);
-  };
-
-  const formatPercentage = (percent: number) => {
-    return `${percent.toFixed(1)}%`;
-  };
-
-  // PDF Download Function
   const downloadQuote = async () => {
     const element = document.getElementById('quote-content');
     if (!element) return;
@@ -521,63 +373,59 @@ export default function AdminTools() {
       const canvas = await html2canvas(element, {
         scale: 2,
         useCORS: true,
-        backgroundColor: '#ffffff'
+        allowTaint: true
       });
       
-      const imgData = canvas.toDataURL('image/png');
+      const imgData = canvas.getImageData(0, 0, canvas.width, canvas.height);
       const pdf = new jsPDF('p', 'mm', 'a4');
       
-      const imgWidth = 210; // A4 width in mm
-      const pageHeight = 297; // A4 height in mm
+      const imgWidth = 210;
+      const pageHeight = 295;
       const imgHeight = (canvas.height * imgWidth) / canvas.width;
       let heightLeft = imgHeight;
       
       let position = 0;
       
-      pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+      pdf.addImage(canvas.toDataURL('image/png'), 'PNG', 0, position, imgWidth, imgHeight);
       heightLeft -= pageHeight;
       
       while (heightLeft >= 0) {
         position = heightLeft - imgHeight;
         pdf.addPage();
-        pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+        pdf.addImage(canvas.toDataURL('image/png'), 'PNG', 0, position, imgWidth, imgHeight);
         heightLeft -= pageHeight;
       }
       
-      const filename = `Smeaton_Healthcare_Quote_${quoteDetails.customerName.replace(/\s+/g, '_')}_${new Date().toISOString().split('T')[0]}.pdf`;
-      pdf.save(filename);
+      pdf.save(`quote-${quoteDetails.customerName.replace(/\s+/g, '-')}-${new Date().toISOString().split('T')[0]}.pdf`);
+      
+      toast({
+        title: "Success",
+        description: "Quote downloaded successfully"
+      });
     } catch (error) {
       console.error('Error generating PDF:', error);
-      // Could add a toast notification here for better UX
+      toast({
+        title: "Error",
+        description: "Failed to generate PDF",
+        variant: "destructive"
+      });
     }
   };
 
   return (
-    <div className="container mx-auto py-8 space-y-6">
+    <div className="space-y-8">
+      {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Tools & Compliance</h1>
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Business Tools</h1>
           <p className="text-gray-600 dark:text-gray-400 mt-2">
-            Business tools, calculators, and compliance management for healthcare staffing
+            Calculate care package costs and margins with UK employment overheads
           </p>
         </div>
         <Calculator className="h-8 w-8 text-pink-600" />
       </div>
       
-      {/* Tool Tabs */}
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-2 mb-8">
-          <TabsTrigger value="calculator" className="flex items-center gap-2">
-            <Calculator className="h-4 w-4" />
-            Package Calculator
-          </TabsTrigger>
-          <TabsTrigger value="knowledge" className="flex items-center gap-2">
-            <Brain className="h-4 w-4" />
-            Staff Knowledge Questionnaires
-          </TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="calculator">
+      {/* Package Calculator - Direct Access */}
 
       {/* Package Calculator */}
       <Card className="w-full">
@@ -1076,22 +924,53 @@ export default function AdminTools() {
                 </div>
               )}
 
-              {/* UK Overhead Rates (exclude Short Visits - it doesn't use these) */}
+              {/* Employment Cost Rates (exclude for short visits) */}
               {packageType !== 'short-visits' && (
-                <div className="pt-4">
-                  <h4 className="text-md font-semibold mb-3">UK Employment Overheads</h4>
-                  <div className="grid grid-cols-2 gap-3 text-sm">
-                    <div className="flex justify-between">
-                      <span>National Insurance:</span>
-                      <Badge variant="secondary">{formatPercentage(calculation.nationalInsurance)}</Badge>
+                <div className="space-y-4">
+                  <h4 className="font-semibold text-gray-700 dark:text-gray-300">UK Employment Costs (%)</h4>
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="national-insurance">National Insurance (%)</Label>
+                    <div className="relative">
+                      <Input
+                        id="national-insurance"
+                        type="number"
+                        step="0.1"
+                        placeholder="15.0"
+                        value={calculation.nationalInsurance}
+                        onChange={(e) => handleInputChange('nationalInsurance', parseFloat(e.target.value) || 0)}
+                        data-testid="input-national-insurance"
+                      />
                     </div>
-                    <div className="flex justify-between">
-                      <span>Pension:</span>
-                      <Badge variant="secondary">{formatPercentage(calculation.pensionContribution)}</Badge>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="pension">Pension Contribution (%)</Label>
+                    <div className="relative">
+                      <Input
+                        id="pension"
+                        type="number"
+                        step="0.1"
+                        placeholder="3.0"
+                        value={calculation.pension}
+                        onChange={(e) => handleInputChange('pension', parseFloat(e.target.value) || 0)}
+                        data-testid="input-pension"
+                      />
                     </div>
-                    <div className="flex justify-between">
-                      <span>Holiday Pay:</span>
-                      <Badge variant="secondary">{formatPercentage(calculation.holidayPay)}</Badge>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="holiday-pay">Holiday Pay (%)</Label>
+                    <div className="relative">
+                      <Input
+                        id="holiday-pay"
+                        type="number"
+                        step="0.01"
+                        placeholder="12.07"
+                        value={calculation.holidayPay}
+                        onChange={(e) => handleInputChange('holidayPay', parseFloat(e.target.value) || 0)}
+                        data-testid="input-holiday-pay"
+                      />
                     </div>
                   </div>
                 </div>
@@ -1100,185 +979,123 @@ export default function AdminTools() {
 
             {/* Results Section */}
             <div className="space-y-4">
-              <h3 className="text-lg font-semibold mb-4">Calculation Results</h3>
-              
-              {/* Revenue */}
-              <Card className="border-green-200 bg-green-50 dark:bg-green-950 dark:border-green-800">
-                <CardContent className="pt-4">
-                  <div className="flex justify-between items-center">
-                    <span className="font-medium">Total Revenue</span>
-                    <span className="text-xl font-bold text-green-700 dark:text-green-300">
-                      {formatCurrency(results.totalRevenue)}
-                    </span>
-                  </div>
-                </CardContent>
-              </Card>
+              <div className="flex items-center justify-between">
+                <h3 className="text-lg font-semibold mb-4">Financial Analysis</h3>
+                <Button onClick={calculateResults} className="mb-4" data-testid="button-calculate">
+                  Calculate
+                </Button>
+              </div>
 
-              {/* Staff Costs Breakdown */}
-              <Card>
-                <CardContent className="pt-4 space-y-3">
-                  <h4 className="font-semibold text-gray-900 dark:text-white">Staff Costs Breakdown</h4>
-                  <div className="space-y-2 text-sm">
-                    <div className="flex justify-between">
-                      <span>Gross Wage:</span>
-                      <span className="font-medium">{formatCurrency(results.grossWage)}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span>National Insurance:</span>
-                      <span className="font-medium">{formatCurrency(results.nationalInsuranceCost)}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span>Pension:</span>
-                      <span className="font-medium">{formatCurrency(results.pensionCost)}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span>Holiday Pay:</span>
-                      <span className="font-medium">{formatCurrency(results.holidayPayCost)}</span>
-                    </div>
-                    <Separator />
-                    <div className="flex justify-between font-semibold">
-                      <span>Total Staff Cost:</span>
-                      <span>{formatCurrency(results.totalStaffCost)}</span>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* Other Costs */}
-              <Card>
-                <CardContent className="pt-4 space-y-3">
-                  <div className="flex justify-between items-center">
-                    <span className="font-medium">Travel Costs</span>
-                    <span className="font-bold">{formatCurrency(results.travelCostTotal)}</span>
-                  </div>
-                  {packageType === 'live-in' && results.foodAllowanceTotal > 0 && (
-                    <>
-                      <Separator />
-                      <div className="flex justify-between items-center">
-                        <span className="font-medium">Food Allowance</span>
-                        <span className="font-bold">{formatCurrency(results.foodAllowanceTotal)}</span>
-                      </div>
-                    </>
-                  )}
-                </CardContent>
-              </Card>
-
-              {/* Short Visits specific costs and results */}
               {packageType === 'short-visits' ? (
-                <>
-                  {/* Short Visits Costs Breakdown */}
-                  <Card>
-                    <CardContent className="pt-4 space-y-3">
-                      <h4 className="font-semibold text-gray-900 dark:text-white">Short Visits Costs Breakdown</h4>
-                      <div className="space-y-2 text-sm">
-                        <div className="flex justify-between">
-                          <span>Care Pay Cost:</span>
-                          <span className="font-medium">{formatCurrency(results.carePayCost)}</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span>Travel Pay Cost (@ £{calculation.minimumWage}/hr):</span>
-                          <span className="font-medium">{formatCurrency(results.travelPayCost)}</span>
-                        </div>
-                        <Separator />
-                        <div className="flex justify-between font-semibold">
-                          <span>Total Pay Cost:</span>
-                          <span>{formatCurrency(results.totalPayCost)}</span>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                  
-                  {/* Short Visits Margin */}
-                  <Card className="border-blue-200 bg-blue-50 dark:bg-blue-950 dark:border-blue-800">
-                    <CardContent className="pt-4 space-y-3">
-                      <h4 className="font-semibold text-blue-900 dark:text-blue-100">Short Visits Margin</h4>
-                      <div className="space-y-2">
+                // Short Visits Results Display
+                <div className="space-y-4">
+                  <Card className="bg-green-50 dark:bg-green-950 border-green-200 dark:border-green-800">
+                    <CardContent className="pt-4">
+                      <div className="space-y-3">
                         <div className="flex justify-between items-center">
-                          <span>Margin:</span>
-                          <span className={`text-xl font-bold ${results.shortVisitsMargin >= 0 ? 'text-blue-700 dark:text-blue-300' : 'text-red-700 dark:text-red-300'}`}>
+                          <span className="text-sm font-medium text-green-900 dark:text-green-100">Revenue (Care Hours × Rate)</span>
+                          <span className="text-lg font-bold text-green-900 dark:text-green-100" data-testid="result-charge-revenue">
+                            {formatCurrency(results.chargeRevenue)}
+                          </span>
+                        </div>
+                        <div className="flex justify-between items-center">
+                          <span className="text-sm text-green-800 dark:text-green-200">Care Pay Cost</span>
+                          <span className="text-sm text-green-800 dark:text-green-200" data-testid="result-care-pay-cost">
+                            {formatCurrency(results.carePayCost)}
+                          </span>
+                        </div>
+                        <div className="flex justify-between items-center">
+                          <span className="text-sm text-green-800 dark:text-green-200">Travel Pay Cost</span>
+                          <span className="text-sm text-green-800 dark:text-green-200" data-testid="result-travel-pay-cost">
+                            {formatCurrency(results.travelPayCost)}
+                          </span>
+                        </div>
+                        <div className="flex justify-between items-center border-t border-green-300 dark:border-green-700 pt-2">
+                          <span className="text-sm font-medium text-green-900 dark:text-green-100">Total Pay Cost</span>
+                          <span className="text-sm font-bold text-green-900 dark:text-green-100" data-testid="result-total-pay-cost">
+                            {formatCurrency(results.totalPayCost)}
+                          </span>
+                        </div>
+                        <div className="flex justify-between items-center border-t border-green-300 dark:border-green-700 pt-2">
+                          <span className="font-semibold text-green-900 dark:text-green-100">Gross Margin</span>
+                          <span className="text-xl font-bold text-green-900 dark:text-green-100" data-testid="result-short-visits-margin">
                             {formatCurrency(results.shortVisitsMargin)}
                           </span>
                         </div>
                         <div className="flex justify-between items-center">
-                          <span>Margin %:</span>
-                          <span className={`font-bold ${results.shortVisitsMarginPercentage >= 0 ? 'text-blue-700 dark:text-blue-300' : 'text-red-700 dark:text-red-300'}`}>
-                            {formatPercentage(results.shortVisitsMarginPercentage)}
+                          <span className="font-semibold text-green-900 dark:text-green-100">Margin %</span>
+                          <span className="text-xl font-bold text-green-900 dark:text-green-100" data-testid="result-short-visits-margin-percentage">
+                            {results.shortVisitsMarginPercentage.toFixed(2)}%
                           </span>
                         </div>
                       </div>
                     </CardContent>
                   </Card>
-                </>
+                </div>
               ) : (
-                <>
-                  {/* Total Costs */}
-                  <Card className="border-red-200 bg-red-50 dark:bg-red-950 dark:border-red-800">
+                // Standard Results Display (for other package types)
+                <div className="space-y-4">
+                  <Card>
                     <CardContent className="pt-4">
-                      <div className="flex justify-between items-center">
-                        <span className="font-medium">Total Costs</span>
-                        <span className="text-xl font-bold text-red-700 dark:text-red-300">
-                          {formatCurrency(results.totalCosts)}
-                        </span>
+                      <div className="space-y-3">
+                        <div className="flex justify-between items-center">
+                          <span className="text-sm font-medium">Total Revenue</span>
+                          <span className="text-lg font-bold text-green-600 dark:text-green-400" data-testid="result-total-revenue">
+                            {formatCurrency(results.totalRevenue)}
+                          </span>
+                        </div>
+                        <div className="flex justify-between items-center">
+                          <span className="text-sm font-medium">Total Staff Cost</span>
+                          <span className="text-lg font-bold text-red-600 dark:text-red-400" data-testid="result-total-staff-cost">
+                            {formatCurrency(results.totalStaffCost)}
+                          </span>
+                        </div>
+                        <div className="border-t border-gray-200 dark:border-gray-700 pt-2">
+                          <div className="flex justify-between items-center">
+                            <span className="font-semibold">Gross Margin</span>
+                            <span className="text-xl font-bold text-blue-600 dark:text-blue-400" data-testid="result-gross-margin">
+                              {formatCurrency(results.grossMargin)}
+                            </span>
+                          </div>
+                          <div className="flex justify-between items-center mt-1">
+                            <span className="font-semibold">Margin %</span>
+                            <span className="text-xl font-bold text-blue-600 dark:text-blue-400" data-testid="result-margin-percentage">
+                              {results.marginPercentage.toFixed(2)}%
+                            </span>
+                          </div>
+                        </div>
                       </div>
                     </CardContent>
                   </Card>
-                </>
+                </div>
               )}
 
-              {/* Margins (exclude Short Visits - it has its own margin display) */}
-              {packageType !== 'short-visits' && (
-                <Card className="border-blue-200 bg-blue-50 dark:bg-blue-950 dark:border-blue-800">
-                  <CardContent className="pt-4 space-y-3">
-                    <h4 className="font-semibold text-blue-900 dark:text-blue-100">Profit Margins</h4>
-                    <div className="space-y-2">
-                      <div className="flex justify-between items-center">
-                        <span>{packageType === 'hourly' ? 'Shift Margin:' : 'Period Margin:'}</span>
-                        <span className={`text-xl font-bold ${results.shiftMargin >= 0 ? 'text-blue-700 dark:text-blue-300' : 'text-red-700 dark:text-red-300'}`}>
-                          {formatCurrency(results.shiftMargin)}
-                        </span>
-                      </div>
-                      <div className="flex justify-between items-center">
-                        <span>{packageType === 'hourly' ? 'Hourly' : 'Daily'} Margin:</span>
-                        <span className={`font-bold ${results.hourlyMargin >= 0 ? 'text-blue-700 dark:text-blue-300' : 'text-red-700 dark:text-red-300'}`}>
-                          {formatCurrency(results.hourlyMargin)}
-                        </span>
-                      </div>
-                      <div className="flex justify-between items-center">
-                        <span>Margin %:</span>
-                        <span className={`font-bold ${results.marginPercentage >= 0 ? 'text-blue-700 dark:text-blue-300' : 'text-red-700 dark:text-red-300'}`}>
-                          {formatPercentage(results.marginPercentage)}
-                        </span>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              )}
-
-              {/* Generate Quote Button */}
-              <Dialog open={showQuoteModal} onOpenChange={setShowQuoteModal}>
+              {/* Quote Generation Button */}
+              <Dialog>
                 <DialogTrigger asChild>
                   <Button 
-                    className="w-full mb-2"
-                    data-testid="button-generate-quote"
+                    variant="outline" 
+                    className="w-full"
                     disabled={results.totalRevenue === 0}
+                    data-testid="button-generate-quote"
                   >
-                    <FileText className="w-4 h-4 mr-2" />
+                    <Download className="w-4 h-4 mr-2" />
                     Generate Quote
                   </Button>
                 </DialogTrigger>
-                <DialogContent className="sm:max-w-md">
+                <DialogContent className="max-w-md">
                   <DialogHeader>
-                    <DialogTitle>Customer Details</DialogTitle>
+                    <DialogTitle>Generate Customer Quote</DialogTitle>
                     <DialogDescription>
-                      Enter customer information for the quote
+                      Enter customer details to generate a professional quote
                     </DialogDescription>
                   </DialogHeader>
-                  <div className="space-y-4 py-4">
+                  <div className="space-y-4">
                     <div className="space-y-2">
                       <Label htmlFor="customer-name">Customer Name</Label>
                       <Input
                         id="customer-name"
-                        placeholder="John Smith"
+                        placeholder="Enter customer name"
                         value={quoteDetails.customerName}
                         onChange={(e) => setQuoteDetails(prev => ({ ...prev, customerName: e.target.value }))}
                         data-testid="input-customer-name"
@@ -1288,53 +1105,39 @@ export default function AdminTools() {
                       <Label htmlFor="relating-to">Relating To</Label>
                       <Input
                         id="relating-to"
-                        placeholder="Mary Smith (Mother)"
+                        placeholder="e.g., John Smith (father)"
                         value={quoteDetails.relatingTo}
                         onChange={(e) => setQuoteDetails(prev => ({ ...prev, relatingTo: e.target.value }))}
                         data-testid="input-relating-to"
                       />
                     </div>
                     <div className="space-y-2">
-                      <Label htmlFor="service-type">Service Type</Label>
-                      <Select 
-                        value={quoteDetails.selectedService} 
-                        onValueChange={(value) => setQuoteDetails(prev => ({ ...prev, selectedService: value }))}
-                      >
+                      <Label htmlFor="selected-service">Service Type</Label>
+                      <Select value={quoteDetails.selectedService} onValueChange={(value) => setQuoteDetails(prev => ({ ...prev, selectedService: value }))}>
                         <SelectTrigger data-testid="select-service-type">
-                          <SelectValue placeholder="Select a service..." />
+                          <SelectValue placeholder="Select service type" />
                         </SelectTrigger>
                         <SelectContent>
-                          {serviceOptions.map((service) => (
-                            <SelectItem key={service} value={service}>
-                              {service}
-                            </SelectItem>
-                          ))}
+                          <SelectItem value="hourly-care">Hourly Care</SelectItem>
+                          <SelectItem value="live-in-care">Live-In Care</SelectItem>
+                          <SelectItem value="24x7-care">24/7 Care</SelectItem>
+                          <SelectItem value="short-visits">Short Visits</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
                     <div className="space-y-2">
-                      <Label htmlFor="care-needs">Care Needs Discussed</Label>
+                      <Label htmlFor="care-needs">Care Requirements</Label>
                       <Textarea
                         id="care-needs"
-                        placeholder="Brief description of care needs discussed with the client..."
+                        placeholder="Describe the care requirements..."
                         value={quoteDetails.careNeeds}
                         onChange={(e) => setQuoteDetails(prev => ({ ...prev, careNeeds: e.target.value }))}
-                        rows={3}
                         data-testid="textarea-care-needs"
                       />
                     </div>
-                  </div>
-                  <div className="flex justify-end gap-2">
-                    <Button
-                      variant="outline"
-                      onClick={() => setShowQuoteModal(false)}
-                      data-testid="button-cancel-quote"
-                    >
-                      Cancel
-                    </Button>
-                    <Button
+                    <Button 
                       onClick={() => {
-                        setShowQuoteModal(false);
+                        calculateResults();
                         setShowQuote(true);
                       }}
                       disabled={!quoteDetails.customerName || !quoteDetails.selectedService}
@@ -1397,577 +1200,93 @@ export default function AdminTools() {
           </Card>
         </CardContent>
       </Card>
-        </TabsContent>
-
-        <TabsContent value="knowledge">
-          <div className="space-y-6">
-            {/* Knowledge Questionnaires Header */}
-            <div className="flex items-center justify-between">
-              <div>
-                <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Staff Knowledge Questionnaires</h2>
-                <p className="text-gray-600 dark:text-gray-400 mt-1">
-                  Create and manage knowledge assessments for staff training and compliance
-                </p>
-              </div>
-              <Dialog open={showQuestionnaireDialog} onOpenChange={setShowQuestionnaireDialog}>
-                <DialogTrigger asChild>
-                  <Button className="flex items-center gap-2" data-testid="button-create-questionnaire">
-                    <Plus className="h-4 w-4" />
-                    Create Questionnaire
-                  </Button>
-                </DialogTrigger>
-                <DialogContent className="max-w-2xl">
-                  <DialogHeader>
-                    <DialogTitle>Create Knowledge Questionnaire</DialogTitle>
-                    <DialogDescription>
-                      Create a new knowledge assessment for staff training and compliance
-                    </DialogDescription>
-                  </DialogHeader>
-                  <Form {...questionnaireForm}>
-                    <form onSubmit={questionnaireForm.handleSubmit(onQuestionnaireSubmit)} className="space-y-4">
-                      <div className="grid grid-cols-2 gap-4">
-                        <FormField
-                          control={questionnaireForm.control}
-                          name="title"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Title</FormLabel>
-                              <FormControl>
-                                <Input placeholder="e.g., Safeguarding Essentials" {...field} data-testid="input-questionnaire-title" />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                        <FormField
-                          control={questionnaireForm.control}
-                          name="category"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Category</FormLabel>
-                              <Select onValueChange={field.onChange} defaultValue={field.value}>
-                                <FormControl>
-                                  <SelectTrigger data-testid="select-category">
-                                    <SelectValue placeholder="Select category" />
-                                  </SelectTrigger>
-                                </FormControl>
-                                <SelectContent>
-                                  <SelectItem value="mandatory_core">Mandatory Core</SelectItem>
-                                  <SelectItem value="care_specific">Care Specific</SelectItem>
-                                  <SelectItem value="professional_standards">Professional Standards</SelectItem>
-                                  <SelectItem value="specialized">Specialized</SelectItem>
-                                  <SelectItem value="scenario_testing">Scenario Testing</SelectItem>
-                                </SelectContent>
-                              </Select>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                      </div>
-                      <FormField
-                        control={questionnaireForm.control}
-                        name="subcategory"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Subcategory</FormLabel>
-                            <FormControl>
-                              <Input placeholder="e.g., safeguarding, mental_capacity, health_safety" {...field} data-testid="input-subcategory" />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      <FormField
-                        control={questionnaireForm.control}
-                        name="description"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Description</FormLabel>
-                            <FormControl>
-                              <Textarea 
-                                placeholder="Describe what this assessment covers..."
-                                {...field} 
-                                data-testid="textarea-description"
-                              />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      <div className="grid grid-cols-2 gap-4">
-                        <FormField
-                          control={questionnaireForm.control}
-                          name="passingScore"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Passing Score (%)</FormLabel>
-                              <FormControl>
-                                <Input 
-                                  type="number" 
-                                  min="0" 
-                                  max="100" 
-                                  {...field}
-                                  onChange={(e) => field.onChange(parseInt(e.target.value))}
-                                  data-testid="input-passing-score"
-                                />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                        <FormField
-                          control={questionnaireForm.control}
-                          name="timeLimit"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Time Limit (minutes)</FormLabel>
-                              <FormControl>
-                                <Input 
-                                  type="number" 
-                                  min="1"
-                                  placeholder="Optional"
-                                  {...field}
-                                  onChange={(e) => field.onChange(e.target.value ? parseInt(e.target.value) : undefined)}
-                                  data-testid="input-time-limit"
-                                />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                      </div>
-                      <FormField
-                        control={questionnaireForm.control}
-                        name="instructions"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Instructions (Optional)</FormLabel>
-                            <FormControl>
-                              <Textarea 
-                                placeholder="Special instructions for completing this assessment..."
-                                {...field} 
-                                data-testid="textarea-instructions"
-                              />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      <div className="flex justify-end gap-2">
-                        <Button
-                          type="button"
-                          variant="outline"
-                          onClick={() => setShowQuestionnaireDialog(false)}
-                          data-testid="button-cancel-questionnaire"
-                        >
-                          Cancel
-                        </Button>
-                        <Button 
-                          type="submit" 
-                          disabled={createQuestionnaireMutation.isPending}
-                          data-testid="button-save-questionnaire"
-                        >
-                          {createQuestionnaireMutation.isPending ? "Creating..." : "Create Questionnaire"}
-                        </Button>
-                      </div>
-                    </form>
-                  </Form>
-                </DialogContent>
-              </Dialog>
-            </div>
-
-            {/* Questionnaires List */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <FileCheck className="h-5 w-5" />
-                  Knowledge Questionnaires
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                {loadingQuestionnaires ? (
-                  <div className="text-center py-8">Loading questionnaires...</div>
-                ) : questionnaires.length === 0 ? (
-                  <div className="text-center py-8">
-                    <Brain className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                    <p className="text-gray-500">No questionnaires created yet</p>
-                    <p className="text-sm text-gray-400 mt-2">Create your first knowledge assessment to get started</p>
-                  </div>
-                ) : (
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>Title</TableHead>
-                        <TableHead>Category</TableHead>
-                        <TableHead>Questions</TableHead>
-                        <TableHead>Status</TableHead>
-                        <TableHead>Actions</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {questionnaires.map((questionnaire: KnowledgeQuestionnaire) => (
-                        <TableRow key={questionnaire.id}>
-                          <TableCell>
-                            <div>
-                              <div className="font-medium">{questionnaire.title}</div>
-                              <div className="text-sm text-gray-500">{questionnaire.description}</div>
-                            </div>
-                          </TableCell>
-                          <TableCell>
-                            <Badge variant="outline">
-                              {questionnaire.category.replace('_', ' ')}
-                            </Badge>
-                          </TableCell>
-                          <TableCell>
-                            <Button
-                              variant="link"
-                              className="p-0 h-auto"
-                              onClick={() => setSelectedQuestionnaire(questionnaire)}
-                              data-testid={`button-view-questions-${questionnaire.id}`}
-                            >
-                              View Questions
-                            </Button>
-                          </TableCell>
-                          <TableCell>
-                            <Badge variant={questionnaire.isActive ? "default" : "secondary"}>
-                              {questionnaire.isActive ? "Active" : "Inactive"}
-                            </Badge>
-                          </TableCell>
-                          <TableCell>
-                            <div className="flex items-center gap-2">
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() => copyShareableLink(questionnaire)}
-                                data-testid={`button-copy-link-${questionnaire.id}`}
-                              >
-                                <Copy className="h-4 w-4" />
-                              </Button>
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() => generateQRCode(questionnaire)}
-                                data-testid={`button-qr-code-${questionnaire.id}`}
-                              >
-                                <QrCode className="h-4 w-4" />
-                              </Button>
-                              <AlertDialog>
-                                <AlertDialogTrigger asChild>
-                                  <Button
-                                    variant="outline"
-                                    size="sm"
-                                    data-testid={`button-delete-${questionnaire.id}`}
-                                  >
-                                    <Trash2 className="h-4 w-4" />
-                                  </Button>
-                                </AlertDialogTrigger>
-                                <AlertDialogContent>
-                                  <AlertDialogHeader>
-                                    <AlertDialogTitle>Delete Questionnaire</AlertDialogTitle>
-                                    <AlertDialogDescription>
-                                      Are you sure you want to delete "{questionnaire.title}"? This action cannot be undone.
-                                    </AlertDialogDescription>
-                                  </AlertDialogHeader>
-                                  <AlertDialogFooter>
-                                    <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                    <AlertDialogAction
-                                      onClick={() => deleteQuestionnaireMutation.mutate(questionnaire.id)}
-                                      data-testid="button-confirm-delete"
-                                    >
-                                      Delete
-                                    </AlertDialogAction>
-                                  </AlertDialogFooter>
-                                </AlertDialogContent>
-                              </AlertDialog>
-                            </div>
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                )}
-              </CardContent>
-            </Card>
-
-            {/* Questions Management Dialog */}
-            {selectedQuestionnaire && (
-              <Dialog open={!!selectedQuestionnaire} onOpenChange={() => setSelectedQuestionnaire(null)}>
-                <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
-                  <DialogHeader>
-                    <DialogTitle className="flex items-center gap-2">
-                      <FileText className="h-5 w-5" />
-                      {selectedQuestionnaire.title} - Questions
-                    </DialogTitle>
-                    <DialogDescription>
-                      Manage questions for this knowledge assessment
-                    </DialogDescription>
-                  </DialogHeader>
-                  
-                  <div className="space-y-4">
-                    <div className="flex justify-between items-center">
-                      <p className="text-sm text-gray-600">
-                        {questions.length} question(s) in this assessment
-                      </p>
-                      <Dialog open={showQuestionDialog} onOpenChange={setShowQuestionDialog}>
-                        <DialogTrigger asChild>
-                          <Button size="sm" data-testid="button-add-question">
-                            <Plus className="h-4 w-4 mr-2" />
-                            Add Question
-                          </Button>
-                        </DialogTrigger>
-                        <DialogContent className="max-w-2xl">
-                          <DialogHeader>
-                            <DialogTitle>Add Question</DialogTitle>
-                            <DialogDescription>
-                              Add a new question to the assessment
-                            </DialogDescription>
-                          </DialogHeader>
-                          <Form {...questionForm}>
-                            <form onSubmit={questionForm.handleSubmit(onQuestionSubmit)} className="space-y-4">
-                              <FormField
-                                control={questionForm.control}
-                                name="questionText"
-                                render={({ field }) => (
-                                  <FormItem>
-                                    <FormLabel>Question Text</FormLabel>
-                                    <FormControl>
-                                      <Textarea 
-                                        placeholder="Enter your question here..."
-                                        {...field} 
-                                        data-testid="textarea-question-text"
-                                      />
-                                    </FormControl>
-                                    <FormMessage />
-                                  </FormItem>
-                                )}
-                              />
-                              <div className="grid grid-cols-2 gap-4">
-                                <FormField
-                                  control={questionForm.control}
-                                  name="questionType"
-                                  render={({ field }) => (
-                                    <FormItem>
-                                      <FormLabel>Question Type</FormLabel>
-                                      <Select onValueChange={field.onChange} defaultValue={field.value}>
-                                        <FormControl>
-                                          <SelectTrigger data-testid="select-question-type">
-                                            <SelectValue placeholder="Select type" />
-                                          </SelectTrigger>
-                                        </FormControl>
-                                        <SelectContent>
-                                          <SelectItem value="multiple_choice">Multiple Choice</SelectItem>
-                                          <SelectItem value="true_false">True/False</SelectItem>
-                                          <SelectItem value="short_answer">Short Answer</SelectItem>
-                                          <SelectItem value="scenario_based">Scenario Based</SelectItem>
-                                        </SelectContent>
-                                      </Select>
-                                      <FormMessage />
-                                    </FormItem>
-                                  )}
-                                />
-                                <FormField
-                                  control={questionForm.control}
-                                  name="points"
-                                  render={({ field }) => (
-                                    <FormItem>
-                                      <FormLabel>Points</FormLabel>
-                                      <FormControl>
-                                        <Input 
-                                          type="number" 
-                                          min="1"
-                                          {...field}
-                                          onChange={(e) => field.onChange(parseInt(e.target.value))}
-                                          data-testid="input-points"
-                                        />
-                                      </FormControl>
-                                      <FormMessage />
-                                    </FormItem>
-                                  )}
-                                />
-                              </div>
-                              <FormField
-                                control={questionForm.control}
-                                name="correctAnswer"
-                                render={({ field }) => (
-                                  <FormItem>
-                                    <FormLabel>Correct Answer</FormLabel>
-                                    <FormControl>
-                                      <Input 
-                                        placeholder="Enter the correct answer..."
-                                        {...field} 
-                                        data-testid="input-correct-answer"
-                                      />
-                                    </FormControl>
-                                    <FormMessage />
-                                  </FormItem>
-                                )}
-                              />
-                              <FormField
-                                control={questionForm.control}
-                                name="explanation"
-                                render={({ field }) => (
-                                  <FormItem>
-                                    <FormLabel>Explanation (Optional)</FormLabel>
-                                    <FormControl>
-                                      <Textarea 
-                                        placeholder="Explain why this is the correct answer..."
-                                        {...field} 
-                                        data-testid="textarea-explanation"
-                                      />
-                                    </FormControl>
-                                    <FormMessage />
-                                  </FormItem>
-                                )}
-                              />
-                              <div className="flex justify-end gap-2">
-                                <Button
-                                  type="button"
-                                  variant="outline"
-                                  onClick={() => {
-                                    setShowQuestionDialog(false);
-                                    questionForm.reset();
-                                  }}
-                                  data-testid="button-cancel-question"
-                                >
-                                  Cancel
-                                </Button>
-                                <Button 
-                                  type="submit" 
-                                  disabled={createQuestionMutation.isPending}
-                                  data-testid="button-save-question"
-                                >
-                                  {createQuestionMutation.isPending ? "Adding..." : "Add Question"}
-                                </Button>
-                              </div>
-                            </form>
-                          </Form>
-                        </DialogContent>
-                      </Dialog>
-                    </div>
-                    
-                    {questions.length === 0 ? (
-                      <div className="text-center py-8">
-                        <FileText className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                        <p className="text-gray-500">No questions added yet</p>
-                        <p className="text-sm text-gray-400 mt-2">Add your first question to get started</p>
-                      </div>
-                    ) : (
-                      <div className="space-y-4">
-                        {questions.map((question: KnowledgeQuestion, index: number) => (
-                          <Card key={question.id} className="border-l-4 border-l-blue-500">
-                            <CardContent className="pt-4">
-                              <div className="flex justify-between items-start">
-                                <div className="flex-1">
-                                  <div className="flex items-center gap-2 mb-2">
-                                    <Badge variant="outline">{question.questionType.replace('_', ' ')}</Badge>
-                                    <Badge variant="secondary">{question.points} point(s)</Badge>
-                                  </div>
-                                  <p className="font-medium mb-2">Q{index + 1}: {question.questionText}</p>
-                                  {question.correctAnswer && (
-                                    <p className="text-sm text-green-600 dark:text-green-400">
-                                      <strong>Answer:</strong> {question.correctAnswer}
-                                    </p>
-                                  )}
-                                  {question.explanation && (
-                                    <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
-                                      <strong>Explanation:</strong> {question.explanation}
-                                    </p>
-                                  )}
-                                </div>
-                              </div>
-                            </CardContent>
-                          </Card>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                </DialogContent>
-              </Dialog>
-            )}
-          </div>
-        </TabsContent>
-      </Tabs>
-
-      {/* Quote Preview Modal */}
+      
+      {/* Quote Generation Dialog */}
       <Dialog open={showQuote} onOpenChange={setShowQuote}>
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-3xl">
           <DialogHeader>
-            <DialogTitle>Quote Preview</DialogTitle>
+            <DialogTitle>Care Package Quote</DialogTitle>
             <DialogDescription>
-              Review and download the customer quote
+              Professional care package quote for {quoteDetails.customerName}
             </DialogDescription>
           </DialogHeader>
           
-          <div id="quote-content" className="bg-white p-8 text-black">
-            {/* Company Logo and Header */}
-            <div className="text-center mb-8">
-              <img 
-                src={logoImage} 
-                alt="Smeaton Healthcare" 
-                style={{ height: '120px', width: 'auto', margin: '0 auto', marginBottom: '16px' }}
-              />
-              <div className="text-sm text-gray-600 mb-4">Professional Healthcare Staffing Solutions</div>
-              <div className="text-sm text-gray-600">
-                Email: hello@smeatonhealthcare.co.uk | Phone: 0330 165 8880
+          <div className="space-y-6" id="quote-content">
+            {/* Header */}
+            <div className="flex justify-between items-start border-b pb-4">
+              <div>
+                <h1 className="text-2xl font-bold text-pink-600">Smeaton Healthcare</h1>
+                <p className="text-gray-600">Professional Care Services</p>
+                <p className="text-sm text-gray-500">Devon & Cornwall</p>
+              </div>
+              <div className="text-right">
+                <p className="text-sm font-medium">Quote Date: {new Date().toLocaleDateString()}</p>
+                <p className="text-sm text-gray-600">Valid for 30 days</p>
               </div>
             </div>
 
-            {/* Quote Details */}
-            <div className="mb-6">
-              <h2 className="text-xl font-semibold mb-4">Care Package Quote</h2>
-              <div className="grid grid-cols-2 gap-4 mb-4">
-                <div>
-                  <strong>Customer:</strong> {quoteDetails.customerName}
+            {/* Customer Details */}
+            <div className="grid grid-cols-2 gap-6">
+              <div>
+                <h3 className="font-semibold mb-2">Customer Details</h3>
+                <div className="text-sm space-y-1">
+                  <div><strong>Name:</strong> {quoteDetails.customerName}</div>
+                  <div><strong>Relating to:</strong> {quoteDetails.relatingTo}</div>
+                  <div><strong>Service:</strong> {quoteDetails.selectedService}</div>
                 </div>
-                <div>
-                  <strong>Date:</strong> {new Date().toLocaleDateString()}
-                </div>
-                {quoteDetails.relatingTo && (
-                  <div className="col-span-2">
-                    <strong>Relating To:</strong> {quoteDetails.relatingTo}
-                  </div>
-                )}
-                {quoteDetails.selectedService && (
-                  <div className="col-span-2">
-                    <strong>Service Type:</strong> {quoteDetails.selectedService}
-                  </div>
-                )}
+              </div>
+              <div>
+                <h3 className="font-semibold mb-2">Care Requirements</h3>
+                <p className="text-sm">{quoteDetails.careNeeds}</p>
               </div>
             </div>
 
-            {/* Care Needs Discussed */}
-            {quoteDetails.careNeeds && (
-              <div className="mb-6">
-                <h3 className="text-lg font-semibold mb-3">Care Needs Discussed</h3>
-                <div className="bg-gray-50 p-4 rounded border text-sm">
-                  {quoteDetails.careNeeds}
-                </div>
-              </div>
-            )}
-
-            {/* Package Type and Details */}
+            {/* Service Details */}
             <div className="mb-6">
-              <h3 className="text-lg font-semibold mb-3">
-                {packageType === 'hourly' ? 'Hourly Care Package' : 'Live-In Care Package'}
-              </h3>
-              <div className="grid grid-cols-2 gap-4 text-sm">
+              <h3 className="text-lg font-semibold mb-3">Service Details</h3>
+              <div className="bg-gray-50 p-4 rounded-lg space-y-2 text-sm">
                 <div>
-                  <strong>Charge Rate:</strong> {formatCurrency(parseFloat(calculation.chargeRate) || 0)}/hour
+                  <strong>Package Type:</strong> {packageType === 'hourly' ? 'Hourly Care' : 
+                                                packageType === 'live-in' ? 'Live-In Care' : 
+                                                packageType === 'care24x7' ? '24/7 Care' : 'Short Visits'}
                 </div>
-                {packageType === 'hourly' ? (
+                {packageType === 'hourly' && (
                   <div>
-                    <strong>Total Hours:</strong> {calculation.hours}
+                    <strong>Hours per Shift:</strong> {calculation.hours || 0}
                   </div>
-                ) : (
+                )}
+                {packageType === 'live-in' && (
                   <>
                     <div>
-                      <strong>Hours per Day:</strong> {calculation.hoursPerDay}
+                      <strong>Hours per Day:</strong> {calculation.hoursPerDay || 0}
                     </div>
                     <div>
-                      <strong>Number of Days:</strong> {calculation.days}
+                      <strong>Number of Days:</strong> {calculation.days || 0}
+                    </div>
+                  </>
+                )}
+                {packageType === 'care24x7' && (
+                  <>
+                    <div>
+                      <strong>Day Hours:</strong> {calculation.dayHours || 0} ({calculation.calcMode === 'weekly' ? 'per day' : 'total'})
                     </div>
                     <div>
-                      <strong>Total Hours:</strong> {(parseFloat(calculation.hoursPerDay) || 0) * (parseFloat(calculation.days) || 0)}
+                      <strong>Night Hours:</strong> {calculation.nightHours || 0} ({calculation.calcMode === 'weekly' ? 'per night' : 'total'})
+                    </div>
+                    {calculation.calcMode === 'weekly' && (
+                      <div>
+                        <strong>Number of Days:</strong> {calculation.periodDays || 0}
+                      </div>
+                    )}
+                  </>
+                )}
+                {packageType === 'short-visits' && (
+                  <>
+                    <div>
+                      <strong>Care Hours Delivered:</strong> {calculation.careHoursDelivered || 0}
+                    </div>
+                    <div>
+                      <strong>Travel Time:</strong> {calculation.travelTimeMinutes || 0} minutes
                     </div>
                   </>
                 )}
