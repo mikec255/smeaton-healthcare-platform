@@ -156,13 +156,25 @@ async function requireSuperAdmin(req: any, res: any, next: any) {
           return res.status(401).json({ message: "User not found or inactive" });
         }
         
-        user = decoded;
+        user = dbUser; // Use database user, not token data for security
       } catch (error) {
         // Invalid token format
       }
     }
   }
   
+  // CRITICAL FIX: If we have a user from token but no session user, populate the session
+  if (user && !req.session?.user) {
+    req.session.user = {
+      id: user.id,
+      username: user.username,
+      role: user.role,
+      isActive: user.isActive,
+      createdAt: user.createdAt,
+    };
+    console.log("FIXED: Populated session with superadmin from token:", user.username);
+  }
+
   if (!user) {
     return res.status(401).json({ message: "Unauthorized: Please log in" });
   }
@@ -301,7 +313,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     saveUninitialized: false,
     rolling: true, // Reset expiry on each request
     cookie: {
-      secure: false, // Allow HTTP for development - will be HTTPS in actual production
+      secure: process.env.NODE_ENV === 'production', // HTTPS only in production
       httpOnly: true, // Prevent XSS access to cookies
       sameSite: 'lax', // More permissive for better compatibility
       maxAge: 24 * 60 * 60 * 1000, // 24 hours
