@@ -153,7 +153,7 @@ export default function Admin() {
             published: blogPosts.filter(p => p.isPublished).length,
             drafts: blogPosts.filter(p => !p.isPublished).length
           },
-          color: "bg-primary text-primary-foreground hover:bg-primary/90"
+          color: "bg-blue-600 text-white hover:bg-blue-700"
         },
         {
           title: "Newsletter",
@@ -165,7 +165,7 @@ export default function Admin() {
             published: newsletters.filter(n => n.status === 'published').length,
             drafts: newsletters.filter(n => n.status === 'draft').length
           },
-          color: "bg-secondary text-secondary-foreground hover:bg-secondary/90"
+          color: "bg-blue-600 text-white hover:bg-blue-700"
         }
       ]
     },
@@ -184,7 +184,7 @@ export default function Admin() {
             active: jobs.filter(j => j.isActive).length,
             inactive: jobs.filter(j => !j.isActive).length
           },
-          color: "bg-primary text-primary-foreground hover:bg-primary/90"
+          color: "bg-emerald-600 text-white hover:bg-emerald-700"
         },
         {
           title: "Pre-Screens",
@@ -196,7 +196,7 @@ export default function Admin() {
             pending: 12,
             reviewed: 35
           },
-          color: "bg-accent text-accent-foreground hover:bg-accent/90"
+          color: "bg-emerald-600 text-white hover:bg-emerald-700"
         }
       ]
     },
@@ -215,7 +215,7 @@ export default function Admin() {
             new: 8,
             processed: 15
           },
-          color: "bg-accent text-accent-foreground hover:bg-accent/90"
+          color: "bg-orange-600 text-white hover:bg-orange-700"
         },
         {
           title: "Contact Enquiries",
@@ -227,7 +227,7 @@ export default function Admin() {
             new: 5,
             processed: 7
           },
-          color: "bg-secondary text-secondary-foreground hover:bg-secondary/90"
+          color: "bg-orange-600 text-white hover:bg-orange-700"
         }
       ]
     },
@@ -246,7 +246,7 @@ export default function Admin() {
             new: feedback.filter(f => f.status === "new").length,
             avgRating: feedback.length > 0 ? (feedback.reduce((sum, f) => sum + f.overallRating, 0) / feedback.length).toFixed(1) : "0"
           },
-          color: "bg-muted text-muted-foreground hover:bg-muted/90"
+          color: "bg-pink-600 text-white hover:bg-pink-700"
         }
       ]
     }
@@ -310,7 +310,7 @@ export default function Admin() {
               active: 1,
               inactive: 0
             },
-            color: "bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            color: "bg-slate-600 text-white hover:bg-slate-700"
           },
           {
             title: "Email Settings",
@@ -322,7 +322,7 @@ export default function Admin() {
               configured: emailConfig.configured,
               info: emailConfig.configured ? "Configured" : "Not configured"
             },
-            color: emailConfig.configured ? "bg-green-600 text-white hover:bg-green-700" : "bg-red-600 text-white hover:bg-red-700"
+            color: emailConfig.configured ? "bg-slate-600 text-white hover:bg-slate-700" : "bg-slate-600 text-white hover:bg-slate-700"
           }
         ]
       }
