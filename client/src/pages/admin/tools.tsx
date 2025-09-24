@@ -24,14 +24,18 @@ import { useToast } from '@/hooks/use-toast';
 import { jsPDF } from 'jspdf';
 import html2canvas from 'html2canvas';
 
+// Fixed employment rates - NOT editable
+const EMPLOYMENT_RATES = {
+  nationalInsurance: 15.0,
+  pension: 3.0,
+  holidayPay: 12.07
+};
+
 interface HourlyCalculation {
   chargeRate: string;
   hours: string;
   carerWage: string;
   travelCosts: string;
-  nationalInsurance: number;
-  pension: number;
-  holidayPay: number;
 }
 
 interface LiveInCalculation {
@@ -41,9 +45,6 @@ interface LiveInCalculation {
   carerWage: string;
   travelCosts: string;
   foodAllowance: string;
-  nationalInsurance: number;
-  pension: number;
-  holidayPay: number;
 }
 
 interface Care24x7Calculation {
@@ -58,9 +59,6 @@ interface Care24x7Calculation {
   travelDayPerShift: string;
   travelNightPerShift: string;
   foodAllowance: string;
-  nationalInsurance: number;
-  pension: number;
-  holidayPay: number;
 }
 
 interface ShortVisitsCalculation {
@@ -69,6 +67,28 @@ interface ShortVisitsCalculation {
   careHoursDelivered: string;
   travelTimeMinutes: string;
   minimumWage: number;
+}
+
+interface DetailedResults {
+  totalRevenue: number;
+  grossWage: number;
+  nationalInsuranceCost: number;
+  pensionCost: number;
+  holidayPayCost: number;
+  travelCostTotal: number;
+  foodAllowanceTotal: number;
+  totalStaffCost: number;
+  grossMargin: number;
+  marginPercentage: number;
+}
+
+interface ShortVisitsResults {
+  chargeRevenue: number;
+  carePayCost: number;
+  travelPayCost: number;
+  totalPayCost: number;
+  margin: number;
+  marginPercentage: number;
 }
 
 interface QuoteDetails {
@@ -83,10 +103,7 @@ export default function AdminTools() {
     chargeRate: '',
     hours: '',
     carerWage: '',
-    travelCosts: '',
-    nationalInsurance: 15.0,
-    pension: 3.0,
-    holidayPay: 12.07
+    travelCosts: ''
   });
 
   const [liveInCalc, setLiveInCalc] = useState<LiveInCalculation>({
@@ -95,10 +112,7 @@ export default function AdminTools() {
     days: '',
     carerWage: '',
     travelCosts: '',
-    foodAllowance: '',
-    nationalInsurance: 15.0,
-    pension: 3.0,
-    holidayPay: 12.07
+    foodAllowance: ''
   });
 
   const [care24x7Calc, setCare24x7Calc] = useState<Care24x7Calculation>({
@@ -112,10 +126,7 @@ export default function AdminTools() {
     nightHours: '',
     travelDayPerShift: '',
     travelNightPerShift: '',
-    foodAllowance: '',
-    nationalInsurance: 15.0,
-    pension: 3.0,
-    holidayPay: 12.07
+    foodAllowance: ''
   });
 
   const [shortVisitsCalc, setShortVisitsCalc] = useState<ShortVisitsCalculation>({
@@ -126,10 +137,53 @@ export default function AdminTools() {
     minimumWage: 12.21
   });
 
-  const [hourlyResults, setHourlyResults] = useState({ totalRevenue: 0, totalStaffCost: 0, grossMargin: 0, marginPercentage: 0 });
-  const [liveInResults, setLiveInResults] = useState({ totalRevenue: 0, totalStaffCost: 0, grossMargin: 0, marginPercentage: 0 });
-  const [care24x7Results, setCare24x7Results] = useState({ totalRevenue: 0, totalStaffCost: 0, grossMargin: 0, marginPercentage: 0 });
-  const [shortVisitsResults, setShortVisitsResults] = useState({ chargeRevenue: 0, carePayCost: 0, travelPayCost: 0, totalPayCost: 0, margin: 0, marginPercentage: 0 });
+  const [hourlyResults, setHourlyResults] = useState<DetailedResults>({
+    totalRevenue: 0,
+    grossWage: 0,
+    nationalInsuranceCost: 0,
+    pensionCost: 0,
+    holidayPayCost: 0,
+    travelCostTotal: 0,
+    foodAllowanceTotal: 0,
+    totalStaffCost: 0,
+    grossMargin: 0,
+    marginPercentage: 0
+  });
+
+  const [liveInResults, setLiveInResults] = useState<DetailedResults>({
+    totalRevenue: 0,
+    grossWage: 0,
+    nationalInsuranceCost: 0,
+    pensionCost: 0,
+    holidayPayCost: 0,
+    travelCostTotal: 0,
+    foodAllowanceTotal: 0,
+    totalStaffCost: 0,
+    grossMargin: 0,
+    marginPercentage: 0
+  });
+
+  const [care24x7Results, setCare24x7Results] = useState<DetailedResults>({
+    totalRevenue: 0,
+    grossWage: 0,
+    nationalInsuranceCost: 0,
+    pensionCost: 0,
+    holidayPayCost: 0,
+    travelCostTotal: 0,
+    foodAllowanceTotal: 0,
+    totalStaffCost: 0,
+    grossMargin: 0,
+    marginPercentage: 0
+  });
+
+  const [shortVisitsResults, setShortVisitsResults] = useState<ShortVisitsResults>({
+    chargeRevenue: 0,
+    carePayCost: 0,
+    travelPayCost: 0,
+    totalPayCost: 0,
+    margin: 0,
+    marginPercentage: 0
+  });
 
   const [showQuote, setShowQuote] = useState(false);
   const [quoteDetails, setQuoteDetails] = useState<QuoteDetails>({
@@ -152,15 +206,15 @@ export default function AdminTools() {
   // Auto-calculate on input changes
   useEffect(() => {
     calculateHourly();
-  }, [hourlyCalc.chargeRate, hourlyCalc.hours, hourlyCalc.carerWage, hourlyCalc.travelCosts, hourlyCalc.nationalInsurance, hourlyCalc.pension, hourlyCalc.holidayPay]);
+  }, [hourlyCalc.chargeRate, hourlyCalc.hours, hourlyCalc.carerWage, hourlyCalc.travelCosts]);
 
   useEffect(() => {
     calculateLiveIn();
-  }, [liveInCalc.chargeRate, liveInCalc.hoursPerDay, liveInCalc.days, liveInCalc.carerWage, liveInCalc.travelCosts, liveInCalc.foodAllowance, liveInCalc.nationalInsurance, liveInCalc.pension, liveInCalc.holidayPay]);
+  }, [liveInCalc.chargeRate, liveInCalc.hoursPerDay, liveInCalc.days, liveInCalc.carerWage, liveInCalc.travelCosts, liveInCalc.foodAllowance]);
 
   useEffect(() => {
     calculateCare24x7();
-  }, [care24x7Calc.calcMode, care24x7Calc.periodDays, care24x7Calc.dayChargeRate, care24x7Calc.nightChargeRate, care24x7Calc.dayWageRate, care24x7Calc.nightWageRate, care24x7Calc.dayHours, care24x7Calc.nightHours, care24x7Calc.travelDayPerShift, care24x7Calc.travelNightPerShift, care24x7Calc.foodAllowance, care24x7Calc.nationalInsurance, care24x7Calc.pension, care24x7Calc.holidayPay]);
+  }, [care24x7Calc.calcMode, care24x7Calc.periodDays, care24x7Calc.dayChargeRate, care24x7Calc.nightChargeRate, care24x7Calc.dayWageRate, care24x7Calc.nightWageRate, care24x7Calc.dayHours, care24x7Calc.nightHours, care24x7Calc.travelDayPerShift, care24x7Calc.travelNightPerShift, care24x7Calc.foodAllowance]);
 
   useEffect(() => {
     calculateShortVisits();
@@ -174,14 +228,25 @@ export default function AdminTools() {
 
     const totalRevenue = hours * chargeRate;
     const grossWage = hours * carerWage;
-    const nationalInsuranceCost = grossWage * (hourlyCalc.nationalInsurance / 100);
-    const pensionCost = grossWage * (hourlyCalc.pension / 100);
-    const holidayPayCost = grossWage * (hourlyCalc.holidayPay / 100);
+    const nationalInsuranceCost = grossWage * (EMPLOYMENT_RATES.nationalInsurance / 100);
+    const pensionCost = grossWage * (EMPLOYMENT_RATES.pension / 100);
+    const holidayPayCost = grossWage * (EMPLOYMENT_RATES.holidayPay / 100);
     const totalStaffCost = grossWage + nationalInsuranceCost + pensionCost + holidayPayCost + travelCosts;
     const grossMargin = totalRevenue - totalStaffCost;
     const marginPercentage = totalRevenue > 0 ? (grossMargin / totalRevenue) * 100 : 0;
 
-    setHourlyResults({ totalRevenue, totalStaffCost, grossMargin, marginPercentage });
+    setHourlyResults({
+      totalRevenue,
+      grossWage,
+      nationalInsuranceCost,
+      pensionCost,
+      holidayPayCost,
+      travelCostTotal: travelCosts,
+      foodAllowanceTotal: 0,
+      totalStaffCost,
+      grossMargin,
+      marginPercentage
+    });
   };
 
   const calculateLiveIn = () => {
@@ -195,14 +260,25 @@ export default function AdminTools() {
     const totalHours = hoursPerDay * days;
     const totalRevenue = totalHours * chargeRate;
     const grossWage = totalHours * carerWage;
-    const nationalInsuranceCost = grossWage * (liveInCalc.nationalInsurance / 100);
-    const pensionCost = grossWage * (liveInCalc.pension / 100);
-    const holidayPayCost = grossWage * (liveInCalc.holidayPay / 100);
+    const nationalInsuranceCost = grossWage * (EMPLOYMENT_RATES.nationalInsurance / 100);
+    const pensionCost = grossWage * (EMPLOYMENT_RATES.pension / 100);
+    const holidayPayCost = grossWage * (EMPLOYMENT_RATES.holidayPay / 100);
     const totalStaffCost = grossWage + nationalInsuranceCost + pensionCost + holidayPayCost + travelCosts + foodAllowance;
     const grossMargin = totalRevenue - totalStaffCost;
     const marginPercentage = totalRevenue > 0 ? (grossMargin / totalRevenue) * 100 : 0;
 
-    setLiveInResults({ totalRevenue, totalStaffCost, grossMargin, marginPercentage });
+    setLiveInResults({
+      totalRevenue,
+      grossWage,
+      nationalInsuranceCost,
+      pensionCost,
+      holidayPayCost,
+      travelCostTotal: travelCosts,
+      foodAllowanceTotal: foodAllowance,
+      totalStaffCost,
+      grossMargin,
+      marginPercentage
+    });
   };
 
   const calculateCare24x7 = () => {
@@ -237,14 +313,25 @@ export default function AdminTools() {
     const nightWage = nightWageRate * totalNightHours;
     const grossWage = dayWage + nightWage;
 
-    const nationalInsuranceCost = grossWage * (care24x7Calc.nationalInsurance / 100);
-    const pensionCost = grossWage * (care24x7Calc.pension / 100);
-    const holidayPayCost = grossWage * (care24x7Calc.holidayPay / 100);
+    const nationalInsuranceCost = grossWage * (EMPLOYMENT_RATES.nationalInsurance / 100);
+    const pensionCost = grossWage * (EMPLOYMENT_RATES.pension / 100);
+    const holidayPayCost = grossWage * (EMPLOYMENT_RATES.holidayPay / 100);
     const totalStaffCost = grossWage + nationalInsuranceCost + pensionCost + holidayPayCost + totalTravelCosts + totalFoodAllowance;
     const grossMargin = totalRevenue - totalStaffCost;
     const marginPercentage = totalRevenue > 0 ? (grossMargin / totalRevenue) * 100 : 0;
 
-    setCare24x7Results({ totalRevenue, totalStaffCost, grossMargin, marginPercentage });
+    setCare24x7Results({
+      totalRevenue,
+      grossWage,
+      nationalInsuranceCost,
+      pensionCost,
+      holidayPayCost,
+      travelCostTotal: totalTravelCosts,
+      foodAllowanceTotal: totalFoodAllowance,
+      totalStaffCost,
+      grossMargin,
+      marginPercentage
+    });
   };
 
   const calculateShortVisits = () => {
@@ -305,16 +392,6 @@ export default function AdminTools() {
         description: "Failed to generate PDF",
         variant: "destructive"
       });
-    }
-  };
-
-  const getActiveResults = () => {
-    switch (activeCalculator) {
-      case 'hourly': return hourlyResults;
-      case 'live-in': return liveInResults;
-      case 'care24x7': return care24x7Results;
-      case 'short-visits': return shortVisitsResults;
-      default: return hourlyResults;
     }
   };
 
@@ -437,50 +514,9 @@ export default function AdminTools() {
                       />
                     </div>
                   </div>
-
-                  {/* Employment Cost Rates */}
-                  <div className="space-y-4">
-                    <h4 className="font-semibold text-gray-700 dark:text-gray-300">UK Employment Costs (%)</h4>
-                    
-                    <div className="space-y-2">
-                      <Label htmlFor="hourly-national-insurance">National Insurance (%)</Label>
-                      <Input
-                        id="hourly-national-insurance"
-                        type="number"
-                        step="0.1"
-                        value={hourlyCalc.nationalInsurance}
-                        onChange={(e) => setHourlyCalc(prev => ({ ...prev, nationalInsurance: parseFloat(e.target.value) || 0 }))}
-                        data-testid="input-hourly-national-insurance"
-                      />
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label htmlFor="hourly-pension">Pension Contribution (%)</Label>
-                      <Input
-                        id="hourly-pension"
-                        type="number"
-                        step="0.1"
-                        value={hourlyCalc.pension}
-                        onChange={(e) => setHourlyCalc(prev => ({ ...prev, pension: parseFloat(e.target.value) || 0 }))}
-                        data-testid="input-hourly-pension"
-                      />
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label htmlFor="hourly-holiday-pay">Holiday Pay (%)</Label>
-                      <Input
-                        id="hourly-holiday-pay"
-                        type="number"
-                        step="0.01"
-                        value={hourlyCalc.holidayPay}
-                        onChange={(e) => setHourlyCalc(prev => ({ ...prev, holidayPay: parseFloat(e.target.value) || 0 }))}
-                        data-testid="input-hourly-holiday-pay"
-                      />
-                    </div>
-                  </div>
                 </div>
 
-                {/* Results Section */}
+                {/* Results Section with DETAILED BREAKDOWN */}
                 <div className="space-y-4">
                   <h3 className="text-lg font-semibold mb-4">Financial Analysis</h3>
 
@@ -488,26 +524,57 @@ export default function AdminTools() {
                     <CardContent className="pt-4">
                       <div className="space-y-3">
                         <div className="flex justify-between items-center">
-                          <span className="text-sm font-medium">Total Revenue</span>
+                          <span className="text-sm font-medium text-green-600 dark:text-green-400">Total Revenue</span>
                           <span className="text-lg font-bold text-green-600 dark:text-green-400" data-testid="result-hourly-total-revenue">
                             {formatCurrency(hourlyResults.totalRevenue)}
                           </span>
                         </div>
-                        <div className="flex justify-between items-center">
-                          <span className="text-sm font-medium">Total Staff Cost</span>
-                          <span className="text-lg font-bold text-red-600 dark:text-red-400" data-testid="result-hourly-total-staff-cost">
-                            {formatCurrency(hourlyResults.totalStaffCost)}
-                          </span>
+                        
+                        <div className="border-t border-gray-200 dark:border-gray-700 pt-2">
+                          <div className="text-sm font-medium text-red-600 dark:text-red-400 mb-2">Cost Breakdown:</div>
+                          
+                          <div className="flex justify-between items-center text-sm">
+                            <span className="text-gray-600 dark:text-gray-400">Gross Wage</span>
+                            <span data-testid="result-hourly-gross-wage">{formatCurrency(hourlyResults.grossWage)}</span>
+                          </div>
+                          
+                          <div className="flex justify-between items-center text-sm">
+                            <span className="text-gray-600 dark:text-gray-400">National Insurance ({EMPLOYMENT_RATES.nationalInsurance}%)</span>
+                            <span data-testid="result-hourly-ni-cost">{formatCurrency(hourlyResults.nationalInsuranceCost)}</span>
+                          </div>
+                          
+                          <div className="flex justify-between items-center text-sm">
+                            <span className="text-gray-600 dark:text-gray-400">Pension ({EMPLOYMENT_RATES.pension}%)</span>
+                            <span data-testid="result-hourly-pension-cost">{formatCurrency(hourlyResults.pensionCost)}</span>
+                          </div>
+                          
+                          <div className="flex justify-between items-center text-sm">
+                            <span className="text-gray-600 dark:text-gray-400">Holiday Pay ({EMPLOYMENT_RATES.holidayPay}%)</span>
+                            <span data-testid="result-hourly-holiday-cost">{formatCurrency(hourlyResults.holidayPayCost)}</span>
+                          </div>
+                          
+                          <div className="flex justify-between items-center text-sm">
+                            <span className="text-gray-600 dark:text-gray-400">Travel Costs</span>
+                            <span data-testid="result-hourly-travel-cost">{formatCurrency(hourlyResults.travelCostTotal)}</span>
+                          </div>
+                          
+                          <div className="flex justify-between items-center text-sm font-medium border-t border-gray-200 dark:border-gray-700 pt-2">
+                            <span className="text-red-600 dark:text-red-400">Total Staff Cost</span>
+                            <span className="text-red-600 dark:text-red-400" data-testid="result-hourly-total-staff-cost">
+                              {formatCurrency(hourlyResults.totalStaffCost)}
+                            </span>
+                          </div>
                         </div>
+                        
                         <div className="border-t border-gray-200 dark:border-gray-700 pt-2">
                           <div className="flex justify-between items-center">
-                            <span className="font-semibold">Gross Margin</span>
+                            <span className="font-semibold text-blue-600 dark:text-blue-400">Gross Margin</span>
                             <span className="text-xl font-bold text-blue-600 dark:text-blue-400" data-testid="result-hourly-gross-margin">
                               {formatCurrency(hourlyResults.grossMargin)}
                             </span>
                           </div>
                           <div className="flex justify-between items-center mt-1">
-                            <span className="font-semibold">Margin %</span>
+                            <span className="font-semibold text-blue-600 dark:text-blue-400">Margin %</span>
                             <span className="text-xl font-bold text-blue-600 dark:text-blue-400" data-testid="result-hourly-margin-percentage">
                               {hourlyResults.marginPercentage.toFixed(2)}%
                             </span>
@@ -641,50 +708,9 @@ export default function AdminTools() {
                       />
                     </div>
                   </div>
-
-                  {/* Employment Cost Rates */}
-                  <div className="space-y-4">
-                    <h4 className="font-semibold text-gray-700 dark:text-gray-300">UK Employment Costs (%)</h4>
-                    
-                    <div className="space-y-2">
-                      <Label htmlFor="livein-national-insurance">National Insurance (%)</Label>
-                      <Input
-                        id="livein-national-insurance"
-                        type="number"
-                        step="0.1"
-                        value={liveInCalc.nationalInsurance}
-                        onChange={(e) => setLiveInCalc(prev => ({ ...prev, nationalInsurance: parseFloat(e.target.value) || 0 }))}
-                        data-testid="input-livein-national-insurance"
-                      />
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label htmlFor="livein-pension">Pension Contribution (%)</Label>
-                      <Input
-                        id="livein-pension"
-                        type="number"
-                        step="0.1"
-                        value={liveInCalc.pension}
-                        onChange={(e) => setLiveInCalc(prev => ({ ...prev, pension: parseFloat(e.target.value) || 0 }))}
-                        data-testid="input-livein-pension"
-                      />
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label htmlFor="livein-holiday-pay">Holiday Pay (%)</Label>
-                      <Input
-                        id="livein-holiday-pay"
-                        type="number"
-                        step="0.01"
-                        value={liveInCalc.holidayPay}
-                        onChange={(e) => setLiveInCalc(prev => ({ ...prev, holidayPay: parseFloat(e.target.value) || 0 }))}
-                        data-testid="input-livein-holiday-pay"
-                      />
-                    </div>
-                  </div>
                 </div>
 
-                {/* Results Section */}
+                {/* Results Section with DETAILED BREAKDOWN */}
                 <div className="space-y-4">
                   <h3 className="text-lg font-semibold mb-4">Financial Analysis</h3>
 
@@ -692,26 +718,62 @@ export default function AdminTools() {
                     <CardContent className="pt-4">
                       <div className="space-y-3">
                         <div className="flex justify-between items-center">
-                          <span className="text-sm font-medium">Total Revenue</span>
+                          <span className="text-sm font-medium text-green-600 dark:text-green-400">Total Revenue</span>
                           <span className="text-lg font-bold text-green-600 dark:text-green-400" data-testid="result-livein-total-revenue">
                             {formatCurrency(liveInResults.totalRevenue)}
                           </span>
                         </div>
-                        <div className="flex justify-between items-center">
-                          <span className="text-sm font-medium">Total Staff Cost</span>
-                          <span className="text-lg font-bold text-red-600 dark:text-red-400" data-testid="result-livein-total-staff-cost">
-                            {formatCurrency(liveInResults.totalStaffCost)}
-                          </span>
+                        
+                        <div className="border-t border-gray-200 dark:border-gray-700 pt-2">
+                          <div className="text-sm font-medium text-red-600 dark:text-red-400 mb-2">Cost Breakdown:</div>
+                          
+                          <div className="flex justify-between items-center text-sm">
+                            <span className="text-gray-600 dark:text-gray-400">Gross Wage</span>
+                            <span data-testid="result-livein-gross-wage">{formatCurrency(liveInResults.grossWage)}</span>
+                          </div>
+                          
+                          <div className="flex justify-between items-center text-sm">
+                            <span className="text-gray-600 dark:text-gray-400">National Insurance ({EMPLOYMENT_RATES.nationalInsurance}%)</span>
+                            <span data-testid="result-livein-ni-cost">{formatCurrency(liveInResults.nationalInsuranceCost)}</span>
+                          </div>
+                          
+                          <div className="flex justify-between items-center text-sm">
+                            <span className="text-gray-600 dark:text-gray-400">Pension ({EMPLOYMENT_RATES.pension}%)</span>
+                            <span data-testid="result-livein-pension-cost">{formatCurrency(liveInResults.pensionCost)}</span>
+                          </div>
+                          
+                          <div className="flex justify-between items-center text-sm">
+                            <span className="text-gray-600 dark:text-gray-400">Holiday Pay ({EMPLOYMENT_RATES.holidayPay}%)</span>
+                            <span data-testid="result-livein-holiday-cost">{formatCurrency(liveInResults.holidayPayCost)}</span>
+                          </div>
+                          
+                          <div className="flex justify-between items-center text-sm">
+                            <span className="text-gray-600 dark:text-gray-400">Travel Costs</span>
+                            <span data-testid="result-livein-travel-cost">{formatCurrency(liveInResults.travelCostTotal)}</span>
+                          </div>
+                          
+                          <div className="flex justify-between items-center text-sm">
+                            <span className="text-gray-600 dark:text-gray-400">Food Allowance</span>
+                            <span data-testid="result-livein-food-cost">{formatCurrency(liveInResults.foodAllowanceTotal)}</span>
+                          </div>
+                          
+                          <div className="flex justify-between items-center text-sm font-medium border-t border-gray-200 dark:border-gray-700 pt-2">
+                            <span className="text-red-600 dark:text-red-400">Total Staff Cost</span>
+                            <span className="text-red-600 dark:text-red-400" data-testid="result-livein-total-staff-cost">
+                              {formatCurrency(liveInResults.totalStaffCost)}
+                            </span>
+                          </div>
                         </div>
+                        
                         <div className="border-t border-gray-200 dark:border-gray-700 pt-2">
                           <div className="flex justify-between items-center">
-                            <span className="font-semibold">Gross Margin</span>
+                            <span className="font-semibold text-blue-600 dark:text-blue-400">Gross Margin</span>
                             <span className="text-xl font-bold text-blue-600 dark:text-blue-400" data-testid="result-livein-gross-margin">
                               {formatCurrency(liveInResults.grossMargin)}
                             </span>
                           </div>
                           <div className="flex justify-between items-center mt-1">
-                            <span className="font-semibold">Margin %</span>
+                            <span className="font-semibold text-blue-600 dark:text-blue-400">Margin %</span>
                             <span className="text-xl font-bold text-blue-600 dark:text-blue-400" data-testid="result-livein-margin-percentage">
                               {liveInResults.marginPercentage.toFixed(2)}%
                             </span>
@@ -951,50 +1013,9 @@ export default function AdminTools() {
                       </div>
                     </div>
                   )}
-
-                  {/* Employment Cost Rates */}
-                  <div className="space-y-4">
-                    <h4 className="font-semibold text-gray-700 dark:text-gray-300">UK Employment Costs (%)</h4>
-                    
-                    <div className="space-y-2">
-                      <Label htmlFor="24x7-national-insurance">National Insurance (%)</Label>
-                      <Input
-                        id="24x7-national-insurance"
-                        type="number"
-                        step="0.1"
-                        value={care24x7Calc.nationalInsurance}
-                        onChange={(e) => setCare24x7Calc(prev => ({ ...prev, nationalInsurance: parseFloat(e.target.value) || 0 }))}
-                        data-testid="input-24x7-national-insurance"
-                      />
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label htmlFor="24x7-pension">Pension Contribution (%)</Label>
-                      <Input
-                        id="24x7-pension"
-                        type="number"
-                        step="0.1"
-                        value={care24x7Calc.pension}
-                        onChange={(e) => setCare24x7Calc(prev => ({ ...prev, pension: parseFloat(e.target.value) || 0 }))}
-                        data-testid="input-24x7-pension"
-                      />
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label htmlFor="24x7-holiday-pay">Holiday Pay (%)</Label>
-                      <Input
-                        id="24x7-holiday-pay"
-                        type="number"
-                        step="0.01"
-                        value={care24x7Calc.holidayPay}
-                        onChange={(e) => setCare24x7Calc(prev => ({ ...prev, holidayPay: parseFloat(e.target.value) || 0 }))}
-                        data-testid="input-24x7-holiday-pay"
-                      />
-                    </div>
-                  </div>
                 </div>
 
-                {/* Results Section */}
+                {/* Results Section with DETAILED BREAKDOWN */}
                 <div className="space-y-4">
                   <h3 className="text-lg font-semibold mb-4">Financial Analysis</h3>
 
@@ -1002,26 +1023,64 @@ export default function AdminTools() {
                     <CardContent className="pt-4">
                       <div className="space-y-3">
                         <div className="flex justify-between items-center">
-                          <span className="text-sm font-medium">Total Revenue</span>
+                          <span className="text-sm font-medium text-green-600 dark:text-green-400">Total Revenue</span>
                           <span className="text-lg font-bold text-green-600 dark:text-green-400" data-testid="result-24x7-total-revenue">
                             {formatCurrency(care24x7Results.totalRevenue)}
                           </span>
                         </div>
-                        <div className="flex justify-between items-center">
-                          <span className="text-sm font-medium">Total Staff Cost</span>
-                          <span className="text-lg font-bold text-red-600 dark:text-red-400" data-testid="result-24x7-total-staff-cost">
-                            {formatCurrency(care24x7Results.totalStaffCost)}
-                          </span>
+                        
+                        <div className="border-t border-gray-200 dark:border-gray-700 pt-2">
+                          <div className="text-sm font-medium text-red-600 dark:text-red-400 mb-2">Cost Breakdown:</div>
+                          
+                          <div className="flex justify-between items-center text-sm">
+                            <span className="text-gray-600 dark:text-gray-400">Gross Wage</span>
+                            <span data-testid="result-24x7-gross-wage">{formatCurrency(care24x7Results.grossWage)}</span>
+                          </div>
+                          
+                          <div className="flex justify-between items-center text-sm">
+                            <span className="text-gray-600 dark:text-gray-400">National Insurance ({EMPLOYMENT_RATES.nationalInsurance}%)</span>
+                            <span data-testid="result-24x7-ni-cost">{formatCurrency(care24x7Results.nationalInsuranceCost)}</span>
+                          </div>
+                          
+                          <div className="flex justify-between items-center text-sm">
+                            <span className="text-gray-600 dark:text-gray-400">Pension ({EMPLOYMENT_RATES.pension}%)</span>
+                            <span data-testid="result-24x7-pension-cost">{formatCurrency(care24x7Results.pensionCost)}</span>
+                          </div>
+                          
+                          <div className="flex justify-between items-center text-sm">
+                            <span className="text-gray-600 dark:text-gray-400">Holiday Pay ({EMPLOYMENT_RATES.holidayPay}%)</span>
+                            <span data-testid="result-24x7-holiday-cost">{formatCurrency(care24x7Results.holidayPayCost)}</span>
+                          </div>
+                          
+                          <div className="flex justify-between items-center text-sm">
+                            <span className="text-gray-600 dark:text-gray-400">Travel Costs</span>
+                            <span data-testid="result-24x7-travel-cost">{formatCurrency(care24x7Results.travelCostTotal)}</span>
+                          </div>
+                          
+                          {care24x7Results.foodAllowanceTotal > 0 && (
+                            <div className="flex justify-between items-center text-sm">
+                              <span className="text-gray-600 dark:text-gray-400">Food Allowance</span>
+                              <span data-testid="result-24x7-food-cost">{formatCurrency(care24x7Results.foodAllowanceTotal)}</span>
+                            </div>
+                          )}
+                          
+                          <div className="flex justify-between items-center text-sm font-medium border-t border-gray-200 dark:border-gray-700 pt-2">
+                            <span className="text-red-600 dark:text-red-400">Total Staff Cost</span>
+                            <span className="text-red-600 dark:text-red-400" data-testid="result-24x7-total-staff-cost">
+                              {formatCurrency(care24x7Results.totalStaffCost)}
+                            </span>
+                          </div>
                         </div>
+                        
                         <div className="border-t border-gray-200 dark:border-gray-700 pt-2">
                           <div className="flex justify-between items-center">
-                            <span className="font-semibold">Gross Margin</span>
+                            <span className="font-semibold text-blue-600 dark:text-blue-400">Gross Margin</span>
                             <span className="text-xl font-bold text-blue-600 dark:text-blue-400" data-testid="result-24x7-gross-margin">
                               {formatCurrency(care24x7Results.grossMargin)}
                             </span>
                           </div>
                           <div className="flex justify-between items-center mt-1">
-                            <span className="font-semibold">Margin %</span>
+                            <span className="font-semibold text-blue-600 dark:text-blue-400">Margin %</span>
                             <span className="text-xl font-bold text-blue-600 dark:text-blue-400" data-testid="result-24x7-margin-percentage">
                               {care24x7Results.marginPercentage.toFixed(2)}%
                             </span>
@@ -1162,7 +1221,7 @@ export default function AdminTools() {
                   </div>
                 </div>
 
-                {/* Results Section */}
+                {/* Results Section with DETAILED BREAKDOWN */}
                 <div className="space-y-4">
                   <h3 className="text-lg font-semibold mb-4">Financial Analysis</h3>
 
@@ -1175,35 +1234,45 @@ export default function AdminTools() {
                             {formatCurrency(shortVisitsResults.chargeRevenue)}
                           </span>
                         </div>
-                        <div className="flex justify-between items-center">
-                          <span className="text-sm text-green-800 dark:text-green-200">Care Pay Cost</span>
-                          <span className="text-sm text-green-800 dark:text-green-200" data-testid="result-shortvisits-care-pay-cost">
-                            {formatCurrency(shortVisitsResults.carePayCost)}
-                          </span>
+                        
+                        <div className="border-t border-green-300 dark:border-green-700 pt-2">
+                          <div className="text-sm font-medium text-green-900 dark:text-green-100 mb-2">Cost Breakdown:</div>
+                          
+                          <div className="flex justify-between items-center text-sm">
+                            <span className="text-green-800 dark:text-green-200">Care Pay Cost</span>
+                            <span className="text-green-800 dark:text-green-200" data-testid="result-shortvisits-care-pay-cost">
+                              {formatCurrency(shortVisitsResults.carePayCost)}
+                            </span>
+                          </div>
+                          
+                          <div className="flex justify-between items-center text-sm">
+                            <span className="text-green-800 dark:text-green-200">Travel Pay Cost</span>
+                            <span className="text-green-800 dark:text-green-200" data-testid="result-shortvisits-travel-pay-cost">
+                              {formatCurrency(shortVisitsResults.travelPayCost)}
+                            </span>
+                          </div>
+                          
+                          <div className="flex justify-between items-center border-t border-green-300 dark:border-green-700 pt-2 text-sm font-medium">
+                            <span className="text-green-900 dark:text-green-100">Total Pay Cost</span>
+                            <span className="text-green-900 dark:text-green-100" data-testid="result-shortvisits-total-pay-cost">
+                              {formatCurrency(shortVisitsResults.totalPayCost)}
+                            </span>
+                          </div>
                         </div>
-                        <div className="flex justify-between items-center">
-                          <span className="text-sm text-green-800 dark:text-green-200">Travel Pay Cost</span>
-                          <span className="text-sm text-green-800 dark:text-green-200" data-testid="result-shortvisits-travel-pay-cost">
-                            {formatCurrency(shortVisitsResults.travelPayCost)}
-                          </span>
-                        </div>
-                        <div className="flex justify-between items-center border-t border-green-300 dark:border-green-700 pt-2">
-                          <span className="text-sm font-medium text-green-900 dark:text-green-100">Total Pay Cost</span>
-                          <span className="text-sm font-bold text-green-900 dark:text-green-100" data-testid="result-shortvisits-total-pay-cost">
-                            {formatCurrency(shortVisitsResults.totalPayCost)}
-                          </span>
-                        </div>
-                        <div className="flex justify-between items-center border-t border-green-300 dark:border-green-700 pt-2">
-                          <span className="font-semibold text-green-900 dark:text-green-100">Gross Margin</span>
-                          <span className="text-xl font-bold text-green-900 dark:text-green-100" data-testid="result-shortvisits-margin">
-                            {formatCurrency(shortVisitsResults.margin)}
-                          </span>
-                        </div>
-                        <div className="flex justify-between items-center">
-                          <span className="font-semibold text-green-900 dark:text-green-100">Margin %</span>
-                          <span className="text-xl font-bold text-green-900 dark:text-green-100" data-testid="result-shortvisits-margin-percentage">
-                            {shortVisitsResults.marginPercentage.toFixed(2)}%
-                          </span>
+                        
+                        <div className="border-t border-green-300 dark:border-green-700 pt-2">
+                          <div className="flex justify-between items-center">
+                            <span className="font-semibold text-green-900 dark:text-green-100">Gross Margin</span>
+                            <span className="text-xl font-bold text-green-900 dark:text-green-100" data-testid="result-shortvisits-margin">
+                              {formatCurrency(shortVisitsResults.margin)}
+                            </span>
+                          </div>
+                          <div className="flex justify-between items-center">
+                            <span className="font-semibold text-green-900 dark:text-green-100">Margin %</span>
+                            <span className="text-xl font-bold text-green-900 dark:text-green-100" data-testid="result-shortvisits-margin-percentage">
+                              {shortVisitsResults.marginPercentage.toFixed(2)}%
+                            </span>
+                          </div>
                         </div>
                       </div>
                     </CardContent>
@@ -1223,9 +1292,11 @@ export default function AdminTools() {
               variant="outline" 
               className="w-64"
               disabled={
-                activeCalculator === 'short-visits' ? 
-                  shortVisitsResults.chargeRevenue === 0 : 
-                  (getActiveResults() as {totalRevenue: number}).totalRevenue === 0
+                (activeCalculator === 'short-visits' && shortVisitsResults.chargeRevenue === 0) ||
+                (activeCalculator !== 'short-visits' && 
+                  ((activeCalculator === 'hourly' && hourlyResults.totalRevenue === 0) ||
+                   (activeCalculator === 'live-in' && liveInResults.totalRevenue === 0) ||
+                   (activeCalculator === 'care24x7' && care24x7Results.totalRevenue === 0)))
               }
               data-testid="button-generate-quote"
             >
@@ -1305,12 +1376,12 @@ export default function AdminTools() {
             <div className="space-y-2 text-sm text-amber-800 dark:text-amber-200">
               <p className="font-semibold">UK Employment Cost Information:</p>
               <ul className="space-y-1 ml-4 list-disc">
-                <li>National Insurance: Employer contribution rate (15.0% current rate)</li>
-                <li>Pension: Minimum auto-enrolment employer contribution (3%)</li>
-                <li>Holiday Pay: Statutory holiday entitlement calculation (12.07%)</li>
+                <li>National Insurance: Employer contribution rate ({EMPLOYMENT_RATES.nationalInsurance}% current rate)</li>
+                <li>Pension: Minimum auto-enrolment employer contribution ({EMPLOYMENT_RATES.pension}%)</li>
+                <li>Holiday Pay: Statutory holiday entitlement calculation ({EMPLOYMENT_RATES.holidayPay}%)</li>
               </ul>
               <p className="mt-2 text-xs opacity-80">
-                These rates are indicative and may vary based on specific employment arrangements and current legislation.
+                These rates are fixed and may vary based on specific employment arrangements and current legislation.
               </p>
             </div>
           </div>
@@ -1368,7 +1439,9 @@ export default function AdminTools() {
                       <td className="p-3 text-right text-lg">
                         {activeCalculator === 'short-visits' ? 
                           formatCurrency(shortVisitsResults.chargeRevenue) : 
-                          formatCurrency((getActiveResults() as {totalRevenue: number}).totalRevenue)
+                          activeCalculator === 'hourly' ? formatCurrency(hourlyResults.totalRevenue) :
+                          activeCalculator === 'live-in' ? formatCurrency(liveInResults.totalRevenue) :
+                          formatCurrency(care24x7Results.totalRevenue)
                         }
                       </td>
                     </tr>
