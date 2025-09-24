@@ -1142,8 +1142,8 @@ Smeaton Healthcare Training Team`;
                   ))
                 ) : (
                   cqcEvidenceCategories.map((category) => {
-                    const IconComponent = EVIDENCE_CATEGORY_ICONS[category.categoryKey] || FileText;
-                    const colorClass = EVIDENCE_CATEGORY_COLORS[category.categoryKey] || "text-gray-600";
+                    const IconComponent = EVIDENCE_CATEGORY_ICONS[category.categoryName] || FileText;
+                    const colorClass = EVIDENCE_CATEGORY_COLORS[category.categoryName] || "text-gray-600";
                   return (
                     <Card key={category.id} className="relative overflow-hidden">
                       <CardContent className="pt-6">
@@ -1153,7 +1153,7 @@ Smeaton Healthcare Training Team`;
                           </div>
                           <div className="flex-1 min-w-0">
                             <h3 className="font-medium text-sm" data-testid={`evidence-category-${category.id}`}>
-                              {category.name}
+                              {category.displayName}
                             </h3>
                             <p className="text-xs text-gray-600 dark:text-gray-400 mt-1 line-clamp-2">
                               {category.description}
@@ -1168,7 +1168,7 @@ Smeaton Healthcare Training Team`;
                                     variant="ghost" 
                                     size="sm" 
                                     className="p-0 h-auto text-xs hover:bg-transparent"
-                                    data-testid={`button-upload-${category.categoryKey}`}
+                                    data-testid={`button-upload-${category.categoryName}`}
                                   >
                                     <Upload className="h-3 w-3 mr-1" />
                                     Upload
@@ -1176,7 +1176,7 @@ Smeaton Healthcare Training Team`;
                                 </DialogTrigger>
                                 <DialogContent className="sm:max-w-2xl">
                                   <DialogHeader>
-                                    <DialogTitle>Upload Evidence - {category.name}</DialogTitle>
+                                    <DialogTitle>Upload Evidence - {category.displayName}</DialogTitle>
                                     <DialogDescription>
                                       Upload evidence files for {category.description.toLowerCase()}
                                     </DialogDescription>
@@ -1275,7 +1275,7 @@ Smeaton Healthcare Training Team`;
                                   </div>
                                   <div className="flex-1">
                                     <p className="text-sm font-medium text-gray-900 dark:text-white leading-relaxed">
-                                      {statement.statement}
+                                      {statement.statementText}
                                     </p>
                                     <div className="flex items-center space-x-4 mt-3">
                                       <Button variant="outline" size="sm" data-testid={`button-assess-statement-${questionIndex}-${statementIndex}`}>
@@ -1307,7 +1307,9 @@ Smeaton Healthcare Training Team`;
                   </div>
                 </CardContent>
               </Card>
-            ))}
+            );
+          })
+            )}
           </div>
 
           {/* Recent Audits Summary */}

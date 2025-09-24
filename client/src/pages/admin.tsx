@@ -282,6 +282,18 @@ export default function Admin() {
             color: "bg-purple-600 text-white hover:bg-purple-700"
           },
           {
+            title: "CQC Audit & Compliance Toolkit",
+            description: "Comprehensive CQC compliance management with 2024 Single Assessment Framework",
+            icon: Shield,
+            link: "/admin/cqc-toolkit",
+            stats: {
+              total: 34,
+              status: "2024 Framework",
+              info: "CQC Ready"
+            },
+            color: "bg-blue-600 text-white hover:bg-blue-700"
+          },
+          {
             title: "Audit Logs", 
             description: "GDPR compliance tracking - view all admin actions involving personal data",
             icon: Shield,
@@ -291,7 +303,7 @@ export default function Admin() {
               status: "Compliant",
               info: "GDPR Ready"
             },
-            color: "bg-blue-600 text-white hover:bg-blue-700"
+            color: "bg-green-600 text-white hover:bg-green-700"
           }
         ]
       },

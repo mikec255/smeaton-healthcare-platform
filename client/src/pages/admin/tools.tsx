@@ -313,36 +313,6 @@ export default function AdminTools() {
           </CardContent>
         </Card>
         
-        <Link href="/admin/cqc-toolkit">
-          <Card className="border-2 border-blue-200 bg-gradient-to-r from-blue-50 to-blue-100 dark:from-blue-950 dark:to-blue-900 hover:shadow-lg transition-shadow cursor-pointer">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-3">
-                <Shield className="h-6 w-6 text-blue-600" />
-                CQC Audit & Compliance Toolkit
-              </CardTitle>
-              <CardDescription>
-                Comprehensive CQC compliance management including audit tracking, staff qualification monitoring, and regulatory compliance tools
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <FileCheck className="h-4 w-4 text-blue-600" />
-                  <span className="text-sm text-blue-700 dark:text-blue-300">5 Core Standards • Compliance Tracking</span>
-                </div>
-                <Button 
-                  variant="outline" 
-                  size="sm" 
-                  className="border-blue-300 text-blue-700 hover:bg-blue-50"
-                  data-testid="button-cqc-toolkit"
-                >
-                  Open Toolkit
-                  <ArrowRight className="h-4 w-4 ml-1" />
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        </Link>
       </div>
 
       {/* Package Calculator */}
