@@ -427,16 +427,15 @@ export default function AdminTools() {
   };
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-8 max-w-4xl mx-auto px-8 lg:px-16 xl:px-24">
       <PageHeader
         title="Package Calculators"
         description="Calculate care package costs and margins with UK employment overheads"
         breadcrumbs={breadcrumbs}
-        icon={Calculator}
       />
 
       {/* Package Calculators */}
-      <Tabs defaultValue="hourly" className="w-full" onValueChange={setActiveCalculator}>
+      <Tabs defaultValue="hourly" className="w-full px-4 sm:px-8 lg:px-12" onValueChange={setActiveCalculator}>
         <TabsList className="grid w-full grid-cols-2 md:grid-cols-4 gap-1">
           <TabsTrigger value="hourly" data-testid="tab-hourly-care" className="text-xs sm:text-sm">
             <Clock className="h-4 w-4 mr-2" />
