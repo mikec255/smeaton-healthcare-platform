@@ -873,10 +873,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const applications = await storage.getAllApplications();
       
       // Log GDPR-relevant action: admin viewing personal data
-      await AuditLogger.logView(req, req.user, "application", "bulk", {
-        action: "view_all_applications",
-        recordCount: applications.length
-      });
+      if (req.user) {
+        await AuditLogger.logView(req, req.user, "application", "bulk", {
+          action: "view_all_applications",
+          recordCount: applications.length
+        });
+      }
       
       res.json(applications);
     } catch (error) {
@@ -947,11 +949,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       // Log GDPR-relevant action: admin modifying personal data
-      await AuditLogger.logUpdate(req, req.user, "application", req.params.id, {
-        action: "update_application_status",
-        newStatus: status,
-        applicantEmail: application.email
-      });
+      if (req.user) {
+        await AuditLogger.logUpdate(req, req.user, "application", req.params.id, {
+          action: "update_application_status",
+          newStatus: status,
+          applicantEmail: application.email
+        });
+      }
       
       res.json(application);
     } catch (error) {
@@ -974,11 +978,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       // Log GDPR-relevant action: admin adding/modifying notes about personal data
-      await AuditLogger.logUpdate(req, req.user, "application", req.params.id, {
-        action: "update_application_notes",
-        notesLength: validatedData.notes?.length || 0,
-        applicantEmail: application.email
-      });
+      if (req.user) {
+        await AuditLogger.logUpdate(req, req.user, "application", req.params.id, {
+          action: "update_application_notes",
+          notesLength: validatedData.notes?.length || 0,
+          applicantEmail: application.email
+        });
+      }
       
       res.json(application);
     } catch (error) {
@@ -1002,11 +1008,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       // Log GDPR-relevant action: admin viewing personal data
-      await AuditLogger.logView(req, req.user, "contact_submission", "bulk", {
-        action: "view_all_contact_submissions",
-        recordCount: responseSubmissions.length,
-        filterType: req.query.type || "all"
-      });
+      if (req.user) {
+        await AuditLogger.logView(req, req.user, "contact_submission", "bulk", {
+          action: "view_all_contact_submissions",
+          recordCount: responseSubmissions.length,
+          filterType: req.query.type || "all"
+        });
+      }
       
       res.json(responseSubmissions);
     } catch (error) {
@@ -1033,12 +1041,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       // Log GDPR-relevant action: admin modifying personal data
-      await AuditLogger.logUpdate(req, req.user, "contact_submission", req.params.id, {
-        action: "update_contact_submission_status",
-        newStatus: status,
-        submissionType: submission.type,
-        submitterEmail: submission.email
-      });
+      if (req.user) {
+        await AuditLogger.logUpdate(req, req.user, "contact_submission", req.params.id, {
+          action: "update_contact_submission_status",
+          newStatus: status,
+          submissionType: submission.type,
+          submitterEmail: submission.email
+        });
+      }
       
       res.json(submission);
     } catch (error) {
