@@ -1333,15 +1333,6 @@ Delivering outstanding healthcare across Devon & Cornwall`;
                                     <p className="text-xs text-gray-500 dark:text-gray-500 mt-1">
                                       Upload insurance certificates, policy documents, and coverage evidence
                                     </p>
-                                    <Button 
-                                      type="button" 
-                                      variant="outline" 
-                                      size="sm" 
-                                      className="mt-2"
-                                      data-testid="button-upload-evidence"
-                                    >
-                                      Browse Files
-                                    </Button>
                                   </label>
                                   
                                   {selectedEvidenceFiles.length > 0 && (
