@@ -251,7 +251,7 @@ export default function CqcToolkit() {
         auditType: "compliance_specific",
         serviceType: "administrative",
         keyQuestion: "well_led",
-        auditDate: new Date(),
+        auditDate: new Date().toISOString(),
         auditorId: currentUser?.id || "unknown-auditor", // Provide fallback for missing session
         auditorName: currentUser?.username || "Unknown",
         findings: JSON.stringify({
