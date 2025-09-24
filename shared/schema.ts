@@ -41,6 +41,15 @@ export const users = pgTable("users", {
   passwordToken: text("password_token"),
   tokenExpiresAt: timestamp("token_expires_at"),
   role: text("role").notNull().default("admin"), // superadmin, admin
+  permissions: json("permissions").$type<{
+    overview?: boolean;           // Dashboard access
+    recruitment?: boolean;        // Jobs and applications
+    customerRelations?: boolean;  // Referrals and contact enquiries
+    feedback?: boolean;           // Customer feedback
+    tools?: boolean;              // Calculators, CQC toolkit, audit logs
+    resources?: boolean;          // Blog and newsletters
+    system?: boolean;             // User management (superadmin only)
+  }>(),
   isActive: boolean("is_active").default(true),
   createdAt: timestamp("created_at").defaultNow(),
 });
