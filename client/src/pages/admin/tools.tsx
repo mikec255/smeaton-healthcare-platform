@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -148,6 +148,23 @@ export default function AdminTools() {
       currency: 'GBP'
     }).format(amount);
   };
+
+  // Auto-calculate on input changes
+  useEffect(() => {
+    calculateHourly();
+  }, [hourlyCalc.chargeRate, hourlyCalc.hours, hourlyCalc.carerWage, hourlyCalc.travelCosts, hourlyCalc.nationalInsurance, hourlyCalc.pension, hourlyCalc.holidayPay]);
+
+  useEffect(() => {
+    calculateLiveIn();
+  }, [liveInCalc.chargeRate, liveInCalc.hoursPerDay, liveInCalc.days, liveInCalc.carerWage, liveInCalc.travelCosts, liveInCalc.foodAllowance, liveInCalc.nationalInsurance, liveInCalc.pension, liveInCalc.holidayPay]);
+
+  useEffect(() => {
+    calculateCare24x7();
+  }, [care24x7Calc.calcMode, care24x7Calc.periodDays, care24x7Calc.dayChargeRate, care24x7Calc.nightChargeRate, care24x7Calc.dayWageRate, care24x7Calc.nightWageRate, care24x7Calc.dayHours, care24x7Calc.nightHours, care24x7Calc.travelDayPerShift, care24x7Calc.travelNightPerShift, care24x7Calc.foodAllowance, care24x7Calc.nationalInsurance, care24x7Calc.pension, care24x7Calc.holidayPay]);
+
+  useEffect(() => {
+    calculateShortVisits();
+  }, [shortVisitsCalc.chargeRate, shortVisitsCalc.hourlyPay, shortVisitsCalc.careHoursDelivered, shortVisitsCalc.travelTimeMinutes, shortVisitsCalc.minimumWage]);
 
   const calculateHourly = () => {
     const chargeRate = parseFloat(hourlyCalc.chargeRate) || 0;
@@ -465,12 +482,7 @@ export default function AdminTools() {
 
                 {/* Results Section */}
                 <div className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <h3 className="text-lg font-semibold mb-4">Financial Analysis</h3>
-                    <Button onClick={calculateHourly} className="mb-4" data-testid="button-calculate-hourly">
-                      Calculate
-                    </Button>
-                  </div>
+                  <h3 className="text-lg font-semibold mb-4">Financial Analysis</h3>
 
                   <Card>
                     <CardContent className="pt-4">
@@ -674,12 +686,7 @@ export default function AdminTools() {
 
                 {/* Results Section */}
                 <div className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <h3 className="text-lg font-semibold mb-4">Financial Analysis</h3>
-                    <Button onClick={calculateLiveIn} className="mb-4" data-testid="button-calculate-livein">
-                      Calculate
-                    </Button>
-                  </div>
+                  <h3 className="text-lg font-semibold mb-4">Financial Analysis</h3>
 
                   <Card>
                     <CardContent className="pt-4">
@@ -989,12 +996,7 @@ export default function AdminTools() {
 
                 {/* Results Section */}
                 <div className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <h3 className="text-lg font-semibold mb-4">Financial Analysis</h3>
-                    <Button onClick={calculateCare24x7} className="mb-4" data-testid="button-calculate-24x7">
-                      Calculate
-                    </Button>
-                  </div>
+                  <h3 className="text-lg font-semibold mb-4">Financial Analysis</h3>
 
                   <Card>
                     <CardContent className="pt-4">
@@ -1162,12 +1164,7 @@ export default function AdminTools() {
 
                 {/* Results Section */}
                 <div className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <h3 className="text-lg font-semibold mb-4">Financial Analysis</h3>
-                    <Button onClick={calculateShortVisits} className="mb-4" data-testid="button-calculate-shortvisits">
-                      Calculate
-                    </Button>
-                  </div>
+                  <h3 className="text-lg font-semibold mb-4">Financial Analysis</h3>
 
                   <Card className="bg-green-50 dark:bg-green-950 border-green-200 dark:border-green-800">
                     <CardContent className="pt-4">
