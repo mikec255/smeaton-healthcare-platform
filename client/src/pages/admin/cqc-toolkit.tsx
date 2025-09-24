@@ -146,10 +146,8 @@ export default function CqcToolkit() {
       fileType: string;
       description?: string;
     }): Promise<CqcAuditEvidence> => {
-      return apiRequest('/api/cqc/audit-evidence', {
-        method: 'POST',
-        body: JSON.stringify(evidenceData),
-      });
+      const response = await apiRequest('POST', '/api/cqc/audit-evidence', evidenceData);
+      return response.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/cqc/audit-evidence"] });
@@ -171,10 +169,8 @@ export default function CqcToolkit() {
         nextAuditDue: data.nextAuditDue ? new Date(data.nextAuditDue) : null,
       };
       
-      return apiRequest('/api/cqc/audits', {
-        method: 'POST',
-        body: JSON.stringify(auditData),
-      });
+      const response = await apiRequest('POST', '/api/cqc/audits', auditData);
+      return response.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/cqc/audits"] });
@@ -198,10 +194,8 @@ export default function CqcToolkit() {
         renewalDue: data.renewalDue ? new Date(data.renewalDue) : null,
       };
       
-      return apiRequest('/api/cqc/compliance-records', {
-        method: 'POST',
-        body: JSON.stringify(recordData),
-      });
+      const response = await apiRequest('POST', '/api/cqc/compliance-records', recordData);
+      return response.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/cqc/compliance-records"] });
@@ -217,10 +211,8 @@ export default function CqcToolkit() {
 
   const createQuestionnaireMutation = useMutation({
     mutationFn: async (data: CreateKnowledgeQuestionnaireFormData): Promise<KnowledgeQuestionnaire> => {
-      return apiRequest('/api/knowledge/questionnaires', {
-        method: 'POST',
-        body: JSON.stringify(data),
-      });
+      const response = await apiRequest('POST', '/api/knowledge/questionnaires', data);
+      return response.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/knowledge/questionnaires"] });
@@ -236,10 +228,8 @@ export default function CqcToolkit() {
 
   const createQuestionMutation = useMutation({
     mutationFn: async (data: CreateKnowledgeQuestionFormData): Promise<KnowledgeQuestion> => {
-      return apiRequest('/api/knowledge/questions', {
-        method: 'POST',
-        body: JSON.stringify(data),
-      });
+      const response = await apiRequest('POST', '/api/knowledge/questions', data);
+      return response.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/knowledge/questionnaires", selectedQuestionnaire, "questions"] });
@@ -276,10 +266,7 @@ export default function CqcToolkit() {
         actionPlan: data.actions,
       };
       
-      const createdAudit = await apiRequest('/api/cqc/audits', {
-        method: 'POST',
-        body: JSON.stringify(auditData),
-      });
+      const createdAudit = await apiRequest('POST', '/api/cqc/audits', auditData);
       
       // If there are evidence files, try to upload them using the existing evidence upload system
       if (selectedEvidenceFiles.length > 0) {
@@ -298,10 +285,7 @@ export default function CqcToolkit() {
             };
             
             // Use the existing evidence upload mutation logic
-            return apiRequest('/api/cqc/audit-evidence', {
-              method: 'POST',
-              body: JSON.stringify(evidenceData),
-            });
+            return apiRequest('POST', '/api/cqc/audit-evidence', evidenceData);
           });
           
           await Promise.all(evidencePromises);
