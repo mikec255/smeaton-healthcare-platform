@@ -893,15 +893,20 @@ export default function AdminTools() {
                   </Card>
 
                   {/* Generate Quote Button */}
-                  <div className="mt-6">
+                  <div className="flex justify-center mt-6">
                     <Dialog>
                       <DialogTrigger asChild>
-                        <Button className="w-full bg-blue-600 hover:bg-blue-700 text-white" data-testid="button-generate-livein-quote">
-                          <FileText className="h-4 w-4 mr-2" />
-                          Generate Care Package Quote
+                        <Button 
+                          variant="outline" 
+                          className="w-64"
+                          disabled={liveInResults.totalRevenue === 0}
+                          data-testid="button-generate-livein-quote"
+                        >
+                          <Download className="w-4 h-4 mr-2" />
+                          Generate Quote
                         </Button>
                       </DialogTrigger>
-                      <DialogContent className="max-w-2xl">
+                      <DialogContent className="max-w-md">
                         <DialogHeader>
                           <DialogTitle>Care Package Quote - Live-In Care</DialogTitle>
                           <DialogDescription>
@@ -1251,15 +1256,20 @@ export default function AdminTools() {
                   </Card>
 
                   {/* Generate Quote Button */}
-                  <div className="mt-6">
+                  <div className="flex justify-center mt-6">
                     <Dialog>
                       <DialogTrigger asChild>
-                        <Button className="w-full bg-blue-600 hover:bg-blue-700 text-white" data-testid="button-generate-24x7-quote">
-                          <FileText className="h-4 w-4 mr-2" />
-                          Generate Care Package Quote
+                        <Button 
+                          variant="outline" 
+                          className="w-64"
+                          disabled={care24x7Results.totalRevenue === 0}
+                          data-testid="button-generate-24x7-quote"
+                        >
+                          <Download className="w-4 h-4 mr-2" />
+                          Generate Quote
                         </Button>
                       </DialogTrigger>
-                      <DialogContent className="max-w-2xl">
+                      <DialogContent className="max-w-md">
                         <DialogHeader>
                           <DialogTitle>Care Package Quote - 24/7 Care</DialogTitle>
                           <DialogDescription>
@@ -1506,15 +1516,20 @@ export default function AdminTools() {
                   </Card>
 
                   {/* Generate Quote Button */}
-                  <div className="mt-6">
+                  <div className="flex justify-center mt-6">
                     <Dialog>
                       <DialogTrigger asChild>
-                        <Button className="w-full bg-blue-600 hover:bg-blue-700 text-white" data-testid="button-generate-shortvisits-quote">
-                          <FileText className="h-4 w-4 mr-2" />
-                          Generate Care Package Quote
+                        <Button 
+                          variant="outline" 
+                          className="w-64"
+                          disabled={shortVisitsResults.chargeRevenue === 0}
+                          data-testid="button-generate-shortvisits-quote"
+                        >
+                          <Download className="w-4 h-4 mr-2" />
+                          Generate Quote
                         </Button>
                       </DialogTrigger>
-                      <DialogContent className="max-w-2xl">
+                      <DialogContent className="max-w-md">
                         <DialogHeader>
                           <DialogTitle>Care Package Quote - Short Visits</DialogTitle>
                           <DialogDescription>
