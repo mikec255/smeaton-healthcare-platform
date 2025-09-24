@@ -496,14 +496,14 @@ export default function Home({ heroTab = "find-care", onHeroTabChange }: { heroT
                    transform: 'scaleX(-1)'
                  }}
                  data-testid="hero-join-team">
-              {/* Animated Background Elements */}
-              <div className="absolute inset-0 overflow-hidden z-10">
+              {/* Animated Background Elements - Hidden on mobile */}
+              <div className="absolute inset-0 overflow-hidden z-10 hidden md:block">
                 <div className="absolute -top-40 -right-40 w-80 h-80 bg-white/10 rounded-full blur-3xl animate-pulse"></div>
                 <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-accent-bright/20 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }}></div>
               </div>
               
               {/* Hero Content */}
-              <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full z-10 overflow-visible" style={{ transform: 'scaleX(-1)' }}>
+              <div className="relative container mx-auto w-full z-10 overflow-visible" style={{ transform: 'scaleX(-1)' }}>
                 <div className="grid lg:grid-cols-2 gap-12 items-center w-full">
                   <div className="space-y-6 overflow-visible">
                     <h1 className="text-white leading-tight overflow-visible text-center lg:text-left" data-testid="hero-title-jobs">
@@ -905,7 +905,7 @@ export default function Home({ heroTab = "find-care", onHeroTabChange }: { heroT
 
       {/* Our Values - Icon Line */}
       <section className="py-16 bg-white" data-testid="values-section">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="container mx-auto">
           <div className="text-center mb-8 sm:mb-12 lg:mb-16">
             <h2 className="section-title mb-4 sm:mb-6" data-testid="values-title">
               Our Values
@@ -960,7 +960,7 @@ export default function Home({ heroTab = "find-care", onHeroTabChange }: { heroT
       <section className="py-16 stats-gradient text-white relative overflow-hidden" data-testid="feedback-section">
         <div className="absolute inset-0 stats-pattern opacity-10"></div>
         
-        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="relative container mx-auto">
           <div className="grid lg:grid-cols-2 gap-8 lg:gap-12 items-center">
             
             {/* Feedback Information */}
@@ -1088,7 +1088,7 @@ export default function Home({ heroTab = "find-care", onHeroTabChange }: { heroT
 
       {/* Trust Indicators */}
       <section className="py-16 bg-slate-50" data-testid="coverage-section">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="container mx-auto">
           <div className="flex justify-center">
             <div className="accreditations-modern">
               <h3 className="text-xl sm:text-2xl font-bold text-foreground mb-8 sm:mb-12 text-center" data-testid="accreditations-title">
@@ -1115,7 +1115,7 @@ export default function Home({ heroTab = "find-care", onHeroTabChange }: { heroT
 
       {/* Professional Accreditations */}
       <section className="py-12 bg-white" data-testid="professional-accreditations">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="container mx-auto">
           <div className="text-center">
             <h3 className="text-lg sm:text-xl font-bold text-foreground mb-6 sm:mb-8" data-testid="professional-accreditations-title">
               Professional Accreditations & Approvals
