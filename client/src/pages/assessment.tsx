@@ -37,8 +37,8 @@ interface AssessmentData {
 }
 
 const startSessionSchema = z.object({
-  participantName: z.string().min(1, "Name is required"),
-  participantEmail: z.string().email("Valid email is required"),
+  staffName: z.string().min(1, "Name is required"),
+  staffEmail: z.string().email("Valid email is required"),
   questionnaireId: z.string(),
 });
 
@@ -51,8 +51,8 @@ export default function Assessment() {
   const [timeRemaining, setTimeRemaining] = useState<number | null>(null);
   const [sessionStarted, setSessionStarted] = useState(false);
   const [sessionId, setSessionId] = useState<string | null>(null);
-  const [participantName, setParticipantName] = useState("");
-  const [participantEmail, setParticipantEmail] = useState("");
+  const [staffName, setStaffName] = useState("");
+  const [staffEmail, setStaffEmail] = useState("");
   const [isCompleted, setIsCompleted] = useState(false);
   const { toast } = useToast();
 
@@ -141,8 +141,8 @@ export default function Assessment() {
     if (!assessmentData) return;
     
     const data: StartSessionData = {
-      participantName,
-      participantEmail,
+      staffName,
+      staffEmail,
       questionnaireId: assessmentData.questionnaire.id,
     };
 
@@ -288,10 +288,10 @@ export default function Assessment() {
                 <Label htmlFor="name">Your Name *</Label>
                 <Input
                   id="name"
-                  value={participantName}
-                  onChange={(e) => setParticipantName(e.target.value)}
+                  value={staffName}
+                  onChange={(e) => setStaffName(e.target.value)}
                   placeholder="Enter your full name"
-                  data-testid="input-participant-name"
+                  data-testid="input-staff-name"
                 />
               </div>
               <div>
@@ -299,17 +299,17 @@ export default function Assessment() {
                 <Input
                   id="email"
                   type="email"
-                  value={participantEmail}
-                  onChange={(e) => setParticipantEmail(e.target.value)}
+                  value={staffEmail}
+                  onChange={(e) => setStaffEmail(e.target.value)}
                   placeholder="Enter your email address"
-                  data-testid="input-participant-email"
+                  data-testid="input-staff-email"
                 />
               </div>
             </div>
 
             <Button
               onClick={handleStartSession}
-              disabled={!participantName.trim() || !participantEmail.trim() || startSessionMutation.isPending}
+              disabled={!staffName.trim() || !staffEmail.trim() || startSessionMutation.isPending}
               className="w-full"
               data-testid="button-start-assessment"
             >
