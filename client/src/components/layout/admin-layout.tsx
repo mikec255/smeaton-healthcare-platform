@@ -194,8 +194,8 @@ export function AdminLayout({ children }: AdminLayoutProps) {
               })}
           </nav>
 
-          {/* User Profile Footer */}
-          <div className="p-4 border-t border-gray-200 dark:border-gray-700">
+          {/* User Profile Footer - Mobile Only */}
+          <div className="p-4 border-t border-gray-200 dark:border-gray-700 lg:hidden">
             <div className="flex items-center space-x-3 mb-3">
               <Avatar className="w-8 h-8">
                 <AvatarFallback className="bg-pink-600 text-white text-sm font-medium">

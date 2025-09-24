@@ -39,43 +39,18 @@ export default function Navbar() {
   ];
 
   return (
-    <nav style={{
-      position: 'fixed',
-      top: 0,
-      left: 0,
-      right: 0,
-      height: '80px',
-      backgroundColor: 'white',
-      borderBottom: '1px solid #e5e7eb',
-      boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
-      zIndex: 40,
-      display: 'flex',
-      alignItems: 'center'
-    }}>
-      <div style={{
-        maxWidth: '1280px',
-        width: '100%',
-        margin: '0 auto',
-        padding: '0 24px',
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'center'
-      }}>
+    <nav className="fixed top-0 left-0 right-0 h-14 md:h-20 bg-white border-b border-gray-200 shadow-sm z-40 flex items-center">
+      <div className="container mx-auto px-4 flex justify-between items-center">
         {/* Logo Section */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '24px' }}>
-          <Link href="/">
+        <div className="flex items-center gap-6">
+          <Link href="/" data-testid="navbar-logo">
             <img 
               src={logoImage} 
               alt="Smeaton Healthcare" 
-              style={{ height: '144px', width: 'auto' }}
+              className="h-8 md:h-16 w-auto"
             />
           </Link>
-          <div style={{ 
-            display: 'none',
-            color: '#275799',
-            fontSize: '20px',
-            fontWeight: 'bold'
-          }} className="lg:block">
+          <div className="hidden lg:block text-blue-700 text-lg font-bold">
             0330 165 8880
           </div>
         </div>
@@ -340,56 +315,27 @@ export default function Navbar() {
         </div>
 
         {/* Mobile Menu Button - Only show on mobile screens */}
-        <button
-          className="block lg:hidden"
+        <Button 
+          variant="ghost" 
+          size="sm"
+          className="lg:hidden p-2"
           onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            width: '40px',
-            height: '40px',
-            background: 'none',
-            border: 'none',
-            cursor: 'pointer',
-            color: '#374151'
-          }}
           data-testid="button-mobile-menu"
         >
-          <Menu style={{ width: '24px', height: '24px' }} />
-        </button>
+          <Menu className="h-6 w-6 text-gray-600" />
+        </Button>
       </div>
 
-      {/* Mobile Menu - Clean layout with proper spacing */}
+      {/* Mobile Menu - Simple overlay with consistent spacing */}
       {mobileMenuOpen && (
-        <div 
-          style={{
-            position: 'fixed',
-            top: '80px',
-            left: 0,
-            right: 0,
-            bottom: 0,
-            background: 'white',
-            borderTop: '1px solid #e5e7eb',
-            overflowY: 'auto',
-            zIndex: 999
-          }} 
-          className="lg:hidden"
-          data-testid="mobile-menu"
-        >
-          <div style={{ padding: '20px' }}>
+        <div className="fixed inset-0 top-14 md:top-20 bg-white border-t border-gray-200 z-50 lg:hidden overflow-y-auto">
+          <div className="container mx-auto px-4 py-4 space-y-6">
+            {/* Home Link */}
             <Link 
               href="/"
               onClick={() => setMobileMenuOpen(false)}
-              style={{
-                display: 'block',
-                padding: '16px 12px',
-                fontSize: '18px',
-                fontWeight: '500',
-                color: isActive("/") ? '#EF2587' : '#374151',
-                textDecoration: 'none',
-                borderBottom: '1px solid #f3f4f6'
-              }}
+              className="block py-4 px-3 text-lg font-medium border-b border-gray-100"
+              style={{ color: isActive("/") ? '#EF2587' : '#374151' }}
               data-testid="mobile-link-home"
             >
               Home

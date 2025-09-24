@@ -347,11 +347,11 @@ export default function Home({ heroTab = "find-care", onHeroTabChange }: { heroT
   return (
     <div data-testid="home-page">
       {/* Hero Section with Tabs */}
-      <section className="relative min-h-[90vh] overflow-hidden pt-3">
+      <section className="relative min-h-[70vh] md:min-h-[90vh] overflow-hidden pt-3">
         <Tabs value={heroTab} onValueChange={onHeroTabChange} className="w-full h-full">
           {/* Find Care Hero */}
           <TabsContent value="find-care" className="m-0 h-full">
-            <div className="relative min-h-[90vh] flex items-end pb-20" 
+            <div className="relative min-h-[70vh] md:min-h-[90vh] flex items-end pb-20" 
                  style={{ 
                    backgroundImage: `url(${heroBackground})`,
                    backgroundSize: 'cover',
@@ -359,14 +359,14 @@ export default function Home({ heroTab = "find-care", onHeroTabChange }: { heroT
                    backgroundRepeat: 'no-repeat'
                  }}
                  data-testid="hero-find-care">
-              {/* Animated Background Elements */}
-              <div className="absolute inset-0 overflow-hidden z-10">
+              {/* Animated Background Elements - Reduced on mobile */}
+              <div className="absolute inset-0 overflow-hidden z-10 hidden md:block">
                 <div className="absolute -top-40 -right-40 w-80 h-80 bg-white/10 rounded-full blur-3xl animate-pulse"></div>
                 <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-accent-bright/20 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }}></div>
               </div>
               
               {/* Hero Content */}
-              <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full z-10">
+              <div className="relative container mx-auto w-full z-10">
                 <div className="grid lg:grid-cols-2 gap-16 items-center w-full">
                   <div className="space-y-8">
                     <div className="max-w-xl w-full mx-auto lg:mx-0">

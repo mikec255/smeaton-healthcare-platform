@@ -41,6 +41,13 @@
   --font-serif: Georgia, serif;
   --font-mono: Menlo, monospace;
   --radius: 0.75rem;
+  
+  /* Mobile-first spacing tokens */
+  --space-2: 0.5rem;   /* 8px */
+  --space-3: 0.75rem;  /* 12px */
+  --space-4: 1rem;     /* 16px */
+  --space-6: 1.5rem;   /* 24px */
+  
   --shadow-2xs: 0px 1px 2px 0px hsl(0, 0%, 0%, 0.05);
   --shadow-xs: 0px 1px 3px 0px hsl(0, 0%, 0%, 0.1), 0px 1px 2px 0px hsl(0, 0%, 0%, 0.06);
   --shadow-sm: 0px 1px 3px 0px hsl(0, 0%, 0%, 0.1), 0px 1px 2px 0px hsl(0, 0%, 0%, 0.06);
@@ -147,6 +154,23 @@
   
   .safe-area-right {
     padding-right: env(safe-area-inset-right);
+  }
+
+  /* Mobile-first container and layout utilities */
+  .container {
+    @apply mx-auto px-4 md:px-6 max-w-screen-xl;
+    padding-inline: max(var(--space-4), env(safe-area-inset-left)) max(var(--space-4), env(safe-area-inset-right));
+  }
+  
+  .page-section {
+    @apply space-y-4 md:space-y-6;
+  }
+  
+  /* Consistent border and spacing utilities */
+  .mobile-card {
+    @apply border rounded-lg;
+    border-color: var(--border);
+    border-radius: var(--radius);
   }
 }
 
