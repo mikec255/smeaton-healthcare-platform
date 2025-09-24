@@ -1579,57 +1579,52 @@ Delivering outstanding healthcare across Devon & Cornwall`;
                     const IconComponent = EVIDENCE_CATEGORY_ICONS[category.categoryName] || FileText;
                     const colorClass = EVIDENCE_CATEGORY_COLORS[category.categoryName] || "text-gray-600";
                   return (
-                    <Card key={category.id} className="relative overflow-hidden">
-                      <CardContent className="pt-6">
-                        <div className="flex items-start space-x-3">
-                          <div className={`p-2 rounded-lg bg-gray-100 dark:bg-gray-800 ${colorClass}`}>
-                            <IconComponent className="h-5 w-5" />
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <h3 className="font-medium text-sm" data-testid={`evidence-category-${category.id}`}>
-                              {category.displayName}
-                            </h3>
-                            <p className="text-xs text-gray-600 dark:text-gray-400 mt-1 line-clamp-2">
-                              {category.description}
-                            </p>
-                            <div className="flex items-center justify-between mt-2">
-                              <span className="text-xs text-gray-600 dark:text-gray-400">
-                                Evidence: {cqcAuditEvidence.filter(evidence => evidence.evidenceCategoryId === category.id).length}
-                              </span>
-                              <Dialog>
-                                <DialogTrigger asChild>
-                                  <Button 
-                                    variant="ghost" 
-                                    size="sm" 
-                                    className="p-0 h-auto text-xs hover:bg-transparent"
-                                    data-testid={`button-upload-${category.categoryName}`}
-                                  >
+                    <Dialog key={category.id}>
+                      <DialogTrigger asChild>
+                        <Card className="relative overflow-hidden cursor-pointer hover:shadow-md transition-shadow" data-testid={`card-upload-${category.categoryName}`}>
+                          <CardContent className="pt-6">
+                            <div className="flex items-start space-x-3">
+                              <div className={`p-2 rounded-lg bg-gray-100 dark:bg-gray-800 ${colorClass}`}>
+                                <IconComponent className="h-5 w-5" />
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <h3 className="font-medium text-sm" data-testid={`evidence-category-${category.id}`}>
+                                  {category.displayName}
+                                </h3>
+                                <p className="text-xs text-gray-600 dark:text-gray-400 mt-1 line-clamp-2">
+                                  {category.description}
+                                </p>
+                                <div className="flex items-center justify-between mt-2">
+                                  <span className="text-xs text-gray-600 dark:text-gray-400">
+                                    Evidence: {cqcAuditEvidence.filter(evidence => evidence.evidenceCategoryId === category.id).length}
+                                  </span>
+                                  <div className="flex items-center text-xs text-blue-600">
                                     <Upload className="h-3 w-3 mr-1" />
-                                    Upload
-                                  </Button>
-                                </DialogTrigger>
-                                <DialogContent className="sm:max-w-2xl">
-                                  <DialogHeader>
-                                    <DialogTitle>Upload Evidence - {category.displayName}</DialogTitle>
-                                    <DialogDescription>
-                                      Upload evidence files for {category.description.toLowerCase()}
-                                    </DialogDescription>
-                                  </DialogHeader>
-                                  <div className="py-4">
-                                    <DashboardModal
-                                      uppy={undefined}
-                                      open={true}
-                                      onRequestClose={() => {}}
-                                      note="Upload photos, documents, certificates, and other evidence files"
-                                    />
+                                    Click to Upload
                                   </div>
-                                </DialogContent>
-                              </Dialog>
+                                </div>
+                              </div>
                             </div>
-                          </div>
+                          </CardContent>
+                        </Card>
+                      </DialogTrigger>
+                      <DialogContent className="sm:max-w-2xl">
+                        <DialogHeader>
+                          <DialogTitle>Upload Evidence - {category.displayName}</DialogTitle>
+                          <DialogDescription>
+                            Upload evidence files for {category.description.toLowerCase()}
+                          </DialogDescription>
+                        </DialogHeader>
+                        <div className="py-4">
+                          <DashboardModal
+                            uppy={undefined}
+                            open={true}
+                            onRequestClose={() => {}}
+                            note="Upload photos, documents, certificates, and other evidence files"
+                          />
                         </div>
-                      </CardContent>
-                    </Card>
+                      </DialogContent>
+                    </Dialog>
                   );
                   })
                 )}
