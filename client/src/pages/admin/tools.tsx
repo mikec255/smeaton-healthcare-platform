@@ -81,7 +81,7 @@ const questionSchema = z.object({
 
 export default function AdminTools() {
   const [activeTab, setActiveTab] = useState('calculator');
-  const [packageType, setPackageType] = useState('hourly'); // 'hourly', 'live-in', or 'care24x7'
+  const [packageType, setPackageType] = useState('hourly'); // 'hourly', 'live-in', 'care24x7', or 'short-visits'
   const [calculation, setCalculation] = useState({
     chargeRate: '',
     hours: '',
@@ -101,6 +101,12 @@ export default function AdminTools() {
     calcMode: 'weekly', // 'weekly' or 'hourly'
     travelDayPerShift: '',
     travelNightPerShift: '',
+    // Short Visits specific fields
+    hourlyPay: '',
+    hoursPaid: '',
+    careHoursDelivered: '',
+    travelTimeMinutes: '',
+    minimumWage: 12.21, // Fixed minimum wage for travel time
     // UK overhead rates (these can be made configurable later)
     nationalInsurance: 15.0, // Employer NI rate %
     pensionContribution: 3.0, // Minimum auto-enrolment rate %
@@ -128,6 +134,13 @@ export default function AdminTools() {
     dayMargin: 0,
     nightMargin: 0,
     totalHours: 0,
+    // Short Visits specific results
+    chargeRevenue: 0,
+    carePayCost: 0,
+    travelPayCost: 0,
+    totalPayCost: 0,
+    shortVisitsMargin: 0,
+    shortVisitsMarginPercentage: 0,
   });
 
   const [showQuoteModal, setShowQuoteModal] = useState(false);
@@ -353,6 +366,30 @@ export default function AdminTools() {
       dayWage = dayWageRate * totalDayHours;
       nightWage = nightWageRate * totalNightHours;
       grossWage = dayWage + nightWage;
+    } else if (packageType === 'short-visits') {
+      // Short Visits calculations
+      const hourlyPay = parseFloat(calculation.hourlyPay) || 0;
+      const hoursPaid = parseFloat(calculation.hoursPaid) || 0;
+      const careHoursDelivered = parseFloat(calculation.careHoursDelivered) || 0;
+      const travelTimeMinutes = parseFloat(calculation.travelTimeMinutes) || 0;
+      const minimumWage = calculation.minimumWage;
+      
+      // Revenue = Care hours delivered × Charge rate
+      totalRevenue = careHoursDelivered * chargeRate;
+      
+      // Care Pay Cost = Number of hours paid × Hourly pay
+      const carePayCost = hoursPaid * hourlyPay;
+      
+      // Travel Pay Cost = Travel time in minutes ÷ 60 × minimum wage (£12.21)
+      const travelPayCost = (travelTimeMinutes / 60) * minimumWage;
+      
+      // Total Pay Cost
+      const totalPayCost = carePayCost + travelPayCost;
+      
+      // For Short Visits, we don't apply NI/pension/holiday pay to the grossWage calculation
+      // Instead we'll use totalPayCost directly for margin calculation
+      grossWage = totalPayCost;
+      totalHours = careHoursDelivered;
     }
 
 
@@ -400,6 +437,28 @@ export default function AdminTools() {
       nightMargin = nightRevenue - (nightWage + nightCostShare);
     }
 
+    // Calculate Short Visits specific results
+    let chargeRevenue = 0;
+    let carePayCost = 0;
+    let travelPayCost = 0;
+    let totalPayCost = 0;
+    let shortVisitsMargin = 0;
+    let shortVisitsMarginPercentage = 0;
+
+    if (packageType === 'short-visits') {
+      const hourlyPay = parseFloat(calculation.hourlyPay) || 0;
+      const hoursPaid = parseFloat(calculation.hoursPaid) || 0;
+      const careHoursDelivered = parseFloat(calculation.careHoursDelivered) || 0;
+      const travelTimeMinutes = parseFloat(calculation.travelTimeMinutes) || 0;
+      
+      chargeRevenue = careHoursDelivered * chargeRate;
+      carePayCost = hoursPaid * hourlyPay;
+      travelPayCost = (travelTimeMinutes / 60) * calculation.minimumWage;
+      totalPayCost = carePayCost + travelPayCost;
+      shortVisitsMargin = chargeRevenue - totalPayCost;
+      shortVisitsMarginPercentage = chargeRevenue > 0 ? (shortVisitsMargin / chargeRevenue) * 100 : 0;
+    }
+
     setResults({
       totalRevenue,
       totalStaffCost,
@@ -424,6 +483,13 @@ export default function AdminTools() {
       dayMargin,
       nightMargin,
       totalHours,
+      // Short Visits specific results
+      chargeRevenue,
+      carePayCost,
+      travelPayCost,
+      totalPayCost,
+      shortVisitsMargin,
+      shortVisitsMarginPercentage,
     });
   };
 
@@ -563,11 +629,18 @@ export default function AdminTools() {
                       24/7 Care
                     </Label>
                   </div>
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="short-visits" id="short-visits" />
+                    <Label htmlFor="short-visits" className="flex items-center gap-2 cursor-pointer">
+                      <ArrowRight className="h-4 w-4" />
+                      Short Visits
+                    </Label>
+                  </div>
                 </RadioGroup>
               </div>
 
-              {/* Standard charge rate for hourly and live-in care only */}
-              {packageType !== 'care24x7' && (
+              {/* Standard charge rate for hourly, live-in, and short-visits care */}
+              {(packageType !== 'care24x7') && (
                 <div className="space-y-2">
                   <Label htmlFor="charge-rate">
                     Charge Rate (per hour)
@@ -851,10 +924,96 @@ export default function AdminTools() {
                     </div>
                   )}
                 </div>
+              ) : packageType === 'short-visits' ? (
+                // Short Visits specific inputs
+                <div className="space-y-4">
+                  <div className="bg-green-50 dark:bg-green-950 p-4 rounded-lg border border-green-200 dark:border-green-800">
+                    <h4 className="font-semibold text-green-900 dark:text-green-100 mb-3 flex items-center gap-2">
+                      <ArrowRight className="h-4 w-4" />
+                      Short Visits Configuration
+                    </h4>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="hourly-pay">Hourly Pay (to staff)</Label>
+                        <div className="relative">
+                          <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-500" />
+                          <Input
+                            id="hourly-pay"
+                            type="number"
+                            step="0.01"
+                            placeholder="15.00"
+                            className="pl-10"
+                            value={calculation.hourlyPay}
+                            onChange={(e) => handleInputChange('hourlyPay', e.target.value)}
+                            data-testid="input-hourly-pay"
+                          />
+                        </div>
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="hours-paid">Number of Hours Paid</Label>
+                        <div className="relative">
+                          <Clock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-500" />
+                          <Input
+                            id="hours-paid"
+                            type="number"
+                            step="0.5"
+                            placeholder="6.0"
+                            className="pl-10"
+                            value={calculation.hoursPaid}
+                            onChange={(e) => handleInputChange('hoursPaid', e.target.value)}
+                            data-testid="input-hours-paid"
+                          />
+                        </div>
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="care-hours-delivered">Care Hours Delivered</Label>
+                        <div className="relative">
+                          <Users className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-500" />
+                          <Input
+                            id="care-hours-delivered"
+                            type="number"
+                            step="0.5"
+                            placeholder="5.0"
+                            className="pl-10"
+                            value={calculation.careHoursDelivered}
+                            onChange={(e) => handleInputChange('careHoursDelivered', e.target.value)}
+                            data-testid="input-care-hours-delivered"
+                          />
+                        </div>
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="travel-time-minutes">Travel Time (minutes)</Label>
+                        <div className="relative">
+                          <ArrowRight className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-500" />
+                          <Input
+                            id="travel-time-minutes"
+                            type="number"
+                            step="1"
+                            placeholder="60"
+                            className="pl-10"
+                            value={calculation.travelTimeMinutes}
+                            onChange={(e) => handleInputChange('travelTimeMinutes', e.target.value)}
+                            data-testid="input-travel-time-minutes"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                    
+                    {/* Fixed Minimum Wage Info */}
+                    <div className="mt-4 p-3 bg-blue-100 dark:bg-blue-900 rounded-lg">
+                      <div className="flex items-center gap-2 text-blue-800 dark:text-blue-200">
+                        <Info className="h-4 w-4" />
+                        <span className="text-sm font-medium">
+                          Travel time paid at minimum wage: £{calculation.minimumWage.toFixed(2)} per hour
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
               ) : null}
 
-              {/* Standard carer wage and travel costs (exclude for 24/7 care) */}
-              {packageType !== 'care24x7' && (
+              {/* Standard carer wage and travel costs (exclude for 24/7 care and short visits) */}
+              {packageType !== 'care24x7' && packageType !== 'short-visits' && (
                 <>
                   <div className="space-y-2">
                     <Label htmlFor="carer-wage">Carer Wage (per hour)</Label>
@@ -913,24 +1072,26 @@ export default function AdminTools() {
                 </div>
               )}
 
-              {/* UK Overhead Rates */}
-              <div className="pt-4">
-                <h4 className="text-md font-semibold mb-3">UK Employment Overheads</h4>
-                <div className="grid grid-cols-2 gap-3 text-sm">
-                  <div className="flex justify-between">
-                    <span>National Insurance:</span>
-                    <Badge variant="secondary">{formatPercentage(calculation.nationalInsurance)}</Badge>
-                  </div>
-                  <div className="flex justify-between">
-                    <span>Pension:</span>
-                    <Badge variant="secondary">{formatPercentage(calculation.pensionContribution)}</Badge>
-                  </div>
-                  <div className="flex justify-between">
-                    <span>Holiday Pay:</span>
-                    <Badge variant="secondary">{formatPercentage(calculation.holidayPay)}</Badge>
+              {/* UK Overhead Rates (exclude Short Visits - it doesn't use these) */}
+              {packageType !== 'short-visits' && (
+                <div className="pt-4">
+                  <h4 className="text-md font-semibold mb-3">UK Employment Overheads</h4>
+                  <div className="grid grid-cols-2 gap-3 text-sm">
+                    <div className="flex justify-between">
+                      <span>National Insurance:</span>
+                      <Badge variant="secondary">{formatPercentage(calculation.nationalInsurance)}</Badge>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>Pension:</span>
+                      <Badge variant="secondary">{formatPercentage(calculation.pensionContribution)}</Badge>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>Holiday Pay:</span>
+                      <Badge variant="secondary">{formatPercentage(calculation.holidayPay)}</Badge>
+                    </div>
                   </div>
                 </div>
-              </div>
+              )}
             </div>
 
             {/* Results Section */}
@@ -998,44 +1159,96 @@ export default function AdminTools() {
                 </CardContent>
               </Card>
 
-              {/* Total Costs */}
-              <Card className="border-red-200 bg-red-50 dark:bg-red-950 dark:border-red-800">
-                <CardContent className="pt-4">
-                  <div className="flex justify-between items-center">
-                    <span className="font-medium">Total Costs</span>
-                    <span className="text-xl font-bold text-red-700 dark:text-red-300">
-                      {formatCurrency(results.totalCosts)}
-                    </span>
-                  </div>
-                </CardContent>
-              </Card>
+              {/* Short Visits specific costs and results */}
+              {packageType === 'short-visits' ? (
+                <>
+                  {/* Short Visits Costs Breakdown */}
+                  <Card>
+                    <CardContent className="pt-4 space-y-3">
+                      <h4 className="font-semibold text-gray-900 dark:text-white">Short Visits Costs Breakdown</h4>
+                      <div className="space-y-2 text-sm">
+                        <div className="flex justify-between">
+                          <span>Care Pay Cost:</span>
+                          <span className="font-medium">{formatCurrency(results.carePayCost)}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span>Travel Pay Cost (@ £{calculation.minimumWage}/hr):</span>
+                          <span className="font-medium">{formatCurrency(results.travelPayCost)}</span>
+                        </div>
+                        <Separator />
+                        <div className="flex justify-between font-semibold">
+                          <span>Total Pay Cost:</span>
+                          <span>{formatCurrency(results.totalPayCost)}</span>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                  
+                  {/* Short Visits Margin */}
+                  <Card className="border-blue-200 bg-blue-50 dark:bg-blue-950 dark:border-blue-800">
+                    <CardContent className="pt-4 space-y-3">
+                      <h4 className="font-semibold text-blue-900 dark:text-blue-100">Short Visits Margin</h4>
+                      <div className="space-y-2">
+                        <div className="flex justify-between items-center">
+                          <span>Margin:</span>
+                          <span className={`text-xl font-bold ${results.shortVisitsMargin >= 0 ? 'text-blue-700 dark:text-blue-300' : 'text-red-700 dark:text-red-300'}`}>
+                            {formatCurrency(results.shortVisitsMargin)}
+                          </span>
+                        </div>
+                        <div className="flex justify-between items-center">
+                          <span>Margin %:</span>
+                          <span className={`font-bold ${results.shortVisitsMarginPercentage >= 0 ? 'text-blue-700 dark:text-blue-300' : 'text-red-700 dark:text-red-300'}`}>
+                            {formatPercentage(results.shortVisitsMarginPercentage)}
+                          </span>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </>
+              ) : (
+                <>
+                  {/* Total Costs */}
+                  <Card className="border-red-200 bg-red-50 dark:bg-red-950 dark:border-red-800">
+                    <CardContent className="pt-4">
+                      <div className="flex justify-between items-center">
+                        <span className="font-medium">Total Costs</span>
+                        <span className="text-xl font-bold text-red-700 dark:text-red-300">
+                          {formatCurrency(results.totalCosts)}
+                        </span>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </>
+              )}
 
-              {/* Margins */}
-              <Card className="border-blue-200 bg-blue-50 dark:bg-blue-950 dark:border-blue-800">
-                <CardContent className="pt-4 space-y-3">
-                  <h4 className="font-semibold text-blue-900 dark:text-blue-100">Profit Margins</h4>
-                  <div className="space-y-2">
-                    <div className="flex justify-between items-center">
-                      <span>{packageType === 'hourly' ? 'Shift Margin:' : 'Period Margin:'}</span>
-                      <span className={`text-xl font-bold ${results.shiftMargin >= 0 ? 'text-blue-700 dark:text-blue-300' : 'text-red-700 dark:text-red-300'}`}>
-                        {formatCurrency(results.shiftMargin)}
-                      </span>
+              {/* Margins (exclude Short Visits - it has its own margin display) */}
+              {packageType !== 'short-visits' && (
+                <Card className="border-blue-200 bg-blue-50 dark:bg-blue-950 dark:border-blue-800">
+                  <CardContent className="pt-4 space-y-3">
+                    <h4 className="font-semibold text-blue-900 dark:text-blue-100">Profit Margins</h4>
+                    <div className="space-y-2">
+                      <div className="flex justify-between items-center">
+                        <span>{packageType === 'hourly' ? 'Shift Margin:' : 'Period Margin:'}</span>
+                        <span className={`text-xl font-bold ${results.shiftMargin >= 0 ? 'text-blue-700 dark:text-blue-300' : 'text-red-700 dark:text-red-300'}`}>
+                          {formatCurrency(results.shiftMargin)}
+                        </span>
+                      </div>
+                      <div className="flex justify-between items-center">
+                        <span>{packageType === 'hourly' ? 'Hourly' : 'Daily'} Margin:</span>
+                        <span className={`font-bold ${results.hourlyMargin >= 0 ? 'text-blue-700 dark:text-blue-300' : 'text-red-700 dark:text-red-300'}`}>
+                          {formatCurrency(results.hourlyMargin)}
+                        </span>
+                      </div>
+                      <div className="flex justify-between items-center">
+                        <span>Margin %:</span>
+                        <span className={`font-bold ${results.marginPercentage >= 0 ? 'text-blue-700 dark:text-blue-300' : 'text-red-700 dark:text-red-300'}`}>
+                          {formatPercentage(results.marginPercentage)}
+                        </span>
+                      </div>
                     </div>
-                    <div className="flex justify-between items-center">
-                      <span>{packageType === 'hourly' ? 'Hourly' : 'Daily'} Margin:</span>
-                      <span className={`font-bold ${results.hourlyMargin >= 0 ? 'text-blue-700 dark:text-blue-300' : 'text-red-700 dark:text-red-300'}`}>
-                        {formatCurrency(results.hourlyMargin)}
-                      </span>
-                    </div>
-                    <div className="flex justify-between items-center">
-                      <span>Margin %:</span>
-                      <span className={`font-bold ${results.marginPercentage >= 0 ? 'text-blue-700 dark:text-blue-300' : 'text-red-700 dark:text-red-300'}`}>
-                        {formatPercentage(results.marginPercentage)}
-                      </span>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
+                  </CardContent>
+                </Card>
+              )}
 
               {/* Generate Quote Button */}
               <Dialog open={showQuoteModal} onOpenChange={setShowQuoteModal}>
