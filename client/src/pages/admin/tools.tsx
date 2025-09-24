@@ -25,8 +25,6 @@ import { useToast } from '@/hooks/use-toast';
 import { jsPDF } from 'jspdf';
 import html2canvas from 'html2canvas';
 import { useLocation } from 'wouter';
-import { PageHeader } from '@/components/layout/page-header';
-import { generateBreadcrumbs } from '@/config/admin-nav';
 
 // Fixed employment rates - NOT editable
 const EMPLOYMENT_RATES = {
@@ -108,7 +106,6 @@ interface QuoteDetails {
 
 export default function AdminTools() {
   const [location] = useLocation();
-  const breadcrumbs = generateBreadcrumbs(location);
   const [hourlyCalc, setHourlyCalc] = useState<HourlyCalculation>({
     chargeRate: '',
     hours: '',
@@ -428,12 +425,19 @@ export default function AdminTools() {
   };
 
   return (
-    <div className="space-y-8 max-w-5xl mx-auto px-4 lg:px-8 xl:px-12 pb-16">
-      <PageHeader
-        title="Package Calculators"
-        description="Calculate care package costs and margins with UK employment overheads"
-        breadcrumbs={breadcrumbs}
-      />
+    <div className="container mx-auto py-8 space-y-6">
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Package Calculators</h1>
+          <p className="text-gray-600 dark:text-gray-400 mt-2">
+            Calculate care package costs and margins with UK employment overheads
+          </p>
+        </div>
+        <div className="flex items-center gap-2">
+          <Calculator className="h-8 w-8 text-pink-600" />
+          <span className="text-sm text-gray-500">Calculation Tools</span>
+        </div>
+      </div>
 
       {/* Package Calculators */}
       <Tabs defaultValue="hourly" className="w-full px-2 sm:px-4 lg:px-6" onValueChange={setActiveCalculator}>
@@ -918,9 +922,9 @@ export default function AdminTools() {
                             <h4 className="font-semibold mb-2">Service Summary</h4>
                             <div className="grid grid-cols-2 gap-4 text-sm">
                               <div>Service Type: Live-In Care</div>
-                              <div>Duration: {liveInCalc.weeks} weeks</div>
-                              <div>Hourly Rate: {formatCurrency(liveInCalc.hourlyRate)}</div>
-                              <div>Travel Distance: {liveInCalc.travelDistance} miles</div>
+                              <div>Duration: {liveInCalc.days} days</div>
+                              <div>Hours Per Day: {liveInCalc.hoursPerDay}</div>
+                              <div>Travel Costs: {formatCurrency(parseFloat(liveInCalc.travelCosts) || 0)}</div>
                             </div>
                           </div>
                           <div className="bg-blue-50 dark:bg-blue-900 p-4 rounded-lg">
@@ -1282,8 +1286,8 @@ export default function AdminTools() {
                             <div className="grid grid-cols-2 gap-4 text-sm">
                               <div>Service Type: 24/7 Care</div>
                               <div>Calculation Mode: {care24x7Calc.calcMode}</div>
-                              <div>Day Rate: {formatCurrency(care24x7Calc.dayRate)}</div>
-                              <div>Night Rate: {formatCurrency(care24x7Calc.nightRate)}</div>
+                              <div>Day Rate: {formatCurrency(parseFloat(care24x7Calc.dayChargeRate) || 0)}</div>
+                              <div>Night Rate: {formatCurrency(parseFloat(care24x7Calc.nightChargeRate) || 0)}</div>
                             </div>
                           </div>
                           <div className="bg-blue-50 dark:bg-blue-900 p-4 rounded-lg">
@@ -1541,8 +1545,8 @@ export default function AdminTools() {
                             <h4 className="font-semibold mb-2">Service Summary</h4>
                             <div className="grid grid-cols-2 gap-4 text-sm">
                               <div>Service Type: Short Visits</div>
-                              <div>Charge Rate: {formatCurrency(shortVisitsCalc.chargeRate)}</div>
-                              <div>Care Pay Rate: {formatCurrency(shortVisitsCalc.carePayRate)}</div>
+                              <div>Charge Rate: {formatCurrency(parseFloat(shortVisitsCalc.chargeRate) || 0)}</div>
+                              <div>Hourly Pay: {formatCurrency(parseFloat(shortVisitsCalc.hourlyPay) || 0)}</div>
                               <div>Care Hours: {shortVisitsCalc.careHoursDelivered}</div>
                             </div>
                           </div>

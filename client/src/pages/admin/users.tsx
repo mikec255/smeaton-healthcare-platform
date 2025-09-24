@@ -270,33 +270,28 @@ export default function UsersAdmin() {
   }
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16" data-testid="users-admin-page">
-      {/* Header */}
-      <div className="flex justify-between items-center mb-8">
-        <div className="flex items-center gap-4">
-          <Link href="/admin">
-            <Button variant="outline" size="sm" data-testid="button-back">
-              <ArrowLeft className="h-4 w-4 mr-2" />
-              Back to Admin
-            </Button>
-          </Link>
-          <div>
-            <h1 className="text-4xl font-bold text-foreground mb-2" data-testid="users-title">
-              Manage Users
-            </h1>
-            <p className="text-xl text-muted-foreground" data-testid="users-subtitle">
-              Create and manage admin users with role-based access control
-            </p>
-          </div>
+    <div className="container mx-auto py-8 space-y-6" data-testid="users-admin-page">
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Manage Users</h1>
+          <p className="text-gray-600 dark:text-gray-400 mt-2">
+            Create and manage admin users with role-based access control
+          </p>
         </div>
-        <Button
-          onClick={() => setShowCreateModal(true)}
-          data-testid="button-create-user"
-          className="bg-primary hover:bg-primary/90"
-        >
-          <Plus className="h-4 w-4 mr-2" />
-          Add User
-        </Button>
+        <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2">
+            <Shield className="h-8 w-8 text-pink-600" />
+            <span className="text-sm text-gray-500">User Management</span>
+          </div>
+          <Button
+            onClick={() => setShowCreateModal(true)}
+            data-testid="button-create-user"
+            className="gap-2"
+          >
+            <Plus className="h-4 w-4" />
+            Add User
+          </Button>
+        </div>
       </div>
 
       {/* Users Table */}

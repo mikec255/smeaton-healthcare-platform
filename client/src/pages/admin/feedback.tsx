@@ -145,32 +145,26 @@ export default function FeedbackAdmin() {
   };
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16" data-testid="feedback-admin-page">
-      {/* Header */}
-      <div className="flex justify-between items-center mb-8">
+    <div className="container mx-auto py-8 space-y-6" data-testid="feedback-admin-page">
+      <div className="flex items-center justify-between">
         <div>
-          <div className="flex items-center gap-2 mb-2">
-            <Link href="/admin" className="text-muted-foreground hover:text-foreground">
-              Admin
-            </Link>
-            <span className="text-muted-foreground">/</span>
-            <span className="font-medium">Feedback</span>
-          </div>
-          <h1 className="text-4xl font-bold text-foreground mb-4" data-testid="feedback-title">
-            Feedback Management
-          </h1>
-          <p className="text-xl text-muted-foreground" data-testid="feedback-subtitle">
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Feedback Management</h1>
+          <p className="text-gray-600 dark:text-gray-400 mt-2">
             View and manage customer feedback for CQC compliance
           </p>
+        </div>
+        <div className="flex items-center gap-2">
+          <MessageSquare className="h-8 w-8 text-pink-600" />
+          <span className="text-sm text-gray-500">Feedback Dashboard</span>
         </div>
       </div>
 
       {/* Stats Cards */}
-      <div className="grid md:grid-cols-4 gap-6 mb-8">
+      <div className="grid md:grid-cols-4 gap-6">
         {stats.map((stat, index) => {
           const IconComponent = stat.icon;
           return (
-            <Card key={index} className="shadow-lg" data-testid={`feedback-stat-card-${index}`}>
+            <Card key={index} data-testid={`feedback-stat-card-${index}`}>
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
@@ -192,7 +186,7 @@ export default function FeedbackAdmin() {
       </div>
 
       {/* Filters and Search */}
-      <Card className="shadow-lg mb-8">
+      <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Filter className="h-5 w-5" />
@@ -267,7 +261,7 @@ export default function FeedbackAdmin() {
       </Card>
 
       {/* Feedback Table */}
-      <Card className="shadow-lg">
+      <Card>
         <CardHeader>
           <CardTitle className="flex items-center justify-between">
             <span className="flex items-center gap-2">

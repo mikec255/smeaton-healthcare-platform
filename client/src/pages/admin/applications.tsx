@@ -8,8 +8,6 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { Users, Mail, Phone, MapPin, Clock, FileText, Briefcase, ArrowLeft, UserCheck, Calendar, Car, Zap, Shield, CheckCircle, XCircle, Info, Filter, Edit, NotebookPen } from "lucide-react";
-import { PageHeader } from "@/components/layout/page-header";
-import { generateBreadcrumbs } from "@/config/admin-nav";
 import { useLocation } from "wouter";
 import { type Application, type Job } from "@shared/schema";
 import { apiRequest, queryClient } from "@/lib/queryClient";
@@ -21,7 +19,6 @@ type JobWithApplications = Job & {
 
 export default function ApplicationsAdmin() {
   const [location] = useLocation();
-  const breadcrumbs = generateBreadcrumbs(location);
   
   const [selectedJob, setSelectedJob] = useState<Job | null>(null);
   const [selectedApplication, setSelectedApplication] = useState<Application | null>(null);
@@ -181,12 +178,19 @@ export default function ApplicationsAdmin() {
 
   if (jobsLoading) {
     return (
-      <div className="space-y-8">
-        <PageHeader
-          title="Pre-Screens"
-          description="Manage job applications and candidate screening"
-          breadcrumbs={breadcrumbs}
-        />
+      <div className="container mx-auto py-8 space-y-6">
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Pre-Screens</h1>
+            <p className="text-gray-600 dark:text-gray-400 mt-2">
+              Manage job applications and candidate screening
+            </p>
+          </div>
+          <div className="flex items-center gap-2">
+            <Users className="h-8 w-8 text-pink-600" />
+            <span className="text-sm text-gray-500">Applications Dashboard</span>
+          </div>
+        </div>
         <div className="flex items-center justify-center py-12">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
           <span className="ml-2 text-muted-foreground">Loading jobs...</span>
@@ -197,12 +201,19 @@ export default function ApplicationsAdmin() {
 
   if (jobsError) {
     return (
-      <div className="space-y-8">
-        <PageHeader
-          title="Pre-Screens"
-          description="Manage job applications and candidate screening"
-          breadcrumbs={breadcrumbs}
-        />
+      <div className="container mx-auto py-8 space-y-6">
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Pre-Screens</h1>
+            <p className="text-gray-600 dark:text-gray-400 mt-2">
+              Manage job applications and candidate screening
+            </p>
+          </div>
+          <div className="flex items-center gap-2">
+            <Users className="h-8 w-8 text-pink-600" />
+            <span className="text-sm text-gray-500">Applications Dashboard</span>
+          </div>
+        </div>
         <div className="text-center py-12">
           <p className="text-red-600">Error loading jobs. Please try again.</p>
         </div>
@@ -211,19 +222,25 @@ export default function ApplicationsAdmin() {
   }
 
   return (
-    <div className="space-y-8">
-      {!selectedJob ? (
-        <PageHeader
-          title="Pre-Screens"
-          description="Select a job position to view and manage candidate pre-screens"
-          breadcrumbs={breadcrumbs}
-        />
-      ) : (
-        <PageHeader
-          title={`${selectedJob.title} - Pre-Screens`}
-          description={`Review candidate pre-screens for ${selectedJob.title} position`}
-          breadcrumbs={breadcrumbs}
-          actions={
+    <div className="container mx-auto py-8 space-y-6">
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
+            {!selectedJob ? "Pre-Screens" : `${selectedJob.title} - Pre-Screens`}
+          </h1>
+          <p className="text-gray-600 dark:text-gray-400 mt-2">
+            {!selectedJob 
+              ? "Select a job position to view and manage candidate pre-screens"
+              : `Review candidate pre-screens for ${selectedJob.title} position`
+            }
+          </p>
+        </div>
+        <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2">
+            <Users className="h-8 w-8 text-pink-600" />
+            <span className="text-sm text-gray-500">Applications Dashboard</span>
+          </div>
+          {selectedJob && (
             <Button 
               variant="ghost" 
               onClick={() => {
@@ -236,9 +253,9 @@ export default function ApplicationsAdmin() {
               <ArrowLeft className="h-4 w-4" />
               Back to Jobs
             </Button>
-          }
-        />
-      )}
+          )}
+        </div>
+      </div>
 
       {!selectedJob ? (
         // Jobs List View
@@ -265,7 +282,7 @@ export default function ApplicationsAdmin() {
               {filteredJobs.map((job) => (
                 <Card 
                   key={job.id} 
-                  className="cursor-pointer transition-all hover:shadow-md hover:border-primary/50"
+                  className="cursor-pointer transition-all hover:border-primary/50"
                   onClick={() => setSelectedJob(job)}
                 >
                   <CardContent className="p-6">

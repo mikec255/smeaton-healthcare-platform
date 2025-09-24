@@ -374,28 +374,23 @@ export default function BlogAdmin() {
   }
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16" data-testid="blog-admin-page">
-      {/* Header */}
-      <div className="flex justify-between items-center mb-8">
-        <div className="flex items-center gap-4">
-          <Link href="/admin">
-            <Button variant="outline" size="sm" data-testid="button-back">
-              <ArrowLeft className="h-4 w-4 mr-2" />
-              Back to Admin
-            </Button>
-          </Link>
-          <div>
-            <h1 className="text-4xl font-bold text-foreground mb-2" data-testid="blog-admin-title">
-              Blog Management
-            </h1>
-            <p className="text-xl text-muted-foreground" data-testid="blog-admin-subtitle">
-              Create and manage blog posts for the resources section
-            </p>
-          </div>
+    <div className="container mx-auto py-8 space-y-6" data-testid="blog-admin-page">
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
+            Blog Management
+          </h1>
+          <p className="text-gray-600 dark:text-gray-400 mt-2">
+            Create and manage blog posts for the resources section
+          </p>
         </div>
-
-        <div className="flex gap-4">
-          <Dialog open={isCategoryModalOpen} onOpenChange={setIsCategoryModalOpen}>
+        <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2">
+            <BookOpen className="h-8 w-8 text-pink-600" />
+            <span className="text-sm text-gray-500">Blog Dashboard</span>
+          </div>
+          <div className="flex gap-4">
+            <Dialog open={isCategoryModalOpen} onOpenChange={setIsCategoryModalOpen}>
             <DialogTrigger asChild>
               <Button variant="outline" data-testid="button-create-category">
                 <Tag className="h-4 w-4 mr-2" />
@@ -645,11 +640,13 @@ export default function BlogAdmin() {
               </Form>
             </DialogContent>
           </Dialog>
+
+          </div>
         </div>
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
@@ -694,7 +691,7 @@ export default function BlogAdmin() {
       </div>
 
       {/* Categories */}
-      <Card className="mb-8">
+      <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Tag className="h-5 w-5" />
