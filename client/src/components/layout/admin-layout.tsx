@@ -52,6 +52,23 @@ export function AdminLayout({ children }: AdminLayoutProps) {
 
   const user = authUser?.user;
   const isSuperAdmin = user?.role === 'superadmin';
+  
+  // Helper function to check if user has permission for a navigation item
+  const hasPermission = (item: NavItem): boolean => {
+    // Superadmin always has access to everything
+    if (isSuperAdmin) return true;
+    
+    // If no permission specified (legacy), check adminOnly flag
+    if (!item.permission) {
+      return !item.adminOnly;
+    }
+    
+    // Check user's granular permissions
+    const permissions = user?.permissions;
+    if (!permissions) return false;
+    
+    return permissions[item.permission] === true;
+  };
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
@@ -100,7 +117,7 @@ export function AdminLayout({ children }: AdminLayoutProps) {
           {/* Navigation */}
           <nav className="flex-1 px-4 py-4 space-y-2 overflow-y-auto">
             {navigationItems
-              .filter(item => !item.adminOnly || isSuperAdmin)
+              .filter(hasPermission)
               .map((item) => {
                 const hasSubmenu = item.submenu && item.submenu.length > 0;
                 const isExpanded = expandedMenus.includes(item.id);

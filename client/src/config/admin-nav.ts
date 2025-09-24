@@ -21,6 +21,15 @@ export interface NavItem {
   submenu?: NavItem[];
   adminOnly?: boolean;
   description?: string;
+  permission?: keyof {
+    overview: boolean;
+    recruitment: boolean;
+    customerRelations: boolean;
+    feedback: boolean;
+    tools: boolean;
+    resources: boolean;
+    system: boolean;
+  };
 }
 
 export interface AdminRoute {
@@ -38,6 +47,7 @@ export const navigationItems: NavItem[] = [
     label: 'Overview',
     icon: Home,
     href: '/admin',
+    permission: 'overview',
     description: 'Dashboard overview with key metrics and recent activity'
   },
   {
@@ -45,6 +55,7 @@ export const navigationItems: NavItem[] = [
     label: 'Recruitment',
     icon: Users,
     href: '#',
+    permission: 'recruitment',
     description: 'Manage job listings and candidate applications',
     submenu: [
       { 
@@ -68,6 +79,7 @@ export const navigationItems: NavItem[] = [
     label: 'Customer Relations',
     icon: UserCheck,
     href: '#',
+    permission: 'customerRelations',
     description: 'Manage customer relationships and service referrals',
     submenu: [
       { 
@@ -91,6 +103,7 @@ export const navigationItems: NavItem[] = [
     label: 'Feedback',
     icon: MessageSquare,
     href: '/admin/feedback',
+    permission: 'feedback',
     description: 'View customer feedback for CQC compliance and quality improvement'
   },
   {
@@ -98,7 +111,7 @@ export const navigationItems: NavItem[] = [
     label: 'Tools & Compliance',
     icon: Calculator,
     href: '#',
-    adminOnly: true,
+    permission: 'tools',
     description: 'Business tools and regulatory compliance management',
     submenu: [
       { 
@@ -129,7 +142,7 @@ export const navigationItems: NavItem[] = [
     label: 'Resources',
     icon: BookOpen,
     href: '#',
-    adminOnly: true,
+    permission: 'resources',
     description: 'Manage content and communications',
     submenu: [
       { 
@@ -153,7 +166,7 @@ export const navigationItems: NavItem[] = [
     label: 'System',
     icon: Settings,
     href: '#',
-    adminOnly: true,
+    permission: 'system',
     description: 'System administration and configuration',
     submenu: [
       { 
