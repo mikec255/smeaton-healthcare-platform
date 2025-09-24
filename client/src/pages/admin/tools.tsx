@@ -86,6 +86,10 @@ interface ShortVisitsResults {
   chargeRevenue: number;
   carePayCost: number;
   travelPayCost: number;
+  grossWage: number;
+  nationalInsuranceCost: number;
+  pensionCost: number;
+  holidayPayCost: number;
   totalPayCost: number;
   margin: number;
   marginPercentage: number;
@@ -180,6 +184,10 @@ export default function AdminTools() {
     chargeRevenue: 0,
     carePayCost: 0,
     travelPayCost: 0,
+    grossWage: 0,
+    nationalInsuranceCost: 0,
+    pensionCost: 0,
+    holidayPayCost: 0,
     totalPayCost: 0,
     margin: 0,
     marginPercentage: 0
@@ -344,11 +352,29 @@ export default function AdminTools() {
     const chargeRevenue = careHoursDelivered * chargeRate;
     const carePayCost = careHoursDelivered * hourlyPay;
     const travelPayCost = (travelTimeMinutes / 60) * minimumWage;
-    const totalPayCost = carePayCost + travelPayCost;
+    const grossWage = carePayCost + travelPayCost;
+    
+    // Apply employment costs like other calculators
+    const nationalInsuranceCost = grossWage * (EMPLOYMENT_RATES.nationalInsurance / 100);
+    const pensionCost = grossWage * (EMPLOYMENT_RATES.pension / 100);
+    const holidayPayCost = grossWage * (EMPLOYMENT_RATES.holidayPay / 100);
+    
+    const totalPayCost = grossWage + nationalInsuranceCost + pensionCost + holidayPayCost;
     const margin = chargeRevenue - totalPayCost;
     const marginPercentage = chargeRevenue > 0 ? (margin / chargeRevenue) * 100 : 0;
 
-    setShortVisitsResults({ chargeRevenue, carePayCost, travelPayCost, totalPayCost, margin, marginPercentage });
+    setShortVisitsResults({ 
+      chargeRevenue, 
+      carePayCost, 
+      travelPayCost, 
+      grossWage,
+      nationalInsuranceCost,
+      pensionCost,
+      holidayPayCost,
+      totalPayCost, 
+      margin, 
+      marginPercentage 
+    });
   };
 
   const downloadQuote = async () => {
@@ -1244,8 +1270,28 @@ export default function AdminTools() {
                           </div>
                           
                           <div className="flex justify-between items-center text-sm">
-                            <span className="text-gray-600 dark:text-gray-400">Travel Pay Cost (@ £{shortVisitsCalc.minimumWage}/hr)</span>
+                            <span className="text-gray-600 dark:text-gray-400">Travel Pay Cost</span>
                             <span data-testid="result-shortvisits-travel-pay-cost">{formatCurrency(shortVisitsResults.travelPayCost)}</span>
+                          </div>
+                          
+                          <div className="flex justify-between items-center text-sm">
+                            <span className="text-gray-600 dark:text-gray-400">Gross Wage</span>
+                            <span data-testid="result-shortvisits-gross-wage">{formatCurrency(shortVisitsResults.grossWage)}</span>
+                          </div>
+                          
+                          <div className="flex justify-between items-center text-sm">
+                            <span className="text-gray-600 dark:text-gray-400">National Insurance ({EMPLOYMENT_RATES.nationalInsurance}%)</span>
+                            <span data-testid="result-shortvisits-ni-cost">{formatCurrency(shortVisitsResults.nationalInsuranceCost)}</span>
+                          </div>
+                          
+                          <div className="flex justify-between items-center text-sm">
+                            <span className="text-gray-600 dark:text-gray-400">Pension ({EMPLOYMENT_RATES.pension}%)</span>
+                            <span data-testid="result-shortvisits-pension-cost">{formatCurrency(shortVisitsResults.pensionCost)}</span>
+                          </div>
+                          
+                          <div className="flex justify-between items-center text-sm">
+                            <span className="text-gray-600 dark:text-gray-400">Holiday Pay ({EMPLOYMENT_RATES.holidayPay}%)</span>
+                            <span data-testid="result-shortvisits-holiday-cost">{formatCurrency(shortVisitsResults.holidayPayCost)}</span>
                           </div>
                           
                           <div className="flex justify-between items-center text-sm font-medium border-t border-gray-200 dark:border-gray-700 pt-2">
