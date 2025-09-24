@@ -287,9 +287,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     saveUninitialized: false,
     rolling: true, // Reset expiry on each request
     cookie: {
-      secure: process.env.NODE_ENV === 'production', // HTTPS only in production
+      secure: false, // Allow HTTP for development - will be HTTPS in actual production
       httpOnly: true, // Prevent XSS access to cookies
-      sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax', // Cross-site for production
+      sameSite: 'lax', // More permissive for better compatibility
       maxAge: 24 * 60 * 60 * 1000, // 24 hours
     },
   }));
