@@ -663,7 +663,7 @@ export default function RoutePlanner() {
     return `${Math.round(feet)} ft`;
   };
 
-  // Check visit time compliance with preferred time slot
+  // Check visit time compliance with dual constraint system
   const getTimeSlotStatus = (visit: any) => {
     if (!visit.calculatedStartTime || !visit.calculatedEndTime || !visit.timeSlot) {
       return 'within'; // Default to within if no time info
@@ -675,41 +675,52 @@ export default function RoutePlanner() {
     const calculatedStart = parseInt(startParts[0]) * 60 + parseInt(startParts[1]);
     const calculatedEnd = parseInt(endParts[0]) * 60 + parseInt(endParts[1]);
 
-    // Parse time slot ranges
-    let slotStart = 0, slotEnd = 0;
+    // Parse commissioning time slot ranges (broad windows)
+    let commissioningStart = 0, commissioningEnd = 0;
     
     if (visit.timeSlot.includes('Morning')) {
-      slotStart = 7 * 60;  // 7:00 AM
-      slotEnd = 11 * 60;   // 11:00 AM
+      commissioningStart = 7 * 60;  // 7:00 AM
+      commissioningEnd = 11 * 60;   // 11:00 AM
     } else if (visit.timeSlot.includes('Lunch')) {
-      slotStart = 11 * 60; // 11:00 AM
-      slotEnd = 15 * 60;   // 3:00 PM
+      commissioningStart = 11 * 60; // 11:00 AM
+      commissioningEnd = 15 * 60;   // 3:00 PM
     } else if (visit.timeSlot.includes('Tea')) {
-      slotStart = 15 * 60; // 3:00 PM
-      slotEnd = 18 * 60;   // 6:00 PM
+      commissioningStart = 15 * 60; // 3:00 PM
+      commissioningEnd = 18 * 60;   // 6:00 PM
     } else if (visit.timeSlot.includes('Bed')) {
-      slotStart = 18 * 60; // 6:00 PM
-      slotEnd = 23 * 60;   // 11:00 PM
+      commissioningStart = 18 * 60; // 6:00 PM
+      commissioningEnd = 23 * 60;   // 11:00 PM
     } else if (visit.timeSlot.includes('AM')) {
       // Legacy support for AM slots
-      slotStart = 7 * 60;  // 7:00 AM
-      slotEnd = 11 * 60;   // 11:00 AM
+      commissioningStart = 7 * 60;  // 7:00 AM
+      commissioningEnd = 11 * 60;   // 11:00 AM
     } else if (visit.timeSlot.includes('PM')) {
       // Legacy support for PM slots  
-      slotStart = 11 * 60; // 11:00 AM
-      slotEnd = 15 * 60;   // 3:00 PM
+      commissioningStart = 11 * 60; // 11:00 AM
+      commissioningEnd = 15 * 60;   // 3:00 PM
     }
 
-    // Check time slot compliance
-    const startOutside = calculatedStart < slotStart || calculatedStart > slotEnd;
-    const endOutside = calculatedEnd < slotStart || calculatedEnd > slotEnd;
+    // Parse customer-specific time windows (optional, narrower windows)
+    let customerStart = commissioningStart;
+    let customerEnd = commissioningEnd;
     
-    if (startOutside) {
-      return 'starts-outside'; // Red warning - starts outside
-    } else if (endOutside) {
-      return 'ends-outside'; // Amber warning - ends outside
+    if (visit.earliestTime && visit.latestTime) {
+      const earliestParts = visit.earliestTime.split(':');
+      const latestParts = visit.latestTime.split(':');
+      customerStart = parseInt(earliestParts[0]) * 60 + parseInt(earliestParts[1]);
+      customerEnd = parseInt(latestParts[0]) * 60 + parseInt(latestParts[1]);
+    }
+
+    // Check compliance against both constraints
+    const outsideCommissioning = calculatedStart < commissioningStart || calculatedEnd > commissioningEnd;
+    const outsideCustomer = calculatedStart < customerStart || calculatedEnd > customerEnd;
+    
+    if (outsideCommissioning) {
+      return 'outside-commissioning'; // Red - outside commissioning window (cannot be moved)
+    } else if (outsideCustomer) {
+      return 'outside-customer'; // Amber - outside customer window but within commissioning (negotiable)
     } else {
-      return 'within'; // Green - fully within
+      return 'within-customer'; // Green - within customer's promised window
     }
   };
 
@@ -866,27 +877,33 @@ export default function RoutePlanner() {
                   </Select>
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <Label htmlFor="earliest-time">Earliest Time</Label>
-                    <Input
-                      id="earliest-time"
-                      type="time"
-                      value={newEarliestTime}
-                      onChange={(e) => setNewEarliestTime(e.target.value)}
-                      data-testid="input-earliest-time"
-                    />
-                  </div>
-                  
-                  <div>
-                    <Label htmlFor="latest-time">Latest Time</Label>
-                    <Input
-                      id="latest-time"
-                      type="time"
-                      value={newLatestTime}
-                      onChange={(e) => setNewLatestTime(e.target.value)}
-                      data-testid="input-latest-time"
-                    />
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium">Customer Time Window (Optional)</Label>
+                  <p className="text-xs text-muted-foreground">Specific window promised to customer within the commissioning slot</p>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <Label htmlFor="earliest-time">Earliest Time</Label>
+                      <Input
+                        id="earliest-time"
+                        type="time"
+                        value={newEarliestTime}
+                        onChange={(e) => setNewEarliestTime(e.target.value)}
+                        placeholder="Optional"
+                        data-testid="input-earliest-time"
+                      />
+                    </div>
+                    
+                    <div>
+                      <Label htmlFor="latest-time">Latest Time</Label>
+                      <Input
+                        id="latest-time"
+                        type="time"
+                        value={newLatestTime}
+                        onChange={(e) => setNewLatestTime(e.target.value)}
+                        placeholder="Optional"
+                        data-testid="input-latest-time"
+                      />
+                    </div>
                   </div>
                 </div>
 
@@ -1028,9 +1045,9 @@ export default function RoutePlanner() {
                                   <Badge 
                                     variant="secondary" 
                                     className={`text-xs ${
-                                      getTimeSlotStatus(visit) === 'starts-outside'
+                                      getTimeSlotStatus(visit) === 'outside-commissioning'
                                         ? 'bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-400'
-                                        : getTimeSlotStatus(visit) === 'ends-outside'
+                                        : getTimeSlotStatus(visit) === 'outside-customer'
                                         ? 'bg-amber-100 text-amber-800 dark:bg-amber-900/20 dark:text-amber-400'
                                         : 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400'
                                     }`}
@@ -1047,14 +1064,14 @@ export default function RoutePlanner() {
                                   Preferred time: {visit.timeSlot}
                                 </p>
                               )}
-                              {visit.calculatedStartTime && getTimeSlotStatus(visit) === 'starts-outside' && (
+                              {visit.calculatedStartTime && getTimeSlotStatus(visit) === 'outside-commissioning' && (
                                 <p className="text-xs text-red-600 dark:text-red-400 mt-1 font-medium">
-                                  🚨 Visit starts outside preferred time slot
+                                  🚨 Outside commissioning time slot - cannot be moved
                                 </p>
                               )}
-                              {visit.calculatedStartTime && getTimeSlotStatus(visit) === 'ends-outside' && (
+                              {visit.calculatedStartTime && getTimeSlotStatus(visit) === 'outside-customer' && (
                                 <p className="text-xs text-amber-600 dark:text-amber-400 mt-1 font-medium">
-                                  ⚠️ Visit finishes outside preferred time slot
+                                  ⚠️ Outside customer window - could be renegotiated
                                 </p>
                               )}
                             </div>
