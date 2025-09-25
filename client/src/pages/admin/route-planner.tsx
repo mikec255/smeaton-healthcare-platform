@@ -179,9 +179,7 @@ export default function RoutePlanner() {
   const { toast } = useToast();
   const [visits, setVisits] = useState<Visit[]>([]);
   const [travelMode, setTravelMode] = useState<'driving' | 'walking'>('driving');
-  const [departureTime, setDepartureTime] = useState('08:00');
   const [runName, setRunName] = useState('');
-  const [runDate, setRunDate] = useState(new Date().toISOString().split('T')[0]);
   const [optimization, setOptimization] = useState<OptimizationResult | null>(null);
   const [isMapLoaded, setIsMapLoaded] = useState(false);
   const [newAddress, setNewAddress] = useState('');
@@ -641,8 +639,8 @@ export default function RoutePlanner() {
     optimizeMutation.mutate({
       visits,
       mode: travelMode,
-      departureTime,
-      runDate,
+      departureTime: '08:00', // Default start time for ongoing routes
+      runDate: new Date().toISOString().split('T')[0], // Current date
       runName: autoRunName,
       saveRun: true, // Always save the optimized run
     });
@@ -759,30 +757,6 @@ export default function RoutePlanner() {
                     </SelectItem>
                   </SelectContent>
                 </Select>
-              </div>
-
-              <div className="flex items-center gap-2">
-                <Label htmlFor="departure-time">Departure:</Label>
-                <Input
-                  id="departure-time"
-                  type="time"
-                  value={departureTime}
-                  onChange={(e) => setDepartureTime(e.target.value)}
-                  className="w-[120px]"
-                  data-testid="input-departure-time"
-                />
-              </div>
-              
-              <div className="flex items-center gap-2">
-                <Label htmlFor="run-date">Date:</Label>
-                <Input
-                  id="run-date"
-                  type="date"
-                  value={runDate}
-                  onChange={(e) => setRunDate(e.target.value)}
-                  className="w-[140px]"
-                  data-testid="input-run-date"
-                />
               </div>
 
               <div className="flex items-center gap-2">
