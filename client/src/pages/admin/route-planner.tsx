@@ -15,8 +15,8 @@ import jsPDF from 'jspdf';
 import { MapPin, Plus, Trash2, Play, Save, Clock, Car, Footprints, Route, AlertCircle, TrendingDown, Map, GripVertical, Download, Upload, FileText, File, HelpCircle } from 'lucide-react';
 import { AdminLayout } from '@/components/layout/admin-layout';
 import addVisitFormImage from '@assets/generated_images/Actual_add_visit_form_interface_5c2edc2f.png';
-import mapWithVisitsImage from '@assets/generated_images/Real_route_planner_map_interface_24e3c40d.png';
-import optimizedResultsImage from '@assets/generated_images/Real_route_optimization_results_display_aafd424d.png';
+import mapWithVisitsImage from '@assets/generated_images/Accurate_route_planner_main_interface_2426c038.png';
+import optimizedResultsImage from '@assets/generated_images/Accurate_route_optimization_results_display_6e47e3e1.png';
 import {
   DndContext,
   closestCenter,
