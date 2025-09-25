@@ -329,8 +329,8 @@ export default function RoutePlanner() {
       setOptimization(result);
       updateMapWithOptimizedRoute(result);
       toast({
-        title: "Route Optimized",
-        description: `Generated optimized route with ${result.optimizedOrder.length} stops.`,
+        title: "Route Optimized & Run Created",
+        description: `Shortest route created visiting ${result.optimizedOrder.length} addresses house-to-house with minimum travel time. Run saved with ID: ${result.runId}`,
       });
     },
     onError: (error) => {
@@ -633,13 +633,16 @@ export default function RoutePlanner() {
       return;
     }
 
+    // Auto-generate run name if not provided
+    const autoRunName = runName || `Optimized Route ${new Date().toLocaleDateString()} ${new Date().toLocaleTimeString().slice(0,5)}`;
+
     optimizeMutation.mutate({
       visits,
       mode: travelMode,
       departureTime,
       runDate,
-      runName: runName || `Route ${new Date().toLocaleDateString()}`,
-      saveRun: !!runName,
+      runName: autoRunName,
+      saveRun: true, // Always save the optimized run
       startLocation: startLocation.trim() || undefined,
       endLocation: roundTrip ? undefined : (endLocation.trim() || undefined),
       roundTrip,
@@ -883,8 +886,11 @@ export default function RoutePlanner() {
                   data-testid="button-optimize-route"
                 >
                   <Play className="h-4 w-4 mr-2" />
-                  {optimizeMutation.isPending ? 'Optimizing...' : 'Optimize Route'}
+                  {optimizeMutation.isPending ? 'Creating Shortest Route...' : 'Create Optimized Run'}
                 </Button>
+                <p className="text-xs text-muted-foreground text-center mt-2">
+                  Automatically creates a run with the shortest travel time between all addresses
+                </p>
               </CardContent>
             </Card>
 
