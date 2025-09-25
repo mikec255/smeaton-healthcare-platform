@@ -53,6 +53,7 @@ interface Visit {
   calculatedStartTime?: string;
   calculatedEndTime?: string;
   travelTimeToNext?: number;
+  originalOptimalPosition?: number;
 }
 
 interface CostSavings {
@@ -145,6 +146,11 @@ function SortableVisitItem({ visit, index, onRemove }: { visit: Visit; index: nu
           <div className="flex-1">
             <div className="flex items-center gap-2 mb-1">
               <span className="text-sm font-medium text-gray-600 dark:text-gray-400">#{index + 1}</span>
+              {visit.originalOptimalPosition && visit.originalOptimalPosition !== (index + 1) && (
+                <span className="text-sm font-medium text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20 px-2 py-1 rounded-md">
+                  Optimal: #{visit.originalOptimalPosition}
+                </span>
+              )}
               {visit.clientName && (
                 <span className="text-sm font-medium text-gray-900 dark:text-gray-100">
                   {visit.clientName}
@@ -195,6 +201,7 @@ export default function RoutePlanner() {
   const [newClientName, setNewClientName] = useState('');
   const [highlightNameField, setHighlightNameField] = useState(false);
   const [showHowToGuide, setShowHowToGuide] = useState(false);
+  const [originalOptimalOrder, setOriginalOptimalOrder] = useState<string[]>([]);
   
   const mapRef = useRef<HTMLDivElement>(null);
   const mapInstanceRef = useRef<GoogleMap | null>(null);
@@ -279,6 +286,46 @@ export default function RoutePlanner() {
     }
   };
 
+  // Auto-optimize visits for minimum travel time
+  const autoOptimizeVisits = async (visitsToOptimize: Visit[]) => {
+    // Only auto-optimize if we have at least 2 visits with coordinates
+    const visitsWithCoords = visitsToOptimize.filter(v => v.latitude && v.longitude);
+    if (visitsWithCoords.length < 2) return visitsToOptimize;
+
+    try {
+      const response = await apiRequest('POST', '/api/route-planner/optimize', {
+        visits: visitsWithCoords,
+        mode: travelMode,
+        departureTime: '08:00',
+        runDate: new Date().toISOString().split('T')[0],
+        runName: 'auto-optimization',
+        saveRun: false,
+        roundTrip: false
+      });
+      
+      const result = await response.json();
+      const optimizedOrder = result.optimizedOrder || result.optimisedOrder;
+      
+      if (optimizedOrder) {
+        // Store the original optimal order positions
+        const optimalOrderIds = optimizedOrder.map((visit: Visit) => visit.id);
+        setOriginalOptimalOrder(optimalOrderIds);
+        
+        // Add original optimal position to each visit
+        const visitsWithOptimalPositions = optimizedOrder.map((visit: Visit, index: number) => ({
+          ...visit,
+          originalOptimalPosition: index + 1
+        }));
+        
+        return visitsWithOptimalPositions;
+      }
+    } catch (error) {
+      console.log('Auto-optimization failed, keeping original order');
+    }
+    
+    return visitsToOptimize;
+  };
+
   // Geocode mutation
   const geocodeMutation = useMutation({
     mutationFn: async (data: { visitId: string; address: string }) => {
@@ -286,7 +333,7 @@ export default function RoutePlanner() {
       const result = await response.json();
       return { visitId: data.visitId, address: data.address, result: result.results[0] };
     },
-    onSuccess: ({ visitId, result }) => {
+    onSuccess: async ({ visitId, result }) => {
       if (result && !result.error) {
         const updatedVisits = visits.map(visit => 
           visit.id === visitId ? {
@@ -297,8 +344,17 @@ export default function RoutePlanner() {
           } : visit
         );
         
-        setVisits(updatedVisits);
-        updateMapWithVisits(updatedVisits);
+        // Auto-optimize the visits for minimum travel time
+        const optimizedVisits = await autoOptimizeVisits(updatedVisits);
+        setVisits(optimizedVisits);
+        updateMapWithVisits(optimizedVisits);
+        
+        if (optimizedVisits.length > 1) {
+          toast({
+            title: "Visit Added & Auto-Optimized",
+            description: "Visits have been automatically arranged for minimum travel time. You can manually reorder them if needed.",
+          });
+        }
       } else {
         toast({
           title: "Geocoding Failed",
@@ -418,6 +474,24 @@ export default function RoutePlanner() {
         return reorderedVisits;
       });
     }
+  };
+
+  // Restore optimal order
+  const restoreOptimalOrder = () => {
+    if (originalOptimalOrder.length === 0) return;
+    
+    const restoredVisits = originalOptimalOrder.map(id => 
+      visits.find(visit => visit.id === id)
+    ).filter(Boolean) as Visit[];
+    
+    setVisits(restoredVisits);
+    updateMapWithVisits(restoredVisits);
+    setOptimisation(null);
+    
+    toast({
+      title: "Optimal Order Restored",
+      description: "Visits have been restored to their optimal order for minimum travel time.",
+    });
   };
 
   // Update map with visits
@@ -1423,13 +1497,29 @@ export default function RoutePlanner() {
             {/* Visits List */}
             <Card>
               <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <MapPin className="h-5 w-5" />
-                  Visits ({visits.length})
-                </CardTitle>
-                <CardDescription>
-                  Drag and drop to reorder visits manually
-                </CardDescription>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <CardTitle className="flex items-center gap-2">
+                      <MapPin className="h-5 w-5" />
+                      Visits ({visits.length})
+                    </CardTitle>
+                    <CardDescription>
+                      Drag and drop to reorder visits manually
+                    </CardDescription>
+                  </div>
+                  {originalOptimalOrder.length > 0 && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={restoreOptimalOrder}
+                      className="text-xs"
+                      data-testid="button-restore-optimal-order"
+                    >
+                      <TrendingDown className="h-3 w-3 mr-1" />
+                      Restore Optimal
+                    </Button>
+                  )}
+                </div>
               </CardHeader>
               <CardContent>
                 {visits.length === 0 ? (
