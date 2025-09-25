@@ -3256,8 +3256,43 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       console.log(`Starting advanced optimization for ${visits.length} visits`);
 
+      // Convert timeSlot names to actual time windows before optimization
+      const visitsWithTimeWindows = visits.map(visit => {
+        let windowStart, windowEnd;
+        
+        // Convert common time slot names to time windows
+        switch (visit.timeSlot?.toLowerCase()) {
+          case 'morning':
+            windowStart = '07:00';
+            windowEnd = '11:00';
+            break;
+          case 'lunch':
+            windowStart = '11:00';
+            windowEnd = '15:00';
+            break;
+          case 'tea':
+            windowStart = '15:00';
+            windowEnd = '18:00';
+            break;
+          case 'bed':
+            windowStart = '18:00';
+            windowEnd = '23:00';
+            break;
+          default:
+            // Use provided earliestTime/latestTime if available, or no constraints
+            windowStart = visit.earliestTime;
+            windowEnd = visit.latestTime;
+        }
+
+        return {
+          ...visit,
+          windowStart,
+          windowEnd
+        };
+      });
+
       // Run advanced optimization with TSP solver and 2-opt improvement
-      const optimizationResult = await optimizer.optimizeRoutes(visits, {
+      const optimizationResult = await optimizer.optimizeRoutes(visitsWithTimeWindows, {
         mode,
         optimizationStrategy,
         maxRoutesPerDay,
