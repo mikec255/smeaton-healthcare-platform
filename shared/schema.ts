@@ -473,6 +473,13 @@ export const cqcAuditEvidence = pgTable("cqc_audit_evidence", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
+// Legacy table - temporarily kept to prevent rename detection during schema push
+export const cqcAuditResponses = pgTable("cqc_audit_responses", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  auditId: varchar("audit_id").references(() => cqcAudits.id, { onDelete: "cascade" }).notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
 // CQC Quality Statement Assessments (replaces audit responses)
 export const cqcQualityAssessments = pgTable("cqc_quality_assessments", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
@@ -594,6 +601,36 @@ export const knowledgeActions = pgTable("knowledge_actions", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
+// Full Recruitment Applications (separate from job-specific pre-screening applications)
+export const recruitmentApplications = pgTable("recruitment_applications", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  
+  // Personal Information
+  firstName: text("first_name").notNull(),
+  lastName: text("last_name").notNull(),
+  email: text("email").notNull(),
+  phone: text("phone").notNull(),
+  
+  // Application data (stored as JSON to allow flexible form structure)
+  applicationData: json("application_data").$type<Record<string, any>>(),
+  
+  // File uploads
+  cvPath: text("cv_path"), // path to uploaded CV file
+  documentsPath: json("documents_path").$type<string[]>(), // paths to other uploaded documents
+  
+  // Application management
+  status: text("status").default("pending"), // pending, under_review, interview_scheduled, hired, rejected, withdrawn
+  adminNotes: text("admin_notes"), // Admin notes about the application
+  reviewedBy: varchar("reviewed_by").references(() => users.id),
+  reviewedAt: timestamp("reviewed_at"),
+  
+  // Source tracking
+  source: text("source").default("direct_application"), // direct_application, referral, website, etc.
+  
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
 export const insertCqcAuditSchema = createInsertSchema(cqcAudits).omit({
   id: true,
   createdAt: true,
@@ -658,6 +695,15 @@ export const insertKnowledgeActionSchema = createInsertSchema(knowledgeActions).
   updatedAt: true,
 });
 
+export const insertRecruitmentApplicationSchema = createInsertSchema(recruitmentApplications).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+  reviewedAt: true,
+  adminNotes: true,
+  reviewedBy: true,
+});
+
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type User = typeof users.$inferSelect;
 export type InsertJob = z.infer<typeof insertJobSchema>;
@@ -710,3 +756,5 @@ export type InsertKnowledgeResponse = z.infer<typeof insertKnowledgeResponseSche
 export type KnowledgeResponse = typeof knowledgeResponses.$inferSelect;
 export type InsertKnowledgeAction = z.infer<typeof insertKnowledgeActionSchema>;
 export type KnowledgeAction = typeof knowledgeActions.$inferSelect;
+export type InsertRecruitmentApplication = z.infer<typeof insertRecruitmentApplicationSchema>;
+export type RecruitmentApplication = typeof recruitmentApplications.$inferSelect;
