@@ -8,15 +8,15 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest, queryClient } from '@/lib/queryClient';
 import jsPDF from 'jspdf';
 import { MapPin, Plus, Trash2, Play, Save, Clock, Car, Footprints, Route, AlertCircle, TrendingDown, Map, GripVertical, Download, Upload, FileText, File, HelpCircle } from 'lucide-react';
 import { AdminLayout } from '@/components/layout/admin-layout';
-import addVisitFormImage from '@assets/generated_images/Route_planner_add_visit_form_4532662b.png';
-import mapWithVisitsImage from '@assets/generated_images/Route_planner_map_with_visits_889fcea8.png';
-import optimizedResultsImage from '@assets/generated_images/Route_planner_optimized_results_summary_a267cebe.png';
+import addVisitFormImage from '@assets/generated_images/Actual_add_visit_form_interface_5c2edc2f.png';
+import mapWithVisitsImage from '@assets/generated_images/Actual_route_planner_main_interface_42820ef3.png';
+import optimizedResultsImage from '@assets/generated_images/Actual_optimized_route_results_display_bb94439e.png';
 import {
   DndContext,
   closestCenter,
@@ -1138,6 +1138,9 @@ export default function RoutePlanner() {
                         <HelpCircle className="h-5 w-5" />
                         How to Use the Route Planner
                       </DialogTitle>
+                      <DialogDescription>
+                        Step-by-step guide with screenshots showing how to add visits, optimize routes, and export results
+                      </DialogDescription>
                     </DialogHeader>
                     
                     <div className="space-y-8 p-4">
@@ -1150,8 +1153,8 @@ export default function RoutePlanner() {
                           <h3 className="text-lg font-semibold">Add Your Care Visits</h3>
                         </div>
                         <p className="text-gray-600 dark:text-gray-400 ml-11">
-                          Start by adding all the care visits you need to schedule. Enter the full address including postcode, 
-                          client name (optional), visit duration, and select the appropriate commissioning time slot.
+                          Start by adding all the care visits you need to schedule. Use the Add Visit form on the left to enter 
+                          the full address including postcode, client name (optional), visit duration, and select the appropriate commissioning time slot.
                         </p>
                         <div className="ml-11">
                           <img 
@@ -1182,8 +1185,8 @@ export default function RoutePlanner() {
                           <h3 className="text-lg font-semibold">Review Visits on Map</h3>
                         </div>
                         <p className="text-gray-600 dark:text-gray-400 ml-11">
-                          Once you've added visits, they'll appear as pins on the interactive map. You can see all locations 
-                          and manually reorder visits by dragging them in the visits list if needed.
+                          Once you've added visits, they'll appear as pins on the interactive Google Maps view. Use the top settings bar 
+                          to set your travel mode, name your run, and access the How To guide and Import CSV functions.
                         </p>
                         <div className="ml-11">
                           <img 
@@ -1214,7 +1217,8 @@ export default function RoutePlanner() {
                         </div>
                         <p className="text-gray-600 dark:text-gray-400 ml-11">
                           Name your run and click "Create Optimised Run" to generate the most efficient route. 
-                          The system will calculate the shortest path while respecting time constraints and commissioning windows.
+                          The system will calculate the shortest path while respecting time constraints and commissioning windows. 
+                          Results show the optimized sequence with colour-coded compliance indicators.
                         </p>
                         <div className="ml-11">
                           <img 
