@@ -611,16 +611,12 @@ export default function RoutePlanner() {
       // Clear form and close dialog
       setMultipleVisitsAddress('');
       setMultipleVisitsClient('');
-      setMultipleVisits([
-        { timeSlot: 'Commission Morning', duration: 30, earliestTime: '', latestTime: '', enabled: false },
-        { timeSlot: 'Commission Lunch', duration: 15, earliestTime: '', latestTime: '', enabled: false },
-        { timeSlot: 'Commission Tea', duration: 15, earliestTime: '', latestTime: '', enabled: false },
-        { timeSlot: 'Commission Bed', duration: 45, earliestTime: '', latestTime: '', enabled: false },
-        { timeSlot: 'Morning', duration: 30, earliestTime: '', latestTime: '', enabled: false },
-        { timeSlot: 'Lunch', duration: 15, earliestTime: '', latestTime: '', enabled: false },
-        { timeSlot: 'Tea', duration: 15, earliestTime: '', latestTime: '', enabled: false },
-        { timeSlot: 'Bed', duration: 45, earliestTime: '', latestTime: '', enabled: false }
-      ]);
+      setTimeSlotSettings({
+        Morning: { enabled: false, duration: 30, earliestTime: '', latestTime: '' },
+        Lunch: { enabled: false, duration: 15, earliestTime: '', latestTime: '' },
+        Tea: { enabled: false, duration: 15, earliestTime: '', latestTime: '' },
+        Bed: { enabled: false, duration: 45, earliestTime: '', latestTime: '' }
+      });
       setShowMultipleVisitsDialog(false);
 
       const totalDelta = insertions.reduce((sum, ins) => sum + ins.delta, 0);
