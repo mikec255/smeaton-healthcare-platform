@@ -1098,7 +1098,7 @@ export default function RoutePlanner() {
                 {optimizeMutation.isPending ? 'Creating Route...' : 'Create Optimized Run'}
               </Button>
 
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 ml-auto">
                 <input
                   type="file"
                   accept=".csv"
