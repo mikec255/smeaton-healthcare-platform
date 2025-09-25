@@ -240,6 +240,10 @@ export default function RoutePlanner() {
   const [showHowToGuide, setShowHowToGuide] = useState(false);
   const [originalOptimalOrder, setOriginalOptimalOrder] = useState<string[]>([]);
   const [archivedRoutes, setArchivedRoutes] = useState<ArchivedRoute[]>([]);
+  const [showLabelDialog, setShowLabelDialog] = useState(false);
+  const [selectedLabel, setSelectedLabel] = useState<string>('');
+  const [customLabel, setCustomLabel] = useState<string>('');
+  const [pendingArchive, setPendingArchive] = useState<any>(null);
   
   const mapRef = useRef<HTMLDivElement>(null);
   const mapInstanceRef = useRef<GoogleMap | null>(null);
@@ -1016,11 +1020,8 @@ export default function RoutePlanner() {
       // Store current values before clearing state
       const currentRunName = runName.trim();
       
-      // Generate unique ID for archived route
-      const archiveId = `archive_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-      
-      // Determine route label - try multiple sources for better labeling
-      let routeLabel = `Route ${archivedRoutes.length + 1}`;
+      // Determine if we can auto-detect a meaningful label
+      let autoDetectedLabel = '';
       
       // First try: find most common time slot from visits
       const timeSlots = visits.map(v => v.timeSlot).filter(Boolean);
@@ -1029,21 +1030,72 @@ export default function RoutePlanner() {
           acc[slot!] = (acc[slot!] || 0) + 1;
           return acc;
         }, {} as Record<string, number>);
-        routeLabel = Object.keys(timeSlotCounts).reduce((a, b) => timeSlotCounts[a] > timeSlotCounts[b] ? a : b);
+        autoDetectedLabel = Object.keys(timeSlotCounts).reduce((a, b) => timeSlotCounts[a] > timeSlotCounts[b] ? a : b);
       }
       // Second try: use optimized routes time slot if available
       else if (optimisation.optimizedRoutes && optimisation.optimizedRoutes.length > 0 && optimisation.optimizedRoutes[0].timeSlot) {
-        routeLabel = optimisation.optimizedRoutes[0].timeSlot;
+        autoDetectedLabel = optimisation.optimizedRoutes[0].timeSlot;
       }
       
-      // Create archived route object
+      // If we can't auto-detect a meaningful label, show the labeling dialog
+      if (!autoDetectedLabel || !['Morning', 'Lunch', 'Tea', 'Bed'].includes(autoDetectedLabel)) {
+        // Store the complete snapshot for pending archive
+        setPendingArchive({
+          runName: currentRunName,
+          optimisation: optimisation,
+          visitCount: visits.length,
+          visits: [...visits], // Clone the visits array
+          originalOptimalOrder: [...originalOptimalOrder] // Clone for safety
+        });
+        
+        // Reset dialog state and show it
+        setSelectedLabel('');
+        setCustomLabel('');
+        setShowLabelDialog(true);
+        return;
+      }
+      
+      // Auto-detected label found, proceed with archiving directly
+      const archiveData = {
+        runName: currentRunName,
+        optimisation: optimisation,
+        visitCount: visits.length,
+        visits: [...visits],
+        originalOptimalOrder: [...originalOptimalOrder]
+      };
+      completeArchiveWithLabel(autoDetectedLabel, archiveData);
+      
+    } catch (error) {
+      console.error('Archive route error:', error);
+      toast({
+        title: "Archive Failed",
+        description: "Failed to complete and archive the route. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
+  
+  const completeArchiveWithLabel = (label: string, archiveData: any) => {
+    try {
+      // Validate we have the required data
+      if (!archiveData || !archiveData.optimisation) {
+        throw new Error('Missing optimization data for archiving');
+      }
+      
+      // Generate unique ID for archived route
+      const archiveId = `archive_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+      
+      // Normalize label (trim and proper case)
+      const normalizedLabel = label.trim();
+      
+      // Create archived route object using the snapshot data
       const archivedRoute: ArchivedRoute = {
         id: archiveId,
-        label: routeLabel,
-        route: optimisation,
-        visitCount: visits.length,
+        label: normalizedLabel,
+        route: archiveData.optimisation,
+        visitCount: archiveData.visitCount,
         createdAt: new Date().toISOString(),
-        runName: currentRunName
+        runName: archiveData.runName
       };
       
       // Add to archived routes
@@ -1059,19 +1111,61 @@ export default function RoutePlanner() {
       // Clear the map markers and directions
       updateMapWithVisits([]);
       
+      // Close dialog if open
+      setShowLabelDialog(false);
+      setPendingArchive(null);
+      
       toast({
         title: "Route Completed",
-        description: `${currentRunName} has been archived successfully. You can now start planning your next route.`,
+        description: `${archiveData.runName} has been archived as "${normalizedLabel}" route. You can now start planning your next route.`,
       });
       
     } catch (error) {
-      console.error('Archive route error:', error);
+      console.error('Complete archive error:', error);
       toast({
         title: "Archive Failed",
         description: "Failed to complete and archive the route. Please try again.",
         variant: "destructive",
       });
     }
+  };
+  
+  const handleLabelConfirm = () => {
+    if (!pendingArchive) {
+      toast({
+        title: "Error",
+        description: "No route data available for archiving. Please try again.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    let finalLabel = selectedLabel;
+    
+    // If "Other" is selected, use the custom label
+    if (selectedLabel === 'Other') {
+      if (!customLabel.trim()) {
+        toast({
+          title: "Label Required",
+          description: "Please enter a custom label for your route.",
+          variant: "destructive",
+        });
+        return;
+      }
+      finalLabel = customLabel.trim();
+    }
+    
+    if (!finalLabel) {
+      toast({
+        title: "Label Required",
+        description: "Please select a label for your route.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    // Use the stored snapshot data for archiving
+    completeArchiveWithLabel(finalLabel, pendingArchive);
   };
 
   // Robust CSV parser for handling quoted fields with commas
@@ -1685,6 +1779,98 @@ export default function RoutePlanner() {
                     </div>
                   </DialogContent>
                 </Dialog>
+
+                {/* Route Labeling Dialog */}
+                <Dialog open={showLabelDialog} onOpenChange={setShowLabelDialog}>
+                  <DialogContent className="max-w-md">
+                    <DialogHeader>
+                      <DialogTitle className="flex items-center gap-2">
+                        <Archive className="h-5 w-5" />
+                        Label Your Route
+                      </DialogTitle>
+                      <DialogDescription>
+                        Choose a label for this completed route to help you identify it later.
+                      </DialogDescription>
+                    </DialogHeader>
+                    
+                    <div className="space-y-4 py-4">
+                      <div className="space-y-3">
+                        <Label className="text-sm font-medium">Route Type</Label>
+                        
+                        {/* Standard time slot options */}
+                        <div className="grid grid-cols-2 gap-3">
+                          {[
+                            { value: 'Morning', emoji: '🌅', label: 'Morning' },
+                            { value: 'Lunch', emoji: '🍽️', label: 'Lunch' },
+                            { value: 'Tea', emoji: '☕', label: 'Tea' },
+                            { value: 'Bed', emoji: '🌙', label: 'Bed' }
+                          ].map((option) => (
+                            <Button
+                              key={option.value}
+                              variant={selectedLabel === option.value ? "default" : "outline"}
+                              className={`h-auto p-3 flex-col gap-2 ${
+                                selectedLabel === option.value ? 'bg-blue-600 hover:bg-blue-700' : ''
+                              }`}
+                              onClick={() => setSelectedLabel(option.value)}
+                              data-testid={`button-label-${option.value.toLowerCase()}`}
+                            >
+                              <span className="text-2xl">{option.emoji}</span>
+                              <span className="text-sm">{option.label}</span>
+                            </Button>
+                          ))}
+                        </div>
+                        
+                        {/* Custom option */}
+                        <Button
+                          variant={selectedLabel === 'Other' ? "default" : "outline"}
+                          className={`w-full h-auto p-3 flex-col gap-2 ${
+                            selectedLabel === 'Other' ? 'bg-blue-600 hover:bg-blue-700' : ''
+                          }`}
+                          onClick={() => setSelectedLabel('Other')}
+                          data-testid="button-label-other"
+                        >
+                          <span className="text-2xl">📋</span>
+                          <span className="text-sm">Other (Custom)</span>
+                        </Button>
+                        
+                        {/* Custom label input */}
+                        {selectedLabel === 'Other' && (
+                          <div className="space-y-2">
+                            <Label htmlFor="custom-label">Custom Label</Label>
+                            <Input
+                              id="custom-label"
+                              placeholder="Enter custom route label"
+                              value={customLabel}
+                              onChange={(e) => setCustomLabel(e.target.value)}
+                              data-testid="input-custom-label"
+                            />
+                          </div>
+                        )}
+                      </div>
+                      
+                      {/* Action buttons */}
+                      <div className="flex items-center gap-3 pt-4">
+                        <Button
+                          variant="outline"
+                          onClick={() => setShowLabelDialog(false)}
+                          className="flex-1"
+                          data-testid="button-cancel-label"
+                        >
+                          Cancel
+                        </Button>
+                        <Button
+                          onClick={handleLabelConfirm}
+                          disabled={!selectedLabel || (selectedLabel === 'Other' && !customLabel.trim())}
+                          className="flex-1 bg-green-600 hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                          data-testid="button-confirm-label"
+                        >
+                          Complete Route
+                        </Button>
+                      </div>
+                    </div>
+                  </DialogContent>
+                </Dialog>
+
                 <input
                   type="file"
                   accept=".csv"
