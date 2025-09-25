@@ -678,18 +678,26 @@ export default function RoutePlanner() {
     // Parse time slot ranges
     let slotStart = 0, slotEnd = 0;
     
-    if (visit.timeSlot.includes('AM') || visit.timeSlot.includes('Morning')) {
-      slotStart = 8 * 60;  // 8:00 AM
-      slotEnd = 12 * 60;   // 12:00 PM
-    } else if (visit.timeSlot.includes('PM') || visit.timeSlot.includes('Afternoon')) {
-      slotStart = 12 * 60; // 12:00 PM
-      slotEnd = 17 * 60;   // 5:00 PM
-    } else if (visit.timeSlot.includes('Evening')) {
-      slotStart = 17 * 60; // 5:00 PM
-      slotEnd = 21 * 60;   // 9:00 PM
-    } else if (visit.timeSlot.includes('Night')) {
-      slotStart = 21 * 60; // 9:00 PM
-      slotEnd = 24 * 60;   // 12:00 AM
+    if (visit.timeSlot.includes('Morning')) {
+      slotStart = 7 * 60;  // 7:00 AM
+      slotEnd = 11 * 60;   // 11:00 AM
+    } else if (visit.timeSlot.includes('Lunch')) {
+      slotStart = 11 * 60; // 11:00 AM
+      slotEnd = 15 * 60;   // 3:00 PM
+    } else if (visit.timeSlot.includes('Tea')) {
+      slotStart = 15 * 60; // 3:00 PM
+      slotEnd = 18 * 60;   // 6:00 PM
+    } else if (visit.timeSlot.includes('Bed')) {
+      slotStart = 18 * 60; // 6:00 PM
+      slotEnd = 23 * 60;   // 11:00 PM
+    } else if (visit.timeSlot.includes('AM')) {
+      // Legacy support for AM slots
+      slotStart = 7 * 60;  // 7:00 AM
+      slotEnd = 11 * 60;   // 11:00 AM
+    } else if (visit.timeSlot.includes('PM')) {
+      // Legacy support for PM slots  
+      slotStart = 11 * 60; // 11:00 AM
+      slotEnd = 15 * 60;   // 3:00 PM
     }
 
     // Check time slot compliance
