@@ -1590,7 +1590,7 @@ export default function RoutePlanner() {
                               )}
                               {visit.calculatedStartTime && getTimeSlotStatus(visit) === 'outside-commissioning' && (
                                 <p className="text-xs text-red-600 dark:text-red-400 mt-1 font-medium">
-                                  🚨 Outside commissioning time slot - cannot be moved
+                                  🚨 Outside commissioning time slot
                                 </p>
                               )}
                               {visit.calculatedStartTime && getTimeSlotStatus(visit) === 'outside-customer' && (
