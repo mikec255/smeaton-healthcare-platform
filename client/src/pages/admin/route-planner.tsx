@@ -39,10 +39,15 @@ interface Visit {
   timeSlot?: string;
   earliestTime?: string;
   latestTime?: string;
+  windowStart?: string;
+  windowEnd?: string;
   durationMinutes: number;
   clientName?: string;
   notes?: string;
   visitId?: string;
+  calculatedStartTime?: string;
+  calculatedEndTime?: string;
+  travelTimeToNext?: number;
 }
 
 interface CostSavings {
@@ -1029,11 +1034,11 @@ export default function RoutePlanner() {
                   )}
 
                   {/* Multiple Routes Display */}
-                  {optimization.totalRoutes > 1 && optimization.routes && (
+                  {(optimization.totalRoutes || 0) > 1 && optimization.routes && (
                     <div className="border rounded-lg p-4">
                       <h4 className="font-semibold mb-3 flex items-center gap-2">
                         <Map className="h-4 w-4" />
-                        Route Breakdown ({optimization.totalRoutes} routes)
+                        Route Breakdown ({optimization.totalRoutes || 0} routes)
                       </h4>
                       
                       <div className="space-y-2 text-sm">
@@ -1140,6 +1145,11 @@ export default function RoutePlanner() {
                                 <Badge variant="outline" className="text-xs">
                                   {visit.durationMinutes}m service
                                 </Badge>
+                                {visit.calculatedStartTime && (
+                                  <Badge variant="secondary" className="text-xs bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400">
+                                    {visit.calculatedStartTime} - {visit.calculatedEndTime}
+                                  </Badge>
+                                )}
                               </div>
                               <p className="text-sm text-gray-600 dark:text-gray-400" data-testid={`route-address-${index}`}>
                                 {visit.address}
@@ -1157,8 +1167,7 @@ export default function RoutePlanner() {
                               <div className="flex items-center gap-2 text-green-600 dark:text-green-400">
                                 <Clock className="h-4 w-4" />
                                 <span className="font-medium" data-testid={`travel-time-${index}`}>
-                                  {/* This will be populated with actual travel time from the route data */}
-                                  Travel time shown on map
+                                  {visit.travelTimeToNext ? `${visit.travelTimeToNext} min` : 'Calculating...'}
                                 </span>
                               </div>
                               <p className="text-xs text-muted-foreground">to next customer</p>

@@ -15,7 +15,7 @@ export class AdvancedRouteOptimizer {
     this.googleMapsService = new GoogleMapsService();
   }
 
-  // Main optimization function - finds shortest distance routes
+  // Main optimization function - finds shortest distance routes with time scheduling
   async optimizeRoutes(
     visits: Visit[],
     options: OptimizationOptions = {}
@@ -26,7 +26,8 @@ export class AdvancedRouteOptimizer {
       endLocation = null,
       maxRoutesPerDay = 3,
       considerTimeWindows = true,
-      optimizationStrategy = 'shortest_distance'
+      optimizationStrategy = 'shortest_distance',
+      departureTime = '08:00'
     } = options;
 
     console.log(`Starting advanced route optimization for ${visits.length} visits`);
@@ -41,6 +42,12 @@ export class AdvancedRouteOptimizer {
     const distanceMatrix = await this.calculateDistanceMatrix(validVisits, mode);
     if (!distanceMatrix) {
       throw new Error('Failed to calculate distance matrix');
+    }
+
+    // Get duration matrix for time calculations
+    const durationMatrix = await this.calculateDurationMatrix(validVisits, mode);
+    if (!durationMatrix) {
+      throw new Error('Failed to calculate duration matrix');
     }
 
     // Calculate unoptimized baseline for comparison
@@ -65,11 +72,18 @@ export class AdvancedRouteOptimizer {
         considerTimeWindows
       );
 
-      // Calculate costs and savings
-      const routeMetrics = this.calculateRouteMetrics(optimizedRoute, distanceMatrix, mode);
-      optimizedRoute.metrics = routeMetrics;
+      // Calculate actual start times for each visit
+      const routeWithTimes = this.calculateVisitStartTimes(
+        optimizedRoute,
+        durationMatrix,
+        departureTime
+      );
 
-      optimizedRoutes.push(optimizedRoute);
+      // Calculate costs and savings
+      const routeMetrics = this.calculateRouteMetrics(routeWithTimes, distanceMatrix, mode);
+      routeWithTimes.metrics = routeMetrics;
+
+      optimizedRoutes.push(routeWithTimes);
       totalOptimizedDistance += routeMetrics.totalDistanceKm;
 
       // Calculate savings vs unoptimized
@@ -142,6 +156,127 @@ export class AdvancedRouteOptimizer {
     }
 
     return matrix;
+  }
+
+  // Calculate duration matrix using Google Maps for time calculations
+  private async calculateDurationMatrix(
+    visits: Visit[],
+    mode: 'driving' | 'walking'
+  ): Promise<number[][]> {
+    const coordinates = visits.map(v => ({ lat: v.latitude!, lng: v.longitude! }));
+    
+    // For large sets, we need to chunk the requests
+    const chunkSize = 10; // Google's limit
+    const matrix: number[][] = Array(visits.length).fill(0).map(() => Array(visits.length).fill(0));
+
+    for (let i = 0; i < coordinates.length; i += chunkSize) {
+      for (let j = 0; j < coordinates.length; j += chunkSize) {
+        const originChunk = coordinates.slice(i, Math.min(i + chunkSize, coordinates.length));
+        const destChunk = coordinates.slice(j, Math.min(j + chunkSize, coordinates.length));
+
+        const result = await this.googleMapsService.getDistanceMatrix(originChunk, destChunk, mode);
+        if (!result) {
+          throw new Error('Failed to get duration matrix chunk');
+        }
+
+        // Fill matrix with travel times in minutes
+        for (let oi = 0; oi < originChunk.length; oi++) {
+          for (let di = 0; di < destChunk.length; di++) {
+            const element = result.rows[oi]?.elements[di];
+            if (element?.status === 'OK' && element.duration) {
+              // Store duration in minutes
+              matrix[i + oi][j + di] = Math.round(element.duration.value / 60);
+            } else {
+              // Fallback to estimated time based on distance
+              const distanceKm = this.calculateStraightLineDistance(
+                originChunk[oi],
+                destChunk[di]
+              ) / 1000;
+              // Estimate 5 min per km for walking, 2 min per km for driving
+              matrix[i + oi][j + di] = Math.round(distanceKm * (mode === 'walking' ? 12 : 3));
+            }
+          }
+        }
+
+        // Add delay to respect rate limits
+        await this.delay(200);
+      }
+    }
+
+    return matrix;
+  }
+
+  // Calculate actual start times for each visit respecting time slot constraints
+  private calculateVisitStartTimes(
+    route: OptimizedRoute,
+    durationMatrix: number[][],
+    departureTime: string
+  ): OptimizedRoute {
+    const routeWithTimes = { ...route };
+    const visitsWithTimes = [...route.visits];
+
+    // Parse departure time
+    const [depHour, depMin] = departureTime.split(':').map(Number);
+    let currentTime = depHour * 60 + depMin; // Convert to minutes from midnight
+
+    // Store travel times between visits
+    const travelTimes: number[] = [];
+
+    for (let i = 0; i < visitsWithTimes.length; i++) {
+      const visit = visitsWithTimes[i];
+      const visitIndex = route.visits.indexOf(visit);
+
+      // If it's not the first visit, add travel time from previous visit
+      if (i > 0) {
+        const prevVisitIndex = route.visits.indexOf(visitsWithTimes[i - 1]);
+        const travelTime = durationMatrix[prevVisitIndex][visitIndex] || 0;
+        travelTimes.push(travelTime);
+        currentTime += travelTime + this.TIME_BUFFER_MINUTES;
+      }
+
+      // Check time slot constraints
+      let plannedStartTime = currentTime;
+      
+      if (visit.windowStart && visit.windowEnd) {
+        const [startHour, startMin] = visit.windowStart.split(':').map(Number);
+        const [endHour, endMin] = visit.windowEnd.split(':').map(Number);
+        
+        const windowStartMinutes = startHour * 60 + startMin;
+        const windowEndMinutes = endHour * 60 + endMin;
+        const serviceDuration = visit.durationMinutes || 30;
+
+        // If current time is before the window, wait until window starts
+        if (currentTime < windowStartMinutes) {
+          plannedStartTime = windowStartMinutes;
+        }
+        // If current time would make us finish after window ends, schedule for next possible time
+        else if (currentTime + serviceDuration > windowEndMinutes) {
+          // Try to fit within the window by starting at the latest possible time
+          plannedStartTime = Math.max(windowEndMinutes - serviceDuration, windowStartMinutes);
+        }
+      }
+
+      // Add calculated start time to visit
+      const startHour = Math.floor(plannedStartTime / 60);
+      const startMin = plannedStartTime % 60;
+      const endTime = plannedStartTime + (visit.durationMinutes || 30);
+      const endHour = Math.floor(endTime / 60);
+      const endMinute = endTime % 60;
+      
+      visitsWithTimes[i] = {
+        ...visit,
+        calculatedStartTime: `${startHour.toString().padStart(2, '0')}:${startMin.toString().padStart(2, '0')}`,
+        calculatedEndTime: `${endHour.toString().padStart(2, '0')}:${endMinute.toString().padStart(2, '0')}`,
+        travelTimeToNext: i < visitsWithTimes.length - 1 ? travelTimes[i] : undefined
+      };
+
+      // Update current time for next visit
+      currentTime = plannedStartTime + (visit.durationMinutes || 30);
+    }
+
+    routeWithTimes.visits = visitsWithTimes;
+    routeWithTimes.travelTimes = travelTimes;
+    return routeWithTimes;
   }
 
   // TSP optimization with 2-opt improvement
@@ -405,7 +540,12 @@ export interface Visit {
   timeSlot?: string;
   earliestTime?: string;
   latestTime?: string;
+  windowStart?: string;
+  windowEnd?: string;
   clientName?: string;
+  calculatedStartTime?: string;
+  calculatedEndTime?: string;
+  travelTimeToNext?: number;
 }
 
 export interface OptimizationOptions {
@@ -415,12 +555,14 @@ export interface OptimizationOptions {
   maxRoutesPerDay?: number;
   considerTimeWindows?: boolean;
   optimizationStrategy?: 'shortest_distance' | 'time_windows' | 'balanced';
+  departureTime?: string;
 }
 
 export interface OptimizedRoute {
   visits: Visit[];
   totalDistanceMeters: number;
   visitOrder: number[];
+  travelTimes?: number[];
   metrics?: RouteMetrics;
 }
 
