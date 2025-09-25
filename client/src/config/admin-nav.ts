@@ -9,7 +9,8 @@ import {
   BookOpen,
   Mail,
   Settings,
-  BarChart3
+  BarChart3,
+  FileText
 } from 'lucide-react';
 
 export interface NavItem {
@@ -71,6 +72,13 @@ export const navigationItems: NavItem[] = [
         icon: Users, 
         href: '/admin/applications',
         description: 'Review job applications and manage candidate pipeline'
+      },
+      { 
+        id: 'recruitment-applications', 
+        label: 'Applications', 
+        icon: FileText, 
+        href: '/admin/recruitment-applications',
+        description: 'View full recruitment applications submitted via direct link'
       }
     ]
   },
