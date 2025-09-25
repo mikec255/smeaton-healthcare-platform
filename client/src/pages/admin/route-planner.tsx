@@ -977,24 +977,15 @@ export default function RoutePlanner() {
       return;
     }
 
-    // Check if all visits have coordinates - wait briefly for state updates
-    await new Promise(resolve => setTimeout(resolve, 100));
-    const currentVisits = visits.filter(v => v.latitude && v.longitude);
+    // Check if all visits have coordinates
     const ungecodedVisits = visits.filter(v => !v.latitude || !v.longitude);
-    
     if (ungecodedVisits.length > 0) {
-      // Double check with a longer delay for multiple visits
-      await new Promise(resolve => setTimeout(resolve, 500));
-      const finalUngeocoded = visits.filter(v => !v.latitude || !v.longitude);
-      
-      if (finalUngeocoded.length > 0) {
-        toast({
-          title: "Geocoding Required",
-          description: `${finalUngeocoded.length} visit(s) need to be geocoded before optimisation. Please wait for geocoding to complete.`,
-          variant: "destructive",
-        });
-        return;
-      }
+      toast({
+        title: "Geocoding Required",
+        description: `${ungecodedVisits.length} visit(s) need to be geocoded before optimisation. Please wait for geocoding to complete.`,
+        variant: "destructive",
+      });
+      return;
     }
 
     // Validate time windows
