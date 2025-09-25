@@ -1037,9 +1037,9 @@ export default function RoutePlanner() {
                       </div>
                       <div className="text-center">
                         <div className="font-semibold text-lg text-purple-600 dark:text-purple-400">
-                          {formatDuration(optimization.totalTravelMinutes + optimization.totalServiceMinutes)}
+                          {formatDuration(optimization.totalServiceMinutes)}
                         </div>
-                        <div className="text-muted-foreground">Total Time</div>
+                        <div className="text-muted-foreground">Care Hours (Provided)</div>
                       </div>
                     </div>
                   </div>
