@@ -10,7 +10,7 @@ import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest, queryClient } from '@/lib/queryClient';
-import { MapPin, Plus, Trash2, Play, Save, Clock, Car, Footprints, Route, AlertCircle } from 'lucide-react';
+import { MapPin, Plus, Trash2, Play, Save, Clock, Car, Footprints, Route, AlertCircle, TrendingDown, Map } from 'lucide-react';
 import { AdminLayout } from '@/components/layout/admin-layout';
 
 interface Visit {
@@ -690,8 +690,12 @@ export default function RoutePlanner() {
                     <Route className="h-5 w-5" />
                     Optimization Results
                   </CardTitle>
+                  <CardDescription>
+                    Advanced TSP optimization with 2-opt improvement
+                  </CardDescription>
                 </CardHeader>
-                <CardContent>
+                <CardContent className="space-y-6">
+                  {/* Basic Metrics */}
                   <div className="grid grid-cols-2 gap-4 text-sm">
                     <div>
                       <Label className="text-muted-foreground">Total Distance</Label>
@@ -718,9 +722,83 @@ export default function RoutePlanner() {
                       </p>
                     </div>
                   </div>
+
+                  {/* Cost Savings Analysis */}
+                  {optimization.costSavings && (
+                    <div className="border rounded-lg p-4 bg-green-50 dark:bg-green-900/20">
+                      <h4 className="font-semibold text-green-700 dark:text-green-300 mb-3 flex items-center gap-2">
+                        <TrendingDown className="h-4 w-4" />
+                        Cost Savings Analysis
+                      </h4>
+                      
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                        <div className="space-y-2">
+                          <div>
+                            <Label className="text-muted-foreground">Distance Saved</Label>
+                            <p className="font-medium text-green-600 dark:text-green-400" data-testid="text-distance-saved">
+                              {optimization.costSavings.distanceSavedKm.toFixed(1)} km
+                            </p>
+                          </div>
+                          <div>
+                            <Label className="text-muted-foreground">Time Saved</Label>
+                            <p className="font-medium text-green-600 dark:text-green-400" data-testid="text-time-saved">
+                              {formatDuration(Math.round(optimization.costSavings.timeSavedHours * 60))}
+                            </p>
+                          </div>
+                        </div>
+                        
+                        <div className="space-y-2">
+                          <div>
+                            <Label className="text-muted-foreground">Fuel Savings</Label>
+                            <p className="font-medium text-green-600 dark:text-green-400" data-testid="text-fuel-savings">
+                              £{optimization.costSavings.fuelSavings.toFixed(2)}
+                            </p>
+                          </div>
+                          <div>
+                            <Label className="text-muted-foreground">Total Savings</Label>
+                            <p className="font-bold text-green-600 dark:text-green-400 text-lg" data-testid="text-total-savings">
+                              £{optimization.costSavings.totalSavings.toFixed(2)}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="mt-3 pt-3 border-t">
+                        <div className="flex justify-between items-center text-sm">
+                          <span className="text-muted-foreground">Optimization Efficiency:</span>
+                          <Badge variant="secondary" className="bg-green-100 text-green-700">
+                            {optimization.costSavings.savingsPercentage.toFixed(1)}% shorter route
+                          </Badge>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Multiple Routes Display */}
+                  {optimization.totalRoutes > 1 && optimization.routes && (
+                    <div className="border rounded-lg p-4">
+                      <h4 className="font-semibold mb-3 flex items-center gap-2">
+                        <Map className="h-4 w-4" />
+                        Route Breakdown ({optimization.totalRoutes} routes)
+                      </h4>
+                      
+                      <div className="space-y-2 text-sm">
+                        {optimization.routes.map((route: any, index: number) => (
+                          <div key={index} className="flex justify-between items-center p-2 bg-gray-50 dark:bg-gray-800 rounded">
+                            <span>Route {route.routeNumber}</span>
+                            <div className="flex gap-4 text-muted-foreground">
+                              <span>{route.visitCount} visits</span>
+                              <span>{route.distanceKm.toFixed(1)} km</span>
+                              <span>£{route.cost.toFixed(2)}</span>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                   
                   {optimization.runId && (
-                    <div className="mt-4 p-3 bg-green-50 dark:bg-green-900/20 rounded-lg">
+                    <div className="p-3 bg-green-50 dark:bg-green-900/20 rounded-lg">
                       <p className="text-sm text-green-600 dark:text-green-400" data-testid="text-run-saved">
                         ✓ Run saved with ID: {optimization.runId}
                       </p>

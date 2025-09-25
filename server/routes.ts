@@ -3232,7 +3232,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Route Optimization API
+  // Advanced Route Optimization API
   app.post("/api/route-planner/optimize", requireAdmin, async (req, res) => {
     try {
       const { 
@@ -3241,73 +3241,62 @@ export async function registerRoutes(app: Express): Promise<Server> {
         departureTime = '08:00:00',
         runDate,
         runName,
-        saveRun = false 
+        saveRun = false,
+        optimizationStrategy = 'shortest_distance',
+        maxRoutesPerDay = 3
       } = req.body;
 
       if (!Array.isArray(visits) || visits.length === 0) {
         return res.status(400).json({ message: "Please provide an array of visits" });
       }
 
-      // Basic route optimization using simple nearest neighbor for now
-      // TODO: Implement more sophisticated optimization algorithms
-      const optimizedOrder = [];
-      const unvisited = [...visits];
-      
-      // Start with first visit
-      if (unvisited.length > 0) {
-        optimizedOrder.push(unvisited.shift()!);
-      }
+      // Import the advanced optimizer
+      const { AdvancedRouteOptimizer } = await import('./advanced-route-optimizer');
+      const optimizer = new AdvancedRouteOptimizer();
 
-      // Simple nearest neighbor algorithm
-      while (unvisited.length > 0) {
-        const current = optimizedOrder[optimizedOrder.length - 1];
-        let nearestIndex = 0;
-        let nearestDistance = Infinity;
+      console.log(`Starting advanced optimization for ${visits.length} visits`);
 
-        for (let i = 0; i < unvisited.length; i++) {
-          const distance = calculateDistance(
-            { lat: current.latitude, lng: current.longitude },
-            { lat: unvisited[i].latitude, lng: unvisited[i].longitude }
-          );
-          
-          if (distance < nearestDistance) {
-            nearestDistance = distance;
-            nearestIndex = i;
-          }
-        }
+      // Run advanced optimization with TSP solver and 2-opt improvement
+      const optimizationResult = await optimizer.optimizeRoutes(visits, {
+        mode,
+        optimizationStrategy,
+        maxRoutesPerDay,
+        considerTimeWindows: true
+      });
 
-        optimizedOrder.push(unvisited.splice(nearestIndex, 1)[0]);
-      }
-
-      // Calculate total metrics
-      let totalDistance = 0;
-      let totalTravelTime = 0;
-      let totalServiceTime = 0;
-
-      for (let i = 0; i < optimizedOrder.length; i++) {
-        const visit = optimizedOrder[i];
-        totalServiceTime += visit.durationMinutes || 30;
-        
-        if (i > 0) {
-          const prev = optimizedOrder[i - 1];
-          const distance = calculateDistance(
-            { lat: prev.latitude, lng: prev.longitude },
-            { lat: visit.latitude, lng: visit.longitude }
-          );
-          
-          totalDistance += distance;
-          // Estimate travel time (walking: 5 km/h, driving: 50 km/h for local roads)
-          const speedKmh = mode === 'walking' ? 5 : 50;
-          totalTravelTime += (distance / 1000) / speedKmh * 60; // minutes
-        }
-      }
-
+      // Convert to legacy format for compatibility with frontend
+      const primaryRoute = optimizationResult.optimizedRoutes[0];
       const result = {
-        optimizedOrder,
-        totalDistanceMeters: Math.round(totalDistance),
-        totalTravelMinutes: Math.round(totalTravelTime),
-        totalServiceMinutes: totalServiceTime,
-        mode
+        optimizedOrder: primaryRoute ? primaryRoute.visits : visits,
+        totalDistanceMeters: Math.round(optimizationResult.optimizedRoutes.reduce(
+          (sum, route) => sum + route.totalDistanceMeters, 0
+        )),
+        totalTravelMinutes: Math.round(
+          optimizationResult.optimizedRoutes.reduce(
+            (sum, route) => sum + (route.metrics?.travelTimeHours || 0) * 60, 0
+          )
+        ),
+        totalServiceMinutes: Math.round(
+          optimizationResult.optimizedRoutes.reduce(
+            (sum, route) => sum + (route.metrics?.serviceTimeHours || 0) * 60, 0
+          )
+        ),
+        mode,
+        
+        // Enhanced metrics for cost analysis
+        totalRoutes: optimizationResult.totalRoutes,
+        costSavings: optimizationResult.costSavings,
+        distanceSavedKm: optimizationResult.distanceSavedKm,
+        optimizationStrategy: optimizationResult.optimizationStrategy,
+        routes: optimizationResult.optimizedRoutes.map((route, index) => ({
+          routeNumber: index + 1,
+          visits: route.visits,
+          distanceKm: route.metrics?.totalDistanceKm || 0,
+          timeHours: route.metrics?.totalTimeHours || 0,
+          cost: route.metrics?.totalCost || 0,
+          visitCount: route.visits.length
+        })),
+        baseline: optimizationResult.baseline
       };
 
       // Save run if requested
@@ -3325,18 +3314,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
             createdBy: req.user.id
           });
 
-          // Save run stops
-          for (let i = 0; i < optimizedOrder.length; i++) {
-            const visit = optimizedOrder[i];
-            await storage.createRunStop({
-              runId: run.id,
-              visitId: visit.visitId || null,
-              stopOrder: i + 1,
-              adHocAddress: visit.visitId ? null : visit.address,
-              adHocLatitude: visit.visitId ? null : visit.latitude,
-              adHocLongitude: visit.visitId ? null : visit.longitude,
-              adHocDuration: visit.visitId ? null : visit.durationMinutes
-            });
+          // Save run stops for all routes
+          let stopOrder = 1;
+          for (const route of optimizationResult.optimizedRoutes) {
+            for (const visit of route.visits) {
+              await storage.createRunStop({
+                runId: run.id,
+                visitId: visit.visitId || null,
+                stopOrder: stopOrder++,
+                adHocAddress: visit.visitId ? null : visit.address,
+                adHocLatitude: visit.visitId ? null : visit.latitude,
+                adHocLongitude: visit.visitId ? null : visit.longitude,
+                adHocDuration: visit.visitId ? null : visit.durationMinutes
+              });
+            }
           }
 
           result.runId = run.id;
