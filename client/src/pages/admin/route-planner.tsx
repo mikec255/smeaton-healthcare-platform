@@ -10,7 +10,8 @@ import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest, queryClient } from '@/lib/queryClient';
-import { MapPin, Plus, Trash2, Play, Save, Clock, Car, Footprints, Route, AlertCircle, TrendingDown, Map, GripVertical } from 'lucide-react';
+import jsPDF from 'jspdf';
+import { MapPin, Plus, Trash2, Play, Save, Clock, Car, Footprints, Route, AlertCircle, TrendingDown, Map, GripVertical, Download, Upload, FileText, File } from 'lucide-react';
 import { AdminLayout } from '@/components/layout/admin-layout';
 import {
   DndContext,
@@ -661,6 +662,323 @@ export default function RoutePlanner() {
     return `${Math.round(feet)} ft`;
   };
 
+  // Export route to CSV
+  const exportToCSV = () => {
+    if (!optimization || !runName.trim()) {
+      toast({
+        title: "Export Error",
+        description: "Please name your run before exporting.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      const headers = [
+        'Stop Number',
+        'Client Name', 
+        'Address',
+        'Commissioning Slot',
+        'Customer Window Start',
+        'Customer Window End',
+        'Calculated Start Time',
+        'Calculated End Time',
+        'Duration (mins)',
+        'Travel Time to Next (mins)',
+        'Compliance Status'
+      ];
+
+      const rows = optimization.optimizedOrder.map((visit, index) => [
+        index + 1,
+        visit.clientName || `Visit ${index + 1}`,
+        visit.address,
+        visit.timeSlot || 'None',
+        visit.earliestTime || '',
+        visit.latestTime || '',
+        visit.calculatedStartTime || '',
+        visit.calculatedEndTime || '',
+        visit.durationMinutes,
+        visit.travelTimeToNext || '',
+        getTimeSlotStatus(visit) === 'within-customer' ? 'Within Customer Window' :
+        getTimeSlotStatus(visit) === 'outside-customer' ? 'Outside Customer Window' :
+        getTimeSlotStatus(visit) === 'outside-commissioning' ? 'Outside Commissioning Slot' : 'OK'
+      ]);
+
+      const csvContent = [headers, ...rows]
+        .map(row => row.map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(','))
+        .join('\r\n');
+
+      const blob = new Blob([csvContent], { type: 'text/csv' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `${runName}_route_${new Date().toISOString().split('T')[0]}.csv`;
+      link.click();
+      URL.revokeObjectURL(url);
+
+      toast({
+        title: "CSV Downloaded",
+        description: "Route data has been exported successfully.",
+      });
+
+    } catch (error) {
+      console.error('CSV export error:', error);
+      toast({
+        title: "Export Failed",
+        description: "Failed to generate CSV file. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  // Export route to PDF
+  const exportToPDF = () => {
+    if (!optimization || !runName.trim()) {
+      toast({
+        title: "Export Error", 
+        description: "Please name your run before exporting.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      const pdf = new jsPDF();
+      
+      // Header
+      pdf.setFontSize(20);
+      pdf.text('Smeaton Healthcare - Route Summary', 20, 20);
+      
+      pdf.setFontSize(12);
+      pdf.text(`Run Name: ${runName}`, 20, 35);
+      pdf.text(`Date: ${new Date().toLocaleDateString()}`, 20, 45);
+      pdf.text(`Travel Mode: ${travelMode}`, 20, 55);
+      
+      // Summary stats
+      pdf.text(`Total Visits: ${optimization.optimizedOrder.length}`, 20, 70);
+      pdf.text(`Total Distance: ${formatDistance(optimization.totalDistanceMeters)}`, 20, 80);
+      pdf.text(`Travel Time: ${formatDuration(optimization.totalTravelMinutes)}`, 20, 90);
+      pdf.text(`Care Hours: ${formatDuration(optimization.totalServiceMinutes)}`, 20, 100);
+      
+      // Visit details
+      let yPos = 120;
+      pdf.setFontSize(14);
+      pdf.text('Visit Sequence:', 20, yPos);
+      yPos += 15;
+      
+      pdf.setFontSize(10);
+      optimization.optimizedOrder.forEach((visit, index) => {
+        if (yPos > 250) {
+          pdf.addPage();
+          yPos = 20;
+        }
+        
+        const visitText = `${index + 1}. ${visit.clientName || `Visit ${index + 1}`}`;
+        pdf.text(visitText, 20, yPos);
+        yPos += 10;
+        
+        pdf.text(`   Address: ${visit.address}`, 25, yPos);
+        yPos += 8;
+        
+        if (visit.calculatedStartTime) {
+          pdf.text(`   Time: ${visit.calculatedStartTime} - ${visit.calculatedEndTime} (${visit.durationMinutes}m)`, 25, yPos);
+          yPos += 8;
+        }
+        
+        if (visit.timeSlot) {
+          pdf.text(`   Slot: ${visit.timeSlot}`, 25, yPos);
+          yPos += 8;
+        }
+        
+        if (visit.travelTimeToNext && index < optimization.optimizedOrder.length - 1) {
+          pdf.text(`   Travel to next: ${visit.travelTimeToNext} min`, 25, yPos);
+          yPos += 8;
+        }
+        
+        yPos += 5;
+      });
+      
+      pdf.save(`${runName}_route_${new Date().toISOString().split('T')[0]}.pdf`);
+      
+      toast({
+        title: "PDF Downloaded",
+        description: "Route summary has been exported successfully.",
+      });
+      
+    } catch (error) {
+      console.error('PDF export error:', error);
+      toast({
+        title: "Export Failed",
+        description: "Failed to generate PDF. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  // Robust CSV parser for handling quoted fields with commas
+  const parseCSVLine = (line: string): string[] => {
+    const result: string[] = [];
+    let current = '';
+    let inQuotes = false;
+    let i = 0;
+    
+    while (i < line.length) {
+      const char = line[i];
+      
+      if (char === '"') {
+        if (inQuotes && line[i + 1] === '"') {
+          // Escaped quote
+          current += '"';
+          i += 2;
+        } else {
+          // Toggle quote state
+          inQuotes = !inQuotes;
+          i++;
+        }
+      } else if (char === ',' && !inQuotes) {
+        // Field separator
+        result.push(current);
+        current = '';
+        i++;
+      } else {
+        current += char;
+        i++;
+      }
+    }
+    
+    // Add the last field
+    result.push(current);
+    return result;
+  };
+
+  // Import route from CSV
+  const handleCSVUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    // Validate file type and size
+    if (!file.type.includes('csv') && !file.name.endsWith('.csv')) {
+      toast({
+        title: "Invalid File Type",
+        description: "Please select a CSV file.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (file.size > 5 * 1024 * 1024) { // 5MB limit
+      toast({
+        title: "File Too Large",
+        description: "Please select a file smaller than 5MB.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const reader = new FileReader();
+    
+    reader.onerror = () => {
+      toast({
+        title: "File Read Error",
+        description: "Failed to read the selected file.",
+        variant: "destructive",
+      });
+    };
+    
+    reader.onload = (e) => {
+      try {
+        let csv = e.target?.result as string;
+        
+        // Remove BOM if present
+        if (csv.charCodeAt(0) === 0xFEFF) {
+          csv = csv.substring(1);
+        }
+        
+        // Handle different line endings
+        const lines = csv.split(/\r\n|\r|\n/).filter(line => line.trim());
+        
+        if (lines.length < 2) {
+          toast({
+            title: "Invalid CSV",
+            description: "CSV file must contain at least a header and one data row.",
+            variant: "destructive",
+          });
+          return;
+        }
+
+        const headers = parseCSVLine(lines[0]);
+        
+        if (headers[0] !== 'Stop Number') {
+          toast({
+            title: "Import Error",
+            description: "Invalid CSV format. Please use a file exported from this system.",
+            variant: "destructive",
+          });
+          return;
+        }
+
+        const importedVisits: Visit[] = lines.slice(1)
+          .map((line, index) => {
+            const values = parseCSVLine(line);
+            
+            if (values.length !== headers.length) {
+              console.warn(`Row ${index + 2} has ${values.length} columns, expected ${headers.length}`);
+            }
+            
+            return {
+              id: Date.now().toString() + index,
+              address: values[2] || '',
+              clientName: values[1] === `Visit ${index + 1}` ? '' : (values[1] || ''),
+              latitude: 0, // Will need geocoding
+              longitude: 0,
+              durationMinutes: parseInt(values[8]) || 30,
+              timeSlot: values[3] === 'None' ? '' : (values[3] || ''),
+              earliestTime: values[4] || '',
+              latestTime: values[5] || ''
+            };
+          })
+          .filter(visit => visit.address.trim()); // Only keep visits with valid addresses
+
+        if (importedVisits.length === 0) {
+          toast({
+            title: "No Valid Visits",
+            description: "No visits with valid addresses found in the CSV file.",
+            variant: "destructive",
+          });
+          return;
+        }
+
+        setVisits(importedVisits);
+        setOptimization(null);
+        
+        toast({
+          title: "Route Imported",
+          description: `${importedVisits.length} visits imported. Addresses will be geocoded automatically.`,
+        });
+
+        // Trigger geocoding for all imported visits
+        importedVisits.forEach((visit, index) => {
+          setTimeout(() => {
+            geocodeMutation.mutate({ address: visit.address, visitId: visit.id });
+          }, index * 500); // Stagger requests
+        });
+
+      } catch (error) {
+        console.error('CSV parsing error:', error);
+        toast({
+          title: "Import Error",
+          description: "Failed to parse CSV file. Please check the format and try again.",
+          variant: "destructive",
+        });
+      }
+    };
+    
+    reader.readAsText(file);
+    
+    // Reset file input
+    event.target.value = '';
+  };
+
   // Check visit time compliance with dual constraint system
   const getTimeSlotStatus = (visit: any) => {
     if (!visit.calculatedStartTime || !visit.calculatedEndTime || !visit.timeSlot) {
@@ -893,6 +1211,41 @@ export default function RoutePlanner() {
               </CardContent>
             </Card>
 
+            {/* Upload CSV */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Upload className="h-5 w-5" />
+                  Import Route
+                </CardTitle>
+                <CardDescription>
+                  Upload a CSV file to restore a previous route
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-2">
+                  <input
+                    type="file"
+                    accept=".csv"
+                    onChange={handleCSVUpload}
+                    className="hidden"
+                    id="csv-upload"
+                  />
+                  <Button
+                    variant="outline"
+                    onClick={() => document.getElementById('csv-upload')?.click()}
+                    className="w-full"
+                    data-testid="button-upload-csv"
+                  >
+                    <File className="h-4 w-4 mr-2" />
+                    Select CSV File
+                  </Button>
+                  <p className="text-xs text-muted-foreground">
+                    Only CSV files exported from this system are supported
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
 
             {/* Visits List */}
             <Card>
@@ -988,13 +1341,39 @@ export default function RoutePlanner() {
             {optimization && (
               <Card className="mt-6">
                 <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Route className="h-5 w-5" />
-                    Optimized Route Summary
-                  </CardTitle>
-                  <CardDescription>
-                    Visit sequence with travel times to next customer
-                  </CardDescription>
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <CardTitle className="flex items-center gap-2">
+                        <Route className="h-5 w-5" />
+                        Optimized Route Summary
+                      </CardTitle>
+                      <CardDescription>
+                        Visit sequence with travel times to next customer
+                      </CardDescription>
+                    </div>
+                    {runName.trim() && (
+                      <div className="flex items-center gap-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={exportToCSV}
+                          data-testid="button-download-csv"
+                        >
+                          <FileText className="h-4 w-4 mr-2" />
+                          CSV
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={exportToPDF}
+                          data-testid="button-download-pdf"
+                        >
+                          <Download className="h-4 w-4 mr-2" />
+                          PDF
+                        </Button>
+                      </div>
+                    )}
+                  </div>
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-4">
