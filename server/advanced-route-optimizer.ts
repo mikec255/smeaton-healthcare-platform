@@ -227,16 +227,32 @@ export class AdvancedRouteOptimizer {
               
               if (durationValue) {
                 // Store duration in minutes
-                matrix[i + oi][j + di] = Math.round(durationValue / 60);
+                let timeMinutes = Math.round(durationValue / 60);
+                
+                // Special handling for same-location visits (same coordinates, different visits)
+                // Add buffer time for walking between different units/houses at same postcode
+                if (timeMinutes === 0 && i + oi !== j + di) {
+                  timeMinutes = 3; // 3 minutes buffer for same-location visits
+                  console.log(`Same-location visits detected (${i + oi} to ${j + di}), using 3min buffer time`);
+                }
+                
+                matrix[i + oi][j + di] = Math.max(timeMinutes, 0);
               } else {
                 // Fallback to estimated time based on distance
                 const distanceKm = this.calculateStraightLineDistance(
                   originChunk[oi],
                   destChunk[di]
                 ) / 1000;
-                // Conservative estimates: 15 min per km for walking, 4 min per km for driving
-                matrix[i + oi][j + di] = Math.round(distanceKm * (mode === 'walking' ? 15 : 4));
-                console.warn(`Using fallback duration estimate for ${i + oi} to ${j + di}: ${matrix[i + oi][j + di]} min`);
+                
+                // Handle same-location visits in fallback case too
+                if (distanceKm === 0 && i + oi !== j + di) {
+                  matrix[i + oi][j + di] = 3; // 3 minutes for same-location visits
+                  console.log(`Same-location fallback for ${i + oi} to ${j + di}: 3 min`);
+                } else {
+                  // Conservative estimates: 15 min per km for walking, 4 min per km for driving
+                  matrix[i + oi][j + di] = Math.round(distanceKm * (mode === 'walking' ? 15 : 4));
+                  console.warn(`Using fallback duration estimate for ${i + oi} to ${j + di}: ${matrix[i + oi][j + di]} min`);
+                }
               }
             } else {
               // Fallback to estimated time based on distance
@@ -244,9 +260,16 @@ export class AdvancedRouteOptimizer {
                 originChunk[oi],
                 destChunk[di]
               ) / 1000;
-              // Conservative estimates: 15 min per km for walking, 4 min per km for driving
-              matrix[i + oi][j + di] = Math.round(distanceKm * (mode === 'walking' ? 15 : 4));
-              console.warn(`API error for ${i + oi} to ${j + di} (${element?.status}), using fallback: ${matrix[i + oi][j + di]} min`);
+              
+              // Handle same-location visits in API error fallback case
+              if (distanceKm === 0 && i + oi !== j + di) {
+                matrix[i + oi][j + di] = 3; // 3 minutes for same-location visits
+                console.log(`Same-location API error fallback for ${i + oi} to ${j + di}: 3 min`);
+              } else {
+                // Conservative estimates: 15 min per km for walking, 4 min per km for driving
+                matrix[i + oi][j + di] = Math.round(distanceKm * (mode === 'walking' ? 15 : 4));
+                console.warn(`API error for ${i + oi} to ${j + di} (${element?.status}), using fallback: ${matrix[i + oi][j + di]} min`);
+              }
             }
           }
         }
