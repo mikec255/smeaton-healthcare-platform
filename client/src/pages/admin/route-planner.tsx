@@ -90,7 +90,8 @@ export default function RoutePlanner() {
     const loadGoogleMaps = () => {
       if (window.google?.maps) {
         setIsMapLoaded(true);
-        initializeMap();
+        // Add a small delay to ensure DOM is ready
+        setTimeout(initializeMap, 100);
         return;
       }
 
@@ -100,7 +101,8 @@ export default function RoutePlanner() {
       script.defer = true;
       script.onload = () => {
         setIsMapLoaded(true);
-        initializeMap();
+        // Add a small delay to ensure DOM is ready
+        setTimeout(initializeMap, 100);
       };
       script.onerror = () => {
         toast({
@@ -117,22 +119,39 @@ export default function RoutePlanner() {
 
   // Initialize map
   const initializeMap = () => {
-    if (!mapRef.current || !window.google?.maps) return;
+    if (!mapRef.current || !window.google?.maps) {
+      console.log('Map ref or Google Maps not available:', { mapRef: !!mapRef.current, google: !!window.google?.maps });
+      return;
+    }
 
-    const map = new window.google.maps.Map(mapRef.current, {
-      zoom: 12,
-      center: { lat: 50.3755, lng: -4.1427 }, // Plymouth, Devon as default center
-      mapTypeId: 'roadmap',
-    });
+    try {
+      const map = new window.google.maps.Map(mapRef.current, {
+        zoom: 12,
+        center: { lat: 50.3755, lng: -4.1427 }, // Plymouth, Devon as default center
+        mapTypeId: 'roadmap',
+        streetViewControl: false,
+        mapTypeControl: false,
+        fullscreenControl: false,
+      });
 
-    mapInstanceRef.current = map;
+      mapInstanceRef.current = map;
 
-    // Initialize directions renderer
-    directionsRendererRef.current = new window.google.maps.DirectionsRenderer({
-      draggable: false,
-      suppressMarkers: false,
-    });
-    directionsRendererRef.current.setMap(map);
+      // Initialize directions renderer
+      directionsRendererRef.current = new window.google.maps.DirectionsRenderer({
+        draggable: false,
+        suppressMarkers: false,
+      });
+      directionsRendererRef.current.setMap(map);
+      
+      console.log('Map initialized successfully');
+    } catch (error) {
+      console.error('Failed to initialize map:', error);
+      toast({
+        title: "Map Initialization Error",
+        description: "Failed to initialize the map. Please refresh the page.",
+        variant: "destructive",
+      });
+    }
   };
 
   // Geocode mutation
