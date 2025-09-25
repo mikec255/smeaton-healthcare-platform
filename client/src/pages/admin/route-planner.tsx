@@ -224,7 +224,6 @@ export default function RoutePlanner() {
   const [isMapLoaded, setIsMapLoaded] = useState(false);
   const [newAddress, setNewAddress] = useState('');
   const [newDuration, setNewDuration] = useState(30);
-  const [newTimeSlot, setNewTimeSlot] = useState('none');
   const [newEarliestTime, setNewEarliestTime] = useState('');
   const [newLatestTime, setNewLatestTime] = useState('');
   const [newClientName, setNewClientName] = useState('');
@@ -485,7 +484,6 @@ export default function RoutePlanner() {
       id: Date.now().toString(),
       address: newAddress.trim(),
       durationMinutes: newDuration,
-      timeSlot: newTimeSlot === 'none' ? undefined : newTimeSlot,
       earliestTime: newEarliestTime || undefined,
       latestTime: newLatestTime || undefined,
       clientName: newClientName.trim() || undefined,
@@ -503,7 +501,6 @@ export default function RoutePlanner() {
     // Clear form
     setNewAddress('');
     setNewDuration(30);
-    setNewTimeSlot('none');
     setNewEarliestTime('');
     setNewLatestTime('');
     setNewClientName('');
@@ -1673,21 +1670,6 @@ export default function RoutePlanner() {
                   </div>
                 </div>
 
-                <div>
-                  <Label htmlFor="time-slot">Commissioning Timeslots</Label>
-                  <Select value={newTimeSlot} onValueChange={setNewTimeSlot}>
-                    <SelectTrigger data-testid="select-time-slot">
-                      <SelectValue placeholder="Select time slot" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="none">No preference</SelectItem>
-                      <SelectItem value="Morning">Morning (07:00-11:00)</SelectItem>
-                      <SelectItem value="Lunch">Lunch (11:00-15:00)</SelectItem>
-                      <SelectItem value="Tea">Tea (15:00-18:00)</SelectItem>
-                      <SelectItem value="Bed">Bed (18:00-23:00)</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
 
                 <div className="space-y-2">
                   <Label className="text-sm font-medium">Customer Time Window (Optional)</Label>
