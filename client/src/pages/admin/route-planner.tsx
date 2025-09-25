@@ -1019,7 +1019,7 @@ export default function RoutePlanner() {
                         <div className="font-semibold text-lg text-blue-600 dark:text-blue-400">
                           {optimization.optimizedOrder.length}
                         </div>
-                        <div className="text-muted-foreground">Total Stops</div>
+                        <div className="text-muted-foreground">Total Visits</div>
                       </div>
                       <div className="text-center">
                         <div className="font-semibold text-lg text-green-600 dark:text-green-400">
