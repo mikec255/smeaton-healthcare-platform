@@ -869,10 +869,10 @@ export default function RoutePlanner() {
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="none">No preference</SelectItem>
-                      <SelectItem value="AM">Morning (8:00-12:00)</SelectItem>
-                      <SelectItem value="Lunch">Lunch (12:00-14:00)</SelectItem>
-                      <SelectItem value="Tea">Afternoon (14:00-17:00)</SelectItem>
-                      <SelectItem value="Bed">Evening (17:00-20:00)</SelectItem>
+                      <SelectItem value="Morning">Morning (07:00-11:00)</SelectItem>
+                      <SelectItem value="Lunch">Lunch (11:00-15:00)</SelectItem>
+                      <SelectItem value="Tea">Tea (15:00-18:00)</SelectItem>
+                      <SelectItem value="Bed">Bed (18:00-23:00)</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
