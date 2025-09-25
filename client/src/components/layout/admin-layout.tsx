@@ -20,7 +20,7 @@ interface AdminLayoutProps {
 
 export function AdminLayout({ children }: AdminLayoutProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [expandedMenus, setExpandedMenus] = useState<string[]>(['overview']);
+  const [expandedMenus, setExpandedMenus] = useState<string[]>(['overview', 'recruitment']);
   const [location, setLocation] = useLocation();
 
   // Get current user using default fetcher
