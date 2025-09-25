@@ -1,5 +1,5 @@
 import { sql } from "drizzle-orm";
-import { pgTable, text, varchar, integer, boolean, timestamp, json } from "drizzle-orm/pg-core";
+import { pgTable, text, varchar, integer, boolean, timestamp, json, doublePrecision, date, time, unique, index } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
@@ -665,20 +665,35 @@ export const professionalReferences = pgTable("professional_references", {
 
 // Route Planning Tables for Domiciliary Care Service
 
+// Time slot enum values
+export const timeSlotEnum = ["AM", "Lunch", "Tea", "Bed"] as const;
+export type TimeSlot = typeof timeSlotEnum[number];
+
+// Status enum values for visits and runs
+export const visitStatusEnum = ["scheduled", "completed", "cancelled", "no_access"] as const;
+export type VisitStatus = typeof visitStatusEnum[number];
+
+export const runStatusEnum = ["draft", "optimized", "final", "completed"] as const;
+export type RunStatus = typeof runStatusEnum[number];
+
 // Clients table for storing client addresses and information
 export const clients = pgTable("clients", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   name: text("name").notNull(),
   addressLine: text("address_line").notNull(),
   postcode: text("postcode").notNull(),
-  latitude: real("latitude"),
-  longitude: real("longitude"),
+  normalizedPostcode: text("normalized_postcode"), // For reliable postcode searches
+  latitude: doublePrecision("latitude"), // Better precision for coordinates
+  longitude: doublePrecision("longitude"),
   phone: text("phone"),
   notes: text("notes"),
   isActive: boolean("is_active").default(true),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
-});
+}, (table) => ({
+  postcodeIdx: index("clients_postcode_idx").on(table.normalizedPostcode),
+  isActiveIdx: index("clients_active_idx").on(table.isActive),
+}));
 
 // Visits table for storing scheduled visits
 export const visits = pgTable("visits", {
@@ -686,12 +701,20 @@ export const visits = pgTable("visits", {
   clientId: varchar("client_id").notNull().references(() => clients.id),
   visitDate: date("visit_date").notNull(),
   timeSlot: text("time_slot").notNull(), // 'AM', 'Lunch', 'Tea', 'Bed'
+  windowStart: time("window_start"), // Start of time window (e.g., '08:00:00')
+  windowEnd: time("window_end"), // End of time window (e.g., '10:00:00')
   durationMinutes: integer("duration_minutes").notNull().default(30),
   notes: text("notes"),
-  status: text("status").default("scheduled"), // scheduled, completed, cancelled
+  status: text("status").notNull().default("scheduled"), // scheduled, completed, cancelled, no_access
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
-});
+}, (table) => ({
+  visitDateIdx: index("visits_date_idx").on(table.visitDate),
+  clientDateIdx: index("visits_client_date_idx").on(table.clientId, table.visitDate),
+  statusIdx: index("visits_status_idx").on(table.status),
+  // Unique constraint to prevent duplicate visits
+  uniqueClientDateSlot: unique("visits_client_date_slot").on(table.clientId, table.visitDate, table.timeSlot),
+}));
 
 // Runs table for storing planned routes
 export const runs = pgTable("runs", {
@@ -702,38 +725,63 @@ export const runs = pgTable("runs", {
   totalDistanceMeters: integer("total_distance_meters").default(0),
   totalTravelMinutes: integer("total_travel_minutes").default(0),
   totalServiceMinutes: integer("total_service_minutes").default(0),
-  departureTime: text("departure_time").default("08:00"), // HH:MM format
-  status: text("status").default("draft"), // draft, optimized, final, completed
+  departureTime: time("departure_time").default("08:00:00"), // Proper time type
+  status: text("status").notNull().default("draft"), // draft, optimized, final, completed
   options: json("options").$type<Record<string, any>>(), // slot windows, preferences, etc.
   createdBy: varchar("created_by").references(() => users.id),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
-});
+}, (table) => ({
+  runDateIdx: index("runs_date_idx").on(table.runDate),
+  createdByIdx: index("runs_created_by_idx").on(table.createdBy),
+  statusIdx: index("runs_status_idx").on(table.status),
+  travelModeIdx: index("runs_travel_mode_idx").on(table.travelMode),
+}));
 
 // Run stops table for storing ordered visits in each run
 export const runStops = pgTable("run_stops", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   runId: varchar("run_id").notNull().references(() => runs.id, { onDelete: "cascade" }),
-  visitId: varchar("visit_id").notNull().references(() => visits.id),
-  stopOrder: integer("stop_order").notNull(),
-  estimatedArrival: text("estimated_arrival"), // HH:MM format
-  estimatedDeparture: text("estimated_departure"), // HH:MM format
+  visitId: varchar("visit_id").references(() => visits.id), // Nullable for ad-hoc stops
+  stopOrder: integer("stop_order").notNull(), // Sequence in the run
+  
+  // For ad-hoc stops (when visitId is null)
+  adHocAddress: text("ad_hoc_address"),
+  adHocLatitude: doublePrecision("ad_hoc_latitude"),
+  adHocLongitude: doublePrecision("ad_hoc_longitude"),
+  adHocDuration: integer("ad_hoc_duration"), // Duration in minutes for ad-hoc stops
+  
+  // Timing information
+  estimatedArrival: time("estimated_arrival"), // Proper time type
+  estimatedDeparture: time("estimated_departure"), // Proper time type
   legDistanceMeters: integer("leg_distance_meters").default(0), // distance from previous stop
   legTravelMinutes: integer("leg_travel_minutes").default(0), // travel time from previous stop
   waitMinutes: integer("wait_minutes").default(0), // waiting time if arriving early
   lateMinutes: integer("late_minutes").default(0), // lateness if arriving after time window
   createdAt: timestamp("created_at").defaultNow(),
-});
+}, (table) => ({
+  runIdIdx: index("run_stops_run_id_idx").on(table.runId),
+  uniqueRunOrder: unique("run_stops_run_order").on(table.runId, table.stopOrder),
+  // Check constraint to ensure either visitId OR ad-hoc coordinates exist
+  // This will be added via raw SQL in migrations if needed
+}));
 
 // Geocoding cache to store Google Maps results
 export const geocodeCache = pgTable("geocode_cache", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  address: text("address").notNull().unique(),
-  latitude: real("latitude").notNull(),
-  longitude: real("longitude").notNull(),
+  cacheKey: text("cache_key").notNull().unique(), // Normalized query key (address/postcode)
+  originalQuery: text("original_query").notNull(), // Original user input
+  latitude: doublePrecision("latitude").notNull(),
+  longitude: doublePrecision("longitude").notNull(),
   formattedAddress: text("formatted_address").notNull(),
+  postcode: text("postcode"), // Extracted postcode
+  placeId: text("place_id"), // Google Place ID for reference
   createdAt: timestamp("created_at").defaultNow(),
-});
+  updatedAt: timestamp("updated_at").defaultNow(), // For TTL/refresh policy
+}, (table) => ({
+  cacheKeyIdx: index("geocode_cache_key_idx").on(table.cacheKey),
+  updatedAtIdx: index("geocode_cache_updated_idx").on(table.updatedAt),
+}));
 
 export const insertCqcAuditSchema = createInsertSchema(cqcAudits).omit({
   id: true,

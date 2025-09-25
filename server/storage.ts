@@ -1,7 +1,7 @@
-import { type User, type InsertUser, type Job, type InsertJob, type Application, type InsertApplication, type ContactSubmission, type InsertContactSubmission, type Feedback, type InsertFeedback, type Newsletter, type InsertNewsletter, type NewsletterBlock, type InsertNewsletterBlock, type Template, type InsertTemplate, type Subscriber, type InsertSubscriber, type Campaign, type InsertCampaign, type Delivery, type InsertDelivery, type BlogCategory, type InsertBlogCategory, type BlogPost, type InsertBlogPost, type AuditLog, type InsertAuditLog, type CqcAudit, type InsertCqcAudit, type CqcAuditCategory, type InsertCqcAuditCategory, type CqcQualityStatement, type InsertCqcQualityStatement, type CqcEvidenceCategory, type InsertCqcEvidenceCategory, type CqcAuditEvidence, type InsertCqcAuditEvidence, type CqcQualityAssessment, type InsertCqcQualityAssessment, type CqcComplianceRecord, type InsertCqcComplianceRecord, type KnowledgeQuestionnaire, type InsertKnowledgeQuestionnaire, type KnowledgeQuestion, type InsertKnowledgeQuestion, type KnowledgeSession, type InsertKnowledgeSession, type KnowledgeResponse, type InsertKnowledgeResponse, type KnowledgeAction, type InsertKnowledgeAction, type RecruitmentApplication, type InsertRecruitmentApplication, type ProfessionalReference, type InsertProfessionalReference } from "@shared/schema";
+import { type User, type InsertUser, type Job, type InsertJob, type Application, type InsertApplication, type ContactSubmission, type InsertContactSubmission, type Feedback, type InsertFeedback, type Newsletter, type InsertNewsletter, type NewsletterBlock, type InsertNewsletterBlock, type Template, type InsertTemplate, type Subscriber, type InsertSubscriber, type Campaign, type InsertCampaign, type Delivery, type InsertDelivery, type BlogCategory, type InsertBlogCategory, type BlogPost, type InsertBlogPost, type AuditLog, type InsertAuditLog, type CqcAudit, type InsertCqcAudit, type CqcAuditCategory, type InsertCqcAuditCategory, type CqcQualityStatement, type InsertCqcQualityStatement, type CqcEvidenceCategory, type InsertCqcEvidenceCategory, type CqcAuditEvidence, type InsertCqcAuditEvidence, type CqcQualityAssessment, type InsertCqcQualityAssessment, type CqcComplianceRecord, type InsertCqcComplianceRecord, type KnowledgeQuestionnaire, type InsertKnowledgeQuestionnaire, type KnowledgeQuestion, type InsertKnowledgeQuestion, type KnowledgeSession, type InsertKnowledgeSession, type KnowledgeResponse, type InsertKnowledgeResponse, type KnowledgeAction, type InsertKnowledgeAction, type RecruitmentApplication, type InsertRecruitmentApplication, type ProfessionalReference, type InsertProfessionalReference, type Client, type InsertClient, type Visit, type InsertVisit, type Run, type InsertRun, type RunStop, type InsertRunStop, type Geocode, type InsertGeocode } from "@shared/schema";
 import { randomUUID } from "crypto";
 import { db } from "./db";
-import { users, jobs, applications, contactSubmissions, blogCategories, blogPosts, auditLogs, cqcAudits, cqcAuditCategories, cqcQualityStatements, cqcEvidenceCategories, cqcAuditEvidence, cqcQualityAssessments, cqcComplianceRecords, knowledgeQuestionnaires, knowledgeQuestions, knowledgeSessions, knowledgeResponses, knowledgeActions, recruitmentApplications, professionalReferences } from "@shared/schema";
+import { users, jobs, applications, contactSubmissions, blogCategories, blogPosts, auditLogs, cqcAudits, cqcAuditCategories, cqcQualityStatements, cqcEvidenceCategories, cqcAuditEvidence, cqcQualityAssessments, cqcComplianceRecords, knowledgeQuestionnaires, knowledgeQuestions, knowledgeSessions, knowledgeResponses, knowledgeActions, recruitmentApplications, professionalReferences, clients, visits, runs, runStops, geocodeCache } from "@shared/schema";
 import { eq, and, desc } from "drizzle-orm";
 import bcrypt from "bcryptjs";
 
@@ -226,6 +226,44 @@ export interface IStorage {
   createKnowledgeAction(action: InsertKnowledgeAction): Promise<KnowledgeAction>;
   updateKnowledgeAction(id: string, updates: Partial<InsertKnowledgeAction>): Promise<KnowledgeAction | undefined>;
   deleteKnowledgeAction(id: string): Promise<boolean>;
+
+  // Route Planning - Clients
+  getAllClients(filters?: { isActive?: boolean; postcode?: string }): Promise<Client[]>;
+  getClient(id: string): Promise<Client | undefined>;
+  getClientByPostcode(postcode: string): Promise<Client[]>;
+  createClient(client: InsertClient): Promise<Client>;
+  updateClient(id: string, updates: Partial<InsertClient>): Promise<Client | undefined>;
+  deleteClient(id: string): Promise<boolean>;
+
+  // Route Planning - Visits
+  getAllVisits(filters?: { date?: string; clientId?: string; timeSlot?: string; status?: string }): Promise<Visit[]>;
+  getVisitsByDate(date: string): Promise<Visit[]>;
+  getVisitsByClientId(clientId: string): Promise<Visit[]>;
+  getVisit(id: string): Promise<Visit | undefined>;
+  createVisit(visit: InsertVisit): Promise<Visit>;
+  updateVisit(id: string, updates: Partial<InsertVisit>): Promise<Visit | undefined>;
+  deleteVisit(id: string): Promise<boolean>;
+
+  // Route Planning - Runs
+  getAllRuns(filters?: { date?: string; travelMode?: string; status?: string; createdBy?: string }): Promise<Run[]>;
+  getRunsByDate(date: string): Promise<Run[]>;
+  getRun(id: string): Promise<Run | undefined>;
+  createRun(run: InsertRun): Promise<Run>;
+  updateRun(id: string, updates: Partial<InsertRun>): Promise<Run | undefined>;
+  deleteRun(id: string): Promise<boolean>;
+
+  // Route Planning - Run Stops
+  getRunStops(runId: string): Promise<RunStop[]>;
+  getRunStop(id: string): Promise<RunStop | undefined>;
+  createRunStop(runStop: InsertRunStop): Promise<RunStop>;
+  updateRunStop(id: string, updates: Partial<InsertRunStop>): Promise<RunStop | undefined>;
+  deleteRunStop(id: string): Promise<boolean>;
+  deleteRunStops(runId: string): Promise<boolean>;
+
+  // Route Planning - Geocoding Cache
+  getGeocode(address: string): Promise<Geocode | undefined>;
+  createGeocode(geocode: InsertGeocode): Promise<Geocode>;
+  updateGeocode(id: string, updates: Partial<InsertGeocode>): Promise<Geocode | undefined>;
 }
 
 export class MemStorage implements IStorage {
@@ -255,6 +293,11 @@ export class MemStorage implements IStorage {
   private knowledgeSessions: Map<string, KnowledgeSession>;
   private knowledgeResponses: Map<string, KnowledgeResponse>;
   private knowledgeActions: Map<string, KnowledgeAction>;
+  private clients: Map<string, Client>;
+  private visits: Map<string, Visit>;
+  private runs: Map<string, Run>;
+  private runStops: Map<string, RunStop>;
+  private geocodes: Map<string, Geocode>;
 
   constructor() {
     this.users = new Map();
@@ -283,6 +326,11 @@ export class MemStorage implements IStorage {
     this.knowledgeSessions = new Map();
     this.knowledgeResponses = new Map();
     this.knowledgeActions = new Map();
+    this.clients = new Map();
+    this.visits = new Map();
+    this.runs = new Map();
+    this.runStops = new Map();
+    this.geocodes = new Map();
     
     // Initialize with sample jobs from the website
     this.initializeSampleJobs();
