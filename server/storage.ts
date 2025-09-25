@@ -2921,6 +2921,91 @@ export class DrizzleStorage implements IStorage {
     const result = await db.delete(knowledgeActions).where(eq(knowledgeActions.id, id)).returning();
     return result.length > 0;
   }
+
+  // Route Planning - Geocoding Cache
+  async getGeocode(cacheKey: string): Promise<Geocode | undefined> {
+    const result = await db.select().from(geocodeCache)
+      .where(eq(geocodeCache.cacheKey, cacheKey))
+      .limit(1);
+    return result[0];
+  }
+
+  async createGeocode(geocode: InsertGeocode): Promise<Geocode> {
+    const result = await db.insert(geocodeCache).values(geocode).returning();
+    return result[0];
+  }
+
+  async updateGeocode(id: string, updates: Partial<InsertGeocode>): Promise<Geocode | undefined> {
+    const updateData = {
+      ...updates,
+      updatedAt: new Date(),
+    };
+    
+    const result = await db.update(geocodeCache)
+      .set(updateData)
+      .where(eq(geocodeCache.id, id))
+      .returning();
+    return result[0];
+  }
+
+  // Route Planning - Clients
+  async getAllClients(): Promise<Client[]> {
+    return await db.select().from(clients).orderBy(clients.name);
+  }
+
+  async createClient(client: InsertClient): Promise<Client> {
+    const result = await db.insert(clients).values(client).returning();
+    return result[0];
+  }
+
+  // Route Planning - Visits
+  async getAllVisits(): Promise<Visit[]> {
+    return await db.select().from(visits).orderBy(visits.visitDate, visits.timeSlot);
+  }
+
+  async createVisit(visit: InsertVisit): Promise<Visit> {
+    const result = await db.insert(visits).values(visit).returning();
+    return result[0];
+  }
+
+  // Route Planning - Runs
+  async getAllRuns(): Promise<Run[]> {
+    return await db.select().from(runs).orderBy(desc(runs.createdAt));
+  }
+
+  async getRun(id: string): Promise<Run | undefined> {
+    const result = await db.select().from(runs)
+      .where(eq(runs.id, id))
+      .limit(1);
+    return result[0];
+  }
+
+  async createRun(run: InsertRun): Promise<Run> {
+    const result = await db.insert(runs).values(run).returning();
+    return result[0];
+  }
+
+  // Route Planning - Run Stops
+  async getRunStops(runId: string): Promise<RunStop[]> {
+    return await db.select().from(runStops)
+      .where(eq(runStops.runId, runId))
+      .orderBy(runStops.stopOrder);
+  }
+
+  async createRunStop(runStop: InsertRunStop): Promise<RunStop> {
+    const result = await db.insert(runStops).values(runStop).returning();
+    return result[0];
+  }
+
+  async deleteRunStops(runId: string): Promise<boolean> {
+    const result = await db.delete(runStops).where(eq(runStops.runId, runId)).returning();
+    return result.length > 0;
+  }
+
+  async deleteRun(id: string): Promise<boolean> {
+    const result = await db.delete(runs).where(eq(runs.id, id)).returning();
+    return result.length > 0;
+  }
 }
 
 // Use database storage for production
