@@ -3237,7 +3237,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { 
         visits, 
-        mode = 'walking', 
+        mode = 'driving', // Default to driving for domiciliary care
         departureTime = '08:00:00',
         runDate,
         runName,
@@ -3296,8 +3296,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           );
           
           totalDistance += distance;
-          // Estimate travel time (walking: 5 km/h, driving: 30 km/h)
-          const speedKmh = mode === 'walking' ? 5 : 30;
+          // Estimate travel time (walking: 5 km/h, driving: 50 km/h for local roads)
+          const speedKmh = mode === 'walking' ? 5 : 50;
           totalTravelTime += (distance / 1000) / speedKmh * 60; // minutes
         }
       }
