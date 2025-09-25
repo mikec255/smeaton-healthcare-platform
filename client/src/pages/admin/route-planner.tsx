@@ -668,6 +668,8 @@ export default function RoutePlanner() {
       clientName: multipleVisitsClient.trim() || undefined,
     }));
 
+    console.log('Creating visits:', newVisits.length, 'Current visits:', visits.length);
+
     // Check if there's an existing optimized route
     if (optimisation && optimisation.optimisedOrder.length > 0) {
       // Smart insertion into existing route - prioritize travel time over time restrictions
@@ -675,6 +677,7 @@ export default function RoutePlanner() {
     } else {
       // Normal addition when no route exists
       const updatedVisits = [...visits, ...newVisits];
+      console.log('Setting visits to:', updatedVisits.length, updatedVisits.map(v => `${v.timeSlot} (${v.id.slice(-5)})`));
       setVisits(updatedVisits);
 
       // Geocode all new visits
