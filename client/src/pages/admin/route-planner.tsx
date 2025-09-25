@@ -958,58 +958,75 @@ export default function RoutePlanner() {
                                .replace(/Please call.*$/gi, '')
                                .trim();
     
-    // Parse patterns like "7 x 30 mins Morning" or "45mins x 7 (am)"
-    const patterns = [
-      // Pattern: "7 x 30 mins Morning" or "30mins x 7 AM"
-      /(\d+)\s*x\s*(\d+)\s*mins?\s*(Morning|Lunch|Tea|Bed|AM|PM|am|pm|lunch|tea|bed|morning)/gi,
-      // Pattern: "45mins x 7 (am)" or "1hr x 7 (tea)"
-      /(\d+(?:\.\d+)?)\s*(mins?|hr?s?)\s*x\s*(\d+)\s*\(([^)]+)\)/gi,
-      // Pattern: "1hr15mins x 7 Morning"
-      /(\d+)hr(\d+)mins?\s*x\s*(\d+)\s*(Morning|Lunch|Tea|Bed|AM|PM)/gi
-    ];
+    console.log('Parsing details:', cleanDetails); // Debug log
     
-    patterns.forEach(pattern => {
-      let match;
-      while ((match = pattern.exec(cleanDetails)) !== null) {
-        let duration = 0;
-        let timeSlot = '';
-        let frequency = 1;
-        
-        if (pattern === patterns[0]) {
-          // Pattern: "7 x 30 mins Morning"
-          frequency = parseInt(match[1]);
-          duration = parseInt(match[2]);
-          timeSlot = match[3].toLowerCase();
-        } else if (pattern === patterns[1]) {
-          // Pattern: "45mins x 7 (am)"
-          duration = match[2].toLowerCase().includes('hr') ? parseInt(match[1]) * 60 : parseInt(match[1]);
-          frequency = parseInt(match[3]);
-          timeSlot = match[4].toLowerCase();
-        } else if (pattern === patterns[2]) {
-          // Pattern: "1hr15mins x 7 Morning"
-          duration = parseInt(match[1]) * 60 + parseInt(match[2]);
-          frequency = parseInt(match[3]);
-          timeSlot = match[4].toLowerCase();
-        }
-        
-        // Normalize time slot names
-        if (timeSlot.includes('am') || timeSlot.includes('morning')) {
-          timeSlot = 'Morning';
-        } else if (timeSlot.includes('lunch')) {
-          timeSlot = 'Lunch';
-        } else if (timeSlot.includes('tea') || timeSlot.includes('pm')) {
-          timeSlot = 'Tea';
-        } else if (timeSlot.includes('bed')) {
-          timeSlot = 'Bed';
-        }
-        
-        // Create individual visits (usually daily visits for a week)
-        for (let i = 0; i < frequency; i++) {
-          visits.push({ timeSlot, duration });
-        }
+    // Pattern A: count x duration format like "7 x 30 mins Morning"
+    const patternA = /(?:(\d+)\s*[xX]\s*)?(\d+)\s*min(?:ute)?s?\s*(morning|lunch|tea|bed(?:time)?|am|pm)/gi;
+    
+    // Pattern B: duration x count format like "45mins x 7 (am)"
+    const patternB = /(\d+(?:\.\d+)?)\s*(?:hr?s?|min(?:ute)?s?)\s*[xX]\s*(\d+)\s*(?:\((am|pm|morning|lunch|tea|bed(?:time)?)\)|(morning|lunch|tea|bed(?:time)?))/gi;
+    
+    // Pattern C: hour + minute format like "1hr15mins x 7 Morning"
+    const patternC = /(\d+)hr(\d+)mins?\s*[xX]\s*(\d+)\s*(morning|lunch|tea|bed(?:time)?|am|pm)/gi;
+    
+    // Function to normalize time slot names
+    const normalizeTimeSlot = (slot: string): string => {
+      const s = slot.toLowerCase().trim();
+      if (s.includes('am') || s.includes('morning')) return 'Morning';
+      if (s.includes('lunch')) return 'Lunch';
+      if (s.includes('tea') || s.includes('pm')) return 'Tea';
+      if (s.includes('bed')) return 'Bed';
+      return 'Morning'; // Default
+    };
+    
+    // Use matchAll to capture ALL occurrences
+    const matchesA = Array.from(cleanDetails.matchAll(patternA));
+    const matchesB = Array.from(cleanDetails.matchAll(patternB));
+    const matchesC = Array.from(cleanDetails.matchAll(patternC));
+    
+    console.log(`Found ${matchesA.length} A matches, ${matchesB.length} B matches, ${matchesC.length} C matches`); // Debug log
+    
+    // Process Pattern A matches: "7 x 30 mins Morning"
+    matchesA.forEach(match => {
+      const frequency = parseInt(match[1]) || 1;
+      const duration = parseInt(match[2]);
+      const timeSlot = normalizeTimeSlot(match[3]);
+      
+      console.log(`Pattern A: ${frequency} x ${duration}min ${timeSlot}`); // Debug log
+      
+      for (let i = 0; i < frequency; i++) {
+        visits.push({ timeSlot, duration });
       }
     });
     
+    // Process Pattern B matches: "45mins x 7 (am)"  
+    matchesB.forEach(match => {
+      let duration = parseInt(match[1]);
+      // Handle hour conversion if needed (though pattern focuses on mins)
+      const frequency = parseInt(match[2]);
+      const timeSlot = normalizeTimeSlot(match[3] || match[4]);
+      
+      console.log(`Pattern B: ${frequency} x ${duration}min ${timeSlot}`); // Debug log
+      
+      for (let i = 0; i < frequency; i++) {
+        visits.push({ timeSlot, duration });
+      }
+    });
+    
+    // Process Pattern C matches: "1hr15mins x 7 Morning"
+    matchesC.forEach(match => {
+      const duration = parseInt(match[1]) * 60 + parseInt(match[2]); // Convert hours + minutes
+      const frequency = parseInt(match[3]);
+      const timeSlot = normalizeTimeSlot(match[4]);
+      
+      console.log(`Pattern C: ${frequency} x ${duration}min ${timeSlot}`); // Debug log
+      
+      for (let i = 0; i < frequency; i++) {
+        visits.push({ timeSlot, duration });
+      }
+    });
+    
+    console.log(`Total visits created: ${visits.length}`); // Debug log
     return visits;
   };
 
