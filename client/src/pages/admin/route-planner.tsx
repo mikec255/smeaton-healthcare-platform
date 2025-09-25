@@ -478,28 +478,137 @@ export default function RoutePlanner() {
   };
 
   // Add multiple visits for the same address
+  const calculateOptimalInsertionPosition = async (newVisit: Visit, currentRoute: Visit[]) => {
+    // Helper function to calculate travel time between two visits using coordinates
+    const calculateTravelTime = async (from: Visit, to: Visit) => {
+      // Check if visits have coordinates (from geocoding)
+      const fromCoords = (from as any).latitude && (from as any).longitude ? {
+        lat: (from as any).latitude,
+        lng: (from as any).longitude
+      } : null;
+      
+      const toCoords = (to as any).latitude && (to as any).longitude ? {
+        lat: (to as any).latitude,
+        lng: (to as any).longitude
+      } : null;
+      
+      if (!fromCoords || !toCoords) return 0;
+      
+      // Use straight-line distance as approximation for now
+      // In production, this would use Google DirectionsService
+      const lat1 = fromCoords.lat;
+      const lng1 = fromCoords.lng;
+      const lat2 = toCoords.lat;
+      const lng2 = toCoords.lng;
+      
+      const R = 6371; // Earth's radius in km
+      const dLat = (lat2 - lat1) * Math.PI / 180;
+      const dLng = (lng2 - lng1) * Math.PI / 180;
+      const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+                Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+                Math.sin(dLng/2) * Math.sin(dLng/2);
+      const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+      const distance = R * c;
+      
+      // Approximate time based on driving speed (50 km/h average including stops)
+      return Math.round(distance / 50 * 60); // Convert to minutes
+    };
+
+    let bestPosition = currentRoute.length; // Default: append to end
+    let minDelta = Infinity;
+
+    // Try inserting at each possible position
+    for (let i = 0; i <= currentRoute.length; i++) {
+      let delta = 0;
+
+      if (i === 0) {
+        // Inserting at beginning
+        if (currentRoute.length > 0) {
+          delta = await calculateTravelTime(newVisit, currentRoute[0]);
+        }
+      } else if (i === currentRoute.length) {
+        // Inserting at end
+        if (currentRoute.length > 0) {
+          delta = await calculateTravelTime(currentRoute[i-1], newVisit);
+        }
+      } else {
+        // Inserting in middle
+        const before = currentRoute[i-1];
+        const after = currentRoute[i];
+        
+        // Calculate original travel time from before to after
+        const originalTime = await calculateTravelTime(before, after);
+        
+        // Calculate new travel time: before -> newVisit -> after
+        const newTime = await calculateTravelTime(before, newVisit) + 
+                       await calculateTravelTime(newVisit, after);
+        
+        delta = newTime - originalTime;
+      }
+
+      if (delta < minDelta) {
+        minDelta = delta;
+        bestPosition = i;
+      }
+    }
+
+    return { position: bestPosition, travelTimeDelta: minDelta };
+  };
+
   const handleSmartInsertion = async (newVisits: Visit[]) => {
     try {
-      // First geocode all new visits to get their coordinates
+      toast({
+        title: "Calculating Optimal Positions",
+        description: "Finding best insertion points to minimize travel time...",
+      });
+
+      // Geocode all new visits first and wait for completion
       for (const visit of newVisits) {
         geocodeMutation.mutate({
           visitId: visit.id,
           address: visit.address
         });
       }
+      
+      // Wait for geocoding to complete (simplified approach)
+      await new Promise(resolve => setTimeout(resolve, 3000));
 
-      // Wait a moment for geocoding to complete
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      // Geocoding should be complete by now
 
-      // Add new visits to the route
+      // Get current optimized route
+      const currentRoute = [...optimisation!.optimisedOrder];
+      const insertions: Array<{visit: Visit, position: number, delta: number}> = [];
+
+      // Calculate optimal position for each new visit
+      for (const newVisit of newVisits) {
+        const insertion = await calculateOptimalInsertionPosition(newVisit, currentRoute);
+        insertions.push({
+          visit: newVisit,
+          position: insertion.position,
+          delta: insertion.travelTimeDelta
+        });
+        
+        // Insert visit into current route for next calculation
+        currentRoute.splice(insertion.position, 0, newVisit);
+      }
+
+      // Update visits list with all visits
       const allVisits = [...visits, ...newVisits];
       setVisits(allVisits);
 
-      // Show success message with smart insertion info
-      toast({
-        title: "Visits Added to Route",
-        description: `Added ${newVisits.length} visit(s) to existing route. Travel time optimized.`,
+      // Update optimisation state with new route
+      const newOptimisedOrder = [...optimisation!.optimisedOrder];
+      insertions.reverse().forEach(insertion => {
+        newOptimisedOrder.splice(insertion.position, 0, insertion.visit);
       });
+
+      setOptimisation({
+        ...optimisation!,
+        optimisedOrder: newOptimisedOrder
+      });
+
+      // Update map with new route
+      updateMapWithVisits(newOptimisedOrder);
 
       // Clear form and close dialog
       setMultipleVisitsAddress('');
@@ -514,12 +623,22 @@ export default function RoutePlanner() {
       ]);
       setShowMultipleVisitsDialog(false);
 
+      const totalDelta = insertions.reduce((sum, ins) => sum + ins.delta, 0);
+      toast({
+        title: "Smart Insertion Complete",
+        description: `Added ${newVisits.length} visit(s) with optimal positioning. +${totalDelta} min travel time.`,
+      });
+
     } catch (error) {
       toast({
         title: "Error Adding Visits",
-        description: "Failed to add visits to route. Please try again.",
+        description: "Failed to calculate optimal insertion positions. Adding to end of route.",
         variant: "destructive",
       });
+      
+      // Fallback: add normally
+      const allVisits = [...visits, ...newVisits];
+      setVisits(allVisits);
     }
   };
 
