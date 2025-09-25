@@ -655,10 +655,12 @@ export default function RoutePlanner() {
   };
 
   const formatDistance = (meters: number) => {
-    if (meters >= 1000) {
-      return `${(meters / 1000).toFixed(1)} km`;
+    const miles = meters * 0.000621371;
+    if (miles >= 1) {
+      return `${miles.toFixed(1)} mi`;
     }
-    return `${meters} m`;
+    const feet = meters * 3.28084;
+    return `${Math.round(feet)} ft`;
   };
 
   return (

@@ -132,7 +132,7 @@ export class GoogleMapsService {
         const originsStr = origins.map(coord => `${coord.lat},${coord.lng}`).join('|');
         const destinationsStr = destinations.map(coord => `${coord.lat},${coord.lng}`).join('|');
         
-        const url = `${this.baseUrl}/distancematrix/json?origins=${originsStr}&destinations=${destinationsStr}&mode=${mode}&units=metric&key=${this.apiKey}`;
+        const url = `${this.baseUrl}/distancematrix/json?origins=${originsStr}&destinations=${destinationsStr}&mode=${mode}&units=imperial&key=${this.apiKey}`;
         
         const response = await fetch(url);
         const data = await response.json() as GoogleDistanceMatrixResponse;
