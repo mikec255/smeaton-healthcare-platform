@@ -209,7 +209,12 @@ export default function RoutePlanner() {
   // Multiple visits form state
   const [multipleVisitsAddress, setMultipleVisitsAddress] = useState('');
   const [multipleVisitsClient, setMultipleVisitsClient] = useState('');
-  const [selectedTimeSlots, setSelectedTimeSlots] = useState<string[]>([]);
+  const [timeSlotSettings, setTimeSlotSettings] = useState({
+    Morning: { enabled: false, duration: 30, earliestTime: '', latestTime: '' },
+    Lunch: { enabled: false, duration: 15, earliestTime: '', latestTime: '' },
+    Tea: { enabled: false, duration: 15, earliestTime: '', latestTime: '' },
+    Bed: { enabled: false, duration: 45, earliestTime: '', latestTime: '' }
+  });
   
   const mapRef = useRef<HTMLDivElement>(null);
   const mapInstanceRef = useRef<GoogleMap | null>(null);
@@ -647,7 +652,8 @@ export default function RoutePlanner() {
       return;
     }
 
-    if (selectedTimeSlots.length === 0) {
+    const enabledSlots = Object.entries(timeSlotSettings).filter(([_, settings]) => settings.enabled);
+    if (enabledSlots.length === 0) {
       toast({
         title: "No Time Slots Selected",
         description: "Please select at least one time slot.",
@@ -656,13 +662,13 @@ export default function RoutePlanner() {
       return;
     }
 
-    const newVisits: Visit[] = selectedTimeSlots.map((timeSlot, index) => ({
+    const newVisits: Visit[] = enabledSlots.map(([timeSlot, settings], index) => ({
       id: (Date.now() + index).toString(),
       address: multipleVisitsAddress.trim(),
-      durationMinutes: newDuration,
+      durationMinutes: settings.duration,
       timeSlot: timeSlot,
-      earliestTime: newEarliestTime || undefined,
-      latestTime: newLatestTime || undefined,
+      earliestTime: settings.earliestTime || undefined,
+      latestTime: settings.latestTime || undefined,
       clientName: multipleVisitsClient.trim() || undefined,
     }));
 
@@ -686,16 +692,17 @@ export default function RoutePlanner() {
       // Clear form and close dialog for normal addition
       setMultipleVisitsAddress('');
       setMultipleVisitsClient('');
-      setSelectedTimeSlots([]);
-      setNewDuration(30);
-      setNewTimeSlot('none');
-      setNewEarliestTime('');
-      setNewLatestTime('');
+      setTimeSlotSettings({
+        Morning: { enabled: false, duration: 30, earliestTime: '', latestTime: '' },
+        Lunch: { enabled: false, duration: 15, earliestTime: '', latestTime: '' },
+        Tea: { enabled: false, duration: 15, earliestTime: '', latestTime: '' },
+        Bed: { enabled: false, duration: 45, earliestTime: '', latestTime: '' }
+      });
       setShowMultipleVisitsDialog(false);
 
       toast({
         title: "Multiple Visits Added",
-        description: `Added ${selectedTimeSlots.length} visits for ${multipleVisitsAddress.trim()}`,
+        description: `Added ${enabledSlots.length} visits for ${multipleVisitsAddress.trim()}`,
       });
     }
   };
@@ -2265,86 +2272,22 @@ export default function RoutePlanner() {
               </div>
             </div>
 
-            {/* Visit Settings */}
-            <div className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="multiple-duration">Duration (mins)</Label>
-                  <Input
-                    id="multiple-duration"
-                    type="number"
-                    min="15"
-                    max="240"
-                    step="15"
-                    value={newDuration}
-                    onChange={(e) => setNewDuration(parseInt(e.target.value) || 30)}
-                    data-testid="input-multiple-duration"
-                  />
-                </div>
-                
-                <div>
-                  <Label htmlFor="multiple-time-slot">Time Slot</Label>
-                  <Select value={newTimeSlot} onValueChange={setNewTimeSlot}>
-                    <SelectTrigger data-testid="select-multiple-time-slot">
-                      <SelectValue placeholder="Select time slot" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="none">No preference</SelectItem>
-                      <SelectItem value="Morning">Morning (07:00-11:00)</SelectItem>
-                      <SelectItem value="Lunch">Lunch (11:00-15:00)</SelectItem>
-                      <SelectItem value="Tea">Tea (15:00-18:00)</SelectItem>
-                      <SelectItem value="Bed">Bed (18:00-23:00)</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <Label className="text-sm font-medium">Customer Time Window (Optional)</Label>
-                <p className="text-xs text-muted-foreground">Specific window promised to customer within the time slot</p>
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <Label htmlFor="multiple-earliest-time">Earliest Time</Label>
-                    <Input
-                      id="multiple-earliest-time"
-                      type="time"
-                      value={newEarliestTime}
-                      onChange={(e) => setNewEarliestTime(e.target.value)}
-                      placeholder="Optional"
-                      data-testid="input-multiple-earliest-time"
-                    />
-                  </div>
-                  
-                  <div>
-                    <Label htmlFor="multiple-latest-time">Latest Time</Label>
-                    <Input
-                      id="multiple-latest-time"
-                      type="time"
-                      value={newLatestTime}
-                      onChange={(e) => setNewLatestTime(e.target.value)}
-                      placeholder="Optional"
-                      data-testid="input-multiple-latest-time"
-                    />
-                  </div>
-                </div>
-              </div>
-
-              {/* Time Slot Selection */}
+            {/* Time Slot Selection */}
+            <div className="space-y-3">
+              <Label className="text-sm font-medium">Select Time Slots for Multiple Visits</Label>
+              <p className="text-xs text-muted-foreground">Check time slots and set individual duration and time windows for each</p>
+              
               <div className="space-y-3">
-                <Label className="text-sm font-medium">Select Time Slots for Multiple Visits</Label>
-                <p className="text-xs text-muted-foreground">Check which time slots you want to add visits for using the settings above</p>
-                
-                <div className="grid grid-cols-2 gap-3">
-                  {['Morning', 'Lunch', 'Tea', 'Bed'].map((slot) => (
-                    <div key={slot} className="flex items-center space-x-3 p-3 border rounded-lg">
+                {['Morning', 'Lunch', 'Tea', 'Bed'].map((slot) => (
+                  <div key={slot} className="border rounded-lg p-4 space-y-3">
+                    <div className="flex items-center gap-3">
                       <Checkbox
-                        checked={selectedTimeSlots.includes(slot)}
+                        checked={timeSlotSettings[slot as keyof typeof timeSlotSettings].enabled}
                         onCheckedChange={(checked) => {
-                          if (checked) {
-                            setSelectedTimeSlots([...selectedTimeSlots, slot]);
-                          } else {
-                            setSelectedTimeSlots(selectedTimeSlots.filter(s => s !== slot));
-                          }
+                          setTimeSlotSettings(prev => ({
+                            ...prev,
+                            [slot]: { ...prev[slot as keyof typeof prev], enabled: !!checked }
+                          }));
                         }}
                         data-testid={`checkbox-${slot.toLowerCase()}`}
                       />
@@ -2355,11 +2298,64 @@ export default function RoutePlanner() {
                           {slot === 'Tea' && '☕'}
                           {slot === 'Bed' && '🌙'}
                         </span>
-                        <span className="text-sm font-medium">{slot}</span>
+                        <span className="font-medium">
+                          {slot} ({slot === 'Morning' && '07:00-11:00'}{slot === 'Lunch' && '11:00-15:00'}{slot === 'Tea' && '15:00-18:00'}{slot === 'Bed' && '18:00-23:00'})
+                        </span>
                       </div>
                     </div>
-                  ))}
-                </div>
+                    
+                    {timeSlotSettings[slot as keyof typeof timeSlotSettings].enabled && (
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mt-3">
+                        <div>
+                          <Label className="text-xs">Duration (minutes)</Label>
+                          <Input
+                            type="number"
+                            min="5"
+                            max="240"
+                            value={timeSlotSettings[slot as keyof typeof timeSlotSettings].duration}
+                            onChange={(e) => {
+                              setTimeSlotSettings(prev => ({
+                                ...prev,
+                                [slot]: { ...prev[slot as keyof typeof prev], duration: parseInt(e.target.value) || 30 }
+                              }));
+                            }}
+                            data-testid={`input-duration-${slot.toLowerCase()}`}
+                          />
+                        </div>
+                        
+                        <div>
+                          <Label className="text-xs">Earliest Time</Label>
+                          <Input
+                            type="time"
+                            value={timeSlotSettings[slot as keyof typeof timeSlotSettings].earliestTime}
+                            onChange={(e) => {
+                              setTimeSlotSettings(prev => ({
+                                ...prev,
+                                [slot]: { ...prev[slot as keyof typeof prev], earliestTime: e.target.value }
+                              }));
+                            }}
+                            data-testid={`input-earliest-${slot.toLowerCase()}`}
+                          />
+                        </div>
+                        
+                        <div>
+                          <Label className="text-xs">Latest Time</Label>
+                          <Input
+                            type="time"
+                            value={timeSlotSettings[slot as keyof typeof timeSlotSettings].latestTime}
+                            onChange={(e) => {
+                              setTimeSlotSettings(prev => ({
+                                ...prev,
+                                [slot]: { ...prev[slot as keyof typeof prev], latestTime: e.target.value }
+                              }));
+                            }}
+                            data-testid={`input-latest-${slot.toLowerCase()}`}
+                          />
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                ))}
               </div>
             </div>
 
@@ -2374,7 +2370,7 @@ export default function RoutePlanner() {
               </Button>
               <Button 
                 onClick={addMultipleVisits}
-                disabled={!multipleVisitsAddress.trim() || selectedTimeSlots.length === 0}
+                disabled={!multipleVisitsAddress.trim() || !Object.values(timeSlotSettings).some(slot => slot.enabled)}
                 data-testid="button-save-multiple"
               >
                 <Plus className="h-4 w-4 mr-2" />
