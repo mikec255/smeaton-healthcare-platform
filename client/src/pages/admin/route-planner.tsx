@@ -1092,7 +1092,6 @@ export default function RoutePlanner() {
                 <Label htmlFor="run-name">Run Name:</Label>
                 <Input
                   id="run-name"
-                  placeholder="Auto-generated if blank"
                   value={runName}
                   onChange={(e) => {
                     setRunName(e.target.value);
