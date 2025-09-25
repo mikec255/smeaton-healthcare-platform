@@ -413,9 +413,13 @@ export class AdvancedRouteOptimizer {
         const currentOrderIndex = route.visitOrder[i];
         const nextOrderIndex = route.visitOrder[i + 1];
         
-        travelTimeToNext = durationMatrix[currentOrderIndex] && durationMatrix[currentOrderIndex][nextOrderIndex] 
-          ? durationMatrix[currentOrderIndex][nextOrderIndex] 
-          : 10; // Default 10 minutes if matrix data is missing
+        if (durationMatrix[currentOrderIndex] && durationMatrix[currentOrderIndex][nextOrderIndex] !== undefined) {
+          travelTimeToNext = durationMatrix[currentOrderIndex][nextOrderIndex];
+          console.log(`Travel time from visit ${i} to ${i+1}: ${travelTimeToNext} min`);
+        } else {
+          travelTimeToNext = 10; // Default 10 minutes if matrix data is missing
+          console.warn(`Missing duration matrix data for ${currentOrderIndex} to ${nextOrderIndex}, using fallback: ${travelTimeToNext} min`);
+        }
       }
 
       visitsWithTimes[i] = {
