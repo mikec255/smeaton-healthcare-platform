@@ -3265,9 +3265,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
 
       // Convert to legacy format for compatibility with frontend
-      const primaryRoute = optimizationResult.optimizedRoutes[0];
+      // Flatten all routes into a single optimized order
+      const allOptimizedVisits = optimizationResult.optimizedRoutes.flatMap(route => route.visits);
       const result = {
-        optimizedOrder: primaryRoute ? primaryRoute.visits : visits,
+        optimizedOrder: allOptimizedVisits.length > 0 ? allOptimizedVisits : visits,
         totalDistanceMeters: Math.round(optimizationResult.optimizedRoutes.reduce(
           (sum, route) => sum + route.totalDistanceMeters, 0
         )),
