@@ -403,7 +403,13 @@ export default function RoutePlanner() {
         optimisedOrder: result.optimizedOrder || result.optimisedOrder
       };
       setOptimisation(ukResult);
+      
+      // First update markers for ALL visits so every visit gets a pin
+      updateMapWithVisits(ukResult.optimisedOrder);
+      
+      // Then add the optimized route line (with waypoint limit for Google Maps)
       updateMapWithOptimisedRoute(ukResult);
+      
       toast({
         title: "Route Optimised & Run Created",
         description: `Shortest route created visiting ${ukResult.optimisedOrder.length} addresses house-to-house with minimum travel time. Run saved with ID: ${result.runId}`,
