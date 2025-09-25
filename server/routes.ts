@@ -3268,38 +3268,70 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Flatten all routes into a single optimized order and calculate travel times
       const allOptimizedVisits = optimizationResult.optimizedRoutes.flatMap(route => route.visits);
       
-      // Add travel times between all visits in the flattened list
+      // Add travel times between all visits using Google Maps Distance Matrix API
       if (allOptimizedVisits.length > 1) {
-        for (let i = 0; i < allOptimizedVisits.length - 1; i++) {
-          const currentVisit = allOptimizedVisits[i];
-          const nextVisit = allOptimizedVisits[i + 1];
+        try {
+          const googleMapsService = new GoogleMapsService();
           
-          // Calculate travel time between this visit and the next
-          if (currentVisit.latitude && currentVisit.longitude && 
-              nextVisit.latitude && nextVisit.longitude) {
-            // Use Haversine formula for accurate distance calculation
-            const R = 6371; // Earth's radius in kilometers
-            const lat1Rad = currentVisit.latitude * Math.PI / 180;
-            const lat2Rad = nextVisit.latitude * Math.PI / 180;
-            const deltaLatRad = (nextVisit.latitude - currentVisit.latitude) * Math.PI / 180;
-            const deltaLngRad = (nextVisit.longitude - currentVisit.longitude) * Math.PI / 180;
-
-            const a = Math.sin(deltaLatRad/2) * Math.sin(deltaLatRad/2) +
-                     Math.cos(lat1Rad) * Math.cos(lat2Rad) *
-                     Math.sin(deltaLngRad/2) * Math.sin(deltaLngRad/2);
-            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-            const distanceKm = R * c;
+          // Prepare origins and destinations for Distance Matrix API
+          const origins = [];
+          const destinations = [];
+          
+          for (let i = 0; i < allOptimizedVisits.length - 1; i++) {
+            const currentVisit = allOptimizedVisits[i];
+            const nextVisit = allOptimizedVisits[i + 1];
             
-            // Realistic travel time estimation for domiciliary care
-            // Urban areas: 25 km/h average (traffic, parking, finding addresses)
-            // Add 3 minutes base time for parking and approach
-            const baseTimeMinutes = 3;
-            const drivingTimeMinutes = (distanceKm / 25) * 60;
-            const totalTravelTime = Math.round(baseTimeMinutes + drivingTimeMinutes);
+            if (currentVisit.latitude && currentVisit.longitude && 
+                nextVisit.latitude && nextVisit.longitude) {
+              origins.push({ lat: currentVisit.latitude, lng: currentVisit.longitude });
+              destinations.push({ lat: nextVisit.latitude, lng: nextVisit.longitude });
+            }
+          }
+          
+          if (origins.length > 0) {
+            // Get real Google Maps travel times
+            const distanceMatrix = await googleMapsService.getDistanceMatrix(
+              origins,
+              destinations,
+              mode === 'driving' ? 'driving' : 'walking'
+            );
             
-            allOptimizedVisits[i].travelTimeToNext = Math.max(5, Math.min(45, totalTravelTime));
-          } else {
-            allOptimizedVisits[i].travelTimeToNext = 10; // Default 10 minutes
+            if (distanceMatrix && distanceMatrix.rows.length > 0) {
+              // Apply real Google Maps travel times
+              let matrixIndex = 0;
+              for (let i = 0; i < allOptimizedVisits.length - 1; i++) {
+                const currentVisit = allOptimizedVisits[i];
+                const nextVisit = allOptimizedVisits[i + 1];
+                
+                if (currentVisit.latitude && currentVisit.longitude && 
+                    nextVisit.latitude && nextVisit.longitude) {
+                  
+                  const element = distanceMatrix.rows[matrixIndex]?.elements[matrixIndex];
+                  if (element?.status === 'OK' && element.duration) {
+                    // Convert seconds to minutes and round
+                    const travelTimeMinutes = Math.round(element.duration.value / 60);
+                    allOptimizedVisits[i].travelTimeToNext = Math.max(1, travelTimeMinutes);
+                  } else {
+                    allOptimizedVisits[i].travelTimeToNext = 10; // Fallback
+                  }
+                  matrixIndex++;
+                } else {
+                  allOptimizedVisits[i].travelTimeToNext = 10; // Default for missing coordinates
+                }
+              }
+            } else {
+              // Fallback if Google Maps API fails
+              console.warn('Distance Matrix API failed, using fallback travel times');
+              for (let i = 0; i < allOptimizedVisits.length - 1; i++) {
+                allOptimizedVisits[i].travelTimeToNext = 10;
+              }
+            }
+          }
+        } catch (error) {
+          console.error('Error calculating travel times with Google Maps:', error);
+          // Fallback to default times if API fails
+          for (let i = 0; i < allOptimizedVisits.length - 1; i++) {
+            allOptimizedVisits[i].travelTimeToNext = 10;
           }
         }
       }
