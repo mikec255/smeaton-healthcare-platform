@@ -87,13 +87,6 @@ export const navigationItems: NavItem[] = [
         icon: UserCheck, 
         href: '/admin/professional-references',
         description: 'Manage professional references submitted for candidates'
-      },
-      { 
-        id: 'route-planner-test3', 
-        label: 'Route Planner TEST', 
-        icon: MapPin, 
-        href: '/admin/route-planner',
-        description: 'Optimize domiciliary care visit routes with Google Maps integration'
       }
     ]
   },
@@ -130,13 +123,6 @@ export const navigationItems: NavItem[] = [
     description: 'View customer feedback for CQC compliance and quality improvement'
   },
   {
-    id: 'route-planner-test',
-    label: 'Route Planner',
-    icon: MapPin,
-    href: '/admin/route-planner',
-    description: 'Optimize domiciliary care visit routes with Google Maps integration'
-  },
-  {
     id: 'tools',
     label: 'Tools & Compliance',
     icon: Calculator,
@@ -164,6 +150,13 @@ export const navigationItems: NavItem[] = [
         icon: Shield, 
         href: '/admin/audit-logs',
         description: 'GDPR compliance tracking - view all admin actions involving personal data'
+      },
+      { 
+        id: 'route-planner', 
+        label: 'Route Planner', 
+        icon: MapPin, 
+        href: '/admin/route-planner',
+        description: 'Optimize domiciliary care visit routes with Google Maps integration'
       }
     ]
   },
