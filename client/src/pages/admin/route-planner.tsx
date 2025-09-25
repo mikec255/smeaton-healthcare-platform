@@ -663,6 +663,39 @@ export default function RoutePlanner() {
     return `${Math.round(feet)} ft`;
   };
 
+  // Check if calculated visit times are within the preferred time slot
+  const isTimeOutsideSlot = (visit: any) => {
+    if (!visit.calculatedStartTime || !visit.calculatedEndTime || !visit.timeSlot) {
+      return false;
+    }
+
+    // Parse calculated times (format: "14:05")
+    const startParts = visit.calculatedStartTime.split(':');
+    const endParts = visit.calculatedEndTime.split(':');
+    const calculatedStart = parseInt(startParts[0]) * 60 + parseInt(startParts[1]);
+    const calculatedEnd = parseInt(endParts[0]) * 60 + parseInt(endParts[1]);
+
+    // Parse time slot ranges
+    let slotStart = 0, slotEnd = 0;
+    
+    if (visit.timeSlot.includes('Morning')) {
+      slotStart = 9 * 60;  // 9:00
+      slotEnd = 12 * 60;   // 12:00
+    } else if (visit.timeSlot.includes('Afternoon')) {
+      slotStart = 12 * 60; // 12:00
+      slotEnd = 17 * 60;   // 17:00
+    } else if (visit.timeSlot.includes('Evening')) {
+      slotStart = 17 * 60; // 17:00
+      slotEnd = 21 * 60;   // 21:00
+    } else if (visit.timeSlot.includes('Night')) {
+      slotStart = 21 * 60; // 21:00
+      slotEnd = 24 * 60;   // 24:00
+    }
+
+    // Check if start OR end time is outside the slot
+    return calculatedStart < slotStart || calculatedEnd > slotEnd;
+  };
+
   return (
     <AdminLayout>
       <div className="space-y-6">
@@ -975,7 +1008,14 @@ export default function RoutePlanner() {
                                   {visit.durationMinutes}m service
                                 </Badge>
                                 {visit.calculatedStartTime && (
-                                  <Badge variant="secondary" className="text-xs bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400">
+                                  <Badge 
+                                    variant="secondary" 
+                                    className={`text-xs ${
+                                      isTimeOutsideSlot(visit) 
+                                        ? 'bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-400' 
+                                        : 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400'
+                                    }`}
+                                  >
                                     {visit.calculatedStartTime} - {visit.calculatedEndTime}
                                   </Badge>
                                 )}
@@ -986,6 +1026,11 @@ export default function RoutePlanner() {
                               {visit.timeSlot && (
                                 <p className="text-xs text-blue-600 dark:text-blue-400 mt-1">
                                   Preferred time: {visit.timeSlot}
+                                </p>
+                              )}
+                              {visit.calculatedStartTime && isTimeOutsideSlot(visit) && (
+                                <p className="text-xs text-red-600 dark:text-red-400 mt-1 font-medium">
+                                  ⚠️ Visit time is outside preferred slot
                                 </p>
                               )}
                             </div>
