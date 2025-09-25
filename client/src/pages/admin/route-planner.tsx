@@ -72,7 +72,7 @@ export default function RoutePlanner() {
   const [isMapLoaded, setIsMapLoaded] = useState(false);
   const [newAddress, setNewAddress] = useState('');
   const [newDuration, setNewDuration] = useState(30);
-  const [newTimeSlot, setNewTimeSlot] = useState('');
+  const [newTimeSlot, setNewTimeSlot] = useState('none');
   const [newEarliestTime, setNewEarliestTime] = useState('');
   const [newLatestTime, setNewLatestTime] = useState('');
   const [newClientName, setNewClientName] = useState('');
@@ -220,7 +220,7 @@ export default function RoutePlanner() {
       id: Date.now().toString(),
       address: newAddress.trim(),
       durationMinutes: newDuration,
-      timeSlot: newTimeSlot || undefined,
+      timeSlot: newTimeSlot === 'none' ? undefined : newTimeSlot,
       earliestTime: newEarliestTime || undefined,
       latestTime: newLatestTime || undefined,
       clientName: newClientName.trim() || undefined,
@@ -238,7 +238,7 @@ export default function RoutePlanner() {
     // Clear form
     setNewAddress('');
     setNewDuration(30);
-    setNewTimeSlot('');
+    setNewTimeSlot('none');
     setNewEarliestTime('');
     setNewLatestTime('');
     setNewClientName('');
@@ -464,7 +464,7 @@ export default function RoutePlanner() {
                       <SelectValue placeholder="Select time slot" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="">No preference</SelectItem>
+                      <SelectItem value="none">No preference</SelectItem>
                       <SelectItem value="AM">Morning (8:00-12:00)</SelectItem>
                       <SelectItem value="Lunch">Lunch (12:00-14:00)</SelectItem>
                       <SelectItem value="Tea">Afternoon (14:00-17:00)</SelectItem>
