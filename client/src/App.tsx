@@ -55,6 +55,7 @@ const CqcToolkitAdmin = lazy(() => import("@/pages/admin/cqc-toolkit"));
 const RecruitmentApplicationsAdmin = lazy(() => import("@/pages/admin/recruitment-applications"));
 const ProfessionalReferencesAdmin = lazy(() => import("@/pages/admin/professional-references"));
 const RecruitmentApplication = lazy(() => import("@/pages/recruitment-application"));
+const ProfessionalReference = lazy(() => import("@/pages/professional-reference"));
 
 // Assessment page for staff knowledge tests
 const Assessment = lazy(() => import("@/pages/assessment"));
@@ -110,6 +111,7 @@ function Router() {
             <Route path="/referral" component={Referral} />
             <Route path="/create-password" component={CreatePassword} />
             <Route path="/apply" component={RecruitmentApplication} />
+            <Route path="/reference" component={ProfessionalReference} />
             
             {/* Staff Assessment page (public) */}
             <Route path="/assessment/:shareableLink" component={Assessment} />
