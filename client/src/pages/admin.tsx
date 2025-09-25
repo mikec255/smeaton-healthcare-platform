@@ -64,6 +64,16 @@ export default function Admin() {
     enabled: !!authUser,
   });
 
+  const { data: recruitmentApplications = [] } = useQuery<any[]>({
+    queryKey: ["/api/admin/recruitment-applications"],
+    enabled: !!authUser,
+  });
+
+  const { data: professionalReferences = [] } = useQuery<any[]>({
+    queryKey: ["/api/admin/professional-references"],
+    enabled: !!authUser,
+  });
+
   // Email configuration status query
   const { data: emailConfig = { configured: false } } = useQuery<{ configured: boolean }>({
     queryKey: ["/api/admin/email-config/status"],
@@ -123,6 +133,30 @@ export default function Admin() {
             total: 47,
             pending: 12,
             reviewed: 35
+          },
+          color: "bg-emerald-600 text-white hover:bg-emerald-700"
+        },
+        {
+          title: "Applications",
+          description: "View full recruitment applications submitted via direct link",
+          icon: FileText,
+          link: "/admin/recruitment-applications",
+          stats: {
+            total: recruitmentApplications.length,
+            pending: recruitmentApplications.filter(app => app.status === 'pending').length,
+            reviewed: recruitmentApplications.filter(app => app.status === 'reviewed' || app.status === 'approved').length
+          },
+          color: "bg-emerald-600 text-white hover:bg-emerald-700"
+        },
+        {
+          title: "References",
+          description: "Manage professional references submitted for candidates",
+          icon: UserCheck,
+          link: "/admin/professional-references",
+          stats: {
+            total: professionalReferences.length,
+            pending: professionalReferences.filter(ref => ref.status === 'pending').length,
+            verified: professionalReferences.filter(ref => ref.status === 'verified').length
           },
           color: "bg-emerald-600 text-white hover:bg-emerald-700"
         }
