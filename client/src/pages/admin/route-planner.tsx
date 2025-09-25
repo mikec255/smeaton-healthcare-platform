@@ -751,7 +751,7 @@ export default function RoutePlanner() {
                   )}
                 </CardDescription>
               </CardHeader>
-              <CardContent className="p-0 h-full">
+              <CardContent className="p-0 h-[calc(800px-80px)]">
                 {!isMapLoaded ? (
                   <div className="h-full flex items-center justify-center">
                     <div className="text-center space-y-2">
@@ -771,6 +771,7 @@ export default function RoutePlanner() {
                     ref={mapRef} 
                     className="w-full h-full rounded-b-lg"
                     data-testid="map-container"
+                    style={{ minHeight: '720px' }}
                   />
                 )}
               </CardContent>
