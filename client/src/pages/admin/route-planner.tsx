@@ -2241,34 +2241,87 @@ export default function RoutePlanner() {
                     })()}
                   </div>
                   
-                  <div className="mt-6 pt-4 border-t">
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-                      <div className="text-center">
-                        <div className="font-semibold text-lg text-blue-600 dark:text-blue-400">
-                          {optimisation.optimisedOrder?.length || 0}
+                  {/* Show stats for each shift separately */}
+                  {optimisation.optimizedRoutes && optimisation.optimizedRoutes.length > 0 ? (
+                    <div className="mt-6 space-y-4">
+                      {optimisation.optimizedRoutes.map((route, index) => (
+                        <div key={index} className="pt-4 border-t">
+                          <div className="flex items-center gap-2 mb-3">
+                            <span className="text-lg">
+                              {route.timeSlot === 'Morning' && '🌅'}
+                              {route.timeSlot === 'Lunch' && '🍽️'}
+                              {route.timeSlot === 'Tea' && '☕'}
+                              {route.timeSlot === 'Bed' && '🌙'}
+                            </span>
+                            <h3 className="font-semibold text-lg">
+                              {route.timeSlot} Shift
+                              {route.shiftDepartureTime && (
+                                <span className="text-sm text-muted-foreground ml-2">
+                                  (Departs: {route.shiftDepartureTime})
+                                </span>
+                              )}
+                            </h3>
+                          </div>
+                          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                            <div className="text-center">
+                              <div className="font-semibold text-lg text-blue-600 dark:text-blue-400">
+                                {route.visits?.length || 0}
+                              </div>
+                              <div className="text-muted-foreground">Visits</div>
+                            </div>
+                            <div className="text-center">
+                              <div className="font-semibold text-lg text-green-600 dark:text-green-400">
+                                {formatDistance(route.totalDistanceMeters || 0)}
+                              </div>
+                              <div className="text-muted-foreground">Distance</div>
+                            </div>
+                            <div className="text-center">
+                              <div className="font-semibold text-lg text-orange-600 dark:text-orange-400">
+                                {formatDuration(route.metrics?.totalTravelMinutes || 0)}
+                              </div>
+                              <div className="text-muted-foreground">Travel Time</div>
+                            </div>
+                            <div className="text-center">
+                              <div className="font-semibold text-lg text-purple-600 dark:text-purple-400">
+                                {formatDuration(route.metrics?.totalServiceMinutes || 0)}
+                              </div>
+                              <div className="text-muted-foreground">Care Time</div>
+                            </div>
+                          </div>
                         </div>
-                        <div className="text-muted-foreground">Total Visits</div>
-                      </div>
-                      <div className="text-center">
-                        <div className="font-semibold text-lg text-green-600 dark:text-green-400">
-                          {formatDistance(optimisation.totalDistanceMeters || 0)}
+                      ))}
+                    </div>
+                  ) : (
+                    // Fallback to combined stats if optimizedRoutes not available
+                    <div className="mt-6 pt-4 border-t">
+                      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                        <div className="text-center">
+                          <div className="font-semibold text-lg text-blue-600 dark:text-blue-400">
+                            {optimisation.optimisedOrder?.length || 0}
+                          </div>
+                          <div className="text-muted-foreground">Total Visits</div>
                         </div>
-                        <div className="text-muted-foreground">Total Distance</div>
-                      </div>
-                      <div className="text-center">
-                        <div className="font-semibold text-lg text-orange-600 dark:text-orange-400">
-                          {formatDuration(optimisation.totalTravelMinutes || 0)}
+                        <div className="text-center">
+                          <div className="font-semibold text-lg text-green-600 dark:text-green-400">
+                            {formatDistance(optimisation.totalDistanceMeters || 0)}
+                          </div>
+                          <div className="text-muted-foreground">Total Distance</div>
                         </div>
-                        <div className="text-muted-foreground">Travel Time</div>
-                      </div>
-                      <div className="text-center">
-                        <div className="font-semibold text-lg text-purple-600 dark:text-purple-400">
-                          {formatDuration(optimisation.totalServiceMinutes || 0)}
+                        <div className="text-center">
+                          <div className="font-semibold text-lg text-orange-600 dark:text-orange-400">
+                            {formatDuration(optimisation.totalTravelMinutes || 0)}
+                          </div>
+                          <div className="text-muted-foreground">Travel Time</div>
                         </div>
-                        <div className="text-muted-foreground">Care Hours (Provided)</div>
+                        <div className="text-center">
+                          <div className="font-semibold text-lg text-purple-600 dark:text-purple-400">
+                            {formatDuration(optimisation.totalServiceMinutes || 0)}
+                          </div>
+                          <div className="text-muted-foreground">Care Hours (Provided)</div>
+                        </div>
                       </div>
                     </div>
-                  </div>
+                  )}
                 </CardContent>
               </Card>
             )}
