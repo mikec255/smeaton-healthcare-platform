@@ -1803,82 +1803,123 @@ export default function RoutePlanner() {
                   </div>
                 </CardHeader>
                 <CardContent>
-                  <div className="space-y-4">
-                    {optimisation.optimisedOrder.map((visit, index) => {
-                      const isLastStop = index === optimisation.optimisedOrder.length - 1;
-                      
-                      return (
-                        <div key={visit.id} className="flex items-center justify-between p-4 border rounded-lg bg-gray-50 dark:bg-gray-800/50">
-                          <div className="flex items-center gap-4">
-                            <div className="flex items-center justify-center w-8 h-8 bg-blue-600 text-white rounded-full text-sm font-semibold">
-                              {index + 1}
-                            </div>
-                            <div className="flex-1">
-                              <div className="flex items-center gap-2 mb-1">
-                                <h4 className="font-medium text-gray-900 dark:text-gray-100">
-                                  {visit.clientName || `Visit ${index + 1}`}
-                                </h4>
-                                <Badge variant="outline" className="text-xs">
-                                  {visit.durationMinutes}m service
-                                </Badge>
-                                {visit.calculatedStartTime && (
-                                  <Badge 
-                                    variant="secondary" 
-                                    className={`text-xs ${
-                                      getTimeSlotStatus(visit) === 'outside-commissioning'
-                                        ? 'bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-400'
-                                        : getTimeSlotStatus(visit) === 'outside-customer'
-                                        ? 'bg-amber-100 text-amber-800 dark:bg-amber-900/20 dark:text-amber-400'
-                                        : 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400'
-                                    }`}
-                                  >
-                                    {visit.calculatedStartTime} - {visit.calculatedEndTime}
-                                  </Badge>
-                                )}
+                  <div className="space-y-6">
+                    {(() => {
+                      // Group visits by time slot
+                      const visitsByTimeSlot = optimisation.optimisedOrder.reduce((groups, visit, index) => {
+                        const timeSlot = visit.timeSlot || 'Unscheduled';
+                        if (!groups[timeSlot]) {
+                          groups[timeSlot] = [];
+                        }
+                        groups[timeSlot].push({ ...visit, originalIndex: index });
+                        return groups;
+                      }, {} as Record<string, (Visit & { originalIndex: number })[]>);
+
+                      // Define time slot order and icons
+                      const timeSlotOrder = ['Morning', 'Lunch', 'Tea', 'Bed', 'Unscheduled'];
+                      const timeSlotIcons = {
+                        'Morning': '🌅',
+                        'Lunch': '🍽️', 
+                        'Tea': '☕',
+                        'Bed': '🌙',
+                        'Unscheduled': '📝'
+                      };
+
+                      return timeSlotOrder.map(timeSlot => {
+                        const visitsInSlot = visitsByTimeSlot[timeSlot];
+                        if (!visitsInSlot || visitsInSlot.length === 0) return null;
+
+                        return (
+                          <div key={timeSlot} className="space-y-3">
+                            {/* Time Slot Header */}
+                            <div className="flex items-center gap-3 py-2 px-4 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-lg border-l-4 border-blue-500">
+                              <span className="text-2xl">{timeSlotIcons[timeSlot as keyof typeof timeSlotIcons]}</span>
+                              <div>
+                                <h3 className="font-semibold text-lg text-gray-900 dark:text-gray-100">{timeSlot} Visits</h3>
+                                <p className="text-sm text-gray-600 dark:text-gray-400">{visitsInSlot.length} visit{visitsInSlot.length !== 1 ? 's' : ''}</p>
                               </div>
-                              <p className="text-sm text-gray-600 dark:text-gray-400" data-testid={`route-address-${index}`}>
-                                {visit.address}
-                              </p>
-                              {visit.timeSlot && (
-                                <p className="text-xs text-blue-600 dark:text-blue-400 mt-1">
-                                  Preferred time: {visit.timeSlot}
-                                </p>
-                              )}
-                              {visit.calculatedStartTime && getTimeSlotStatus(visit) === 'outside-commissioning' && (
-                                <p className="text-xs text-red-600 dark:text-red-400 mt-1 font-medium">
-                                  🚨 Outside commissioning time slot
-                                </p>
-                              )}
-                              {visit.calculatedStartTime && getTimeSlotStatus(visit) === 'outside-customer' && (
-                                <p className="text-xs text-amber-600 dark:text-amber-400 mt-1 font-medium">
-                                  ⚠️ Outside customer window - could be renegotiated
-                                </p>
-                              )}
+                            </div>
+
+                            {/* Visits in this time slot */}
+                            <div className="space-y-3 ml-4">
+                              {visitsInSlot.map((visit, slotIndex) => {
+                                const isLastStop = visit.originalIndex === optimisation.optimisedOrder.length - 1;
+                                const isLastInSlot = slotIndex === visitsInSlot.length - 1;
+                                
+                                return (
+                                  <div key={visit.id} className="flex items-center justify-between p-4 border rounded-lg bg-white dark:bg-gray-900/50 shadow-sm">
+                                    <div className="flex items-center gap-4">
+                                      <div className="flex items-center justify-center w-8 h-8 bg-blue-600 text-white rounded-full text-sm font-semibold">
+                                        {visit.originalIndex + 1}
+                                      </div>
+                                      <div className="flex-1">
+                                        <div className="flex items-center gap-2 mb-1">
+                                          <h4 className="font-medium text-gray-900 dark:text-gray-100">
+                                            {visit.clientName || `Visit ${visit.originalIndex + 1}`}
+                                          </h4>
+                                          <Badge variant="outline" className="text-xs">
+                                            {visit.durationMinutes}m service
+                                          </Badge>
+                                          {visit.calculatedStartTime && (
+                                            <Badge 
+                                              variant="secondary" 
+                                              className={`text-xs ${
+                                                getTimeSlotStatus(visit) === 'outside-commissioning'
+                                                  ? 'bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-400'
+                                                  : getTimeSlotStatus(visit) === 'outside-customer'
+                                                  ? 'bg-amber-100 text-amber-800 dark:bg-amber-900/20 dark:text-amber-400'
+                                                  : 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400'
+                                              }`}
+                                            >
+                                              {visit.calculatedStartTime} - {visit.calculatedEndTime}
+                                            </Badge>
+                                          )}
+                                        </div>
+                                        <p className="text-sm text-gray-600 dark:text-gray-400" data-testid={`route-address-${visit.originalIndex}`}>
+                                          {visit.address}
+                                        </p>
+                                        {visit.calculatedStartTime && getTimeSlotStatus(visit) === 'outside-commissioning' && (
+                                          <p className="text-xs text-red-600 dark:text-red-400 mt-1 font-medium">
+                                            🚨 Outside commissioning time slot
+                                          </p>
+                                        )}
+                                        {visit.calculatedStartTime && getTimeSlotStatus(visit) === 'outside-customer' && (
+                                          <p className="text-xs text-amber-600 dark:text-amber-400 mt-1 font-medium">
+                                            ⚠️ Outside customer window - could be renegotiated
+                                          </p>
+                                        )}
+                                      </div>
+                                    </div>
+                                    
+                                    {!isLastStop && (
+                                      <div className="text-right">
+                                        <div className="flex items-center gap-2 text-green-600 dark:text-green-400">
+                                          <Clock className="h-4 w-4" />
+                                          <span className="font-medium" data-testid={`travel-time-${visit.originalIndex}`}>
+                                            {visit.travelTimeToNext ? `${visit.travelTimeToNext} min` : 'Calculating...'}
+                                          </span>
+                                        </div>
+                                        <p className="text-xs text-muted-foreground">
+                                          {isLastInSlot && !isLastStop ? 'to next time slot' : 'to next customer'}
+                                        </p>
+                                      </div>
+                                    )}
+                                    
+                                    {isLastStop && (
+                                      <div className="text-right">
+                                        <div className="flex items-center gap-2 text-gray-500">
+                                          <span className="text-sm font-medium">Final destination</span>
+                                        </div>
+                                      </div>
+                                    )}
+                                  </div>
+                                );
+                              })}
                             </div>
                           </div>
-                          
-                          {!isLastStop && (
-                            <div className="text-right">
-                              <div className="flex items-center gap-2 text-green-600 dark:text-green-400">
-                                <Clock className="h-4 w-4" />
-                                <span className="font-medium" data-testid={`travel-time-${index}`}>
-                                  {visit.travelTimeToNext ? `${visit.travelTimeToNext} min` : 'Calculating...'}
-                                </span>
-                              </div>
-                              <p className="text-xs text-muted-foreground">to next customer</p>
-                            </div>
-                          )}
-                          
-                          {isLastStop && (
-                            <div className="text-right">
-                              <div className="flex items-center gap-2 text-gray-500">
-                                <span className="text-sm font-medium">Final destination</span>
-                              </div>
-                            </div>
-                          )}
-                        </div>
-                      );
-                    })}
+                        );
+                      }).filter(Boolean);
+                    })()}
                   </div>
                   
                   <div className="mt-6 pt-4 border-t">
