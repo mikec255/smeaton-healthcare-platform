@@ -1122,6 +1122,169 @@ export default function RoutePlanner() {
               </Button>
 
               <div className="flex items-center gap-2 ml-auto">
+                <Dialog open={showHowToGuide} onOpenChange={setShowHowToGuide}>
+                  <DialogTrigger asChild>
+                    <Button
+                      variant="outline"
+                      data-testid="button-how-to-guide"
+                    >
+                      <HelpCircle className="h-4 w-4 mr-2" />
+                      How To
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+                    <DialogHeader>
+                      <DialogTitle className="flex items-center gap-2">
+                        <HelpCircle className="h-5 w-5" />
+                        How to Use the Route Planner
+                      </DialogTitle>
+                    </DialogHeader>
+                    
+                    <div className="space-y-8 p-4">
+                      {/* Step 1 */}
+                      <div className="space-y-4">
+                        <div className="flex items-center gap-3">
+                          <div className="flex items-center justify-center w-8 h-8 bg-blue-600 text-white rounded-full text-sm font-semibold">
+                            1
+                          </div>
+                          <h3 className="text-lg font-semibold">Add Your Care Visits</h3>
+                        </div>
+                        <p className="text-gray-600 dark:text-gray-400 ml-11">
+                          Start by adding all the care visits you need to schedule. Enter the full address including postcode, 
+                          client name (optional), visit duration, and select the appropriate commissioning time slot.
+                        </p>
+                        <div className="ml-11">
+                          <img 
+                            src={addVisitFormImage} 
+                            alt="Add visit form interface"
+                            className="rounded-lg border shadow-md w-full max-w-2xl"
+                          />
+                        </div>
+                        <div className="ml-11 space-y-2">
+                          <h4 className="font-medium">Key Features:</h4>
+                          <ul className="text-sm text-gray-600 dark:text-gray-400 space-y-1">
+                            <li>• <strong>Address:</strong> Enter full address with postcode for accurate geocoding</li>
+                            <li>• <strong>Commissioning Slots:</strong> Morning (7-11am), Lunch (11am-3pm), Tea (3-6pm), Bed (6-11pm)</li>
+                            <li>• <strong>Customer Time Window:</strong> Optional specific time promised to customer</li>
+                            <li>• <strong>Duration:</strong> Set visit length from 15 minutes to 4 hours</li>
+                          </ul>
+                        </div>
+                      </div>
+
+                      <Separator />
+
+                      {/* Step 2 */}
+                      <div className="space-y-4">
+                        <div className="flex items-center gap-3">
+                          <div className="flex items-center justify-center w-8 h-8 bg-blue-600 text-white rounded-full text-sm font-semibold">
+                            2
+                          </div>
+                          <h3 className="text-lg font-semibold">Review Visits on Map</h3>
+                        </div>
+                        <p className="text-gray-600 dark:text-gray-400 ml-11">
+                          Once you've added visits, they'll appear as pins on the interactive map. You can see all locations 
+                          and manually reorder visits by dragging them in the visits list if needed.
+                        </p>
+                        <div className="ml-11">
+                          <img 
+                            src={mapWithVisitsImage} 
+                            alt="Map view with visit locations"
+                            className="rounded-lg border shadow-md w-full max-w-2xl"
+                          />
+                        </div>
+                        <div className="ml-11 space-y-2">
+                          <h4 className="font-medium">Map Features:</h4>
+                          <ul className="text-sm text-gray-600 dark:text-gray-400 space-y-1">
+                            <li>• <strong>Interactive Map:</strong> View all visit locations on Google Maps</li>
+                            <li>• <strong>Drag & Drop:</strong> Manually reorder visits in the sidebar list</li>
+                            <li>• <strong>Travel Mode:</strong> Choose between Driving or Walking</li>
+                          </ul>
+                        </div>
+                      </div>
+
+                      <Separator />
+
+                      {/* Step 3 */}
+                      <div className="space-y-4">
+                        <div className="flex items-center gap-3">
+                          <div className="flex items-center justify-center w-8 h-8 bg-blue-600 text-white rounded-full text-sm font-semibold">
+                            3
+                          </div>
+                          <h3 className="text-lg font-semibold">Create Optimised Route</h3>
+                        </div>
+                        <p className="text-gray-600 dark:text-gray-400 ml-11">
+                          Name your run and click "Create Optimised Run" to generate the most efficient route. 
+                          The system will calculate the shortest path while respecting time constraints and commissioning windows.
+                        </p>
+                        <div className="ml-11">
+                          <img 
+                            src={optimizedResultsImage} 
+                            alt="Optimised route summary results"
+                            className="rounded-lg border shadow-md w-full max-w-2xl"
+                          />
+                        </div>
+                        <div className="ml-11 space-y-2">
+                          <h4 className="font-medium">Route Results:</h4>
+                          <ul className="text-sm text-gray-600 dark:text-gray-400 space-y-1">
+                            <li>• <strong>Optimised Sequence:</strong> Visits reordered for minimum travel time</li>
+                            <li>• <strong>Time Validation:</strong> Colour-coded badges show compliance with time windows</li>
+                            <li>• <strong>Summary Statistics:</strong> Total visits, distance, travel time, and care hours</li>
+                            <li>• <strong>Download Options:</strong> Export to CSV or PDF (requires named run)</li>
+                          </ul>
+                        </div>
+                      </div>
+
+                      <Separator />
+
+                      {/* Time Compliance Guide */}
+                      <div className="space-y-4">
+                        <div className="flex items-center gap-3">
+                          <div className="flex items-center justify-center w-8 h-8 bg-green-600 text-white rounded-full text-sm font-semibold">
+                            ✓
+                          </div>
+                          <h3 className="text-lg font-semibold">Understanding Time Compliance</h3>
+                        </div>
+                        <div className="ml-11 space-y-3">
+                          <div className="flex items-center gap-3">
+                            <div className="w-4 h-4 bg-green-100 border-2 border-green-500 rounded"></div>
+                            <span className="text-sm"><strong>Green:</strong> Within customer time window and commissioning slot</span>
+                          </div>
+                          <div className="flex items-center gap-3">
+                            <div className="w-4 h-4 bg-amber-100 border-2 border-amber-500 rounded"></div>
+                            <span className="text-sm"><strong>Amber:</strong> Outside customer window but within commissioning slot (renegotiable)</span>
+                          </div>
+                          <div className="flex items-center gap-3">
+                            <div className="w-4 h-4 bg-red-100 border-2 border-red-500 rounded"></div>
+                            <span className="text-sm"><strong>Red:</strong> Outside commissioning guidelines entirely (requires rescheduling)</span>
+                          </div>
+                        </div>
+                      </div>
+
+                      <Separator />
+
+                      {/* Import/Export Guide */}
+                      <div className="space-y-4">
+                        <div className="flex items-center gap-3">
+                          <div className="flex items-center justify-center w-8 h-8 bg-purple-600 text-white rounded-full text-sm font-semibold">
+                            💾
+                          </div>
+                          <h3 className="text-lg font-semibold">Import & Export Routes</h3>
+                        </div>
+                        <div className="ml-11 space-y-2">
+                          <p className="text-gray-600 dark:text-gray-400">
+                            Save your work and reuse routes with the import/export functionality:
+                          </p>
+                          <ul className="text-sm text-gray-600 dark:text-gray-400 space-y-1">
+                            <li>• <strong>Export to CSV:</strong> Download route data for external analysis or backup</li>
+                            <li>• <strong>Export to PDF:</strong> Create professional route summaries for printing</li>
+                            <li>• <strong>Import CSV:</strong> Upload previous routes to modify or reuse them</li>
+                            <li>• <strong>Named Runs:</strong> Must name your run before downloading</li>
+                          </ul>
+                        </div>
+                      </div>
+                    </div>
+                  </DialogContent>
+                </Dialog>
                 <input
                   type="file"
                   accept=".csv"
@@ -1376,170 +1539,6 @@ export default function RoutePlanner() {
                         <Download className="h-4 w-4 mr-2" />
                         PDF
                       </Button>
-                      <Dialog open={showHowToGuide} onOpenChange={setShowHowToGuide}>
-                        <DialogTrigger asChild>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            data-testid="button-how-to-guide"
-                          >
-                            <HelpCircle className="h-4 w-4 mr-2" />
-                            How To
-                          </Button>
-                        </DialogTrigger>
-                        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-                          <DialogHeader>
-                            <DialogTitle className="flex items-center gap-2">
-                              <HelpCircle className="h-5 w-5" />
-                              How to Use the Route Planner
-                            </DialogTitle>
-                          </DialogHeader>
-                          
-                          <div className="space-y-8 p-4">
-                            {/* Step 1 */}
-                            <div className="space-y-4">
-                              <div className="flex items-center gap-3">
-                                <div className="flex items-center justify-center w-8 h-8 bg-blue-600 text-white rounded-full text-sm font-semibold">
-                                  1
-                                </div>
-                                <h3 className="text-lg font-semibold">Add Your Care Visits</h3>
-                              </div>
-                              <p className="text-gray-600 dark:text-gray-400 ml-11">
-                                Start by adding all the care visits you need to schedule. Enter the full address including postcode, 
-                                client name (optional), visit duration, and select the appropriate commissioning time slot.
-                              </p>
-                              <div className="ml-11">
-                                <img 
-                                  src={addVisitFormImage} 
-                                  alt="Add visit form interface"
-                                  className="rounded-lg border shadow-md w-full max-w-2xl"
-                                />
-                              </div>
-                              <div className="ml-11 space-y-2">
-                                <h4 className="font-medium">Key Features:</h4>
-                                <ul className="text-sm text-gray-600 dark:text-gray-400 space-y-1">
-                                  <li>• <strong>Address:</strong> Enter full address with postcode for accurate geocoding</li>
-                                  <li>• <strong>Commissioning Slots:</strong> Morning (7-11am), Lunch (11am-3pm), Tea (3-6pm), Bed (6-11pm)</li>
-                                  <li>• <strong>Customer Time Window:</strong> Optional specific time promised to customer</li>
-                                  <li>• <strong>Duration:</strong> Set visit length from 15 minutes to 4 hours</li>
-                                </ul>
-                              </div>
-                            </div>
-
-                            <Separator />
-
-                            {/* Step 2 */}
-                            <div className="space-y-4">
-                              <div className="flex items-center gap-3">
-                                <div className="flex items-center justify-center w-8 h-8 bg-blue-600 text-white rounded-full text-sm font-semibold">
-                                  2
-                                </div>
-                                <h3 className="text-lg font-semibold">Review Visits on Map</h3>
-                              </div>
-                              <p className="text-gray-600 dark:text-gray-400 ml-11">
-                                Once you've added visits, they'll appear as pins on the interactive map. You can see all locations 
-                                and manually reorder visits by dragging them in the visits list if needed.
-                              </p>
-                              <div className="ml-11">
-                                <img 
-                                  src={mapWithVisitsImage} 
-                                  alt="Map view with visit locations"
-                                  className="rounded-lg border shadow-md w-full max-w-2xl"
-                                />
-                              </div>
-                              <div className="ml-11 space-y-2">
-                                <h4 className="font-medium">Map Features:</h4>
-                                <ul className="text-sm text-gray-600 dark:text-gray-400 space-y-1">
-                                  <li>• <strong>Interactive Map:</strong> View all visit locations on Google Maps</li>
-                                  <li>• <strong>Drag & Drop:</strong> Manually reorder visits in the sidebar list</li>
-                                  <li>• <strong>Travel Mode:</strong> Choose between Driving or Walking</li>
-                                </ul>
-                              </div>
-                            </div>
-
-                            <Separator />
-
-                            {/* Step 3 */}
-                            <div className="space-y-4">
-                              <div className="flex items-center gap-3">
-                                <div className="flex items-center justify-center w-8 h-8 bg-blue-600 text-white rounded-full text-sm font-semibold">
-                                  3
-                                </div>
-                                <h3 className="text-lg font-semibold">Create Optimised Route</h3>
-                              </div>
-                              <p className="text-gray-600 dark:text-gray-400 ml-11">
-                                Name your run and click "Create Optimised Run" to generate the most efficient route. 
-                                The system will calculate the shortest path while respecting time constraints and commissioning windows.
-                              </p>
-                              <div className="ml-11">
-                                <img 
-                                  src={optimizedResultsImage} 
-                                  alt="Optimised route summary results"
-                                  className="rounded-lg border shadow-md w-full max-w-2xl"
-                                />
-                              </div>
-                              <div className="ml-11 space-y-2">
-                                <h4 className="font-medium">Route Results:</h4>
-                                <ul className="text-sm text-gray-600 dark:text-gray-400 space-y-1">
-                                  <li>• <strong>Optimised Sequence:</strong> Visits reordered for minimum travel time</li>
-                                  <li>• <strong>Time Validation:</strong> Colour-coded badges show compliance with time windows</li>
-                                  <li>• <strong>Summary Statistics:</strong> Total visits, distance, travel time, and care hours</li>
-                                  <li>• <strong>Download Options:</strong> Export to CSV or PDF (requires named run)</li>
-                                </ul>
-                              </div>
-                            </div>
-
-                            <Separator />
-
-                            {/* Time Compliance Guide */}
-                            <div className="space-y-4">
-                              <div className="flex items-center gap-3">
-                                <div className="flex items-center justify-center w-8 h-8 bg-green-600 text-white rounded-full text-sm font-semibold">
-                                  ✓
-                                </div>
-                                <h3 className="text-lg font-semibold">Understanding Time Compliance</h3>
-                              </div>
-                              <div className="ml-11 space-y-3">
-                                <div className="flex items-center gap-3">
-                                  <div className="w-4 h-4 bg-green-100 border-2 border-green-500 rounded"></div>
-                                  <span className="text-sm"><strong>Green:</strong> Within customer time window and commissioning slot</span>
-                                </div>
-                                <div className="flex items-center gap-3">
-                                  <div className="w-4 h-4 bg-amber-100 border-2 border-amber-500 rounded"></div>
-                                  <span className="text-sm"><strong>Amber:</strong> Outside customer window but within commissioning slot (renegotiable)</span>
-                                </div>
-                                <div className="flex items-center gap-3">
-                                  <div className="w-4 h-4 bg-red-100 border-2 border-red-500 rounded"></div>
-                                  <span className="text-sm"><strong>Red:</strong> Outside commissioning guidelines entirely (requires rescheduling)</span>
-                                </div>
-                              </div>
-                            </div>
-
-                            <Separator />
-
-                            {/* Import/Export Guide */}
-                            <div className="space-y-4">
-                              <div className="flex items-center gap-3">
-                                <div className="flex items-center justify-center w-8 h-8 bg-purple-600 text-white rounded-full text-sm font-semibold">
-                                  💾
-                                </div>
-                                <h3 className="text-lg font-semibold">Import & Export Routes</h3>
-                              </div>
-                              <div className="ml-11 space-y-2">
-                                <p className="text-gray-600 dark:text-gray-400">
-                                  Save your work and reuse routes with the import/export functionality:
-                                </p>
-                                <ul className="text-sm text-gray-600 dark:text-gray-400 space-y-1">
-                                  <li>• <strong>Export to CSV:</strong> Download route data for external analysis or backup</li>
-                                  <li>• <strong>Export to PDF:</strong> Create professional route summaries for printing</li>
-                                  <li>• <strong>Import CSV:</strong> Upload previous routes to modify or reuse them</li>
-                                  <li>• <strong>Named Runs:</strong> Must name your run before downloading</li>
-                                </ul>
-                              </div>
-                            </div>
-                          </div>
-                        </DialogContent>
-                      </Dialog>
                     </div>
                   </div>
                 </CardHeader>
