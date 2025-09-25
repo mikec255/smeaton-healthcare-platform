@@ -79,6 +79,13 @@ export const navigationItems: NavItem[] = [
         icon: FileText, 
         href: '/admin/recruitment-applications',
         description: 'View full recruitment applications submitted via direct link'
+      },
+      { 
+        id: 'professional-references', 
+        label: 'References', 
+        icon: UserCheck, 
+        href: '/admin/professional-references',
+        description: 'Manage professional references submitted for candidates'
       }
     ]
   },
@@ -271,6 +278,20 @@ export const adminRoutes: Record<string, AdminRoute> = {
     description: 'Create and manage admin users with role-based access control',
     breadcrumbLabel: 'Manage Users',
     parentId: 'system'
+  },
+  '/admin/recruitment-applications': {
+    path: '/admin/recruitment-applications',
+    title: 'Recruitment Applications',
+    description: 'View and manage full recruitment applications submitted via direct link',
+    breadcrumbLabel: 'Applications',
+    parentId: 'recruitment'
+  },
+  '/admin/professional-references': {
+    path: '/admin/professional-references',
+    title: 'Professional References',
+    description: 'Manage professional references submitted for candidates',
+    breadcrumbLabel: 'References',
+    parentId: 'recruitment'
   }
 };
 
