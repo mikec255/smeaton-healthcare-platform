@@ -54,6 +54,7 @@ const ToolsAdmin = lazy(() => import("@/pages/admin/tools"));
 const CqcToolkitAdmin = lazy(() => import("@/pages/admin/cqc-toolkit"));
 const RecruitmentApplicationsAdmin = lazy(() => import("@/pages/admin/recruitment-applications"));
 const ProfessionalReferencesAdmin = lazy(() => import("@/pages/admin/professional-references"));
+const RoutePlannerAdmin = lazy(() => import("@/pages/admin/route-planner"));
 const RecruitmentApplication = lazy(() => import("@/pages/recruitment-application"));
 const ProfessionalReference = lazy(() => import("@/pages/professional-reference"));
 
@@ -130,6 +131,7 @@ function Router() {
             <Route path="/admin/audit-logs" component={AuditLogsAdmin} />
             <Route path="/admin/tools" component={ToolsAdmin} />
             <Route path="/admin/cqc-toolkit" component={CqcToolkitAdmin} />
+            <Route path="/admin/route-planner" component={RoutePlannerAdmin} />
             <Route path="/admin/recruitment-applications" component={RecruitmentApplicationsAdmin} />
             <Route path="/admin/professional-references" component={ProfessionalReferencesAdmin} />
             <Route path="/admin" component={Admin} />

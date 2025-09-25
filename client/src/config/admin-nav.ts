@@ -10,7 +10,8 @@ import {
   Mail,
   Settings,
   BarChart3,
-  FileText
+  FileText,
+  MapPin
 } from 'lucide-react';
 
 export interface NavItem {
@@ -149,6 +150,13 @@ export const navigationItems: NavItem[] = [
         icon: Shield, 
         href: '/admin/audit-logs',
         description: 'GDPR compliance tracking - view all admin actions involving personal data'
+      },
+      { 
+        id: 'route-planner', 
+        label: 'Route Planner', 
+        icon: MapPin, 
+        href: '/admin/route-planner',
+        description: 'Optimize domiciliary care visit routes with Google Maps integration'
       }
     ]
   },
@@ -292,6 +300,13 @@ export const adminRoutes: Record<string, AdminRoute> = {
     description: 'Manage professional references submitted for candidates',
     breadcrumbLabel: 'References',
     parentId: 'recruitment'
+  },
+  '/admin/route-planner': {
+    path: '/admin/route-planner',
+    title: 'Route Planner',
+    description: 'Optimize domiciliary care visit routes with Google Maps integration',
+    breadcrumbLabel: 'Route Planner',
+    parentId: 'tools'
   }
 };
 
