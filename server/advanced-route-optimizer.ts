@@ -30,7 +30,18 @@ export class AdvancedRouteOptimizer {
       departureTime = '08:00'
     } = options;
 
+    // Validate travel mode
+    if (!['driving', 'walking'].includes(mode)) {
+      throw new Error(`Invalid travel mode: ${mode}. Must be 'driving' or 'walking'`);
+    }
+
+    // Parse departure time into epoch seconds for traffic-aware routing
+    const departureTimeEpoch = this.parseDepartureTime(departureTime);
+    
     console.log(`Starting advanced route optimization for ${visits.length} visits`);
+    console.log(`Travel mode: ${mode} ${mode === 'driving' ? '(with real-time traffic)' : ''}`);
+    console.log(`Departure time: ${departureTime} (epoch: ${departureTimeEpoch})`);
+    console.log(`Optimization strategy: ${optimizationStrategy}`);
 
     // Validate visits have coordinates
     const validVisits = visits.filter(v => v.latitude && v.longitude);
@@ -39,13 +50,13 @@ export class AdvancedRouteOptimizer {
     }
 
     // Calculate distance matrix between all points
-    const distanceMatrix = await this.calculateDistanceMatrix(validVisits, mode);
+    const distanceMatrix = await this.calculateDistanceMatrix(validVisits, mode, departureTimeEpoch);
     if (!distanceMatrix) {
       throw new Error('Failed to calculate distance matrix');
     }
 
     // Get duration matrix for time calculations
-    const durationMatrix = await this.calculateDurationMatrix(validVisits, mode);
+    const durationMatrix = await this.calculateDurationMatrix(validVisits, mode, departureTimeEpoch);
     if (!durationMatrix) {
       throw new Error('Failed to calculate duration matrix');
     }
@@ -109,6 +120,7 @@ export class AdvancedRouteOptimizer {
       costSavings: costAnalysis,
       optimizationStrategy,
       mode,
+      trafficAware: mode === 'driving', // Indicates if real-time traffic was used
       baseline: baselineMetrics
     };
   }
@@ -116,7 +128,8 @@ export class AdvancedRouteOptimizer {
   // Calculate distance matrix using Google Maps
   private async calculateDistanceMatrix(
     visits: Visit[],
-    mode: 'driving' | 'walking'
+    mode: 'driving' | 'walking',
+    departureTimeEpoch?: number
   ): Promise<number[][]> {
     console.log(`Calculating Google Maps distance matrix for ${visits.length} visits in ${mode} mode`);
     const coordinates = visits.map(v => ({ lat: v.latitude!, lng: v.longitude! }));
@@ -139,7 +152,7 @@ export class AdvancedRouteOptimizer {
         const originChunk = coordinates.slice(i, Math.min(i + chunkSize, coordinates.length));
         const destChunk = coordinates.slice(j, Math.min(j + chunkSize, coordinates.length));
 
-        const result = await this.googleMapsService.getDistanceMatrix(originChunk, destChunk, mode);
+        const result = await this.googleMapsService.getDistanceMatrix(originChunk, destChunk, mode, departureTimeEpoch);
         if (!result) {
           console.error('Google Maps API returned null result');
           throw new Error('Failed to get distance matrix chunk');
@@ -178,7 +191,8 @@ export class AdvancedRouteOptimizer {
   // Calculate duration matrix using Google Maps for time calculations
   private async calculateDurationMatrix(
     visits: Visit[],
-    mode: 'driving' | 'walking'
+    mode: 'driving' | 'walking',
+    departureTimeEpoch?: number
   ): Promise<number[][]> {
     const coordinates = visits.map(v => ({ lat: v.latitude!, lng: v.longitude! }));
     
@@ -191,7 +205,7 @@ export class AdvancedRouteOptimizer {
         const originChunk = coordinates.slice(i, Math.min(i + chunkSize, coordinates.length));
         const destChunk = coordinates.slice(j, Math.min(j + chunkSize, coordinates.length));
 
-        const result = await this.googleMapsService.getDistanceMatrix(originChunk, destChunk, mode);
+        const result = await this.googleMapsService.getDistanceMatrix(originChunk, destChunk, mode, departureTimeEpoch);
         if (!result) {
           throw new Error('Failed to get duration matrix chunk');
         }
@@ -200,17 +214,39 @@ export class AdvancedRouteOptimizer {
         for (let oi = 0; oi < originChunk.length; oi++) {
           for (let di = 0; di < destChunk.length; di++) {
             const element = result.rows[oi]?.elements[di];
-            if (element?.status === 'OK' && element.duration) {
-              // Store duration in minutes
-              matrix[i + oi][j + di] = Math.round(element.duration.value / 60);
+            if (element?.status === 'OK') {
+              // Prefer duration_in_traffic for driving mode when available
+              let durationValue = null;
+              if (mode === 'driving' && element.duration_in_traffic) {
+                durationValue = element.duration_in_traffic.value;
+                console.log(`Using traffic-aware duration for ${i + oi} to ${j + di}: ${Math.round(durationValue / 60)} min`);
+              } else if (element.duration) {
+                durationValue = element.duration.value;
+                console.log(`Using standard duration for ${i + oi} to ${j + di}: ${Math.round(durationValue / 60)} min`);
+              }
+              
+              if (durationValue) {
+                // Store duration in minutes
+                matrix[i + oi][j + di] = Math.round(durationValue / 60);
+              } else {
+                // Fallback to estimated time based on distance
+                const distanceKm = this.calculateStraightLineDistance(
+                  originChunk[oi],
+                  destChunk[di]
+                ) / 1000;
+                // Conservative estimates: 15 min per km for walking, 4 min per km for driving
+                matrix[i + oi][j + di] = Math.round(distanceKm * (mode === 'walking' ? 15 : 4));
+                console.warn(`Using fallback duration estimate for ${i + oi} to ${j + di}: ${matrix[i + oi][j + di]} min`);
+              }
             } else {
               // Fallback to estimated time based on distance
               const distanceKm = this.calculateStraightLineDistance(
                 originChunk[oi],
                 destChunk[di]
               ) / 1000;
-              // Estimate 5 min per km for walking, 2 min per km for driving
-              matrix[i + oi][j + di] = Math.round(distanceKm * (mode === 'walking' ? 12 : 3));
+              // Conservative estimates: 15 min per km for walking, 4 min per km for driving
+              matrix[i + oi][j + di] = Math.round(distanceKm * (mode === 'walking' ? 15 : 4));
+              console.warn(`API error for ${i + oi} to ${j + di} (${element?.status}), using fallback: ${matrix[i + oi][j + di]} min`);
             }
           }
         }
@@ -561,6 +597,31 @@ export class AdvancedRouteOptimizer {
   private delay(ms: number): Promise<void> {
     return new Promise(resolve => setTimeout(resolve, ms));
   }
+
+  // Parse departure time (e.g., "08:00") into epoch seconds for today or next occurrence
+  private parseDepartureTime(departureTime: string): number {
+    if (!departureTime || !departureTime.includes(':')) {
+      // If invalid format, use current time
+      return Math.floor(Date.now() / 1000);
+    }
+
+    const [hours, minutes] = departureTime.split(':').map(Number);
+    const now = new Date();
+    const departureDate = new Date(now);
+    
+    // Set to today at the specified time
+    departureDate.setHours(hours, minutes, 0, 0);
+    
+    // If the time has already passed today, schedule for tomorrow
+    if (departureDate.getTime() <= now.getTime()) {
+      departureDate.setDate(departureDate.getDate() + 1);
+    }
+    
+    const epochSeconds = Math.floor(departureDate.getTime() / 1000);
+    console.log(`Parsed departure time "${departureTime}" to ${departureDate.toISOString()} (epoch: ${epochSeconds})`);
+    
+    return epochSeconds;
+  }
 }
 
 // Type definitions
@@ -630,5 +691,6 @@ export interface OptimizationResult {
   costSavings: CostSavings;
   optimizationStrategy: string;
   mode: string;
+  trafficAware: boolean; // Indicates if real-time traffic data was used
   baseline: RouteMetrics;
 }

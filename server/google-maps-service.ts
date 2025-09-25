@@ -107,21 +107,22 @@ export class GoogleMapsService {
   async getDistanceMatrix(
     origins: Array<{ lat: number; lng: number }>,
     destinations: Array<{ lat: number; lng: number }>,
-    mode: 'walking' | 'driving' = 'driving' // Default to driving for domiciliary care
+    mode: 'walking' | 'driving' = 'driving', // Default to driving for domiciliary care
+    departureTimeEpoch?: number // Optional departure time in Unix seconds
   ): Promise<DistanceMatrixResult | null> {
     if (!this.apiKey) {
       throw new Error('Google Maps API key not configured');
     }
 
     // Check cache first
-    const cacheKey = this.getDistanceMatrixCacheKey(origins, destinations, mode);
+    const cacheKey = this.getDistanceMatrixCacheKey(origins, destinations, mode, departureTimeEpoch);
     if (this.distanceCache.has(cacheKey)) {
       return this.distanceCache.get(cacheKey)!;
     }
 
     // Handle chunking for large requests
     if (origins.length > this.DISTANCE_MATRIX_CHUNK_SIZE || destinations.length > this.DISTANCE_MATRIX_CHUNK_SIZE) {
-      return this.getChunkedDistanceMatrix(origins, destinations, mode);
+      return this.getChunkedDistanceMatrix(origins, destinations, mode, departureTimeEpoch);
     }
 
     let lastError: any;
@@ -132,7 +133,14 @@ export class GoogleMapsService {
         const originsStr = origins.map(coord => `${coord.lat},${coord.lng}`).join('|');
         const destinationsStr = destinations.map(coord => `${coord.lat},${coord.lng}`).join('|');
         
-        const url = `${this.baseUrl}/distancematrix/json?origins=${originsStr}&destinations=${destinationsStr}&mode=${mode}&units=imperial&key=${this.apiKey}`;
+        let url = `${this.baseUrl}/distancematrix/json?origins=${originsStr}&destinations=${destinationsStr}&mode=${mode}&units=metric&key=${this.apiKey}`;
+        
+        // For driving mode, add real-time traffic parameters
+        if (mode === 'driving') {
+          const departureTime = departureTimeEpoch || Math.floor(Date.now() / 1000);
+          url += `&departure_time=${departureTime}&traffic_model=best_guess`;
+          console.log(`Using departure time: ${new Date(departureTime * 1000).toISOString()} (${departureTimeEpoch ? 'scheduled' : 'now'})`);
+        }
         
         const response = await fetch(url);
         const data = await response.json() as GoogleDistanceMatrixResponse;
@@ -151,6 +159,10 @@ export class GoogleMapsService {
                 duration: element.duration ? {
                   text: element.duration.text,
                   value: element.duration.value
+                } : null,
+                duration_in_traffic: element.duration_in_traffic ? {
+                  text: element.duration_in_traffic.text,
+                  value: element.duration_in_traffic.value
                 } : null
               }))
             }))
@@ -210,7 +222,13 @@ export class GoogleMapsService {
           ? `&waypoints=optimize:true|${waypoints.map(wp => `${wp.lat},${wp.lng}`).join('|')}`
           : '';
         
-        const url = `${this.baseUrl}/directions/json?origin=${originStr}&destination=${destinationStr}${waypointsStr}&mode=${mode}&key=${this.apiKey}`;
+        let url = `${this.baseUrl}/directions/json?origin=${originStr}&destination=${destinationStr}${waypointsStr}&mode=${mode}&key=${this.apiKey}`;
+        
+        // For driving mode, add real-time traffic parameters to match Distance Matrix
+        if (mode === 'driving') {
+          const departureTime = Math.floor(Date.now() / 1000);
+          url += `&departure_time=${departureTime}&traffic_model=best_guess`;
+        }
         
         const response = await fetch(url);
         const data = await response.json() as GoogleDirectionsResponse;
@@ -276,7 +294,8 @@ export class GoogleMapsService {
   private async getChunkedDistanceMatrix(
     origins: Array<{ lat: number; lng: number }>,
     destinations: Array<{ lat: number; lng: number }>,
-    mode: 'walking' | 'driving'
+    mode: 'walking' | 'driving',
+    departureTimeEpoch?: number
   ): Promise<DistanceMatrixResult | null> {
     // For simplicity, just take the first chunk for now
     // Production implementation should combine results from multiple chunks
@@ -285,18 +304,20 @@ export class GoogleMapsService {
     
     console.warn(`Large distance matrix request chunked. Processing ${originChunk.length}x${destinationChunk.length} of ${origins.length}x${destinations.length}`);
     
-    return this.getDistanceMatrix(originChunk, destinationChunk, mode);
+    return this.getDistanceMatrix(originChunk, destinationChunk, mode, departureTimeEpoch);
   }
 
   // Generate cache key for distance matrix
   private getDistanceMatrixCacheKey(
     origins: Array<{ lat: number; lng: number }>,
     destinations: Array<{ lat: number; lng: number }>,
-    mode: string
+    mode: string,
+    departureTimeEpoch?: number
   ): string {
     const originsStr = origins.map(o => `${o.lat.toFixed(6)},${o.lng.toFixed(6)}`).join('|');
     const destStr = destinations.map(d => `${d.lat.toFixed(6)},${d.lng.toFixed(6)}`).join('|');
-    return `distance:${mode}:${originsStr}:${destStr}`;
+    const timeStr = departureTimeEpoch ? `:${departureTimeEpoch}` : '';
+    return `distance:${mode}:${originsStr}:${destStr}${timeStr}`;
   }
 
   // Generate cache key for route optimization
@@ -341,6 +362,7 @@ export interface DistanceMatrixResult {
       status: string;
       distance: { text: string; value: number } | null;
       duration: { text: string; value: number } | null;
+      duration_in_traffic: { text: string; value: number } | null;
     }>;
   }>;
 }
@@ -388,6 +410,7 @@ interface GoogleDistanceMatrixResponse {
       status: string;
       distance?: { text: string; value: number };
       duration?: { text: string; value: number };
+      duration_in_traffic?: { text: string; value: number };
     }>;
   }>;
 }
