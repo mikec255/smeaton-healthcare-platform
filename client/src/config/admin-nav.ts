@@ -182,7 +182,6 @@ export const navigationItems: NavItem[] = [
     label: 'System',
     icon: Settings,
     href: '#',
-    permission: 'system',
     description: 'System administration and configuration',
     submenu: [
       { 
