@@ -118,7 +118,17 @@ export class AdvancedRouteOptimizer {
     visits: Visit[],
     mode: 'driving' | 'walking'
   ): Promise<number[][]> {
+    console.log(`Calculating Google Maps distance matrix for ${visits.length} visits in ${mode} mode`);
     const coordinates = visits.map(v => ({ lat: v.latitude!, lng: v.longitude! }));
+    
+    // Check if all visits have coordinates
+    const missingCoords = visits.filter(v => !v.latitude || !v.longitude);
+    if (missingCoords.length > 0) {
+      console.error(`${missingCoords.length} visits missing coordinates - cannot calculate real distances`);
+      throw new Error(`Missing coordinates for ${missingCoords.length} visits`);
+    }
+    
+    console.log('All visits have coordinates, proceeding with Google Maps API calls');
     
     // For large sets, we need to chunk the requests
     const chunkSize = 10; // Google's limit
@@ -131,21 +141,28 @@ export class AdvancedRouteOptimizer {
 
         const result = await this.googleMapsService.getDistanceMatrix(originChunk, destChunk, mode);
         if (!result) {
+          console.error('Google Maps API returned null result');
           throw new Error('Failed to get distance matrix chunk');
         }
+
+        console.log(`Google Maps API response: ${result.rows.length} rows received`);
 
         // Fill matrix with real distances
         for (let oi = 0; oi < originChunk.length; oi++) {
           for (let di = 0; di < destChunk.length; di++) {
             const element = result.rows[oi]?.elements[di];
             if (element?.status === 'OK' && element.distance) {
-              matrix[i + oi][j + di] = element.distance.value; // meters
+              const distanceMeters = element.distance.value;
+              matrix[i + oi][j + di] = distanceMeters; // meters
+              console.log(`Distance from visit ${i + oi} to ${j + di}: ${(distanceMeters/1000).toFixed(2)}km`);
             } else {
               // Fallback to straight-line distance
-              matrix[i + oi][j + di] = this.calculateStraightLineDistance(
+              const fallbackDistance = this.calculateStraightLineDistance(
                 originChunk[oi],
                 destChunk[di]
               );
+              matrix[i + oi][j + di] = fallbackDistance;
+              console.warn(`Using fallback distance for ${i + oi} to ${j + di}: ${(fallbackDistance/1000).toFixed(2)}km (status: ${element?.status})`);
             }
           }
         }

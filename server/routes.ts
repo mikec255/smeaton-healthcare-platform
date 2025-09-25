@@ -3341,28 +3341,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
                 if (currentVisit.latitude && currentVisit.longitude && 
                     nextVisit.latitude && nextVisit.longitude) {
                   
-                  const element = distanceMatrix.rows[matrixIndex]?.elements[matrixIndex];
+                  const element = distanceMatrix.rows[matrixIndex]?.elements[0];
                   if (element?.status === 'OK' && element.duration && element.distance) {
                     // Extract both travel time and distance from Google Maps
                     const travelTimeMinutes = Math.round(element.duration.value / 60);
                     const distanceMeters = element.distance.value;
                     
-                    allOptimizedVisits[i].travelTimeToNext = Math.max(1, travelTimeMinutes);
-                    allOptimizedVisits[i].distanceToNext = distanceMeters;
+                    (allOptimizedVisits[i] as any).travelTimeToNext = Math.max(1, travelTimeMinutes);
+                    (allOptimizedVisits[i] as any).distanceToNext = distanceMeters;
                   } else {
-                    allOptimizedVisits[i].travelTimeToNext = 10; // Fallback
-                    allOptimizedVisits[i].distanceToNext = 1000; // Fallback 1km
+                    (allOptimizedVisits[i] as any).travelTimeToNext = 10; // Fallback
+                    (allOptimizedVisits[i] as any).distanceToNext = 1000; // Fallback 1km
                   }
                   matrixIndex++;
                 } else {
-                  allOptimizedVisits[i].travelTimeToNext = 10; // Default for missing coordinates
+                  (allOptimizedVisits[i] as any).travelTimeToNext = 10; // Default for missing coordinates
                 }
               }
             } else {
               // Fallback if Google Maps API fails
               console.warn('Distance Matrix API failed, using fallback travel times');
               for (let i = 0; i < allOptimizedVisits.length - 1; i++) {
-                allOptimizedVisits[i].travelTimeToNext = 10;
+                (allOptimizedVisits[i] as any).travelTimeToNext = 10;
               }
             }
           }
@@ -3370,7 +3370,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           console.error('Error calculating travel times with Google Maps:', error);
           // Fallback to default times if API fails
           for (let i = 0; i < allOptimizedVisits.length - 1; i++) {
-            allOptimizedVisits[i].travelTimeToNext = 10;
+            (allOptimizedVisits[i] as any).travelTimeToNext = 10;
           }
         }
       }
