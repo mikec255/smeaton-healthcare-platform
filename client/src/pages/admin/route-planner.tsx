@@ -73,16 +73,43 @@ interface Route {
   cost: number;
 }
 
-interface OptimisationResult {
-  optimisedOrder: Visit[];
+interface OptimizedRoute {
+  visits: Visit[];
   totalDistanceMeters: number;
-  totalTravelMinutes: number;
-  totalServiceMinutes: number;
-  mode: string;
-  runId?: string;
+  visitOrder: number[];
+  travelTimes?: number[];
+  metrics?: RouteMetrics;
+  timeSlot?: string; // Which shift this route belongs to
+  shiftDepartureTime?: string; // Departure time for this shift
+}
+
+interface RouteMetrics {
+  totalDistanceKm: number;
+  totalTimeHours: number;
+  travelTimeHours: number;
+  serviceTimeHours: number;
+  fuelCost: number;
+  staffCost: number;
+  totalCost: number;
+  visitCount: number;
+}
+
+interface OptimisationResult {
+  optimizedRoutes: OptimizedRoute[]; // Now an array of shift routes
+  originalOrder: Visit[];
+  totalVisits: number;
+  totalRoutes: number;
+  distanceSavedKm: number;
   costSavings?: CostSavings;
-  totalRoutes?: number;
-  routes?: Route[];
+  optimizationStrategy: string;
+  mode: string;
+  trafficAware: boolean;
+  baseline: RouteMetrics;
+  // Backward compatibility - computed from optimizedRoutes
+  optimisedOrder?: Visit[];
+  totalDistanceMeters?: number;
+  totalTravelMinutes?: number;
+  totalServiceMinutes?: number;
 }
 
 interface GoogleMap {
@@ -419,22 +446,30 @@ export default function RoutePlanner() {
       return await response.json();
     },
     onSuccess: (result: any) => {
-      // Transform US spelling from backend to UK spelling for frontend
+      // Handle new shift-based structure
       const ukResult: OptimisationResult = {
         ...result,
-        optimisedOrder: result.optimizedOrder || result.optimisedOrder
+        // Create backward compatibility fields from optimizedRoutes
+        optimisedOrder: result.optimizedRoutes?.flatMap((route: any) => route.visits) || result.optimizedOrder || result.optimisedOrder || [],
+        totalDistanceMeters: result.optimizedRoutes?.reduce((total: number, route: any) => total + route.totalDistanceMeters, 0) || result.totalDistanceMeters || 0,
+        totalTravelMinutes: result.optimizedRoutes?.reduce((total: number, route: any) => total + (route.metrics?.travelTimeHours * 60 || 0), 0) || result.totalTravelMinutes || 0,
+        totalServiceMinutes: result.optimizedRoutes?.reduce((total: number, route: any) => total + (route.metrics?.serviceTimeHours * 60 || 0), 0) || result.totalServiceMinutes || 0
       };
+      
       setOptimisation(ukResult);
       
       // First update markers for ALL visits so every visit gets a pin
-      updateMapWithVisits(ukResult.optimisedOrder);
+      updateMapWithVisits(ukResult.optimisedOrder!);
       
       // Then add the optimized route line (with waypoint limit for Google Maps)
       updateMapWithOptimisedRoute(ukResult);
       
+      const totalVisits = ukResult.optimisedOrder?.length || 0;
+      const shiftCount = result.optimizedRoutes?.length || 1;
+      
       toast({
-        title: "Route Optimised & Run Created",
-        description: `Shortest route created visiting ${ukResult.optimisedOrder.length} addresses house-to-house with minimum travel time. Run saved with ID: ${result.runId}`,
+        title: "Route Optimised by Shifts",
+        description: `${shiftCount} shifts optimized with ${totalVisits} total visits. Each shift is optimized separately for maximum efficiency.`,
       });
     },
     onError: (error) => {
@@ -584,7 +619,7 @@ export default function RoutePlanner() {
       // Geocoding should be complete by now
 
       // Get current optimized route
-      const currentRoute = [...optimisation!.optimisedOrder];
+      const currentRoute = [...(optimisation!.optimisedOrder || [])];
       const insertions: Array<{visit: Visit, position: number, delta: number}> = [];
 
       // Calculate optimal position for each new visit
@@ -605,7 +640,7 @@ export default function RoutePlanner() {
       setVisits(allVisits);
 
       // Update optimisation state with new route
-      const newOptimisedOrder = [...optimisation!.optimisedOrder];
+      const newOptimisedOrder = [...(optimisation!.optimisedOrder || [])];
       insertions.reverse().forEach(insertion => {
         newOptimisedOrder.splice(insertion.position, 0, insertion.visit);
       });
@@ -679,7 +714,7 @@ export default function RoutePlanner() {
     }));
 
     // Check if there's an existing optimized route
-    if (optimisation && optimisation.optimisedOrder.length > 0) {
+    if (optimisation && optimisation.optimisedOrder && optimisation.optimisedOrder.length > 0) {
       // Smart insertion into existing route - prioritize travel time over time restrictions
       await handleSmartInsertion(newVisits);
     } else {
@@ -894,7 +929,7 @@ export default function RoutePlanner() {
     // Clear existing time labels
     clearTimeLabels();
 
-    const validVisits = result.optimisedOrder.filter(v => v.latitude && v.longitude);
+    const validVisits = (result.optimisedOrder || []).filter(v => v.latitude && v.longitude);
     if (validVisits.length < 2) return;
 
     const directionsService = new window.google.maps.DirectionsService();
@@ -1060,7 +1095,7 @@ export default function RoutePlanner() {
         'Compliance Status'
       ];
 
-      const rows = optimisation.optimisedOrder.map((visit, index) => [
+      const rows = (optimisation.optimisedOrder || []).map((visit, index) => [
         index + 1,
         visit.clientName || `Visit ${index + 1}`,
         visit.address,
@@ -1132,10 +1167,10 @@ export default function RoutePlanner() {
       pdf.text(`Travel Mode: ${travelMode}`, 20, 55);
       
       // Summary stats
-      pdf.text(`Total Visits: ${optimisation.optimisedOrder.length}`, 20, 70);
-      pdf.text(`Total Distance: ${formatDistance(optimisation.totalDistanceMeters)}`, 20, 80);
-      pdf.text(`Travel Time: ${formatDuration(optimisation.totalTravelMinutes)}`, 20, 90);
-      pdf.text(`Care Hours: ${formatDuration(optimisation.totalServiceMinutes)}`, 20, 100);
+      pdf.text(`Total Visits: ${optimisation.optimisedOrder?.length || 0}`, 20, 70);
+      pdf.text(`Total Distance: ${formatDistance(optimisation.totalDistanceMeters || 0)}`, 20, 80);
+      pdf.text(`Travel Time: ${formatDuration(optimisation.totalTravelMinutes || 0)}`, 20, 90);
+      pdf.text(`Care Hours: ${formatDuration(optimisation.totalServiceMinutes || 0)}`, 20, 100);
       
       // Visit details
       let yPos = 120;
@@ -1144,7 +1179,7 @@ export default function RoutePlanner() {
       yPos += 15;
       
       pdf.setFontSize(10);
-      optimisation.optimisedOrder.forEach((visit, index) => {
+      (optimisation.optimisedOrder || []).forEach((visit, index) => {
         if (yPos > 250) {
           pdf.addPage();
           yPos = 20;
@@ -1167,7 +1202,7 @@ export default function RoutePlanner() {
           yPos += 8;
         }
         
-        if (visit.travelTimeToNext && index < optimisation.optimisedOrder.length - 1) {
+        if (visit.travelTimeToNext && index < (optimisation.optimisedOrder?.length || 0) - 1) {
           pdf.text(`   Travel to next: ${visit.travelTimeToNext} min`, 25, yPos);
           yPos += 8;
         }
@@ -2090,7 +2125,7 @@ export default function RoutePlanner() {
                   <div className="space-y-6">
                     {(() => {
                       // Group visits by time slot
-                      const visitsByTimeSlot = optimisation.optimisedOrder.reduce((groups, visit, index) => {
+                      const visitsByTimeSlot = (optimisation.optimisedOrder || []).reduce((groups, visit, index) => {
                         const timeSlot = visit.timeSlot || 'Unscheduled';
                         if (!groups[timeSlot]) {
                           groups[timeSlot] = [];
@@ -2127,7 +2162,7 @@ export default function RoutePlanner() {
                             {/* Visits in this time slot */}
                             <div className="space-y-3 ml-4">
                               {visitsInSlot.map((visit, slotIndex) => {
-                                const isLastStop = visit.originalIndex === optimisation.optimisedOrder.length - 1;
+                                const isLastStop = visit.originalIndex === (optimisation.optimisedOrder?.length || 0) - 1;
                                 const isLastInSlot = slotIndex === visitsInSlot.length - 1;
                                 
                                 return (
@@ -2210,25 +2245,25 @@ export default function RoutePlanner() {
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
                       <div className="text-center">
                         <div className="font-semibold text-lg text-blue-600 dark:text-blue-400">
-                          {optimisation.optimisedOrder.length}
+                          {optimisation.optimisedOrder?.length || 0}
                         </div>
                         <div className="text-muted-foreground">Total Visits</div>
                       </div>
                       <div className="text-center">
                         <div className="font-semibold text-lg text-green-600 dark:text-green-400">
-                          {formatDistance(optimisation.totalDistanceMeters)}
+                          {formatDistance(optimisation.totalDistanceMeters || 0)}
                         </div>
                         <div className="text-muted-foreground">Total Distance</div>
                       </div>
                       <div className="text-center">
                         <div className="font-semibold text-lg text-orange-600 dark:text-orange-400">
-                          {formatDuration(optimisation.totalTravelMinutes)}
+                          {formatDuration(optimisation.totalTravelMinutes || 0)}
                         </div>
                         <div className="text-muted-foreground">Travel Time</div>
                       </div>
                       <div className="text-center">
                         <div className="font-semibold text-lg text-purple-600 dark:text-purple-400">
-                          {formatDuration(optimisation.totalServiceMinutes)}
+                          {formatDuration(optimisation.totalServiceMinutes || 0)}
                         </div>
                         <div className="text-muted-foreground">Care Hours (Provided)</div>
                       </div>

@@ -16,6 +16,7 @@ export class AdvancedRouteOptimizer {
   }
 
   // Main optimization function - finds shortest distance routes with time scheduling
+  // Now organizes visits by time slots (shifts) for domiciliary care
   async optimizeRoutes(
     visits: Visit[],
     options: OptimizationOptions = {}
@@ -35,94 +36,156 @@ export class AdvancedRouteOptimizer {
       throw new Error(`Invalid travel mode: ${mode}. Must be 'driving' or 'walking'`);
     }
 
-    // Parse departure time into epoch seconds for traffic-aware routing
-    const departureTimeEpoch = this.parseDepartureTime(departureTime);
-    
-    console.log(`Starting advanced route optimization for ${visits.length} visits`);
+    console.log(`Starting shift-based route optimization for ${visits.length} visits`);
     console.log(`Travel mode: ${mode} ${mode === 'driving' ? '(with real-time traffic)' : ''}`);
-    console.log(`Departure time: ${departureTime} (epoch: ${departureTimeEpoch})`);
     console.log(`Optimization strategy: ${optimizationStrategy}`);
 
     // Validate visits have coordinates
     const validVisits = visits.filter(v => v.latitude && v.longitude);
-    if (validVisits.length < 2) {
-      throw new Error('At least 2 visits with valid coordinates are required');
+    if (validVisits.length === 0) {
+      throw new Error('No visits with valid coordinates found');
     }
 
-    // Calculate distance matrix between all points
-    const distanceMatrix = await this.calculateDistanceMatrix(validVisits, mode, departureTimeEpoch);
-    if (!distanceMatrix) {
-      throw new Error('Failed to calculate distance matrix');
-    }
+    // Group visits by time slot (shift)
+    const shiftGroups = this.groupVisitsByTimeSlot(validVisits);
+    console.log(`Organized visits into ${Object.keys(shiftGroups).length} shifts:`, Object.keys(shiftGroups));
 
-    // Get duration matrix for time calculations
-    const durationMatrix = await this.calculateDurationMatrix(validVisits, mode, departureTimeEpoch);
-    if (!durationMatrix) {
-      throw new Error('Failed to calculate duration matrix');
-    }
-
-    // Calculate unoptimized baseline for comparison
-    const baselineMetrics = this.calculateBaseline(validVisits, distanceMatrix);
-
-    // Split visits into manageable routes if needed
-    const routeGroups = this.splitIntoRoutes(validVisits, maxRoutesPerDay);
-    
-    const optimizedRoutes: OptimizedRoute[] = [];
+    const allOptimizedRoutes: OptimizedRoute[] = [];
     let totalSavings = 0;
     let totalOptimizedDistance = 0;
+    let combinedBaselineMetrics: RouteMetrics = {
+      totalDistanceKm: 0,
+      totalTimeHours: 0,
+      travelTimeHours: 0,
+      serviceTimeHours: 0,
+      fuelCost: 0,
+      staffCost: 0,
+      totalCost: 0,
+      visitCount: 0
+    };
 
-    for (let i = 0; i < routeGroups.length; i++) {
-      const routeVisits = routeGroups[i];
-      console.log(`Optimizing route ${i + 1} with ${routeVisits.length} visits`);
+    // Optimize each shift separately
+    for (const [timeSlot, shiftVisits] of Object.entries(shiftGroups)) {
+      if (shiftVisits.length === 0) continue;
 
-      // Apply TSP optimization with 2-opt improvement
+      console.log(`\n=== Optimizing ${timeSlot} shift with ${shiftVisits.length} visits ===`);
+
+      // Get shift-specific departure time
+      const shiftDepartureTime = this.getShiftDepartureTime(timeSlot, departureTime);
+      const departureTimeEpoch = this.parseDepartureTime(shiftDepartureTime);
+      
+      console.log(`${timeSlot} shift departure time: ${shiftDepartureTime} (epoch: ${departureTimeEpoch})`);
+
+      // Calculate distance and duration matrices for this shift only
+      const distanceMatrix = await this.calculateDistanceMatrix(shiftVisits, mode, departureTimeEpoch);
+      if (!distanceMatrix) {
+        console.warn(`Failed to calculate distance matrix for ${timeSlot} shift, skipping`);
+        continue;
+      }
+
+      const durationMatrix = await this.calculateDurationMatrix(shiftVisits, mode, departureTimeEpoch);
+      if (!durationMatrix) {
+        console.warn(`Failed to calculate duration matrix for ${timeSlot} shift, skipping`);
+        continue;
+      }
+
+      // Calculate baseline for this shift
+      const shiftBaselineMetrics = this.calculateBaseline(shiftVisits, distanceMatrix);
+      combinedBaselineMetrics.totalDistanceKm += shiftBaselineMetrics.totalDistanceKm;
+      combinedBaselineMetrics.totalTimeHours += shiftBaselineMetrics.totalTimeHours;
+      combinedBaselineMetrics.travelTimeHours += shiftBaselineMetrics.travelTimeHours;
+      combinedBaselineMetrics.serviceTimeHours += shiftBaselineMetrics.serviceTimeHours;
+      combinedBaselineMetrics.fuelCost += shiftBaselineMetrics.fuelCost;
+      combinedBaselineMetrics.staffCost += shiftBaselineMetrics.staffCost;
+      combinedBaselineMetrics.totalCost += shiftBaselineMetrics.totalCost;
+      combinedBaselineMetrics.visitCount += shiftBaselineMetrics.visitCount;
+
+      // Optimize this shift
       const optimizedRoute = await this.optimizeSingleRoute(
-        routeVisits,
+        shiftVisits,
         distanceMatrix,
         optimizationStrategy,
         considerTimeWindows
       );
 
-      // Calculate actual start times for each visit
+      // Calculate actual start times for this shift
       const routeWithTimes = this.calculateVisitStartTimes(
         optimizedRoute,
         durationMatrix,
-        departureTime
+        shiftDepartureTime
       );
 
-      // Calculate costs and savings
+      // Calculate costs and savings for this shift
       const routeMetrics = this.calculateRouteMetrics(routeWithTimes, distanceMatrix, mode);
       routeWithTimes.metrics = routeMetrics;
 
-      optimizedRoutes.push(routeWithTimes);
+      // Add time slot information to the route
+      (routeWithTimes as any).timeSlot = timeSlot;
+      (routeWithTimes as any).shiftDepartureTime = shiftDepartureTime;
+
+      allOptimizedRoutes.push(routeWithTimes);
       totalOptimizedDistance += routeMetrics.totalDistanceKm;
 
-      // Calculate savings vs unoptimized
-      const unoptimizedDistance = this.calculateUnoptimizedDistance(routeVisits, distanceMatrix);
+      // Calculate savings vs unoptimized for this shift
+      const unoptimizedDistance = this.calculateUnoptimizedDistance(shiftVisits, distanceMatrix);
       const savings = unoptimizedDistance - routeMetrics.totalDistanceKm;
       totalSavings += savings;
+
+      console.log(`${timeSlot} shift optimized: ${routeMetrics.totalDistanceKm.toFixed(2)}km, ${routeMetrics.visitCount} visits`);
     }
 
     // Calculate overall savings and costs
     const costAnalysis = this.calculateCostAnalysis(
-      baselineMetrics.totalDistanceKm,
+      combinedBaselineMetrics.totalDistanceKm,
       totalOptimizedDistance,
-      baselineMetrics.totalTimeHours,
-      optimizedRoutes.reduce((sum, route) => sum + route.metrics!.totalTimeHours, 0)
+      combinedBaselineMetrics.totalTimeHours,
+      allOptimizedRoutes.reduce((sum: number, route: any) => sum + route.metrics!.totalTimeHours, 0)
     );
 
     return {
-      optimizedRoutes,
+      optimizedRoutes: allOptimizedRoutes,
       originalOrder: visits,
       totalVisits: validVisits.length,
-      totalRoutes: optimizedRoutes.length,
+      totalRoutes: allOptimizedRoutes.length,
       distanceSavedKm: totalSavings,
       costSavings: costAnalysis,
       optimizationStrategy,
       mode,
       trafficAware: mode === 'driving', // Indicates if real-time traffic was used
-      baseline: baselineMetrics
+      baseline: combinedBaselineMetrics
     };
+  }
+
+  // Group visits by their time slot (shift) for separate optimization
+  private groupVisitsByTimeSlot(visits: Visit[]): Record<string, Visit[]> {
+    const groups: Record<string, Visit[]> = {};
+    
+    for (const visit of visits) {
+      // Use timeSlot if available, otherwise default to 'Morning'
+      const timeSlot = visit.timeSlot || 'Morning';
+      
+      if (!groups[timeSlot]) {
+        groups[timeSlot] = [];
+      }
+      groups[timeSlot].push(visit);
+    }
+    
+    return groups;
+  }
+
+  // Get appropriate departure time for each shift
+  private getShiftDepartureTime(timeSlot: string, defaultDepartureTime: string): string {
+    // Define typical start times for each shift
+    const shiftStartTimes: Record<string, string> = {
+      'AM': '08:00',
+      'Morning': '08:00',
+      'Lunch': '12:00',
+      'Tea': '15:00',
+      'Bed': '20:00',
+      'Evening': '18:00'
+    };
+    
+    return shiftStartTimes[timeSlot] || defaultDepartureTime;
   }
 
   // Calculate distance matrix using Google Maps
@@ -681,6 +744,8 @@ export interface OptimizedRoute {
   visitOrder: number[];
   travelTimes?: number[];
   metrics?: RouteMetrics;
+  timeSlot?: string; // Which shift this route belongs to
+  shiftDepartureTime?: string; // Departure time for this shift
 }
 
 export interface RouteMetrics {
