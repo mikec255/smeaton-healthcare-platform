@@ -947,6 +947,72 @@ export default function RoutePlanner() {
     return result;
   };
 
+  // Parse council referral visit details into individual visits
+  const parseCouncilVisitDetails = (details: string): Array<{timeSlot: string, duration: number}> => {
+    const visits: Array<{timeSlot: string, duration: number}> = [];
+    
+    // Clean up the details text
+    const cleanDetails = details.replace(/ASC Funded|CCRT FUNDED|DTA FUNDED|Change of Provider|POC Request|Hospital/gi, '')
+                               .replace(/:-/g, '')
+                               .replace(/Note:.*$/gi, '')
+                               .replace(/Please call.*$/gi, '')
+                               .trim();
+    
+    // Parse patterns like "7 x 30 mins Morning" or "45mins x 7 (am)"
+    const patterns = [
+      // Pattern: "7 x 30 mins Morning" or "30mins x 7 AM"
+      /(\d+)\s*x\s*(\d+)\s*mins?\s*(Morning|Lunch|Tea|Bed|AM|PM|am|pm|lunch|tea|bed|morning)/gi,
+      // Pattern: "45mins x 7 (am)" or "1hr x 7 (tea)"
+      /(\d+(?:\.\d+)?)\s*(mins?|hr?s?)\s*x\s*(\d+)\s*\(([^)]+)\)/gi,
+      // Pattern: "1hr15mins x 7 Morning"
+      /(\d+)hr(\d+)mins?\s*x\s*(\d+)\s*(Morning|Lunch|Tea|Bed|AM|PM)/gi
+    ];
+    
+    patterns.forEach(pattern => {
+      let match;
+      while ((match = pattern.exec(cleanDetails)) !== null) {
+        let duration = 0;
+        let timeSlot = '';
+        let frequency = 1;
+        
+        if (pattern === patterns[0]) {
+          // Pattern: "7 x 30 mins Morning"
+          frequency = parseInt(match[1]);
+          duration = parseInt(match[2]);
+          timeSlot = match[3].toLowerCase();
+        } else if (pattern === patterns[1]) {
+          // Pattern: "45mins x 7 (am)"
+          duration = match[2].toLowerCase().includes('hr') ? parseInt(match[1]) * 60 : parseInt(match[1]);
+          frequency = parseInt(match[3]);
+          timeSlot = match[4].toLowerCase();
+        } else if (pattern === patterns[2]) {
+          // Pattern: "1hr15mins x 7 Morning"
+          duration = parseInt(match[1]) * 60 + parseInt(match[2]);
+          frequency = parseInt(match[3]);
+          timeSlot = match[4].toLowerCase();
+        }
+        
+        // Normalize time slot names
+        if (timeSlot.includes('am') || timeSlot.includes('morning')) {
+          timeSlot = 'Morning';
+        } else if (timeSlot.includes('lunch')) {
+          timeSlot = 'Lunch';
+        } else if (timeSlot.includes('tea') || timeSlot.includes('pm')) {
+          timeSlot = 'Tea';
+        } else if (timeSlot.includes('bed')) {
+          timeSlot = 'Bed';
+        }
+        
+        // Create individual visits (usually daily visits for a week)
+        for (let i = 0; i < frequency; i++) {
+          visits.push({ timeSlot, duration });
+        }
+      }
+    });
+    
+    return visits;
+  };
+
   // Import route from CSV
   const handleCSVUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -1004,36 +1070,90 @@ export default function RoutePlanner() {
 
         const headers = parseCSVLine(lines[0]);
         
-        if (headers[0] !== 'Stop Number') {
+        // Check if this is a council referral CSV (contains Person ID column)
+        const isCouncilFormat = headers.includes('Person ID') || headers[0] === 'Person ID';
+        
+        if (!isCouncilFormat && headers[0] !== 'Stop Number') {
           toast({
             title: "Import Error",
-            description: "Invalid CSV format. Please use a file exported from this system.",
+            description: "Invalid CSV format. Please use a file exported from this system or a council referral spreadsheet.",
             variant: "destructive",
           });
           return;
         }
 
-        const importedVisits: Visit[] = lines.slice(1)
-          .map((line, index) => {
+        let importedVisits: Visit[] = [];
+        
+        if (isCouncilFormat) {
+          // Handle council referral format
+          const personIdIndex = headers.indexOf('Person ID');
+          const postcodeIndex = headers.indexOf('Postcode');
+          const detailsIndex = headers.findIndex(h => h.includes('Brokerage') || h.includes('case note'));
+          
+          if (personIdIndex === -1 || postcodeIndex === -1 || detailsIndex === -1) {
+            toast({
+              title: "Import Error",
+              description: "Council CSV must contain Person ID, Postcode, and case note columns.",
+              variant: "destructive",
+            });
+            return;
+          }
+          
+          lines.slice(1).forEach((line, lineIndex) => {
             const values = parseCSVLine(line);
             
-            if (values.length !== headers.length) {
-              console.warn(`Row ${index + 2} has ${values.length} columns, expected ${headers.length}`);
+            const personId = values[personIdIndex] || '';
+            const postcode = values[postcodeIndex] || '';
+            const details = values[detailsIndex] || '';
+            
+            // Only process rows with PER numbers
+            if (!personId.startsWith('PER') || !postcode.trim() || !details.trim()) {
+              return;
             }
             
-            return {
-              id: Date.now().toString() + index,
-              address: values[2] || '',
-              clientName: values[1] === `Visit ${index + 1}` ? '' : (values[1] || ''),
-              latitude: 0, // Will need geocoding
-              longitude: 0,
-              durationMinutes: parseInt(values[8]) || 30,
-              timeSlot: values[3] === 'None' ? '' : (values[3] || ''),
-              earliestTime: values[4] || '',
-              latestTime: values[5] || ''
-            };
-          })
-          .filter(visit => visit.address.trim()); // Only keep visits with valid addresses
+            // Parse visit details into individual visits
+            const visitDetails = parseCouncilVisitDetails(details);
+            
+            // Create visits for this person
+            visitDetails.forEach((visitDetail, visitIndex) => {
+              importedVisits.push({
+                id: `${Date.now()}_${lineIndex}_${visitIndex}`,
+                address: postcode.trim(),
+                clientName: personId,
+                latitude: 0, // Will need geocoding
+                longitude: 0,
+                durationMinutes: visitDetail.duration || 30,
+                timeSlot: visitDetail.timeSlot,
+                earliestTime: '',
+                latestTime: ''
+              });
+            });
+          });
+          
+        } else {
+          // Handle standard route planner format
+          importedVisits = lines.slice(1)
+            .map((line, index) => {
+              const values = parseCSVLine(line);
+              
+              if (values.length !== headers.length) {
+                console.warn(`Row ${index + 2} has ${values.length} columns, expected ${headers.length}`);
+              }
+              
+              return {
+                id: Date.now().toString() + index,
+                address: values[2] || '',
+                clientName: values[1] === `Visit ${index + 1}` ? '' : (values[1] || ''),
+                latitude: 0, // Will need geocoding
+                longitude: 0,
+                durationMinutes: parseInt(values[8]) || 30,
+                timeSlot: values[3] === 'None' ? '' : (values[3] || ''),
+                earliestTime: values[4] || '',
+                latestTime: values[5] || ''
+              };
+            })
+            .filter(visit => visit.address.trim()); // Only keep visits with valid addresses
+        }
 
         if (importedVisits.length === 0) {
           toast({
@@ -1049,7 +1169,7 @@ export default function RoutePlanner() {
         
         toast({
           title: "Route Imported",
-          description: `${importedVisits.length} visits imported. Addresses will be geocoded automatically.`,
+          description: `${importedVisits.length} visits imported from ${isCouncilFormat ? 'council referral' : 'route planner'} CSV. Addresses will be geocoded automatically.`,
         });
 
         // Trigger geocoding for all imported visits
@@ -1389,6 +1509,7 @@ export default function RoutePlanner() {
                             <li>• <strong>Export to CSV:</strong> Download route data for external analysis or backup</li>
                             <li>• <strong>Export to PDF:</strong> Create professional route summaries for printing</li>
                             <li>• <strong>Import CSV:</strong> Upload previous routes to modify or reuse them</li>
+                            <li>• <strong>Council Referrals:</strong> Upload council referral spreadsheets with PER numbers and visit details</li>
                             <li>• <strong>Named Runs:</strong> Must name your run before downloading</li>
                           </ul>
                         </div>
