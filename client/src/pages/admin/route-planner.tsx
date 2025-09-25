@@ -10,8 +10,26 @@ import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest, queryClient } from '@/lib/queryClient';
-import { MapPin, Plus, Trash2, Play, Save, Clock, Car, Footprints, Route, AlertCircle, TrendingDown, Map } from 'lucide-react';
+import { MapPin, Plus, Trash2, Play, Save, Clock, Car, Footprints, Route, AlertCircle, TrendingDown, Map, GripVertical } from 'lucide-react';
 import { AdminLayout } from '@/components/layout/admin-layout';
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+} from '@dnd-kit/core';
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  verticalListSortingStrategy,
+} from '@dnd-kit/sortable';
+import {
+  useSortable,
+} from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
 
 interface Visit {
   id: string;
@@ -27,6 +45,21 @@ interface Visit {
   visitId?: string;
 }
 
+interface CostSavings {
+  distanceSavedKm: number;
+  timeSavedHours: number;
+  fuelSavings: number;
+  totalSavings: number;
+  savingsPercentage: number;
+}
+
+interface Route {
+  routeNumber: number;
+  visitCount: number;
+  distanceKm: number;
+  cost: number;
+}
+
 interface OptimizationResult {
   optimizedOrder: Visit[];
   totalDistanceMeters: number;
@@ -34,6 +67,9 @@ interface OptimizationResult {
   totalServiceMinutes: number;
   mode: string;
   runId?: string;
+  costSavings?: CostSavings;
+  totalRoutes?: number;
+  routes?: Route[];
 }
 
 interface GoogleMap {
@@ -49,6 +85,8 @@ interface GoogleMaps {
   DirectionsService: any;
   DirectionsRenderer: any;
   LatLngBounds: any;
+  LatLng: any;
+  OverlayView: any;
   Geocoder: any;
 }
 
@@ -59,6 +97,77 @@ declare global {
     };
     initMap: () => void;
   }
+}
+
+// Sortable Visit Item Component
+function SortableVisitItem({ visit, index, onRemove }: { visit: Visit; index: number; onRemove: (id: string) => void }) {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: visit.id });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+  };
+
+  return (
+    <div
+      ref={setNodeRef}
+      style={style}
+      className={`p-3 border rounded-lg bg-white dark:bg-gray-800 space-y-2 ${isDragging ? 'shadow-lg' : ''}`}
+      data-testid={`visit-item-${index}`}
+    >
+      <div className="flex items-start justify-between">
+        <div className="flex items-start gap-3 flex-1">
+          <div
+            {...attributes}
+            {...listeners}
+            className="cursor-grab active:cursor-grabbing p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded"
+          >
+            <GripVertical className="h-4 w-4 text-gray-400" />
+          </div>
+          <div className="flex-1">
+            <div className="flex items-center gap-2 mb-1">
+              <span className="text-sm font-medium text-gray-600 dark:text-gray-400">#{index + 1}</span>
+              {visit.clientName && (
+                <span className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                  {visit.clientName}
+                </span>
+              )}
+            </div>
+            <p className="text-sm text-muted-foreground mb-1" data-testid={`text-address-${index}`}>
+              {visit.address}
+            </p>
+            <div className="flex items-center gap-4 text-xs text-muted-foreground">
+              <span className="flex items-center gap-1">
+                <Clock className="h-3 w-3" />
+                {visit.durationMinutes}m
+              </span>
+              {visit.timeSlot && (
+                <Badge variant="secondary" className="text-xs">
+                  {visit.timeSlot}
+                </Badge>
+              )}
+            </div>
+          </div>
+        </div>
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => onRemove(visit.id)}
+          data-testid={`button-remove-visit-${index}`}
+        >
+          <Trash2 className="h-4 w-4" />
+        </Button>
+      </div>
+    </div>
+  );
 }
 
 export default function RoutePlanner() {
@@ -85,6 +194,14 @@ export default function RoutePlanner() {
   const markersRef = useRef<any[]>([]);
   const directionsRendererRef = useRef<any>(null);
   const timeLabelsRef = useRef<any[]>([]);
+
+  // Drag and drop sensors
+  const sensors = useSensors(
+    useSensor(PointerSensor),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  );
 
   // Load Google Maps script
   useEffect(() => {
@@ -269,6 +386,26 @@ export default function RoutePlanner() {
     const updatedVisits = visits.filter(v => v.id !== id);
     setVisits(updatedVisits);
     updateMapWithVisits(updatedVisits);
+  };
+
+  // Handle drag end for reordering visits
+  const handleDragEnd = (event: any) => {
+    const { active, over } = event;
+
+    if (active.id !== over?.id) {
+      setVisits((items) => {
+        const oldIndex = items.findIndex(item => item.id === active.id);
+        const newIndex = items.findIndex(item => item.id === over?.id);
+        
+        const reorderedVisits = arrayMove(items, oldIndex, newIndex);
+        updateMapWithVisits(reorderedVisits);
+        
+        // Clear optimization when order changes
+        setOptimization(null);
+        
+        return reorderedVisits;
+      });
+    }
   };
 
   // Update map with visits
@@ -758,6 +895,9 @@ export default function RoutePlanner() {
                   <MapPin className="h-5 w-5" />
                   Visits ({visits.length})
                 </CardTitle>
+                <CardDescription>
+                  Drag and drop to reorder visits manually
+                </CardDescription>
               </CardHeader>
               <CardContent>
                 {visits.length === 0 ? (
@@ -765,46 +905,27 @@ export default function RoutePlanner() {
                     No visits added yet. Add your first visit above.
                   </p>
                 ) : (
-                  <div className="space-y-3">
-                    {visits.map((visit, index) => (
-                      <div key={visit.id} className="flex items-start justify-between p-3 border rounded-lg" data-testid={`visit-item-${index}`}>
-                        <div className="flex-1">
-                          <div className="flex items-center gap-2 mb-1">
-                            <Badge variant="outline" className="text-xs">
-                              {index + 1}
-                            </Badge>
-                            {visit.clientName && (
-                              <span className="text-sm font-medium" data-testid={`text-client-name-${index}`}>
-                                {visit.clientName}
-                              </span>
-                            )}
-                          </div>
-                          <p className="text-sm text-muted-foreground mb-1" data-testid={`text-address-${index}`}>
-                            {visit.address}
-                          </p>
-                          <div className="flex items-center gap-4 text-xs text-muted-foreground">
-                            <span className="flex items-center gap-1">
-                              <Clock className="h-3 w-3" />
-                              {visit.durationMinutes}m
-                            </span>
-                            {visit.timeSlot && (
-                              <Badge variant="secondary" className="text-xs">
-                                {visit.timeSlot}
-                              </Badge>
-                            )}
-                          </div>
-                        </div>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => removeVisit(visit.id)}
-                          data-testid={`button-remove-visit-${index}`}
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
+                  <DndContext 
+                    sensors={sensors}
+                    collisionDetection={closestCenter}
+                    onDragEnd={handleDragEnd}
+                  >
+                    <SortableContext 
+                      items={visits.map(v => v.id)}
+                      strategy={verticalListSortingStrategy}
+                    >
+                      <div className="space-y-3">
+                        {visits.map((visit, index) => (
+                          <SortableVisitItem
+                            key={visit.id}
+                            visit={visit}
+                            index={index}
+                            onRemove={removeVisit}
+                          />
+                        ))}
                       </div>
-                    ))}
-                  </div>
+                    </SortableContext>
+                  </DndContext>
                 )}
               </CardContent>
             </Card>
