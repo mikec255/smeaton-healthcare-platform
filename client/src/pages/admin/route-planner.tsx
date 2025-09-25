@@ -189,6 +189,7 @@ export default function RoutePlanner() {
   const [newEarliestTime, setNewEarliestTime] = useState('');
   const [newLatestTime, setNewLatestTime] = useState('');
   const [newClientName, setNewClientName] = useState('');
+  const [highlightNameField, setHighlightNameField] = useState(false);
   
   const mapRef = useRef<HTMLDivElement>(null);
   const mapInstanceRef = useRef<GoogleMap | null>(null);
@@ -664,12 +665,17 @@ export default function RoutePlanner() {
 
   // Export route to CSV
   const exportToCSV = () => {
-    if (!optimization || !runName.trim()) {
+    if (!optimization) return;
+    
+    if (!runName.trim()) {
+      setHighlightNameField(true);
       toast({
-        title: "Export Error",
-        description: "Please name your run before exporting.",
+        title: "Name Required",
+        description: "Please name your run before downloading.",
         variant: "destructive",
       });
+      // Remove highlight after 3 seconds
+      setTimeout(() => setHighlightNameField(false), 3000);
       return;
     }
 
@@ -733,12 +739,17 @@ export default function RoutePlanner() {
 
   // Export route to PDF
   const exportToPDF = () => {
-    if (!optimization || !runName.trim()) {
+    if (!optimization) return;
+    
+    if (!runName.trim()) {
+      setHighlightNameField(true);
       toast({
-        title: "Export Error", 
-        description: "Please name your run before exporting.",
+        title: "Name Required",
+        description: "Please name your run before downloading.",
         variant: "destructive",
       });
+      // Remove highlight after 3 seconds
+      setTimeout(() => setHighlightNameField(false), 3000);
       return;
     }
 
@@ -1083,8 +1094,11 @@ export default function RoutePlanner() {
                   id="run-name"
                   placeholder="Auto-generated if blank"
                   value={runName}
-                  onChange={(e) => setRunName(e.target.value)}
-                  className="w-[200px]"
+                  onChange={(e) => {
+                    setRunName(e.target.value);
+                    if (highlightNameField) setHighlightNameField(false);
+                  }}
+                  className={`w-[200px] ${highlightNameField ? 'border-red-500 ring-red-500 focus:border-red-500 focus:ring-red-500' : ''}`}
                   data-testid="input-run-name"
                 />
               </div>
@@ -1334,28 +1348,26 @@ export default function RoutePlanner() {
                         Visit sequence with travel times to next customer
                       </CardDescription>
                     </div>
-                    {runName.trim() && (
-                      <div className="flex items-center gap-2">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={exportToCSV}
-                          data-testid="button-download-csv"
-                        >
-                          <FileText className="h-4 w-4 mr-2" />
-                          CSV
-                        </Button>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={exportToPDF}
-                          data-testid="button-download-pdf"
-                        >
-                          <Download className="h-4 w-4 mr-2" />
-                          PDF
-                        </Button>
-                      </div>
-                    )}
+                    <div className="flex items-center gap-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={exportToCSV}
+                        data-testid="button-download-csv"
+                      >
+                        <FileText className="h-4 w-4 mr-2" />
+                        CSV
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={exportToPDF}
+                        data-testid="button-download-pdf"
+                      >
+                        <Download className="h-4 w-4 mr-2" />
+                        PDF
+                      </Button>
+                    </div>
                   </div>
                 </CardHeader>
                 <CardContent>
