@@ -1050,6 +1050,136 @@ This automated reminder was sent from the Smeaton Healthcare CQC Compliance Syst
 Healthcare staffing solutions across Devon and Cornwall
     `;
   }
+
+  async sendRecruitmentApplicationConfirmation(applicationData: {
+    to: string;
+    applicantName: string;
+    applicationId: string;
+  }) {
+    if (!this.isConfigured) {
+      console.warn('Brevo not configured - skipping recruitment application confirmation email send');
+      return;
+    }
+
+    try {
+      const result = await this.emailApi.sendTransacEmail({
+        to: [{
+          email: applicationData.to,
+          name: applicationData.applicantName
+        }],
+        subject: 'Application Received - Smeaton Healthcare',
+        htmlContent: this.getRecruitmentApplicationConfirmationHtml(applicationData),
+        textContent: this.getRecruitmentApplicationConfirmationText(applicationData),
+        sender: {
+          email: 'recruitment@smeatonhealthcare.co.uk',
+          name: 'Smeaton Healthcare Recruitment'
+        }
+      });
+
+      console.log('Recruitment application confirmation email sent successfully:', result.body?.messageId || 'Email sent');
+      return result;
+    } catch (error) {
+      console.error('Failed to send recruitment application confirmation email:', error);
+      throw error;
+    }
+  }
+
+  private getRecruitmentApplicationConfirmationHtml(applicationData: {
+    applicantName: string;
+    applicationId: string;
+  }): string {
+    return `
+    <html>
+    <head>
+      <style>
+        body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+        .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+        .header { background-color: #0066cc; color: white; text-align: center; padding: 20px; border-radius: 8px 8px 0 0; }
+        .content { background-color: #ffffff; padding: 30px; border: 1px solid #ddd; }
+        .footer { background-color: #f8f9fa; padding: 20px; text-align: center; border-radius: 0 0 8px 8px; font-size: 12px; color: #666; }
+        .button { display: inline-block; background-color: #0066cc; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; margin: 15px 0; }
+        .highlight { background-color: #e8f4f8; padding: 15px; border-radius: 5px; margin: 15px 0; border-left: 4px solid #0066cc; }
+      </style>
+    </head>
+    <body>
+      <div class="container">
+        <div class="header">
+          <h1>Application Received</h1>
+          <p>Thank you for your interest in Smeaton Healthcare</p>
+        </div>
+        
+        <div class="content">
+          <p>Dear ${applicationData.applicantName},</p>
+          
+          <p>Thank you for submitting your application to Smeaton Healthcare. We have successfully received your application and it is now being reviewed by our recruitment team.</p>
+          
+          <div class="highlight">
+            <strong>Application Reference:</strong> ${applicationData.applicationId}
+          </div>
+          
+          <h3>What happens next?</h3>
+          <ul>
+            <li><strong>Application Review:</strong> Our team will carefully review your application and experience</li>
+            <li><strong>Initial Contact:</strong> If your application matches our requirements, we will contact you within 5-7 business days</li>
+            <li><strong>Interview Process:</strong> Suitable candidates will be invited for an interview (phone/video or in-person)</li>
+            <li><strong>Final Steps:</strong> Successful candidates will receive a formal offer with next steps</li>
+          </ul>
+          
+          <p>We appreciate your interest in joining our team and providing exceptional healthcare services across Devon and Cornwall.</p>
+          
+          <p>If you have any questions about your application, please don't hesitate to contact our recruitment team:</p>
+          <ul>
+            <li>Email: <a href="mailto:recruitment@smeatonhealthcare.co.uk">recruitment@smeatonhealthcare.co.uk</a></li>
+            <li>Phone: 01752 123456</li>
+          </ul>
+          
+          <p>Best regards,<br>
+          <strong>Smeaton Healthcare Recruitment Team</strong></p>
+        </div>
+        
+        <div class="footer">
+          <p>© ${new Date().getFullYear()} Smeaton Healthcare. All rights reserved.<br>
+          Healthcare staffing solutions across Devon and Cornwall</p>
+        </div>
+      </div>
+    </body>
+    </html>
+    `;
+  }
+
+  private getRecruitmentApplicationConfirmationText(applicationData: {
+    applicantName: string;
+    applicationId: string;
+  }): string {
+    return `
+APPLICATION RECEIVED
+
+Dear ${applicationData.applicantName},
+
+Thank you for submitting your application to Smeaton Healthcare. We have successfully received your application and it is now being reviewed by our recruitment team.
+
+Application Reference: ${applicationData.applicationId}
+
+WHAT HAPPENS NEXT?
+- Application Review: Our team will carefully review your application and experience
+- Initial Contact: If your application matches our requirements, we will contact you within 5-7 business days  
+- Interview Process: Suitable candidates will be invited for an interview (phone/video or in-person)
+- Final Steps: Successful candidates will receive a formal offer with next steps
+
+We appreciate your interest in joining our team and providing exceptional healthcare services across Devon and Cornwall.
+
+If you have any questions about your application, please don't hesitate to contact our recruitment team:
+- Email: recruitment@smeatonhealthcare.co.uk
+- Phone: 01752 123456
+
+Best regards,
+Smeaton Healthcare Recruitment Team
+
+---
+© ${new Date().getFullYear()} Smeaton Healthcare. All rights reserved.
+Healthcare staffing solutions across Devon and Cornwall
+    `;
+  }
 }
 
 export const brevoService = new BrevoService();

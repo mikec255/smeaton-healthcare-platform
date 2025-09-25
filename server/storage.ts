@@ -1,7 +1,7 @@
-import { type User, type InsertUser, type Job, type InsertJob, type Application, type InsertApplication, type ContactSubmission, type InsertContactSubmission, type Feedback, type InsertFeedback, type Newsletter, type InsertNewsletter, type NewsletterBlock, type InsertNewsletterBlock, type Template, type InsertTemplate, type Subscriber, type InsertSubscriber, type Campaign, type InsertCampaign, type Delivery, type InsertDelivery, type BlogCategory, type InsertBlogCategory, type BlogPost, type InsertBlogPost, type AuditLog, type InsertAuditLog, type CqcAudit, type InsertCqcAudit, type CqcAuditCategory, type InsertCqcAuditCategory, type CqcQualityStatement, type InsertCqcQualityStatement, type CqcEvidenceCategory, type InsertCqcEvidenceCategory, type CqcAuditEvidence, type InsertCqcAuditEvidence, type CqcQualityAssessment, type InsertCqcQualityAssessment, type CqcComplianceRecord, type InsertCqcComplianceRecord, type KnowledgeQuestionnaire, type InsertKnowledgeQuestionnaire, type KnowledgeQuestion, type InsertKnowledgeQuestion, type KnowledgeSession, type InsertKnowledgeSession, type KnowledgeResponse, type InsertKnowledgeResponse, type KnowledgeAction, type InsertKnowledgeAction } from "@shared/schema";
+import { type User, type InsertUser, type Job, type InsertJob, type Application, type InsertApplication, type ContactSubmission, type InsertContactSubmission, type Feedback, type InsertFeedback, type Newsletter, type InsertNewsletter, type NewsletterBlock, type InsertNewsletterBlock, type Template, type InsertTemplate, type Subscriber, type InsertSubscriber, type Campaign, type InsertCampaign, type Delivery, type InsertDelivery, type BlogCategory, type InsertBlogCategory, type BlogPost, type InsertBlogPost, type AuditLog, type InsertAuditLog, type CqcAudit, type InsertCqcAudit, type CqcAuditCategory, type InsertCqcAuditCategory, type CqcQualityStatement, type InsertCqcQualityStatement, type CqcEvidenceCategory, type InsertCqcEvidenceCategory, type CqcAuditEvidence, type InsertCqcAuditEvidence, type CqcQualityAssessment, type InsertCqcQualityAssessment, type CqcComplianceRecord, type InsertCqcComplianceRecord, type KnowledgeQuestionnaire, type InsertKnowledgeQuestionnaire, type KnowledgeQuestion, type InsertKnowledgeQuestion, type KnowledgeSession, type InsertKnowledgeSession, type KnowledgeResponse, type InsertKnowledgeResponse, type KnowledgeAction, type InsertKnowledgeAction, type RecruitmentApplication, type InsertRecruitmentApplication } from "@shared/schema";
 import { randomUUID } from "crypto";
 import { db } from "./db";
-import { users, jobs, applications, contactSubmissions, blogCategories, blogPosts, auditLogs, cqcAudits, cqcAuditCategories, cqcQualityStatements, cqcEvidenceCategories, cqcAuditEvidence, cqcQualityAssessments, cqcComplianceRecords, knowledgeQuestionnaires, knowledgeQuestions, knowledgeSessions, knowledgeResponses, knowledgeActions } from "@shared/schema";
+import { users, jobs, applications, contactSubmissions, blogCategories, blogPosts, auditLogs, cqcAudits, cqcAuditCategories, cqcQualityStatements, cqcEvidenceCategories, cqcAuditEvidence, cqcQualityAssessments, cqcComplianceRecords, knowledgeQuestionnaires, knowledgeQuestions, knowledgeSessions, knowledgeResponses, knowledgeActions, recruitmentApplications } from "@shared/schema";
 import { eq, and, desc } from "drizzle-orm";
 import bcrypt from "bcryptjs";
 
@@ -32,6 +32,13 @@ export interface IStorage {
   createApplication(application: InsertApplication): Promise<Application>;
   updateApplicationStatus(id: string, status: string): Promise<Application | undefined>;
   updateApplicationNotes(id: string, notes: string): Promise<Application | undefined>;
+  
+  // Recruitment Applications (Full Applications)
+  getAllRecruitmentApplications(): Promise<RecruitmentApplication[]>;
+  getRecruitmentApplication(id: string): Promise<RecruitmentApplication | undefined>;
+  createRecruitmentApplication(application: InsertRecruitmentApplication): Promise<RecruitmentApplication>;
+  updateRecruitmentApplicationStatus(id: string, status: string, reviewedBy?: string): Promise<RecruitmentApplication | undefined>;
+  updateRecruitmentApplicationNotes(id: string, adminNotes: string): Promise<RecruitmentApplication | undefined>;
   
   // Contact submissions
   getAllContactSubmissions(): Promise<ContactSubmission[]>;
@@ -218,6 +225,7 @@ export class MemStorage implements IStorage {
   private users: Map<string, User>;
   private jobs: Map<string, Job>;
   private applications: Map<string, Application>;
+  private recruitmentApplications: Map<string, RecruitmentApplication>;
   private contactSubmissions: Map<string, ContactSubmission>;
   private feedback: Map<string, Feedback>;
   private newsletters: Map<string, Newsletter>;
@@ -244,6 +252,7 @@ export class MemStorage implements IStorage {
     this.users = new Map();
     this.jobs = new Map();
     this.applications = new Map();
+    this.recruitmentApplications = new Map();
     this.contactSubmissions = new Map();
     this.feedback = new Map();
     this.newsletters = new Map();
@@ -560,6 +569,58 @@ export class MemStorage implements IStorage {
       notes,
     };
     this.applications.set(id, updatedApplication);
+    return updatedApplication;
+  }
+
+  // Recruitment Applications (Full Applications) - MemStorage
+  async getAllRecruitmentApplications(): Promise<RecruitmentApplication[]> {
+    return Array.from(this.recruitmentApplications.values())
+      .sort((a, b) => (b.createdAt?.getTime() || 0) - (a.createdAt?.getTime() || 0));
+  }
+
+  async getRecruitmentApplication(id: string): Promise<RecruitmentApplication | undefined> {
+    return this.recruitmentApplications.get(id);
+  }
+
+  async createRecruitmentApplication(application: InsertRecruitmentApplication): Promise<RecruitmentApplication> {
+    const id = randomUUID();
+    const now = new Date();
+    const newApplication: RecruitmentApplication = {
+      id,
+      ...application,
+      createdAt: now,
+      updatedAt: now,
+    };
+    this.recruitmentApplications.set(id, newApplication);
+    return newApplication;
+  }
+
+  async updateRecruitmentApplicationStatus(id: string, status: string, reviewedBy?: string): Promise<RecruitmentApplication | undefined> {
+    const application = this.recruitmentApplications.get(id);
+    if (!application) return undefined;
+    
+    const now = new Date();
+    const updatedApplication: RecruitmentApplication = {
+      ...application,
+      status,
+      reviewedBy: reviewedBy || null,
+      reviewedAt: reviewedBy ? now : null,
+      updatedAt: now,
+    };
+    this.recruitmentApplications.set(id, updatedApplication);
+    return updatedApplication;
+  }
+
+  async updateRecruitmentApplicationNotes(id: string, adminNotes: string): Promise<RecruitmentApplication | undefined> {
+    const application = this.recruitmentApplications.get(id);
+    if (!application) return undefined;
+    
+    const updatedApplication: RecruitmentApplication = {
+      ...application,
+      adminNotes,
+      updatedAt: new Date(),
+    };
+    this.recruitmentApplications.set(id, updatedApplication);
     return updatedApplication;
   }
 
@@ -1621,6 +1682,55 @@ export class DrizzleStorage implements IStorage {
     
     return result[0];
   }
+
+  // Recruitment Applications (Full Applications) - DatabaseStorage
+  async getAllRecruitmentApplications(): Promise<RecruitmentApplication[]> {
+    return await db.select().from(recruitmentApplications).orderBy(desc(recruitmentApplications.createdAt));
+  }
+
+  async getRecruitmentApplication(id: string): Promise<RecruitmentApplication | undefined> {
+    const result = await db.select().from(recruitmentApplications)
+      .where(eq(recruitmentApplications.id, id))
+      .limit(1);
+    return result[0];
+  }
+
+  async createRecruitmentApplication(application: InsertRecruitmentApplication): Promise<RecruitmentApplication> {
+    const result = await db.insert(recruitmentApplications).values(application).returning();
+    return result[0];
+  }
+
+  async updateRecruitmentApplicationStatus(id: string, status: string, reviewedBy?: string): Promise<RecruitmentApplication | undefined> {
+    const updateData: any = { 
+      status, 
+      updatedAt: new Date()
+    };
+    
+    if (reviewedBy) {
+      updateData.reviewedBy = reviewedBy;
+      updateData.reviewedAt = new Date();
+    }
+
+    const result = await db.update(recruitmentApplications)
+      .set(updateData)
+      .where(eq(recruitmentApplications.id, id))
+      .returning();
+    
+    return result[0];
+  }
+
+  async updateRecruitmentApplicationNotes(id: string, adminNotes: string): Promise<RecruitmentApplication | undefined> {
+    const result = await db.update(recruitmentApplications)
+      .set({ 
+        adminNotes,
+        updatedAt: new Date()
+      })
+      .where(eq(recruitmentApplications.id, id))
+      .returning();
+    
+    return result[0];
+  }
+
   async getAllContactSubmissions(): Promise<ContactSubmission[]> {
     const result = await db.select().from(contactSubmissions).orderBy(desc(contactSubmissions.createdAt));
     return result;

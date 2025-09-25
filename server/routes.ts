@@ -4,7 +4,7 @@ import session from "express-session";
 import bcrypt from "bcryptjs";
 import crypto from "crypto";
 import { storage } from "./storage";
-import { insertJobSchema, insertApplicationSchema, insertContactSubmissionSchema, insertFeedbackSchema, insertNewsletterSchema, insertNewsletterBlockSchema, insertTemplateSchema, insertBlogCategorySchema, insertBlogPostSchema, insertUserSchema, loginUserSchema, updateUserSchema, insertCqcAuditSchema, insertCqcAuditCategorySchema, insertCqcQualityStatementSchema, insertCqcEvidenceCategorySchema, insertCqcAuditEvidenceSchema, insertCqcQualityAssessmentSchema, insertCqcComplianceRecordSchema, insertKnowledgeQuestionnaireSchema, insertKnowledgeQuestionSchema, insertKnowledgeSessionSchema, insertKnowledgeResponseSchema, insertKnowledgeActionSchema } from "@shared/schema";
+import { insertJobSchema, insertApplicationSchema, insertContactSubmissionSchema, insertFeedbackSchema, insertNewsletterSchema, insertNewsletterBlockSchema, insertTemplateSchema, insertBlogCategorySchema, insertBlogPostSchema, insertUserSchema, loginUserSchema, updateUserSchema, insertCqcAuditSchema, insertCqcAuditCategorySchema, insertCqcQualityStatementSchema, insertCqcEvidenceCategorySchema, insertCqcAuditEvidenceSchema, insertCqcQualityAssessmentSchema, insertCqcComplianceRecordSchema, insertKnowledgeQuestionnaireSchema, insertKnowledgeQuestionSchema, insertKnowledgeSessionSchema, insertKnowledgeResponseSchema, insertKnowledgeActionSchema, insertRecruitmentApplicationSchema } from "@shared/schema";
 import { ObjectStorageService } from "./objectStorage";
 import { brevoService } from "./brevo-service";
 import { AuditLogger } from "./audit";
@@ -993,6 +993,119 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "Invalid notes data", errors: error.errors });
       }
       res.status(500).json({ message: "Failed to update application notes" });
+    }
+  });
+
+  // Recruitment Applications API (Full Applications - separate from job pre-screening)
+  app.get("/api/admin/recruitment-applications", requireAdmin, async (req, res) => {
+    try {
+      const applications = await storage.getAllRecruitmentApplications();
+      
+      // Log GDPR-relevant action: admin viewing personal data
+      if (req.user) {
+        await AuditLogger.logView(req, req.user, "recruitment_application", "bulk", {
+          action: "view_all_recruitment_applications",
+          recordCount: applications.length
+        });
+      }
+      
+      res.json(applications);
+    } catch (error) {
+      console.error("Error fetching recruitment applications:", error);
+      res.status(500).json({ message: "Failed to fetch recruitment applications" });
+    }
+  });
+
+  app.post("/api/recruitment-applications", async (req, res) => {
+    try {
+      const validatedData = insertRecruitmentApplicationSchema.parse(req.body);
+      const application = await storage.createRecruitmentApplication(validatedData);
+      
+      // Send confirmation email to applicant
+      if (brevoService) {
+        try {
+          await brevoService.sendRecruitmentApplicationConfirmation({
+            to: application.email,
+            applicantName: `${application.firstName} ${application.lastName}`,
+            applicationId: application.id
+          });
+        } catch (emailError) {
+          console.error("Failed to send recruitment application confirmation email:", emailError);
+          // Don't fail the application submission if email fails
+        }
+      }
+
+      res.json(application);
+    } catch (error) {
+      console.error("Error creating recruitment application:", error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid application data", errors: error.errors });
+      }
+      res.status(500).json({ message: "Failed to submit recruitment application" });
+    }
+  });
+
+  app.put("/api/admin/recruitment-applications/:id/status", requireAdmin, async (req, res) => {
+    try {
+      // Validate status input with allowed enum values
+      const statusUpdateSchema = z.object({
+        status: z.enum(["pending", "under_review", "interview_scheduled", "hired", "rejected", "withdrawn"])
+      });
+
+      const validatedData = statusUpdateSchema.parse(req.body);
+      const application = await storage.updateRecruitmentApplicationStatus(req.params.id, validatedData.status, req.user?.id);
+      if (!application) {
+        return res.status(404).json({ message: "Recruitment application not found" });
+      }
+      
+      // Log GDPR-relevant action: admin updating application status
+      if (req.user) {
+        await AuditLogger.logUpdate(req, req.user, "recruitment_application", req.params.id, {
+          action: "update_application_status",
+          newStatus: validatedData.status,
+          applicantEmail: application.email,
+          reviewedBy: req.user.id
+        });
+      }
+      
+      res.json(application);
+    } catch (error) {
+      console.error("Error updating recruitment application status:", error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid status data", errors: error.errors });
+      }
+      res.status(500).json({ message: "Failed to update recruitment application status" });
+    }
+  });
+
+  app.put("/api/admin/recruitment-applications/:id/notes", requireAdmin, async (req, res) => {
+    try {
+      const notesSchema = z.object({
+        adminNotes: z.string().max(5000, "Notes must be less than 5000 characters").optional()
+      });
+      
+      const validatedData = notesSchema.parse(req.body);
+      const application = await storage.updateRecruitmentApplicationNotes(req.params.id, validatedData.adminNotes || "");
+      if (!application) {
+        return res.status(404).json({ message: "Recruitment application not found" });
+      }
+      
+      // Log GDPR-relevant action: admin adding/modifying notes about personal data
+      if (req.user) {
+        await AuditLogger.logUpdate(req, req.user, "recruitment_application", req.params.id, {
+          action: "update_recruitment_application_notes",
+          notesLength: validatedData.adminNotes?.length || 0,
+          applicantEmail: application.email
+        });
+      }
+      
+      res.json(application);
+    } catch (error) {
+      console.error("Error updating recruitment application notes:", error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid notes data", errors: error.errors });
+      }
+      res.status(500).json({ message: "Failed to update recruitment application notes" });
     }
   });
 
