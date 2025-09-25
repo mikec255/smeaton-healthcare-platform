@@ -14,7 +14,7 @@ import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import JobsTable from "@/components/admin/jobs-table";
 import JobFormModal from "@/components/admin/job-form-modal";
-import { Plus, Briefcase, UserPlus, Clock, CheckCircle, FileText, Send, Edit, ArrowRight, MessageSquare, Star, Mail, Users, UserCheck, Settings, BookOpen, LogOut, ChevronDown, ChevronRight, BarChart3, Shield, Calculator } from "lucide-react";
+import { Plus, Briefcase, UserPlus, Clock, CheckCircle, FileText, Send, Edit, ArrowRight, MessageSquare, Star, Mail, Users, UserCheck, Settings, BookOpen, LogOut, ChevronDown, ChevronRight, BarChart3, Shield, Calculator, MapPin } from "lucide-react";
 import { type Job, type Newsletter, type Feedback, type BlogPost, type User } from "@shared/schema";
 
 
@@ -257,6 +257,18 @@ export default function Admin() {
               inactive: 0
             },
             color: "bg-green-600 text-white hover:bg-green-700"
+          },
+          {
+            title: "Route Planner",
+            description: "Optimize domiciliary care visit routes with Google Maps integration",
+            icon: MapPin,
+            link: "/admin/route-planner",
+            stats: {
+              total: 1,
+              active: 1,
+              inactive: 0
+            },
+            color: "bg-pink-600 text-white hover:bg-pink-700"
           }
         ]
       },

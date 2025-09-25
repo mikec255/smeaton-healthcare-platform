@@ -197,13 +197,6 @@ export const navigationItems: NavItem[] = [
         icon: Settings, 
         href: '/admin/users',
         description: 'Create and manage admin users with role-based access control'
-      },
-      { 
-        id: 'route-planner', 
-        label: 'Route Planner', 
-        icon: MapPin, 
-        href: '/admin/route-planner',
-        description: 'Optimize domiciliary care visit routes with Google Maps integration'
       }
     ]
   }
