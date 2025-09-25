@@ -9,6 +9,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Checkbox } from '@/components/ui/checkbox';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest, queryClient } from '@/lib/queryClient';
 import jsPDF from 'jspdf';
@@ -204,6 +205,16 @@ export default function RoutePlanner() {
   const [showHowToGuide, setShowHowToGuide] = useState(false);
   const [originalOptimalOrder, setOriginalOptimalOrder] = useState<string[]>([]);
   const [showMultipleVisitsDialog, setShowMultipleVisitsDialog] = useState(false);
+  
+  // Multiple visits form state
+  const [multipleVisitsAddress, setMultipleVisitsAddress] = useState('');
+  const [multipleVisitsClient, setMultipleVisitsClient] = useState('');
+  const [multipleVisits, setMultipleVisits] = useState([
+    { timeSlot: 'Morning', duration: 30, earliestTime: '', latestTime: '', enabled: false },
+    { timeSlot: 'Lunch', duration: 15, earliestTime: '', latestTime: '', enabled: false },
+    { timeSlot: 'Tea', duration: 15, earliestTime: '', latestTime: '', enabled: false },
+    { timeSlot: 'Bed', duration: 45, earliestTime: '', latestTime: '', enabled: false }
+  ]);
   
   const mapRef = useRef<HTMLDivElement>(null);
   const mapInstanceRef = useRef<GoogleMap | null>(null);
@@ -462,6 +473,65 @@ export default function RoutePlanner() {
     setNewEarliestTime('');
     setNewLatestTime('');
     setNewClientName('');
+  };
+
+  // Add multiple visits for the same address
+  const addMultipleVisits = async () => {
+    if (!multipleVisitsAddress.trim()) {
+      toast({
+        title: "Address Required",
+        description: "Please enter an address for the visits.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const enabledVisits = multipleVisits.filter(v => v.enabled);
+    if (enabledVisits.length === 0) {
+      toast({
+        title: "No Visits Selected",
+        description: "Please select at least one time slot.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const newVisits: Visit[] = enabledVisits.map((visit, index) => ({
+      id: (Date.now() + index).toString(),
+      address: multipleVisitsAddress.trim(),
+      durationMinutes: visit.duration,
+      timeSlot: visit.timeSlot,
+      earliestTime: visit.earliestTime || undefined,
+      latestTime: visit.latestTime || undefined,
+      clientName: multipleVisitsClient.trim() || undefined,
+    }));
+
+    const updatedVisits = [...visits, ...newVisits];
+    setVisits(updatedVisits);
+
+    // Geocode all new visits
+    for (const visit of newVisits) {
+      geocodeMutation.mutate({
+        visitId: visit.id,
+        address: multipleVisitsAddress.trim()
+      });
+    }
+
+    // Clear form and close dialog
+    setMultipleVisitsAddress('');
+    setMultipleVisitsClient('');
+    setMultipleVisits([
+      { timeSlot: 'Morning', duration: 30, earliestTime: '', latestTime: '', enabled: false },
+      { timeSlot: 'Lunch', duration: 15, earliestTime: '', latestTime: '', enabled: false },
+      { timeSlot: 'Tea', duration: 15, earliestTime: '', latestTime: '', enabled: false },
+      { timeSlot: 'Bed', duration: 45, earliestTime: '', latestTime: '', enabled: false }
+    ]);
+    setShowMultipleVisitsDialog(false);
+
+    toast({
+      title: "Multiple Visits Added",
+      description: `Added ${enabledVisits.length} visits for ${multipleVisitsAddress.trim()}`,
+    });
   };
 
   // Remove visit
@@ -1991,6 +2061,146 @@ export default function RoutePlanner() {
           </div>
         </div>
       </div>
+
+      {/* Multiple Visits Dialog */}
+      <Dialog open={showMultipleVisitsDialog} onOpenChange={setShowMultipleVisitsDialog}>
+        <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Add Multiple Visits</DialogTitle>
+            <DialogDescription>
+              Add multiple care visits for the same address across different time slots
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-6">
+            {/* Address and Client */}
+            <div className="space-y-4">
+              <div>
+                <Label htmlFor="multiple-address">Address *</Label>
+                <Textarea
+                  id="multiple-address"
+                  placeholder="Enter full address including postcode"
+                  value={multipleVisitsAddress}
+                  onChange={(e) => setMultipleVisitsAddress(e.target.value)}
+                  rows={2}
+                  data-testid="input-multiple-address"
+                />
+              </div>
+              
+              <div>
+                <Label htmlFor="multiple-client">Client Name (Optional)</Label>
+                <Input
+                  id="multiple-client"
+                  placeholder="Client name for care visits"
+                  value={multipleVisitsClient}
+                  onChange={(e) => setMultipleVisitsClient(e.target.value)}
+                  data-testid="input-multiple-client"
+                />
+              </div>
+            </div>
+
+            {/* Time Slots */}
+            <div className="space-y-4">
+              <div>
+                <h4 className="font-medium text-sm">Select Time Slots</h4>
+                <p className="text-xs text-muted-foreground">Choose which care visits are needed for this client</p>
+              </div>
+              
+              {multipleVisits.map((visit, index) => (
+                <div key={visit.timeSlot} className="border rounded-lg p-4 space-y-3">
+                  <div className="flex items-center gap-3">
+                    <Checkbox
+                      checked={visit.enabled}
+                      onCheckedChange={(checked) => {
+                        const updated = [...multipleVisits];
+                        updated[index].enabled = !!checked;
+                        setMultipleVisits(updated);
+                      }}
+                      data-testid={`checkbox-${visit.timeSlot.toLowerCase()}`}
+                    />
+                    <div className="flex items-center gap-2">
+                      <span className="text-lg">
+                        {visit.timeSlot === 'Morning' && '🌅'}
+                        {visit.timeSlot === 'Lunch' && '🍽️'}
+                        {visit.timeSlot === 'Tea' && '☕'}
+                        {visit.timeSlot === 'Bed' && '🌙'}
+                      </span>
+                      <span className="font-medium">{visit.timeSlot} Care</span>
+                    </div>
+                  </div>
+                  
+                  {visit.enabled && (
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mt-3">
+                      <div>
+                        <Label className="text-xs">Duration (minutes)</Label>
+                        <Input
+                          type="number"
+                          min="5"
+                          max="240"
+                          value={visit.duration}
+                          onChange={(e) => {
+                            const updated = [...multipleVisits];
+                            updated[index].duration = parseInt(e.target.value) || 30;
+                            setMultipleVisits(updated);
+                          }}
+                          data-testid={`input-duration-${visit.timeSlot.toLowerCase()}`}
+                        />
+                      </div>
+                      
+                      <div>
+                        <Label className="text-xs">Earliest Time</Label>
+                        <Input
+                          type="time"
+                          value={visit.earliestTime}
+                          onChange={(e) => {
+                            const updated = [...multipleVisits];
+                            updated[index].earliestTime = e.target.value;
+                            setMultipleVisits(updated);
+                          }}
+                          data-testid={`input-earliest-${visit.timeSlot.toLowerCase()}`}
+                        />
+                      </div>
+                      
+                      <div>
+                        <Label className="text-xs">Latest Time</Label>
+                        <Input
+                          type="time"
+                          value={visit.latestTime}
+                          onChange={(e) => {
+                            const updated = [...multipleVisits];
+                            updated[index].latestTime = e.target.value;
+                            setMultipleVisits(updated);
+                          }}
+                          data-testid={`input-latest-${visit.timeSlot.toLowerCase()}`}
+                        />
+                      </div>
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+
+            {/* Action Buttons */}
+            <div className="flex justify-end gap-2">
+              <Button 
+                variant="outline" 
+                onClick={() => setShowMultipleVisitsDialog(false)}
+                data-testid="button-cancel-multiple"
+              >
+                Cancel
+              </Button>
+              <Button 
+                onClick={addMultipleVisits}
+                disabled={!multipleVisitsAddress.trim() || !multipleVisits.some(v => v.enabled)}
+                data-testid="button-save-multiple"
+              >
+                <Plus className="h-4 w-4 mr-2" />
+                Add Visits
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </AdminLayout>
   );
 }
