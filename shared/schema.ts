@@ -631,6 +631,38 @@ export const recruitmentApplications = pgTable("recruitment_applications", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
+// Professional References (for job applicants)
+export const professionalReferences = pgTable("professional_references", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  
+  // Person being referenced
+  candidateName: text("candidate_name").notNull(),
+  candidateEmail: text("candidate_email").notNull(),
+  positionAppliedFor: text("position_applied_for").notNull(),
+  
+  // Reference provider information
+  referenceProviderName: text("reference_provider_name").notNull(),
+  referenceProviderTitle: text("reference_provider_title").notNull(),
+  referenceProviderCompany: text("reference_provider_company").notNull(),
+  referenceProviderEmail: text("reference_provider_email").notNull(),
+  referenceProviderPhone: text("reference_provider_phone").notNull(),
+  
+  // Reference details (stored as JSON to allow flexible structure)
+  referenceData: json("reference_data").$type<Record<string, any>>(),
+  
+  // Reference management
+  status: text("status").default("pending"), // pending, reviewed, verified, flagged
+  adminNotes: text("admin_notes"), // Admin notes about the reference
+  reviewedBy: varchar("reviewed_by").references(() => users.id),
+  reviewedAt: timestamp("reviewed_at"),
+  
+  // Source tracking
+  source: text("source").default("direct_submission"), // direct_submission, email_invite, etc.
+  
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
 export const insertCqcAuditSchema = createInsertSchema(cqcAudits).omit({
   id: true,
   createdAt: true,
@@ -704,6 +736,15 @@ export const insertRecruitmentApplicationSchema = createInsertSchema(recruitment
   reviewedBy: true,
 });
 
+export const insertProfessionalReferenceSchema = createInsertSchema(professionalReferences).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+  reviewedAt: true,
+  adminNotes: true,
+  reviewedBy: true,
+});
+
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type User = typeof users.$inferSelect;
 export type InsertJob = z.infer<typeof insertJobSchema>;
@@ -758,3 +799,5 @@ export type InsertKnowledgeAction = z.infer<typeof insertKnowledgeActionSchema>;
 export type KnowledgeAction = typeof knowledgeActions.$inferSelect;
 export type InsertRecruitmentApplication = z.infer<typeof insertRecruitmentApplicationSchema>;
 export type RecruitmentApplication = typeof recruitmentApplications.$inferSelect;
+export type InsertProfessionalReference = z.infer<typeof insertProfessionalReferenceSchema>;
+export type ProfessionalReference = typeof professionalReferences.$inferSelect;
