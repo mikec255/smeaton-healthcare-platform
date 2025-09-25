@@ -1097,6 +1097,24 @@ export default function RoutePlanner() {
                 <Play className="h-4 w-4 mr-2" />
                 {optimizeMutation.isPending ? 'Creating Route...' : 'Create Optimized Run'}
               </Button>
+
+              <div className="flex items-center gap-2">
+                <input
+                  type="file"
+                  accept=".csv"
+                  onChange={handleCSVUpload}
+                  className="hidden"
+                  id="csv-upload"
+                />
+                <Button
+                  variant="outline"
+                  onClick={() => document.getElementById('csv-upload')?.click()}
+                  data-testid="button-upload-csv"
+                >
+                  <Upload className="h-4 w-4 mr-2" />
+                  Import CSV
+                </Button>
+              </div>
             </div>
           </CardContent>
         </Card>
@@ -1211,41 +1229,6 @@ export default function RoutePlanner() {
               </CardContent>
             </Card>
 
-            {/* Upload CSV */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Upload className="h-5 w-5" />
-                  Import Route
-                </CardTitle>
-                <CardDescription>
-                  Upload a CSV file to restore a previous route
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-2">
-                  <input
-                    type="file"
-                    accept=".csv"
-                    onChange={handleCSVUpload}
-                    className="hidden"
-                    id="csv-upload"
-                  />
-                  <Button
-                    variant="outline"
-                    onClick={() => document.getElementById('csv-upload')?.click()}
-                    className="w-full"
-                    data-testid="button-upload-csv"
-                  >
-                    <File className="h-4 w-4 mr-2" />
-                    Select CSV File
-                  </Button>
-                  <p className="text-xs text-muted-foreground">
-                    Only CSV files exported from this system are supported
-                  </p>
-                </div>
-              </CardContent>
-            </Card>
 
             {/* Visits List */}
             <Card>
