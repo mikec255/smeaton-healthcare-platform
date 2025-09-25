@@ -1108,6 +1108,106 @@ export default function RoutePlanner() {
                 )}
               </CardContent>
             </Card>
+
+            {/* Route Summary List */}
+            {optimization && (
+              <Card className="mt-6">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Route className="h-5 w-5" />
+                    Optimized Route Summary
+                  </CardTitle>
+                  <CardDescription>
+                    Visit sequence with travel times to next customer
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    {optimization.optimizedOrder.map((visit, index) => {
+                      const isLastStop = index === optimization.optimizedOrder.length - 1;
+                      
+                      return (
+                        <div key={visit.id} className="flex items-center justify-between p-4 border rounded-lg bg-gray-50 dark:bg-gray-800/50">
+                          <div className="flex items-center gap-4">
+                            <div className="flex items-center justify-center w-8 h-8 bg-blue-600 text-white rounded-full text-sm font-semibold">
+                              {index + 1}
+                            </div>
+                            <div className="flex-1">
+                              <div className="flex items-center gap-2 mb-1">
+                                <h4 className="font-medium text-gray-900 dark:text-gray-100">
+                                  {visit.clientName || `Visit ${index + 1}`}
+                                </h4>
+                                <Badge variant="outline" className="text-xs">
+                                  {visit.durationMinutes}m service
+                                </Badge>
+                              </div>
+                              <p className="text-sm text-gray-600 dark:text-gray-400" data-testid={`route-address-${index}`}>
+                                {visit.address}
+                              </p>
+                              {visit.timeSlot && (
+                                <p className="text-xs text-blue-600 dark:text-blue-400 mt-1">
+                                  Preferred time: {visit.timeSlot}
+                                </p>
+                              )}
+                            </div>
+                          </div>
+                          
+                          {!isLastStop && (
+                            <div className="text-right">
+                              <div className="flex items-center gap-2 text-green-600 dark:text-green-400">
+                                <Clock className="h-4 w-4" />
+                                <span className="font-medium" data-testid={`travel-time-${index}`}>
+                                  {/* This will be populated with actual travel time from the route data */}
+                                  Travel time shown on map
+                                </span>
+                              </div>
+                              <p className="text-xs text-muted-foreground">to next customer</p>
+                            </div>
+                          )}
+                          
+                          {isLastStop && (
+                            <div className="text-right">
+                              <div className="flex items-center gap-2 text-gray-500">
+                                <span className="text-sm font-medium">Final destination</span>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                  
+                  <div className="mt-6 pt-4 border-t">
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                      <div className="text-center">
+                        <div className="font-semibold text-lg text-blue-600 dark:text-blue-400">
+                          {optimization.optimizedOrder.length}
+                        </div>
+                        <div className="text-muted-foreground">Total Stops</div>
+                      </div>
+                      <div className="text-center">
+                        <div className="font-semibold text-lg text-green-600 dark:text-green-400">
+                          {formatDistance(optimization.totalDistanceMeters)}
+                        </div>
+                        <div className="text-muted-foreground">Total Distance</div>
+                      </div>
+                      <div className="text-center">
+                        <div className="font-semibold text-lg text-orange-600 dark:text-orange-400">
+                          {formatDuration(optimization.totalTravelMinutes)}
+                        </div>
+                        <div className="text-muted-foreground">Travel Time</div>
+                      </div>
+                      <div className="text-center">
+                        <div className="font-semibold text-lg text-purple-600 dark:text-purple-400">
+                          {formatDuration(optimization.totalTravelMinutes + optimization.totalServiceMinutes)}
+                        </div>
+                        <div className="text-muted-foreground">Total Time</div>
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
           </div>
         </div>
       </div>
