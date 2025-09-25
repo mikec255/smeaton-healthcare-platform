@@ -3265,8 +3265,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
 
       // Convert to legacy format for compatibility with frontend
-      // Flatten all routes into a single optimized order
+      // Flatten all routes into a single optimized order and calculate travel times
       const allOptimizedVisits = optimizationResult.optimizedRoutes.flatMap(route => route.visits);
+      
+      // Add travel times between all visits in the flattened list
+      if (allOptimizedVisits.length > 1) {
+        for (let i = 0; i < allOptimizedVisits.length - 1; i++) {
+          const currentVisit = allOptimizedVisits[i];
+          const nextVisit = allOptimizedVisits[i + 1];
+          
+          // Calculate travel time between this visit and the next
+          if (currentVisit.latitude && currentVisit.longitude && 
+              nextVisit.latitude && nextVisit.longitude) {
+            // Simple distance-based travel time estimation (replace with Google Maps API call if needed)
+            const distance = Math.sqrt(
+              Math.pow(nextVisit.latitude - currentVisit.latitude, 2) + 
+              Math.pow(nextVisit.longitude - currentVisit.longitude, 2)
+            ) * 111000; // Convert degrees to meters (approximate)
+            
+            // Estimate travel time: ~30 km/h average speed for domiciliary care
+            const travelTimeMinutes = Math.round((distance / 1000) / 30 * 60);
+            allOptimizedVisits[i].travelTimeToNext = Math.max(5, Math.min(60, travelTimeMinutes)); // Between 5-60 minutes
+          } else {
+            allOptimizedVisits[i].travelTimeToNext = 10; // Default 10 minutes
+          }
+        }
+      }
+      
       const result = {
         optimizedOrder: allOptimizedVisits.length > 0 ? allOptimizedVisits : visits,
         totalDistanceMeters: Math.round(optimizationResult.optimizedRoutes.reduce(

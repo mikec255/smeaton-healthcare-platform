@@ -645,7 +645,25 @@ export default function RoutePlanner() {
     
     const origin = { lat: validVisits[0].latitude!, lng: validVisits[0].longitude! };
     const destination = { lat: validVisits[validVisits.length - 1].latitude!, lng: validVisits[validVisits.length - 1].longitude! };
-    const waypoints = validVisits.slice(1, -1).map(v => ({
+    
+    // Google Maps API has a limit of 25 waypoints (plus origin and destination)
+    const maxWaypoints = 25;
+    const middleVisits = validVisits.slice(1, -1);
+    
+    let waypointsToUse = middleVisits;
+    if (middleVisits.length > maxWaypoints) {
+      // When we have too many waypoints, select key ones distributed across the route
+      const step = middleVisits.length / maxWaypoints;
+      waypointsToUse = [];
+      for (let i = 0; i < maxWaypoints; i++) {
+        const index = Math.floor(i * step);
+        if (index < middleVisits.length) {
+          waypointsToUse.push(middleVisits[index]);
+        }
+      }
+    }
+    
+    const waypoints = waypointsToUse.map(v => ({
       location: { lat: v.latitude!, lng: v.longitude! },
       stopover: true,
     }));
