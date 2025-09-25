@@ -659,7 +659,7 @@ export default function RoutePlanner() {
     }
 
     const newVisits: Visit[] = enabledSlots.map(([timeSlot, settings], index) => ({
-      id: (Date.now() + index).toString(),
+      id: `${Date.now()}-${Math.random().toString(36).substr(2, 9)}-${index}`,
       address: multipleVisitsAddress.trim(),
       durationMinutes: settings.duration,
       timeSlot: timeSlot,
@@ -668,17 +668,22 @@ export default function RoutePlanner() {
       clientName: multipleVisitsClient.trim() || undefined,
     }));
 
+    console.log('Creating multiple visits:', newVisits.length, newVisits.map(v => ({ id: v.id, timeSlot: v.timeSlot })));
+
     // Check if there's an existing optimized route
     if (optimisation && optimisation.optimisedOrder.length > 0) {
       // Smart insertion into existing route - prioritize travel time over time restrictions
       await handleSmartInsertion(newVisits);
     } else {
       // Normal addition when no route exists
+      console.log('Current visits before adding:', visits.length);
       const updatedVisits = [...visits, ...newVisits];
+      console.log('Updated visits after adding:', updatedVisits.length, updatedVisits.map(v => ({ id: v.id, timeSlot: v.timeSlot })));
       setVisits(updatedVisits);
 
       // Geocode all new visits
       for (const visit of newVisits) {
+        console.log('Geocoding visit:', visit.id, visit.timeSlot);
         geocodeMutation.mutate({
           visitId: visit.id,
           address: multipleVisitsAddress.trim()
