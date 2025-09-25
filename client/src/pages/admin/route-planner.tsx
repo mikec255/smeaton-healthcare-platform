@@ -66,8 +66,8 @@ interface Route {
   cost: number;
 }
 
-interface OptimizationResult {
-  optimizedOrder: Visit[];
+interface OptimisationResult {
+  optimisedOrder: Visit[];
   totalDistanceMeters: number;
   totalTravelMinutes: number;
   totalServiceMinutes: number;
@@ -181,7 +181,7 @@ export default function RoutePlanner() {
   const [visits, setVisits] = useState<Visit[]>([]);
   const [travelMode, setTravelMode] = useState<'driving' | 'walking'>('driving');
   const [runName, setRunName] = useState('');
-  const [optimization, setOptimization] = useState<OptimizationResult | null>(null);
+  const [optimisation, setOptimisation] = useState<OptimisationResult | null>(null);
   const [isMapLoaded, setIsMapLoaded] = useState(false);
   const [newAddress, setNewAddress] = useState('');
   const [newDuration, setNewDuration] = useState(30);
@@ -311,8 +311,8 @@ export default function RoutePlanner() {
     }
   });
 
-  // Route optimization mutation
-  const optimizeMutation = useMutation({
+  // Route optimisation mutation
+  const optimiseMutation = useMutation({
     mutationFn: async (data: {
       visits: Visit[];
       mode: string;
@@ -323,22 +323,22 @@ export default function RoutePlanner() {
       startLocation?: string;
       endLocation?: string;
       roundTrip?: boolean;
-    }): Promise<OptimizationResult> => {
+    }): Promise<OptimisationResult> => {
       const response = await apiRequest('POST', '/api/route-planner/optimize', data);
       return await response.json();
     },
-    onSuccess: (result: OptimizationResult) => {
-      setOptimization(result);
-      updateMapWithOptimizedRoute(result);
+    onSuccess: (result: OptimisationResult) => {
+      setOptimisation(result);
+      updateMapWithOptimisedRoute(result);
       toast({
-        title: "Route Optimized & Run Created",
-        description: `Shortest route created visiting ${result.optimizedOrder.length} addresses house-to-house with minimum travel time. Run saved with ID: ${result.runId}`,
+        title: "Route Optimised & Run Created",
+        description: `Shortest route created visiting ${result.optimisedOrder.length} addresses house-to-house with minimum travel time. Run saved with ID: ${result.runId}`,
       });
     },
     onError: (error) => {
       toast({
-        title: "Optimization Failed",
-        description: "Failed to optimize route. Please try again.",
+        title: "Optimisation Failed",
+        description: "Failed to optimise route. Please try again.",
         variant: "destructive",
       });
     }
@@ -402,8 +402,8 @@ export default function RoutePlanner() {
         const reorderedVisits = arrayMove(items, oldIndex, newIndex);
         updateMapWithVisits(reorderedVisits);
         
-        // Clear optimization when order changes
-        setOptimization(null);
+        // Clear optimisation when order changes
+        setOptimisation(null);
         
         return reorderedVisits;
       });
@@ -539,14 +539,14 @@ export default function RoutePlanner() {
     return new TimeLabel(position, text);
   };
 
-  // Update map with optimized route
-  const updateMapWithOptimizedRoute = (result: OptimizationResult) => {
+  // Update map with optimised route
+  const updateMapWithOptimisedRoute = (result: OptimisationResult) => {
     if (!mapInstanceRef.current || !window.google?.maps || !directionsRendererRef.current) return;
 
     // Clear existing time labels
     clearTimeLabels();
 
-    const validVisits = result.optimizedOrder.filter(v => v.latitude && v.longitude);
+    const validVisits = result.optimisedOrder.filter(v => v.latitude && v.longitude);
     if (validVisits.length < 2) return;
 
     const directionsService = new window.google.maps.DirectionsService();
@@ -600,12 +600,12 @@ export default function RoutePlanner() {
     });
   };
 
-  // Optimize route
-  const optimizeRoute = () => {
+  // Optimise route
+  const optimiseRoute = () => {
     if (visits.length < 2) {
       toast({
         title: "Not Enough Visits",
-        description: "Please add at least 2 visits to optimize a route.",
+        description: "Please add at least 2 visits to optimise a route.",
         variant: "destructive",
       });
       return;
@@ -616,7 +616,7 @@ export default function RoutePlanner() {
     if (ungecodedVisits.length > 0) {
       toast({
         title: "Geocoding Required",
-        description: `${ungecodedVisits.length} visit(s) need to be geocoded before optimization. Please wait for geocoding to complete.`,
+        description: `${ungecodedVisits.length} visit(s) need to be geocoded before optimisation. Please wait for geocoding to complete.`,
         variant: "destructive",
       });
       return;
@@ -629,22 +629,22 @@ export default function RoutePlanner() {
     if (invalidTimeWindows.length > 0) {
       toast({
         title: "Invalid Time Windows",
-        description: "Some visits have earliest time later than latest time. Please fix these before optimizing.",
+        description: "Some visits have earliest time later than latest time. Please fix these before optimising.",
         variant: "destructive",
       });
       return;
     }
 
     // Auto-generate run name if not provided
-    const autoRunName = runName || `Optimized Route ${new Date().toLocaleDateString()} ${new Date().toLocaleTimeString().slice(0,5)}`;
+    const autoRunName = runName || `Optimised Route ${new Date().toLocaleDateString()} ${new Date().toLocaleTimeString().slice(0,5)}`;
 
-    optimizeMutation.mutate({
+    optimiseMutation.mutate({
       visits,
       mode: travelMode,
       departureTime: '08:00', // Default start time for ongoing routes
       runDate: new Date().toISOString().split('T')[0], // Current date
       runName: autoRunName,
-      saveRun: true, // Always save the optimized run
+      saveRun: true, // Always save the optimised run
     });
   };
 
@@ -665,7 +665,7 @@ export default function RoutePlanner() {
 
   // Export route to CSV
   const exportToCSV = () => {
-    if (!optimization) return;
+    if (!optimisation) return;
     
     if (!runName.trim()) {
       setHighlightNameField(true);
@@ -694,7 +694,7 @@ export default function RoutePlanner() {
         'Compliance Status'
       ];
 
-      const rows = optimization.optimizedOrder.map((visit, index) => [
+      const rows = optimisation.optimisedOrder.map((visit, index) => [
         index + 1,
         visit.clientName || `Visit ${index + 1}`,
         visit.address,
@@ -739,7 +739,7 @@ export default function RoutePlanner() {
 
   // Export route to PDF
   const exportToPDF = () => {
-    if (!optimization) return;
+    if (!optimisation) return;
     
     if (!runName.trim()) {
       setHighlightNameField(true);
@@ -766,10 +766,10 @@ export default function RoutePlanner() {
       pdf.text(`Travel Mode: ${travelMode}`, 20, 55);
       
       // Summary stats
-      pdf.text(`Total Visits: ${optimization.optimizedOrder.length}`, 20, 70);
-      pdf.text(`Total Distance: ${formatDistance(optimization.totalDistanceMeters)}`, 20, 80);
-      pdf.text(`Travel Time: ${formatDuration(optimization.totalTravelMinutes)}`, 20, 90);
-      pdf.text(`Care Hours: ${formatDuration(optimization.totalServiceMinutes)}`, 20, 100);
+      pdf.text(`Total Visits: ${optimisation.optimisedOrder.length}`, 20, 70);
+      pdf.text(`Total Distance: ${formatDistance(optimisation.totalDistanceMeters)}`, 20, 80);
+      pdf.text(`Travel Time: ${formatDuration(optimisation.totalTravelMinutes)}`, 20, 90);
+      pdf.text(`Care Hours: ${formatDuration(optimisation.totalServiceMinutes)}`, 20, 100);
       
       // Visit details
       let yPos = 120;
@@ -778,7 +778,7 @@ export default function RoutePlanner() {
       yPos += 15;
       
       pdf.setFontSize(10);
-      optimization.optimizedOrder.forEach((visit, index) => {
+      optimisation.optimisedOrder.forEach((visit, index) => {
         if (yPos > 250) {
           pdf.addPage();
           yPos = 20;
@@ -801,7 +801,7 @@ export default function RoutePlanner() {
           yPos += 8;
         }
         
-        if (visit.travelTimeToNext && index < optimization.optimizedOrder.length - 1) {
+        if (visit.travelTimeToNext && index < optimisation.optimisedOrder.length - 1) {
           pdf.text(`   Travel to next: ${visit.travelTimeToNext} min`, 25, yPos);
           yPos += 8;
         }
@@ -960,7 +960,7 @@ export default function RoutePlanner() {
         }
 
         setVisits(importedVisits);
-        setOptimization(null);
+        setOptimisation(null);
         
         toast({
           title: "Route Imported",
@@ -1057,7 +1057,7 @@ export default function RoutePlanner() {
         <div>
           <h1 className="text-3xl font-bold tracking-tight" data-testid="text-page-title">Route Planner</h1>
           <p className="text-muted-foreground" data-testid="text-page-description">
-            Optimize domiciliary care visit routes with Google Maps integration
+            Optimise domiciliary care visit routes with Google Maps integration
           </p>
         </div>
 
@@ -1103,12 +1103,12 @@ export default function RoutePlanner() {
               </div>
 
               <Button 
-                onClick={optimizeRoute}
-                disabled={visits.length < 2 || optimizeMutation.isPending}
-                data-testid="button-optimize-route"
+                onClick={optimiseRoute}
+                disabled={visits.length < 2 || optimiseMutation.isPending}
+                data-testid="button-optimise-route"
               >
                 <Play className="h-4 w-4 mr-2" />
-                {optimizeMutation.isPending ? 'Creating Route...' : 'Create Optimized Run'}
+                {optimiseMutation.isPending ? 'Creating Route...' : 'Create Optimised Run'}
               </Button>
 
               <div className="flex items-center gap-2 ml-auto">
@@ -1300,10 +1300,10 @@ export default function RoutePlanner() {
                     "Loading Google Maps..."
                   ) : visits.length === 0 ? (
                     "Add visits to see them on the map"
-                  ) : optimization ? (
-                    "Optimized route with travel directions"
+                  ) : optimisation ? (
+                    "Optimised route with travel directions"
                   ) : (
-                    "Visit locations - optimize to see route"
+                    "Visit locations - optimise to see route"
                   )}
                 </CardDescription>
               </CardHeader>
@@ -1334,14 +1334,14 @@ export default function RoutePlanner() {
             </Card>
 
             {/* Route Summary List */}
-            {optimization && (
+            {optimisation && (
               <Card className="mt-6">
                 <CardHeader>
                   <div className="flex items-center justify-between">
                     <div>
                       <CardTitle className="flex items-center gap-2">
                         <Route className="h-5 w-5" />
-                        Optimized Route Summary
+                        Optimised Route Summary
                       </CardTitle>
                       <CardDescription>
                         Visit sequence with travel times to next customer
@@ -1371,8 +1371,8 @@ export default function RoutePlanner() {
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-4">
-                    {optimization.optimizedOrder.map((visit, index) => {
-                      const isLastStop = index === optimization.optimizedOrder.length - 1;
+                    {optimisation.optimisedOrder.map((visit, index) => {
+                      const isLastStop = index === optimisation.optimisedOrder.length - 1;
                       
                       return (
                         <div key={visit.id} className="flex items-center justify-between p-4 border rounded-lg bg-gray-50 dark:bg-gray-800/50">
@@ -1452,25 +1452,25 @@ export default function RoutePlanner() {
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
                       <div className="text-center">
                         <div className="font-semibold text-lg text-blue-600 dark:text-blue-400">
-                          {optimization.optimizedOrder.length}
+                          {optimisation.optimisedOrder.length}
                         </div>
                         <div className="text-muted-foreground">Total Visits</div>
                       </div>
                       <div className="text-center">
                         <div className="font-semibold text-lg text-green-600 dark:text-green-400">
-                          {formatDistance(optimization.totalDistanceMeters)}
+                          {formatDistance(optimisation.totalDistanceMeters)}
                         </div>
                         <div className="text-muted-foreground">Total Distance</div>
                       </div>
                       <div className="text-center">
                         <div className="font-semibold text-lg text-orange-600 dark:text-orange-400">
-                          {formatDuration(optimization.totalTravelMinutes)}
+                          {formatDuration(optimisation.totalTravelMinutes)}
                         </div>
                         <div className="text-muted-foreground">Travel Time</div>
                       </div>
                       <div className="text-center">
                         <div className="font-semibold text-lg text-purple-600 dark:text-purple-400">
-                          {formatDuration(optimization.totalServiceMinutes)}
+                          {formatDuration(optimisation.totalServiceMinutes)}
                         </div>
                         <div className="text-muted-foreground">Care Hours (Provided)</div>
                       </div>
