@@ -87,6 +87,13 @@ export const navigationItems: NavItem[] = [
         icon: UserCheck, 
         href: '/admin/professional-references',
         description: 'Manage professional references submitted for candidates'
+      },
+      { 
+        id: 'route-planner-test3', 
+        label: 'Route Planner TEST', 
+        icon: MapPin, 
+        href: '/admin/route-planner',
+        description: 'Optimize domiciliary care visit routes with Google Maps integration'
       }
     ]
   },
