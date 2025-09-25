@@ -224,12 +224,17 @@ export class AdvancedRouteOptimizer {
 
     for (let i = 0; i < visitsWithTimes.length; i++) {
       const visit = visitsWithTimes[i];
-      const visitIndex = route.visits.indexOf(visit);
 
       // If it's not the first visit, add travel time from previous visit
       if (i > 0) {
-        const prevVisitIndex = route.visits.indexOf(visitsWithTimes[i - 1]);
-        const travelTime = durationMatrix[prevVisitIndex][visitIndex] || 0;
+        // Use the visitOrder from the route to get correct matrix indices
+        const currentOrderIndex = route.visitOrder[i];
+        const prevOrderIndex = route.visitOrder[i - 1];
+        
+        const travelTime = durationMatrix[prevOrderIndex] && durationMatrix[prevOrderIndex][currentOrderIndex] 
+          ? durationMatrix[prevOrderIndex][currentOrderIndex] 
+          : 10; // Default 10 minutes if matrix data is missing
+          
         travelTimes.push(travelTime);
         currentTime += travelTime + this.TIME_BUFFER_MINUTES;
       }
@@ -263,11 +268,22 @@ export class AdvancedRouteOptimizer {
       const endHour = Math.floor(endTime / 60);
       const endMinute = endTime % 60;
       
+      // Calculate travel time to next visit for display
+      let travelTimeToNext = undefined;
+      if (i < visitsWithTimes.length - 1) {
+        const currentOrderIndex = route.visitOrder[i];
+        const nextOrderIndex = route.visitOrder[i + 1];
+        
+        travelTimeToNext = durationMatrix[currentOrderIndex] && durationMatrix[currentOrderIndex][nextOrderIndex] 
+          ? durationMatrix[currentOrderIndex][nextOrderIndex] 
+          : 10; // Default 10 minutes if matrix data is missing
+      }
+
       visitsWithTimes[i] = {
         ...visit,
         calculatedStartTime: `${startHour.toString().padStart(2, '0')}:${startMin.toString().padStart(2, '0')}`,
         calculatedEndTime: `${endHour.toString().padStart(2, '0')}:${endMinute.toString().padStart(2, '0')}`,
-        travelTimeToNext: i < visitsWithTimes.length - 1 ? travelTimes[i] : undefined
+        travelTimeToNext
       };
 
       // Update current time for next visit
