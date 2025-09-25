@@ -1709,13 +1709,29 @@ export default function RoutePlanner() {
           {/* Controls Panel */}
           <div className="lg:col-span-1 space-y-6">
             
-            {/* Add Visit Form */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Plus className="h-5 w-5" />
-                  Add Visit
-                </CardTitle>
+            {/* Current Route Planning Section */}
+            <Card className="border-2 border-blue-200 dark:border-blue-800">
+              <CardHeader className="bg-blue-50 dark:bg-blue-950/30">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <CardTitle className="flex items-center gap-2">
+                      <Plus className="h-5 w-5" />
+                      Add Visit
+                    </CardTitle>
+                    <CardDescription className="text-sm">
+                      {visits.length === 0 ? 
+                        "Start planning your route" : 
+                        optimisation ? 
+                          "Route optimized - ready to complete" :
+                          `${visits.length} visits added - ready to optimize`
+                      }
+                    </CardDescription>
+                  </div>
+                  <Badge variant="outline" className="bg-white dark:bg-gray-800">
+                    {visits.length === 0 ? "New Route" : 
+                     optimisation ? "Optimized" : "Planning"}
+                  </Badge>
+                </div>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div>
@@ -1801,17 +1817,20 @@ export default function RoutePlanner() {
             </Card>
 
 
-            {/* Visits List */}
-            <Card>
-              <CardHeader>
+            {/* Current Working Visits */}
+            <Card className="border-2 border-blue-200 dark:border-blue-800">
+              <CardHeader className="bg-blue-50 dark:bg-blue-950/30">
                 <div className="flex items-center justify-between">
                   <div>
                     <CardTitle className="flex items-center gap-2">
                       <MapPin className="h-5 w-5" />
-                      Visits ({visits.length})
+                      Current Route ({visits.length})
                     </CardTitle>
                     <CardDescription>
-                      Drag and drop to reorder visits manually
+                      {visits.length === 0 ? 
+                        "No visits in current route" :
+                        "Drag and drop to reorder visits manually"
+                      }
                     </CardDescription>
                   </div>
                   {originalOptimalOrder.length > 0 && (
@@ -1909,16 +1928,16 @@ export default function RoutePlanner() {
 
             {/* Route Summary List */}
             {optimisation && (
-              <Card className="mt-6">
-                <CardHeader>
+              <Card className="mt-6 border-2 border-blue-200 dark:border-blue-800">
+                <CardHeader className="bg-blue-50 dark:bg-blue-950/30">
                   <div className="flex items-center justify-between">
                     <div>
                       <CardTitle className="flex items-center gap-2">
                         <Route className="h-5 w-5" />
-                        Optimised Route Summary
+                        Current Route - Optimized
                       </CardTitle>
                       <CardDescription>
-                        Visit sequence with travel times to next customer
+                        Visit sequence with travel times - ready to complete or export
                       </CardDescription>
                     </div>
                     <div className="flex items-center gap-2">
@@ -2159,17 +2178,24 @@ export default function RoutePlanner() {
               </Card>
             )}
 
-            {/* Archived Routes Section */}
+            {/* Completed Routes Section */}
             {archivedRoutes.length > 0 && (
-              <Card className="mt-6">
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Archive className="h-5 w-5" />
-                    Archived Routes ({archivedRoutes.length})
-                  </CardTitle>
-                  <CardDescription>
-                    Previously completed and archived route optimizations
-                  </CardDescription>
+              <Card className="mt-6 border-2 border-green-200 dark:border-green-800">
+                <CardHeader className="bg-green-50 dark:bg-green-950/30">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <CardTitle className="flex items-center gap-2">
+                        <Archive className="h-5 w-5" />
+                        Completed Routes ({archivedRoutes.length})
+                      </CardTitle>
+                      <CardDescription>
+                        Previously completed and archived route optimizations
+                      </CardDescription>
+                    </div>
+                    <Badge variant="outline" className="bg-white dark:bg-gray-800 text-green-700 dark:text-green-300">
+                      Archived
+                    </Badge>
+                  </div>
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-4">
