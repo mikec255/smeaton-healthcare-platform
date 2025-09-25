@@ -177,11 +177,11 @@ export class AdvancedRouteOptimizer {
   private getShiftDepartureTime(timeSlot: string, defaultDepartureTime: string): string {
     // Define typical start times for each shift
     const shiftStartTimes: Record<string, string> = {
-      'AM': '08:00',
-      'Morning': '08:00',
-      'Lunch': '12:00',
+      'AM': '07:00',
+      'Morning': '07:00',
+      'Lunch': '11:00',
       'Tea': '15:00',
-      'Bed': '20:00',
+      'Bed': '18:00',
       'Evening': '18:00'
     };
     

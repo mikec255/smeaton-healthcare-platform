@@ -2219,7 +2219,7 @@ export default function RoutePlanner() {
                                           </span>
                                         </div>
                                         <p className="text-xs text-muted-foreground">
-                                          {isLastInSlot && !isLastStop ? 'to next time slot' : 'to next customer'}
+                                          {isLastInSlot ? 'final destination' : 'to next customer'}
                                         </p>
                                       </div>
                                     )}
