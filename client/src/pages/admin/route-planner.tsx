@@ -327,12 +327,17 @@ export default function RoutePlanner() {
       const response = await apiRequest('POST', '/api/route-planner/optimize', data);
       return await response.json();
     },
-    onSuccess: (result: OptimisationResult) => {
-      setOptimisation(result);
-      updateMapWithOptimisedRoute(result);
+    onSuccess: (result: any) => {
+      // Transform US spelling from backend to UK spelling for frontend
+      const ukResult: OptimisationResult = {
+        ...result,
+        optimisedOrder: result.optimizedOrder || result.optimisedOrder
+      };
+      setOptimisation(ukResult);
+      updateMapWithOptimisedRoute(ukResult);
       toast({
         title: "Route Optimised & Run Created",
-        description: `Shortest route created visiting ${result.optimisedOrder.length} addresses house-to-house with minimum travel time. Run saved with ID: ${result.runId}`,
+        description: `Shortest route created visiting ${ukResult.optimisedOrder.length} addresses house-to-house with minimum travel time. Run saved with ID: ${result.runId}`,
       });
     },
     onError: (error) => {
