@@ -1889,10 +1889,6 @@ export default function RoutePlanner() {
                       <SelectItem value="Lunch">Lunch (11:00-15:00)</SelectItem>
                       <SelectItem value="Tea">Tea (15:00-18:00)</SelectItem>
                       <SelectItem value="Bed">Bed (18:00-23:00)</SelectItem>
-                      <SelectItem value="Commission Morning">Commission Morning (07:00-11:00)</SelectItem>
-                      <SelectItem value="Commission Lunch">Commission Lunch (11:00-15:00)</SelectItem>
-                      <SelectItem value="Commission Tea">Commission Tea (15:00-18:00)</SelectItem>
-                      <SelectItem value="Commission Bed">Commission Bed (18:00-23:00)</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
