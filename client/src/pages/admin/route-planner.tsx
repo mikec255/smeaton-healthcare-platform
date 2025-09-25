@@ -862,7 +862,7 @@ export default function RoutePlanner() {
                 </div>
 
                 <div>
-                  <Label htmlFor="time-slot">Time Slot (Optional)</Label>
+                  <Label htmlFor="time-slot">Commissioning Timeslots</Label>
                   <Select value={newTimeSlot} onValueChange={setNewTimeSlot}>
                     <SelectTrigger data-testid="select-time-slot">
                       <SelectValue placeholder="Select time slot" />
