@@ -678,18 +678,18 @@ export default function RoutePlanner() {
     // Parse time slot ranges
     let slotStart = 0, slotEnd = 0;
     
-    if (visit.timeSlot.includes('Morning')) {
-      slotStart = 9 * 60;  // 9:00
-      slotEnd = 12 * 60;   // 12:00
-    } else if (visit.timeSlot.includes('Afternoon')) {
-      slotStart = 12 * 60; // 12:00
-      slotEnd = 17 * 60;   // 17:00
+    if (visit.timeSlot.includes('AM') || visit.timeSlot.includes('Morning')) {
+      slotStart = 8 * 60;  // 8:00 AM
+      slotEnd = 12 * 60;   // 12:00 PM
+    } else if (visit.timeSlot.includes('PM') || visit.timeSlot.includes('Afternoon')) {
+      slotStart = 12 * 60; // 12:00 PM
+      slotEnd = 17 * 60;   // 5:00 PM
     } else if (visit.timeSlot.includes('Evening')) {
-      slotStart = 17 * 60; // 17:00
-      slotEnd = 21 * 60;   // 21:00
+      slotStart = 17 * 60; // 5:00 PM
+      slotEnd = 21 * 60;   // 9:00 PM
     } else if (visit.timeSlot.includes('Night')) {
-      slotStart = 21 * 60; // 21:00
-      slotEnd = 24 * 60;   // 24:00
+      slotStart = 21 * 60; // 9:00 PM
+      slotEnd = 24 * 60;   // 12:00 AM
     }
 
     // Check if start OR end time is outside the slot
