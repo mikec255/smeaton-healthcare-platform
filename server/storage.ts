@@ -1,7 +1,7 @@
-import { type User, type InsertUser, type Job, type InsertJob, type Application, type InsertApplication, type ContactSubmission, type InsertContactSubmission, type Feedback, type InsertFeedback, type Newsletter, type InsertNewsletter, type NewsletterBlock, type InsertNewsletterBlock, type Template, type InsertTemplate, type Subscriber, type InsertSubscriber, type Campaign, type InsertCampaign, type Delivery, type InsertDelivery, type BlogCategory, type InsertBlogCategory, type BlogPost, type InsertBlogPost, type AuditLog, type InsertAuditLog, type CqcAudit, type InsertCqcAudit, type CqcAuditCategory, type InsertCqcAuditCategory, type CqcQualityStatement, type InsertCqcQualityStatement, type CqcEvidenceCategory, type InsertCqcEvidenceCategory, type CqcAuditEvidence, type InsertCqcAuditEvidence, type CqcQualityAssessment, type InsertCqcQualityAssessment, type CqcComplianceRecord, type InsertCqcComplianceRecord, type KnowledgeQuestionnaire, type InsertKnowledgeQuestionnaire, type KnowledgeQuestion, type InsertKnowledgeQuestion, type KnowledgeSession, type InsertKnowledgeSession, type KnowledgeResponse, type InsertKnowledgeResponse, type KnowledgeAction, type InsertKnowledgeAction, type RecruitmentApplication, type InsertRecruitmentApplication } from "@shared/schema";
+import { type User, type InsertUser, type Job, type InsertJob, type Application, type InsertApplication, type ContactSubmission, type InsertContactSubmission, type Feedback, type InsertFeedback, type Newsletter, type InsertNewsletter, type NewsletterBlock, type InsertNewsletterBlock, type Template, type InsertTemplate, type Subscriber, type InsertSubscriber, type Campaign, type InsertCampaign, type Delivery, type InsertDelivery, type BlogCategory, type InsertBlogCategory, type BlogPost, type InsertBlogPost, type AuditLog, type InsertAuditLog, type CqcAudit, type InsertCqcAudit, type CqcAuditCategory, type InsertCqcAuditCategory, type CqcQualityStatement, type InsertCqcQualityStatement, type CqcEvidenceCategory, type InsertCqcEvidenceCategory, type CqcAuditEvidence, type InsertCqcAuditEvidence, type CqcQualityAssessment, type InsertCqcQualityAssessment, type CqcComplianceRecord, type InsertCqcComplianceRecord, type KnowledgeQuestionnaire, type InsertKnowledgeQuestionnaire, type KnowledgeQuestion, type InsertKnowledgeQuestion, type KnowledgeSession, type InsertKnowledgeSession, type KnowledgeResponse, type InsertKnowledgeResponse, type KnowledgeAction, type InsertKnowledgeAction, type RecruitmentApplication, type InsertRecruitmentApplication, type ProfessionalReference, type InsertProfessionalReference } from "@shared/schema";
 import { randomUUID } from "crypto";
 import { db } from "./db";
-import { users, jobs, applications, contactSubmissions, blogCategories, blogPosts, auditLogs, cqcAudits, cqcAuditCategories, cqcQualityStatements, cqcEvidenceCategories, cqcAuditEvidence, cqcQualityAssessments, cqcComplianceRecords, knowledgeQuestionnaires, knowledgeQuestions, knowledgeSessions, knowledgeResponses, knowledgeActions, recruitmentApplications } from "@shared/schema";
+import { users, jobs, applications, contactSubmissions, blogCategories, blogPosts, auditLogs, cqcAudits, cqcAuditCategories, cqcQualityStatements, cqcEvidenceCategories, cqcAuditEvidence, cqcQualityAssessments, cqcComplianceRecords, knowledgeQuestionnaires, knowledgeQuestions, knowledgeSessions, knowledgeResponses, knowledgeActions, recruitmentApplications, professionalReferences } from "@shared/schema";
 import { eq, and, desc } from "drizzle-orm";
 import bcrypt from "bcryptjs";
 
@@ -39,6 +39,13 @@ export interface IStorage {
   createRecruitmentApplication(application: InsertRecruitmentApplication): Promise<RecruitmentApplication>;
   updateRecruitmentApplicationStatus(id: string, status: string, reviewedBy?: string): Promise<RecruitmentApplication | undefined>;
   updateRecruitmentApplicationNotes(id: string, adminNotes: string): Promise<RecruitmentApplication | undefined>;
+  
+  // Professional References
+  getAllProfessionalReferences(): Promise<ProfessionalReference[]>;
+  getProfessionalReference(id: string): Promise<ProfessionalReference | undefined>;
+  createProfessionalReference(reference: InsertProfessionalReference): Promise<ProfessionalReference>;
+  updateProfessionalReferenceStatus(id: string, status: string, reviewedBy?: string): Promise<ProfessionalReference | undefined>;
+  updateProfessionalReferenceNotes(id: string, adminNotes: string): Promise<ProfessionalReference | undefined>;
   
   // Contact submissions
   getAllContactSubmissions(): Promise<ContactSubmission[]>;
@@ -226,6 +233,7 @@ export class MemStorage implements IStorage {
   private jobs: Map<string, Job>;
   private applications: Map<string, Application>;
   private recruitmentApplications: Map<string, RecruitmentApplication>;
+  private professionalReferences: Map<string, ProfessionalReference>;
   private contactSubmissions: Map<string, ContactSubmission>;
   private feedback: Map<string, Feedback>;
   private newsletters: Map<string, Newsletter>;
@@ -253,6 +261,7 @@ export class MemStorage implements IStorage {
     this.jobs = new Map();
     this.applications = new Map();
     this.recruitmentApplications = new Map();
+    this.professionalReferences = new Map();
     this.contactSubmissions = new Map();
     this.feedback = new Map();
     this.newsletters = new Map();
@@ -622,6 +631,58 @@ export class MemStorage implements IStorage {
     };
     this.recruitmentApplications.set(id, updatedApplication);
     return updatedApplication;
+  }
+
+  // Professional References - MemStorage
+  async getAllProfessionalReferences(): Promise<ProfessionalReference[]> {
+    return Array.from(this.professionalReferences.values())
+      .sort((a, b) => (b.createdAt?.getTime() || 0) - (a.createdAt?.getTime() || 0));
+  }
+
+  async getProfessionalReference(id: string): Promise<ProfessionalReference | undefined> {
+    return this.professionalReferences.get(id);
+  }
+
+  async createProfessionalReference(reference: InsertProfessionalReference): Promise<ProfessionalReference> {
+    const id = randomUUID();
+    const now = new Date();
+    const newReference: ProfessionalReference = {
+      id,
+      ...reference,
+      createdAt: now,
+      updatedAt: now,
+    };
+    this.professionalReferences.set(id, newReference);
+    return newReference;
+  }
+
+  async updateProfessionalReferenceStatus(id: string, status: string, reviewedBy?: string): Promise<ProfessionalReference | undefined> {
+    const reference = this.professionalReferences.get(id);
+    if (!reference) return undefined;
+    
+    const now = new Date();
+    const updatedReference: ProfessionalReference = {
+      ...reference,
+      status,
+      reviewedBy: reviewedBy || null,
+      reviewedAt: reviewedBy ? now : null,
+      updatedAt: now,
+    };
+    this.professionalReferences.set(id, updatedReference);
+    return updatedReference;
+  }
+
+  async updateProfessionalReferenceNotes(id: string, adminNotes: string): Promise<ProfessionalReference | undefined> {
+    const reference = this.professionalReferences.get(id);
+    if (!reference) return undefined;
+    
+    const updatedReference: ProfessionalReference = {
+      ...reference,
+      adminNotes,
+      updatedAt: new Date(),
+    };
+    this.professionalReferences.set(id, updatedReference);
+    return updatedReference;
   }
 
   async getAllContactSubmissions(): Promise<ContactSubmission[]> {
@@ -1726,6 +1787,54 @@ export class DrizzleStorage implements IStorage {
         updatedAt: new Date()
       })
       .where(eq(recruitmentApplications.id, id))
+      .returning();
+    
+    return result[0];
+  }
+
+  // Professional References - DatabaseStorage
+  async getAllProfessionalReferences(): Promise<ProfessionalReference[]> {
+    return await db.select().from(professionalReferences).orderBy(desc(professionalReferences.createdAt));
+  }
+
+  async getProfessionalReference(id: string): Promise<ProfessionalReference | undefined> {
+    const result = await db.select().from(professionalReferences)
+      .where(eq(professionalReferences.id, id))
+      .limit(1);
+    return result[0];
+  }
+
+  async createProfessionalReference(reference: InsertProfessionalReference): Promise<ProfessionalReference> {
+    const result = await db.insert(professionalReferences).values(reference).returning();
+    return result[0];
+  }
+
+  async updateProfessionalReferenceStatus(id: string, status: string, reviewedBy?: string): Promise<ProfessionalReference | undefined> {
+    const updateData: any = { 
+      status, 
+      updatedAt: new Date()
+    };
+    
+    if (reviewedBy) {
+      updateData.reviewedBy = reviewedBy;
+      updateData.reviewedAt = new Date();
+    }
+
+    const result = await db.update(professionalReferences)
+      .set(updateData)
+      .where(eq(professionalReferences.id, id))
+      .returning();
+    
+    return result[0];
+  }
+
+  async updateProfessionalReferenceNotes(id: string, adminNotes: string): Promise<ProfessionalReference | undefined> {
+    const result = await db.update(professionalReferences)
+      .set({ 
+        adminNotes,
+        updatedAt: new Date()
+      })
+      .where(eq(professionalReferences.id, id))
       .returning();
     
     return result[0];

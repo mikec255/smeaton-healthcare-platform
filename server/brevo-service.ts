@@ -1180,6 +1180,143 @@ Smeaton Healthcare Recruitment Team
 Healthcare staffing solutions across Devon and Cornwall
     `;
   }
+
+  async sendProfessionalReferenceConfirmation(referenceData: {
+    to: string;
+    referenceProviderName: string;
+    candidateName: string;
+    referenceId: string;
+  }) {
+    if (!this.isConfigured) {
+      console.warn('Brevo not configured - skipping professional reference confirmation email send');
+      return;
+    }
+
+    try {
+      const result = await this.emailApi.sendTransacEmail({
+        to: [{
+          email: referenceData.to,
+          name: referenceData.referenceProviderName
+        }],
+        subject: 'Reference Confirmation - Smeaton Healthcare',
+        htmlContent: this.getProfessionalReferenceConfirmationHtml(referenceData),
+        textContent: this.getProfessionalReferenceConfirmationText(referenceData),
+        sender: {
+          email: 'recruitment@smeatonhealthcare.co.uk',
+          name: 'Smeaton Healthcare Recruitment'
+        }
+      });
+
+      console.log('Professional reference confirmation email sent successfully:', result.body?.messageId || 'Email sent');
+      return result;
+    } catch (error) {
+      console.error('Failed to send professional reference confirmation email:', error);
+      throw error;
+    }
+  }
+
+  private getProfessionalReferenceConfirmationHtml(referenceData: {
+    referenceProviderName: string;
+    candidateName: string;
+    referenceId: string;
+  }): string {
+    return `
+    <html>
+    <head>
+      <style>
+        body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+        .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+        .header { background-color: #0066cc; color: white; text-align: center; padding: 20px; border-radius: 8px 8px 0 0; }
+        .content { background-color: #ffffff; padding: 30px; border: 1px solid #ddd; }
+        .footer { background-color: #f8f9fa; padding: 20px; text-align: center; border-radius: 0 0 8px 8px; font-size: 12px; color: #666; }
+        .button { display: inline-block; background-color: #0066cc; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; margin: 15px 0; }
+        .highlight { background-color: #e8f4f8; padding: 15px; border-radius: 5px; margin: 15px 0; border-left: 4px solid #0066cc; }
+      </style>
+    </head>
+    <body>
+      <div class="container">
+        <div class="header">
+          <h1>Reference Received</h1>
+          <p>Thank you for providing a professional reference</p>
+        </div>
+        
+        <div class="content">
+          <p>Dear ${referenceData.referenceProviderName},</p>
+          
+          <p>Thank you for submitting a professional reference for <strong>${referenceData.candidateName}</strong>. We have successfully received your reference and it is now part of their application file with Smeaton Healthcare.</p>
+          
+          <div class="highlight">
+            <strong>Reference ID:</strong> ${referenceData.referenceId}
+          </div>
+          
+          <h3>What happens next?</h3>
+          <ul>
+            <li><strong>Reference Review:</strong> Our recruitment team will review your reference as part of the candidate's application</li>
+            <li><strong>Follow-up Contact:</strong> We may contact you for additional information if needed</li>
+            <li><strong>Confidentiality:</strong> Your reference will be treated with strict confidentiality and used solely for recruitment purposes</li>
+            <li><strong>Updates:</strong> We will keep the reference on file for the candidate's current application</li>
+          </ul>
+          
+          <p>Your professional insights are valuable to us in ensuring we make the right hiring decisions and maintain our high standards of healthcare staffing.</p>
+          
+          <p>If you have any questions about this reference or need to make any amendments, please contact our recruitment team:</p>
+          <ul>
+            <li>Email: <a href="mailto:recruitment@smeatonhealthcare.co.uk">recruitment@smeatonhealthcare.co.uk</a></li>
+            <li>Phone: 01752 123456</li>
+          </ul>
+          
+          <p>Thank you again for taking the time to provide this reference.</p>
+          
+          <p>Best regards,<br>
+          <strong>Smeaton Healthcare Recruitment Team</strong></p>
+        </div>
+        
+        <div class="footer">
+          <p>© ${new Date().getFullYear()} Smeaton Healthcare. All rights reserved.<br>
+          Healthcare staffing solutions across Devon and Cornwall</p>
+        </div>
+      </div>
+    </body>
+    </html>
+    `;
+  }
+
+  private getProfessionalReferenceConfirmationText(referenceData: {
+    referenceProviderName: string;
+    candidateName: string;
+    referenceId: string;
+  }): string {
+    return `
+REFERENCE RECEIVED
+
+Dear ${referenceData.referenceProviderName},
+
+Thank you for submitting a professional reference for ${referenceData.candidateName}. We have successfully received your reference and it is now part of their application file with Smeaton Healthcare.
+
+Reference ID: ${referenceData.referenceId}
+
+WHAT HAPPENS NEXT?
+- Reference Review: Our recruitment team will review your reference as part of the candidate's application
+- Follow-up Contact: We may contact you for additional information if needed  
+- Confidentiality: Your reference will be treated with strict confidentiality and used solely for recruitment purposes
+- Updates: We will keep the reference on file for the candidate's current application
+
+Your professional insights are valuable to us in ensuring we make the right hiring decisions and maintain our high standards of healthcare staffing.
+
+If you have any questions about this reference or need to make any amendments, please contact our recruitment team:
+- Email: recruitment@smeatonhealthcare.co.uk
+- Phone: 01752 123456
+
+Thank you again for taking the time to provide this reference.
+
+Best regards,
+Smeaton Healthcare Recruitment Team
+
+---
+© ${new Date().getFullYear()} Smeaton Healthcare. All rights reserved.
+Healthcare staffing solutions across Devon and Cornwall
+    `;
+  }
 }
 
 export const brevoService = new BrevoService();

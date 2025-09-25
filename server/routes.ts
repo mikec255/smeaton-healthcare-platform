@@ -4,7 +4,7 @@ import session from "express-session";
 import bcrypt from "bcryptjs";
 import crypto from "crypto";
 import { storage } from "./storage";
-import { insertJobSchema, insertApplicationSchema, insertContactSubmissionSchema, insertFeedbackSchema, insertNewsletterSchema, insertNewsletterBlockSchema, insertTemplateSchema, insertBlogCategorySchema, insertBlogPostSchema, insertUserSchema, loginUserSchema, updateUserSchema, insertCqcAuditSchema, insertCqcAuditCategorySchema, insertCqcQualityStatementSchema, insertCqcEvidenceCategorySchema, insertCqcAuditEvidenceSchema, insertCqcQualityAssessmentSchema, insertCqcComplianceRecordSchema, insertKnowledgeQuestionnaireSchema, insertKnowledgeQuestionSchema, insertKnowledgeSessionSchema, insertKnowledgeResponseSchema, insertKnowledgeActionSchema, insertRecruitmentApplicationSchema } from "@shared/schema";
+import { insertJobSchema, insertApplicationSchema, insertContactSubmissionSchema, insertFeedbackSchema, insertNewsletterSchema, insertNewsletterBlockSchema, insertTemplateSchema, insertBlogCategorySchema, insertBlogPostSchema, insertUserSchema, loginUserSchema, updateUserSchema, insertCqcAuditSchema, insertCqcAuditCategorySchema, insertCqcQualityStatementSchema, insertCqcEvidenceCategorySchema, insertCqcAuditEvidenceSchema, insertCqcQualityAssessmentSchema, insertCqcComplianceRecordSchema, insertKnowledgeQuestionnaireSchema, insertKnowledgeQuestionSchema, insertKnowledgeSessionSchema, insertKnowledgeResponseSchema, insertKnowledgeActionSchema, insertRecruitmentApplicationSchema, insertProfessionalReferenceSchema } from "@shared/schema";
 import { ObjectStorageService } from "./objectStorage";
 import { brevoService } from "./brevo-service";
 import { AuditLogger } from "./audit";
@@ -1106,6 +1106,122 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "Invalid notes data", errors: error.errors });
       }
       res.status(500).json({ message: "Failed to update recruitment application notes" });
+    }
+  });
+
+  // Professional References API
+  app.get("/api/admin/professional-references", requireAdmin, async (req, res) => {
+    try {
+      const references = await storage.getAllProfessionalReferences();
+      
+      // Log GDPR-relevant action: admin viewing personal data
+      if (req.user) {
+        await AuditLogger.logView(req, req.user, "professional_reference", "bulk", {
+          action: "view_all_professional_references",
+          recordCount: references.length
+        });
+      }
+      
+      res.json(references);
+    } catch (error) {
+      console.error("Error fetching professional references:", error);
+      res.status(500).json({ message: "Failed to fetch professional references" });
+    }
+  });
+
+  app.post("/api/professional-references", async (req, res) => {
+    try {
+      const validatedData = insertProfessionalReferenceSchema.parse(req.body);
+      const reference = await storage.createProfessionalReference(validatedData);
+      
+      // Send confirmation email to reference provider
+      if (brevoService) {
+        try {
+          await brevoService.sendProfessionalReferenceConfirmation({
+            to: reference.referenceProviderEmail,
+            referenceProviderName: reference.referenceProviderName,
+            candidateName: reference.candidateName,
+            referenceId: reference.id
+          });
+        } catch (emailError) {
+          console.error("Failed to send professional reference confirmation email:", emailError);
+          // Don't fail the reference submission if email fails
+        }
+      }
+
+      res.json(reference);
+    } catch (error) {
+      console.error("Error creating professional reference:", error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid reference data", errors: error.errors });
+      }
+      res.status(500).json({ message: "Failed to submit professional reference" });
+    }
+  });
+
+  app.put("/api/admin/professional-references/:id/status", requireAdmin, async (req, res) => {
+    try {
+      // Validate status input with allowed enum values
+      const statusUpdateSchema = z.object({
+        status: z.enum(["pending", "reviewed", "verified", "flagged"])
+      });
+
+      const validatedData = statusUpdateSchema.parse(req.body);
+      const reference = await storage.updateProfessionalReferenceStatus(req.params.id, validatedData.status, req.user?.id);
+      if (!reference) {
+        return res.status(404).json({ message: "Professional reference not found" });
+      }
+      
+      // Log GDPR-relevant action: admin updating reference status
+      if (req.user) {
+        await AuditLogger.logUpdate(req, req.user, "professional_reference", req.params.id, {
+          action: "update_reference_status",
+          newStatus: validatedData.status,
+          candidateEmail: reference.candidateEmail,
+          referenceProviderEmail: reference.referenceProviderEmail,
+          reviewedBy: req.user.id
+        });
+      }
+      
+      res.json(reference);
+    } catch (error) {
+      console.error("Error updating professional reference status:", error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid status data", errors: error.errors });
+      }
+      res.status(500).json({ message: "Failed to update professional reference status" });
+    }
+  });
+
+  app.put("/api/admin/professional-references/:id/notes", requireAdmin, async (req, res) => {
+    try {
+      const notesSchema = z.object({
+        adminNotes: z.string().max(5000, "Notes must be less than 5000 characters").optional()
+      });
+      
+      const validatedData = notesSchema.parse(req.body);
+      const reference = await storage.updateProfessionalReferenceNotes(req.params.id, validatedData.adminNotes || "");
+      if (!reference) {
+        return res.status(404).json({ message: "Professional reference not found" });
+      }
+      
+      // Log GDPR-relevant action: admin adding/modifying notes about personal data
+      if (req.user) {
+        await AuditLogger.logUpdate(req, req.user, "professional_reference", req.params.id, {
+          action: "update_professional_reference_notes",
+          notesLength: validatedData.adminNotes?.length || 0,
+          candidateEmail: reference.candidateEmail,
+          referenceProviderEmail: reference.referenceProviderEmail
+        });
+      }
+      
+      res.json(reference);
+    } catch (error) {
+      console.error("Error updating professional reference notes:", error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid notes data", errors: error.errors });
+      }
+      res.status(500).json({ message: "Failed to update professional reference notes" });
     }
   });
 
