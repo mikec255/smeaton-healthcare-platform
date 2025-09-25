@@ -663,10 +663,10 @@ export default function RoutePlanner() {
     return `${Math.round(feet)} ft`;
   };
 
-  // Check if calculated visit times are within the preferred time slot
-  const isTimeOutsideSlot = (visit: any) => {
+  // Check visit time compliance with preferred time slot
+  const getTimeSlotStatus = (visit: any) => {
     if (!visit.calculatedStartTime || !visit.calculatedEndTime || !visit.timeSlot) {
-      return false;
+      return 'within'; // Default to within if no time info
     }
 
     // Parse calculated times (format: "14:05")
@@ -692,8 +692,17 @@ export default function RoutePlanner() {
       slotEnd = 24 * 60;   // 12:00 AM
     }
 
-    // Check if start OR end time is outside the slot
-    return calculatedStart < slotStart || calculatedEnd > slotEnd;
+    // Check time slot compliance
+    const startOutside = calculatedStart < slotStart || calculatedStart > slotEnd;
+    const endOutside = calculatedEnd < slotStart || calculatedEnd > slotEnd;
+    
+    if (startOutside) {
+      return 'starts-outside'; // Red warning - starts outside
+    } else if (endOutside) {
+      return 'ends-outside'; // Amber warning - ends outside
+    } else {
+      return 'within'; // Green - fully within
+    }
   };
 
   return (
@@ -1011,8 +1020,10 @@ export default function RoutePlanner() {
                                   <Badge 
                                     variant="secondary" 
                                     className={`text-xs ${
-                                      isTimeOutsideSlot(visit) 
-                                        ? 'bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-400' 
+                                      getTimeSlotStatus(visit) === 'starts-outside'
+                                        ? 'bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-400'
+                                        : getTimeSlotStatus(visit) === 'ends-outside'
+                                        ? 'bg-amber-100 text-amber-800 dark:bg-amber-900/20 dark:text-amber-400'
                                         : 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400'
                                     }`}
                                   >
@@ -1028,9 +1039,14 @@ export default function RoutePlanner() {
                                   Preferred time: {visit.timeSlot}
                                 </p>
                               )}
-                              {visit.calculatedStartTime && isTimeOutsideSlot(visit) && (
+                              {visit.calculatedStartTime && getTimeSlotStatus(visit) === 'starts-outside' && (
                                 <p className="text-xs text-red-600 dark:text-red-400 mt-1 font-medium">
-                                  ⚠️ Visit time is outside preferred slot
+                                  🚨 Visit starts outside preferred time slot
+                                </p>
+                              )}
+                              {visit.calculatedStartTime && getTimeSlotStatus(visit) === 'ends-outside' && (
+                                <p className="text-xs text-amber-600 dark:text-amber-400 mt-1 font-medium">
+                                  ⚠️ Visit finishes outside preferred time slot
                                 </p>
                               )}
                             </div>
