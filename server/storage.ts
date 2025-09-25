@@ -1587,6 +1587,248 @@ export class MemStorage implements IStorage {
   async deleteCqcComplianceRecord(id: string): Promise<boolean> {
     return this.cqcComplianceRecords.delete(id);
   }
+
+  // Route Planning - Clients
+  async getAllClients(filters?: { isActive?: boolean; postcode?: string }): Promise<Client[]> {
+    let clients = Array.from(this.clients.values());
+    if (filters?.isActive !== undefined) {
+      clients = clients.filter(c => c.isActive === filters.isActive);
+    }
+    if (filters?.postcode) {
+      clients = clients.filter(c => c.postcode?.toLowerCase().includes(filters.postcode!.toLowerCase()));
+    }
+    return clients;
+  }
+
+  async getClient(id: string): Promise<Client | undefined> {
+    return this.clients.get(id);
+  }
+
+  async getClientByPostcode(postcode: string): Promise<Client[]> {
+    return Array.from(this.clients.values()).filter(c => 
+      c.postcode?.toLowerCase().includes(postcode.toLowerCase())
+    );
+  }
+
+  async createClient(client: InsertClient): Promise<Client> {
+    const id = randomUUID();
+    const now = new Date();
+    const newClient: Client = {
+      id,
+      createdAt: now,
+      updatedAt: now,
+      ...client,
+    };
+    this.clients.set(id, newClient);
+    return newClient;
+  }
+
+  async updateClient(id: string, updates: Partial<InsertClient>): Promise<Client | undefined> {
+    const client = this.clients.get(id);
+    if (!client) return undefined;
+    
+    const updatedClient: Client = {
+      ...client,
+      ...updates,
+      updatedAt: new Date(),
+    };
+    this.clients.set(id, updatedClient);
+    return updatedClient;
+  }
+
+  async deleteClient(id: string): Promise<boolean> {
+    return this.clients.delete(id);
+  }
+
+  // Route Planning - Visits
+  async getAllVisits(filters?: { date?: string; clientId?: string; timeSlot?: string; status?: string }): Promise<Visit[]> {
+    let visits = Array.from(this.visits.values());
+    if (filters?.date) {
+      visits = visits.filter(v => v.visitDate === filters.date);
+    }
+    if (filters?.clientId) {
+      visits = visits.filter(v => v.clientId === filters.clientId);
+    }
+    if (filters?.timeSlot) {
+      visits = visits.filter(v => v.timeSlot === filters.timeSlot);
+    }
+    if (filters?.status) {
+      visits = visits.filter(v => v.status === filters.status);
+    }
+    return visits;
+  }
+
+  async getVisitsByDate(date: string): Promise<Visit[]> {
+    return Array.from(this.visits.values()).filter(v => v.visitDate === date);
+  }
+
+  async getVisitsByClientId(clientId: string): Promise<Visit[]> {
+    return Array.from(this.visits.values()).filter(v => v.clientId === clientId);
+  }
+
+  async getVisit(id: string): Promise<Visit | undefined> {
+    return this.visits.get(id);
+  }
+
+  async createVisit(visit: InsertVisit): Promise<Visit> {
+    const id = randomUUID();
+    const now = new Date();
+    const newVisit: Visit = {
+      id,
+      createdAt: now,
+      updatedAt: now,
+      ...visit,
+    };
+    this.visits.set(id, newVisit);
+    return newVisit;
+  }
+
+  async updateVisit(id: string, updates: Partial<InsertVisit>): Promise<Visit | undefined> {
+    const visit = this.visits.get(id);
+    if (!visit) return undefined;
+    
+    const updatedVisit: Visit = {
+      ...visit,
+      ...updates,
+      updatedAt: new Date(),
+    };
+    this.visits.set(id, updatedVisit);
+    return updatedVisit;
+  }
+
+  async deleteVisit(id: string): Promise<boolean> {
+    return this.visits.delete(id);
+  }
+
+  // Route Planning - Runs
+  async getAllRuns(filters?: { date?: string; travelMode?: string; status?: string; createdBy?: string }): Promise<Run[]> {
+    let runs = Array.from(this.runs.values());
+    if (filters?.date) {
+      runs = runs.filter(r => r.runDate === filters.date);
+    }
+    if (filters?.travelMode) {
+      runs = runs.filter(r => r.travelMode === filters.travelMode);
+    }
+    if (filters?.status) {
+      runs = runs.filter(r => r.status === filters.status);
+    }
+    if (filters?.createdBy) {
+      runs = runs.filter(r => r.createdBy === filters.createdBy);
+    }
+    return runs;
+  }
+
+  async getRunsByDate(date: string): Promise<Run[]> {
+    return Array.from(this.runs.values()).filter(r => r.runDate === date);
+  }
+
+  async getRun(id: string): Promise<Run | undefined> {
+    return this.runs.get(id);
+  }
+
+  async createRun(run: InsertRun): Promise<Run> {
+    const id = randomUUID();
+    const now = new Date();
+    const newRun: Run = {
+      id,
+      createdAt: now,
+      updatedAt: now,
+      ...run,
+    };
+    this.runs.set(id, newRun);
+    return newRun;
+  }
+
+  async updateRun(id: string, updates: Partial<InsertRun>): Promise<Run | undefined> {
+    const run = this.runs.get(id);
+    if (!run) return undefined;
+    
+    const updatedRun: Run = {
+      ...run,
+      ...updates,
+      updatedAt: new Date(),
+    };
+    this.runs.set(id, updatedRun);
+    return updatedRun;
+  }
+
+  async deleteRun(id: string): Promise<boolean> {
+    return this.runs.delete(id);
+  }
+
+  // Route Planning - Run Stops
+  async getRunStops(runId: string): Promise<RunStop[]> {
+    return Array.from(this.runStops.values()).filter(rs => rs.runId === runId);
+  }
+
+  async getRunStop(id: string): Promise<RunStop | undefined> {
+    return this.runStops.get(id);
+  }
+
+  async createRunStop(runStop: InsertRunStop): Promise<RunStop> {
+    const id = randomUUID();
+    const now = new Date();
+    const newRunStop: RunStop = {
+      id,
+      createdAt: now,
+      ...runStop,
+    };
+    this.runStops.set(id, newRunStop);
+    return newRunStop;
+  }
+
+  async updateRunStop(id: string, updates: Partial<InsertRunStop>): Promise<RunStop | undefined> {
+    const runStop = this.runStops.get(id);
+    if (!runStop) return undefined;
+    
+    const updatedRunStop: RunStop = {
+      ...runStop,
+      ...updates,
+    };
+    this.runStops.set(id, updatedRunStop);
+    return updatedRunStop;
+  }
+
+  async deleteRunStop(id: string): Promise<boolean> {
+    return this.runStops.delete(id);
+  }
+
+  async deleteRunStops(runId: string): Promise<boolean> {
+    const runStops = Array.from(this.runStops.entries()).filter(([_, rs]) => rs.runId === runId);
+    runStops.forEach(([id]) => this.runStops.delete(id));
+    return true;
+  }
+
+  // Route Planning - Geocoding Cache
+  async getGeocode(address: string): Promise<Geocode | undefined> {
+    return Array.from(this.geocodes.values()).find(g => g.cacheKey === address);
+  }
+
+  async createGeocode(geocode: InsertGeocode): Promise<Geocode> {
+    const id = randomUUID();
+    const now = new Date();
+    const newGeocode: Geocode = {
+      id,
+      createdAt: now,
+      updatedAt: now,
+      ...geocode,
+    };
+    this.geocodes.set(id, newGeocode);
+    return newGeocode;
+  }
+
+  async updateGeocode(id: string, updates: Partial<InsertGeocode>): Promise<Geocode | undefined> {
+    const geocode = this.geocodes.get(id);
+    if (!geocode) return undefined;
+    
+    const updatedGeocode: Geocode = {
+      ...geocode,
+      ...updates,
+      updatedAt: new Date(),
+    };
+    this.geocodes.set(id, updatedGeocode);
+    return updatedGeocode;
+  }
 }
 
 // Database storage implementation using Drizzle ORM

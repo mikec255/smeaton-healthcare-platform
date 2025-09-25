@@ -4,7 +4,8 @@ import session from "express-session";
 import bcrypt from "bcryptjs";
 import crypto from "crypto";
 import { storage } from "./storage";
-import { insertJobSchema, insertApplicationSchema, insertContactSubmissionSchema, insertFeedbackSchema, insertNewsletterSchema, insertNewsletterBlockSchema, insertTemplateSchema, insertBlogCategorySchema, insertBlogPostSchema, insertUserSchema, loginUserSchema, updateUserSchema, insertCqcAuditSchema, insertCqcAuditCategorySchema, insertCqcQualityStatementSchema, insertCqcEvidenceCategorySchema, insertCqcAuditEvidenceSchema, insertCqcQualityAssessmentSchema, insertCqcComplianceRecordSchema, insertKnowledgeQuestionnaireSchema, insertKnowledgeQuestionSchema, insertKnowledgeSessionSchema, insertKnowledgeResponseSchema, insertKnowledgeActionSchema, insertRecruitmentApplicationSchema, insertProfessionalReferenceSchema } from "@shared/schema";
+import { insertJobSchema, insertApplicationSchema, insertContactSubmissionSchema, insertFeedbackSchema, insertNewsletterSchema, insertNewsletterBlockSchema, insertTemplateSchema, insertBlogCategorySchema, insertBlogPostSchema, insertUserSchema, loginUserSchema, updateUserSchema, insertCqcAuditSchema, insertCqcAuditCategorySchema, insertCqcQualityStatementSchema, insertCqcEvidenceCategorySchema, insertCqcAuditEvidenceSchema, insertCqcQualityAssessmentSchema, insertCqcComplianceRecordSchema, insertKnowledgeQuestionnaireSchema, insertKnowledgeQuestionSchema, insertKnowledgeSessionSchema, insertKnowledgeResponseSchema, insertKnowledgeActionSchema, insertRecruitmentApplicationSchema, insertProfessionalReferenceSchema, insertClientSchema, insertVisitSchema, insertRunSchema, insertRunStopSchema, insertGeocodeSchema } from "@shared/schema";
+import { GoogleMapsService } from "./google-maps-service";
 import { ObjectStorageService } from "./objectStorage";
 import { brevoService } from "./brevo-service";
 import { AuditLogger } from "./audit";
@@ -3107,6 +3108,390 @@ export async function registerRoutes(app: Express): Promise<Server> {
         message: "Failed to complete audit",
         error: error instanceof Error ? error.message : 'Unknown error'
       });
+    }
+  });
+
+  // Route Planning and Optimization APIs
+  const googleMapsService = new GoogleMapsService();
+
+  // Geocoding API
+  app.post("/api/route-planner/geocode", requireAdmin, async (req, res) => {
+    try {
+      const { addresses } = req.body;
+      
+      if (!Array.isArray(addresses) || addresses.length === 0) {
+        return res.status(400).json({ message: "Please provide an array of addresses" });
+      }
+
+      const results = [];
+      
+      for (const address of addresses) {
+        try {
+          // Check cache first
+          const cacheKey = GoogleMapsService.getCacheKey(address);
+          const cached = await storage.getGeocode(cacheKey);
+          
+          if (cached) {
+            results.push({
+              address,
+              latitude: cached.latitude,
+              longitude: cached.longitude,
+              formattedAddress: cached.formattedAddress,
+              postcode: cached.postcode,
+              fromCache: true
+            });
+          } else {
+            // Geocode using Google Maps
+            const geocoded = await googleMapsService.geocodeAddress(address);
+            if (geocoded) {
+              // Cache the result
+              await storage.createGeocode({
+                cacheKey,
+                originalQuery: address,
+                latitude: geocoded.latitude,
+                longitude: geocoded.longitude,
+                formattedAddress: geocoded.formattedAddress,
+                postcode: geocoded.postcode,
+                placeId: geocoded.placeId
+              });
+              
+              results.push({
+                address,
+                latitude: geocoded.latitude,
+                longitude: geocoded.longitude,
+                formattedAddress: geocoded.formattedAddress,
+                postcode: geocoded.postcode,
+                fromCache: false
+              });
+            } else {
+              results.push({
+                address,
+                error: "Could not geocode address"
+              });
+            }
+          }
+        } catch (error) {
+          console.error(`Error geocoding ${address}:`, error);
+          results.push({
+            address,
+            error: "Geocoding failed"
+          });
+        }
+      }
+
+      res.json({ results });
+    } catch (error) {
+      console.error('Geocoding API error:', error);
+      res.status(500).json({ 
+        message: "Failed to geocode addresses",
+        error: error instanceof Error ? error.message : 'Unknown error'
+      });
+    }
+  });
+
+  // Distance Matrix API
+  app.post("/api/route-planner/distance-matrix", requireAdmin, async (req, res) => {
+    try {
+      const { origins, destinations, mode = 'walking' } = req.body;
+      
+      if (!Array.isArray(origins) || !Array.isArray(destinations)) {
+        return res.status(400).json({ message: "Please provide origins and destinations arrays" });
+      }
+
+      if (origins.length === 0 || destinations.length === 0) {
+        return res.status(400).json({ message: "Origins and destinations cannot be empty" });
+      }
+
+      // Validate coordinate format
+      const validateCoords = (coords: any[]) => {
+        return coords.every(coord => 
+          typeof coord.lat === 'number' && 
+          typeof coord.lng === 'number' &&
+          coord.lat >= -90 && coord.lat <= 90 &&
+          coord.lng >= -180 && coord.lng <= 180
+        );
+      };
+
+      if (!validateCoords(origins) || !validateCoords(destinations)) {
+        return res.status(400).json({ message: "Invalid coordinate format" });
+      }
+
+      const matrix = await googleMapsService.getDistanceMatrix(origins, destinations, mode);
+      
+      if (!matrix) {
+        return res.status(500).json({ message: "Failed to calculate distance matrix" });
+      }
+
+      res.json(matrix);
+    } catch (error) {
+      console.error('Distance Matrix API error:', error);
+      res.status(500).json({ 
+        message: "Failed to calculate distance matrix",
+        error: error instanceof Error ? error.message : 'Unknown error'
+      });
+    }
+  });
+
+  // Route Optimization API
+  app.post("/api/route-planner/optimize", requireAdmin, async (req, res) => {
+    try {
+      const { 
+        visits, 
+        mode = 'walking', 
+        departureTime = '08:00:00',
+        runDate,
+        runName,
+        saveRun = false 
+      } = req.body;
+
+      if (!Array.isArray(visits) || visits.length === 0) {
+        return res.status(400).json({ message: "Please provide an array of visits" });
+      }
+
+      // Basic route optimization using simple nearest neighbor for now
+      // TODO: Implement more sophisticated optimization algorithms
+      const optimizedOrder = [];
+      const unvisited = [...visits];
+      
+      // Start with first visit
+      if (unvisited.length > 0) {
+        optimizedOrder.push(unvisited.shift()!);
+      }
+
+      // Simple nearest neighbor algorithm
+      while (unvisited.length > 0) {
+        const current = optimizedOrder[optimizedOrder.length - 1];
+        let nearestIndex = 0;
+        let nearestDistance = Infinity;
+
+        for (let i = 0; i < unvisited.length; i++) {
+          const distance = calculateDistance(
+            { lat: current.latitude, lng: current.longitude },
+            { lat: unvisited[i].latitude, lng: unvisited[i].longitude }
+          );
+          
+          if (distance < nearestDistance) {
+            nearestDistance = distance;
+            nearestIndex = i;
+          }
+        }
+
+        optimizedOrder.push(unvisited.splice(nearestIndex, 1)[0]);
+      }
+
+      // Calculate total metrics
+      let totalDistance = 0;
+      let totalTravelTime = 0;
+      let totalServiceTime = 0;
+
+      for (let i = 0; i < optimizedOrder.length; i++) {
+        const visit = optimizedOrder[i];
+        totalServiceTime += visit.durationMinutes || 30;
+        
+        if (i > 0) {
+          const prev = optimizedOrder[i - 1];
+          const distance = calculateDistance(
+            { lat: prev.latitude, lng: prev.longitude },
+            { lat: visit.latitude, lng: visit.longitude }
+          );
+          
+          totalDistance += distance;
+          // Estimate travel time (walking: 5 km/h, driving: 30 km/h)
+          const speedKmh = mode === 'walking' ? 5 : 30;
+          totalTravelTime += (distance / 1000) / speedKmh * 60; // minutes
+        }
+      }
+
+      const result = {
+        optimizedOrder,
+        totalDistanceMeters: Math.round(totalDistance),
+        totalTravelMinutes: Math.round(totalTravelTime),
+        totalServiceMinutes: totalServiceTime,
+        mode
+      };
+
+      // Save run if requested
+      if (saveRun && runDate && runName) {
+        try {
+          const run = await storage.createRun({
+            name: runName,
+            runDate,
+            travelMode: mode,
+            totalDistanceMeters: result.totalDistanceMeters,
+            totalTravelMinutes: result.totalTravelMinutes,
+            totalServiceMinutes: result.totalServiceMinutes,
+            departureTime,
+            status: 'optimized',
+            createdBy: req.user.id
+          });
+
+          // Save run stops
+          for (let i = 0; i < optimizedOrder.length; i++) {
+            const visit = optimizedOrder[i];
+            await storage.createRunStop({
+              runId: run.id,
+              visitId: visit.visitId || null,
+              stopOrder: i + 1,
+              adHocAddress: visit.visitId ? null : visit.address,
+              adHocLatitude: visit.visitId ? null : visit.latitude,
+              adHocLongitude: visit.visitId ? null : visit.longitude,
+              adHocDuration: visit.visitId ? null : visit.durationMinutes
+            });
+          }
+
+          result.runId = run.id;
+        } catch (saveError) {
+          console.error('Error saving run:', saveError);
+          // Don't fail the optimization, just log the error
+        }
+      }
+
+      res.json(result);
+    } catch (error) {
+      console.error('Route optimization error:', error);
+      res.status(500).json({ 
+        message: "Failed to optimize route",
+        error: error instanceof Error ? error.message : 'Unknown error'
+      });
+    }
+  });
+
+  // Helper function to calculate distance between two coordinates (Haversine formula)
+  function calculateDistance(coord1: { lat: number; lng: number }, coord2: { lat: number; lng: number }): number {
+    const R = 6371000; // Earth's radius in meters
+    const dLat = (coord2.lat - coord1.lat) * Math.PI / 180;
+    const dLng = (coord2.lng - coord1.lng) * Math.PI / 180;
+    const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+      Math.cos(coord1.lat * Math.PI / 180) * Math.cos(coord2.lat * Math.PI / 180) *
+      Math.sin(dLng / 2) * Math.sin(dLng / 2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    return R * c; // Distance in meters
+  }
+
+  // CRUD APIs for Route Planning entities
+
+  // Clients
+  app.get("/api/clients", requireAdmin, async (req, res) => {
+    try {
+      const filters = {
+        isActive: req.query.isActive ? req.query.isActive === 'true' : undefined,
+        postcode: req.query.postcode as string | undefined
+      };
+      const clients = await storage.getAllClients(filters);
+      res.json(clients);
+    } catch (error) {
+      console.error('Error fetching clients:', error);
+      res.status(500).json({ message: "Failed to fetch clients" });
+    }
+  });
+
+  app.post("/api/clients", requireAdmin, async (req, res) => {
+    try {
+      const validation = insertClientSchema.safeParse(req.body);
+      if (!validation.success) {
+        return res.status(400).json({ 
+          message: "Invalid client data",
+          errors: validation.error.errors
+        });
+      }
+
+      // Normalize postcode
+      const normalizedPostcode = validation.data.postcode?.replace(/\s+/g, '').toUpperCase();
+      
+      const client = await storage.createClient({
+        ...validation.data,
+        normalizedPostcode
+      });
+      
+      res.status(201).json(client);
+    } catch (error) {
+      console.error('Error creating client:', error);
+      res.status(500).json({ message: "Failed to create client" });
+    }
+  });
+
+  // Visits
+  app.get("/api/visits", requireAdmin, async (req, res) => {
+    try {
+      const filters = {
+        date: req.query.date as string | undefined,
+        clientId: req.query.clientId as string | undefined,
+        timeSlot: req.query.timeSlot as string | undefined,
+        status: req.query.status as string | undefined
+      };
+      const visits = await storage.getAllVisits(filters);
+      res.json(visits);
+    } catch (error) {
+      console.error('Error fetching visits:', error);
+      res.status(500).json({ message: "Failed to fetch visits" });
+    }
+  });
+
+  app.post("/api/visits", requireAdmin, async (req, res) => {
+    try {
+      const validation = insertVisitSchema.safeParse(req.body);
+      if (!validation.success) {
+        return res.status(400).json({ 
+          message: "Invalid visit data",
+          errors: validation.error.errors
+        });
+      }
+
+      const visit = await storage.createVisit(validation.data);
+      res.status(201).json(visit);
+    } catch (error) {
+      console.error('Error creating visit:', error);
+      res.status(500).json({ message: "Failed to create visit" });
+    }
+  });
+
+  // Runs
+  app.get("/api/runs", requireAdmin, async (req, res) => {
+    try {
+      const filters = {
+        date: req.query.date as string | undefined,
+        travelMode: req.query.travelMode as string | undefined,
+        status: req.query.status as string | undefined,
+        createdBy: req.query.createdBy as string | undefined
+      };
+      const runs = await storage.getAllRuns(filters);
+      res.json(runs);
+    } catch (error) {
+      console.error('Error fetching runs:', error);
+      res.status(500).json({ message: "Failed to fetch runs" });
+    }
+  });
+
+  app.get("/api/runs/:id", requireAdmin, async (req, res) => {
+    try {
+      const run = await storage.getRun(req.params.id);
+      if (!run) {
+        return res.status(404).json({ message: "Run not found" });
+      }
+      
+      const runStops = await storage.getRunStops(req.params.id);
+      res.json({ ...run, stops: runStops });
+    } catch (error) {
+      console.error('Error fetching run:', error);
+      res.status(500).json({ message: "Failed to fetch run" });
+    }
+  });
+
+  app.delete("/api/runs/:id", requireAdmin, async (req, res) => {
+    try {
+      // Delete run stops first
+      await storage.deleteRunStops(req.params.id);
+      
+      // Delete run
+      const deleted = await storage.deleteRun(req.params.id);
+      if (!deleted) {
+        return res.status(404).json({ message: "Run not found" });
+      }
+      
+      res.json({ message: "Run deleted successfully" });
+    } catch (error) {
+      console.error('Error deleting run:', error);
+      res.status(500).json({ message: "Failed to delete run" });
     }
   });
 
