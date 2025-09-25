@@ -210,10 +210,10 @@ export default function RoutePlanner() {
   const [multipleVisitsAddress, setMultipleVisitsAddress] = useState('');
   const [multipleVisitsClient, setMultipleVisitsClient] = useState('');
   const [timeSlotSettings, setTimeSlotSettings] = useState({
-    Morning: { enabled: false, duration: 30, earliestTime: '', latestTime: '' },
-    Lunch: { enabled: false, duration: 15, earliestTime: '', latestTime: '' },
-    Tea: { enabled: false, duration: 15, earliestTime: '', latestTime: '' },
-    Bed: { enabled: false, duration: 45, earliestTime: '', latestTime: '' }
+    Morning: { enabled: false, duration: 30, earliestTime: '', latestTime: '', address: '' },
+    Lunch: { enabled: false, duration: 15, earliestTime: '', latestTime: '', address: '' },
+    Tea: { enabled: false, duration: 15, earliestTime: '', latestTime: '', address: '' },
+    Bed: { enabled: false, duration: 45, earliestTime: '', latestTime: '', address: '' }
   });
   
   const mapRef = useRef<HTMLDivElement>(null);
@@ -649,15 +649,6 @@ export default function RoutePlanner() {
   };
 
   const addMultipleVisits = async () => {
-    if (!multipleVisitsAddress.trim()) {
-      toast({
-        title: "Address Required",
-        description: "Please enter an address for the visits.",
-        variant: "destructive",
-      });
-      return;
-    }
-
     const enabledSlots = Object.entries(timeSlotSettings).filter(([_, settings]) => settings.enabled);
     if (enabledSlots.length === 0) {
       toast({
@@ -668,9 +659,20 @@ export default function RoutePlanner() {
       return;
     }
 
+    // Check that all enabled slots have addresses
+    const missingAddresses = enabledSlots.filter(([_, settings]) => !settings.address.trim());
+    if (missingAddresses.length > 0) {
+      toast({
+        title: "Addresses Required",
+        description: `Please enter addresses for all selected time slots.`,
+        variant: "destructive",
+      });
+      return;
+    }
+
     const newVisits: Visit[] = enabledSlots.map(([timeSlot, settings], index) => ({
       id: `${Date.now()}-${Math.random().toString(36).substr(2, 9)}-${index}`,
-      address: multipleVisitsAddress.trim(),
+      address: settings.address.trim(),
       durationMinutes: settings.duration,
       timeSlot: timeSlot,
       earliestTime: settings.earliestTime || undefined,
@@ -687,11 +689,11 @@ export default function RoutePlanner() {
       const updatedVisits = [...visits, ...newVisits];
       setVisits(updatedVisits);
 
-      // Geocode all new visits
+      // Geocode all new visits with their individual addresses
       for (const visit of newVisits) {
         geocodeMutation.mutate({
           visitId: visit.id,
-          address: multipleVisitsAddress.trim()
+          address: visit.address
         });
       }
 
@@ -699,16 +701,16 @@ export default function RoutePlanner() {
       setMultipleVisitsAddress('');
       setMultipleVisitsClient('');
       setTimeSlotSettings({
-        Morning: { enabled: false, duration: 30, earliestTime: '', latestTime: '' },
-        Lunch: { enabled: false, duration: 15, earliestTime: '', latestTime: '' },
-        Tea: { enabled: false, duration: 15, earliestTime: '', latestTime: '' },
-        Bed: { enabled: false, duration: 45, earliestTime: '', latestTime: '' }
+        Morning: { enabled: false, duration: 30, earliestTime: '', latestTime: '', address: '' },
+        Lunch: { enabled: false, duration: 15, earliestTime: '', latestTime: '', address: '' },
+        Tea: { enabled: false, duration: 15, earliestTime: '', latestTime: '', address: '' },
+        Bed: { enabled: false, duration: 45, earliestTime: '', latestTime: '', address: '' }
       });
       setShowMultipleVisitsDialog(false);
 
       toast({
         title: "Multiple Visits Added",
-        description: `Added ${enabledSlots.length} visits for ${multipleVisitsAddress.trim()}`,
+        description: `Added ${enabledSlots.length} visits to different locations`,
       });
     }
   };
@@ -2247,25 +2249,13 @@ export default function RoutePlanner() {
           <DialogHeader>
             <DialogTitle>Add Multiple Visits</DialogTitle>
             <DialogDescription>
-              Add multiple care visits for the same address across different time slots
+              Add multiple care visits to different addresses across different time slots
             </DialogDescription>
           </DialogHeader>
           
           <div className="space-y-6">
-            {/* Address and Client */}
+            {/* Client */}
             <div className="space-y-4">
-              <div>
-                <Label htmlFor="multiple-address">Address *</Label>
-                <Textarea
-                  id="multiple-address"
-                  placeholder="Enter full address including postcode"
-                  value={multipleVisitsAddress}
-                  onChange={(e) => setMultipleVisitsAddress(e.target.value)}
-                  rows={2}
-                  data-testid="input-multiple-address"
-                />
-              </div>
-              
               <div>
                 <Label htmlFor="multiple-client">Client Name (Optional)</Label>
                 <Input
@@ -2281,7 +2271,7 @@ export default function RoutePlanner() {
             {/* Time Slot Selection */}
             <div className="space-y-3">
               <Label className="text-sm font-medium">Select Time Slots for Multiple Visits</Label>
-              <p className="text-xs text-muted-foreground">Check time slots and set individual duration and time windows for each</p>
+              <p className="text-xs text-muted-foreground">Check time slots and set individual address, duration and time windows for each</p>
               
               <div className="space-y-3">
                 {['Morning', 'Lunch', 'Tea', 'Bed'].map((slot) => (
@@ -2311,52 +2301,70 @@ export default function RoutePlanner() {
                     </div>
                     
                     {timeSlotSettings[slot as keyof typeof timeSlotSettings].enabled && (
-                      <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mt-3">
+                      <div className="space-y-3 mt-3">
                         <div>
-                          <Label className="text-xs">Duration (minutes)</Label>
-                          <Input
-                            type="number"
-                            min="5"
-                            max="240"
-                            value={timeSlotSettings[slot as keyof typeof timeSlotSettings].duration}
+                          <Label className="text-xs">Address *</Label>
+                          <Textarea
+                            placeholder="Enter full address including postcode"
+                            value={timeSlotSettings[slot as keyof typeof timeSlotSettings].address}
                             onChange={(e) => {
                               setTimeSlotSettings(prev => ({
                                 ...prev,
-                                [slot]: { ...prev[slot as keyof typeof prev], duration: parseInt(e.target.value) || 30 }
+                                [slot]: { ...prev[slot as keyof typeof prev], address: e.target.value }
                               }));
                             }}
-                            data-testid={`input-duration-${slot.toLowerCase()}`}
+                            rows={2}
+                            data-testid={`input-address-${slot.toLowerCase()}`}
                           />
                         </div>
                         
-                        <div>
-                          <Label className="text-xs">Earliest Time</Label>
-                          <Input
-                            type="time"
-                            value={timeSlotSettings[slot as keyof typeof timeSlotSettings].earliestTime}
-                            onChange={(e) => {
-                              setTimeSlotSettings(prev => ({
-                                ...prev,
-                                [slot]: { ...prev[slot as keyof typeof prev], earliestTime: e.target.value }
-                              }));
-                            }}
-                            data-testid={`input-earliest-${slot.toLowerCase()}`}
-                          />
-                        </div>
-                        
-                        <div>
-                          <Label className="text-xs">Latest Time</Label>
-                          <Input
-                            type="time"
-                            value={timeSlotSettings[slot as keyof typeof timeSlotSettings].latestTime}
-                            onChange={(e) => {
-                              setTimeSlotSettings(prev => ({
-                                ...prev,
-                                [slot]: { ...prev[slot as keyof typeof prev], latestTime: e.target.value }
-                              }));
-                            }}
-                            data-testid={`input-latest-${slot.toLowerCase()}`}
-                          />
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                          <div>
+                            <Label className="text-xs">Duration (minutes)</Label>
+                            <Input
+                              type="number"
+                              min="5"
+                              max="240"
+                              value={timeSlotSettings[slot as keyof typeof timeSlotSettings].duration}
+                              onChange={(e) => {
+                                setTimeSlotSettings(prev => ({
+                                  ...prev,
+                                  [slot]: { ...prev[slot as keyof typeof prev], duration: parseInt(e.target.value) || 30 }
+                                }));
+                              }}
+                              data-testid={`input-duration-${slot.toLowerCase()}`}
+                            />
+                          </div>
+                          
+                          <div>
+                            <Label className="text-xs">Earliest Time</Label>
+                            <Input
+                              type="time"
+                              value={timeSlotSettings[slot as keyof typeof timeSlotSettings].earliestTime}
+                              onChange={(e) => {
+                                setTimeSlotSettings(prev => ({
+                                  ...prev,
+                                  [slot]: { ...prev[slot as keyof typeof prev], earliestTime: e.target.value }
+                                }));
+                              }}
+                              data-testid={`input-earliest-${slot.toLowerCase()}`}
+                            />
+                          </div>
+                          
+                          <div>
+                            <Label className="text-xs">Latest Time</Label>
+                            <Input
+                              type="time"
+                              value={timeSlotSettings[slot as keyof typeof timeSlotSettings].latestTime}
+                              onChange={(e) => {
+                                setTimeSlotSettings(prev => ({
+                                  ...prev,
+                                  [slot]: { ...prev[slot as keyof typeof prev], latestTime: e.target.value }
+                                }));
+                              }}
+                              data-testid={`input-latest-${slot.toLowerCase()}`}
+                            />
+                          </div>
                         </div>
                       </div>
                     )}
@@ -2376,7 +2384,7 @@ export default function RoutePlanner() {
               </Button>
               <Button 
                 onClick={addMultipleVisits}
-                disabled={!multipleVisitsAddress.trim() || !Object.values(timeSlotSettings).some(slot => slot.enabled)}
+                disabled={!Object.values(timeSlotSettings).some(slot => slot.enabled)}
                 data-testid="button-save-multiple"
               >
                 <Plus className="h-4 w-4 mr-2" />
