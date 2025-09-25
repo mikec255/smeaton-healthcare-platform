@@ -663,6 +663,78 @@ export const professionalReferences = pgTable("professional_references", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
+// Route Planning Tables for Domiciliary Care Service
+
+// Clients table for storing client addresses and information
+export const clients = pgTable("clients", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  name: text("name").notNull(),
+  addressLine: text("address_line").notNull(),
+  postcode: text("postcode").notNull(),
+  latitude: real("latitude"),
+  longitude: real("longitude"),
+  phone: text("phone"),
+  notes: text("notes"),
+  isActive: boolean("is_active").default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Visits table for storing scheduled visits
+export const visits = pgTable("visits", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  clientId: varchar("client_id").notNull().references(() => clients.id),
+  visitDate: date("visit_date").notNull(),
+  timeSlot: text("time_slot").notNull(), // 'AM', 'Lunch', 'Tea', 'Bed'
+  durationMinutes: integer("duration_minutes").notNull().default(30),
+  notes: text("notes"),
+  status: text("status").default("scheduled"), // scheduled, completed, cancelled
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Runs table for storing planned routes
+export const runs = pgTable("runs", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  name: text("name").notNull(),
+  runDate: date("run_date").notNull(),
+  travelMode: text("travel_mode").notNull().default("walking"), // 'walking', 'driving'
+  totalDistanceMeters: integer("total_distance_meters").default(0),
+  totalTravelMinutes: integer("total_travel_minutes").default(0),
+  totalServiceMinutes: integer("total_service_minutes").default(0),
+  departureTime: text("departure_time").default("08:00"), // HH:MM format
+  status: text("status").default("draft"), // draft, optimized, final, completed
+  options: json("options").$type<Record<string, any>>(), // slot windows, preferences, etc.
+  createdBy: varchar("created_by").references(() => users.id),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Run stops table for storing ordered visits in each run
+export const runStops = pgTable("run_stops", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  runId: varchar("run_id").notNull().references(() => runs.id, { onDelete: "cascade" }),
+  visitId: varchar("visit_id").notNull().references(() => visits.id),
+  stopOrder: integer("stop_order").notNull(),
+  estimatedArrival: text("estimated_arrival"), // HH:MM format
+  estimatedDeparture: text("estimated_departure"), // HH:MM format
+  legDistanceMeters: integer("leg_distance_meters").default(0), // distance from previous stop
+  legTravelMinutes: integer("leg_travel_minutes").default(0), // travel time from previous stop
+  waitMinutes: integer("wait_minutes").default(0), // waiting time if arriving early
+  lateMinutes: integer("late_minutes").default(0), // lateness if arriving after time window
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// Geocoding cache to store Google Maps results
+export const geocodeCache = pgTable("geocode_cache", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  address: text("address").notNull().unique(),
+  latitude: real("latitude").notNull(),
+  longitude: real("longitude").notNull(),
+  formattedAddress: text("formatted_address").notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
 export const insertCqcAuditSchema = createInsertSchema(cqcAudits).omit({
   id: true,
   createdAt: true,
@@ -745,6 +817,35 @@ export const insertProfessionalReferenceSchema = createInsertSchema(professional
   reviewedBy: true,
 });
 
+// Route Planning Insert Schemas
+export const insertClientSchema = createInsertSchema(clients).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertVisitSchema = createInsertSchema(visits).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertRunSchema = createInsertSchema(runs).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertRunStopSchema = createInsertSchema(runStops).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertGeocodeSchema = createInsertSchema(geocodeCache).omit({
+  id: true,
+  createdAt: true,
+});
+
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type User = typeof users.$inferSelect;
 export type InsertJob = z.infer<typeof insertJobSchema>;
@@ -801,3 +902,15 @@ export type InsertRecruitmentApplication = z.infer<typeof insertRecruitmentAppli
 export type RecruitmentApplication = typeof recruitmentApplications.$inferSelect;
 export type InsertProfessionalReference = z.infer<typeof insertProfessionalReferenceSchema>;
 export type ProfessionalReference = typeof professionalReferences.$inferSelect;
+
+// Route Planning Types
+export type InsertClient = z.infer<typeof insertClientSchema>;
+export type Client = typeof clients.$inferSelect;
+export type InsertVisit = z.infer<typeof insertVisitSchema>;
+export type Visit = typeof visits.$inferSelect;
+export type InsertRun = z.infer<typeof insertRunSchema>;
+export type Run = typeof runs.$inferSelect;
+export type InsertRunStop = z.infer<typeof insertRunStopSchema>;
+export type RunStop = typeof runStops.$inferSelect;
+export type InsertGeocode = z.infer<typeof insertGeocodeSchema>;
+export type Geocode = typeof geocodeCache.$inferSelect;
