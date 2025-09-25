@@ -13,7 +13,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest, queryClient } from '@/lib/queryClient';
 import jsPDF from 'jspdf';
-import { MapPin, Plus, Trash2, Play, Save, Clock, Car, Footprints, Route, AlertCircle, TrendingDown, Map, GripVertical, Download, Upload, FileText, File, HelpCircle, Archive } from 'lucide-react';
+import { MapPin, Plus, Trash2, Play, Save, Clock, Car, Footprints, Route, AlertCircle, TrendingDown, Map, GripVertical, Download, Upload, FileText, File, HelpCircle, Archive, CheckCircle } from 'lucide-react';
 import { AdminLayout } from '@/components/layout/admin-layout';
 import addVisitFormImage from '@assets/Screenshot 2025-09-25 at 21.25.12_1758832010337.png';
 import mapWithVisitsImage from '@assets/Screenshot 2025-09-25 at 21.25.32_1758832016194.png';
@@ -997,6 +997,83 @@ export default function RoutePlanner() {
     }
   };
 
+  const archiveCurrentRoute = () => {
+    if (!optimisation) return;
+    
+    if (!runName.trim()) {
+      setHighlightNameField(true);
+      toast({
+        title: "Name Required",
+        description: "Please name your run before completing the route.",
+        variant: "destructive",
+      });
+      // Remove highlight after 3 seconds
+      setTimeout(() => setHighlightNameField(false), 3000);
+      return;
+    }
+
+    try {
+      // Store current values before clearing state
+      const currentRunName = runName.trim();
+      
+      // Generate unique ID for archived route
+      const archiveId = `archive_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+      
+      // Determine route label - try multiple sources for better labeling
+      let routeLabel = `Route ${archivedRoutes.length + 1}`;
+      
+      // First try: find most common time slot from visits
+      const timeSlots = visits.map(v => v.timeSlot).filter(Boolean);
+      if (timeSlots.length > 0) {
+        const timeSlotCounts = timeSlots.reduce((acc, slot) => {
+          acc[slot!] = (acc[slot!] || 0) + 1;
+          return acc;
+        }, {} as Record<string, number>);
+        routeLabel = Object.keys(timeSlotCounts).reduce((a, b) => timeSlotCounts[a] > timeSlotCounts[b] ? a : b);
+      }
+      // Second try: use optimized routes time slot if available
+      else if (optimisation.optimizedRoutes && optimisation.optimizedRoutes.length > 0 && optimisation.optimizedRoutes[0].timeSlot) {
+        routeLabel = optimisation.optimizedRoutes[0].timeSlot;
+      }
+      
+      // Create archived route object
+      const archivedRoute: ArchivedRoute = {
+        id: archiveId,
+        label: routeLabel,
+        route: optimisation,
+        visitCount: visits.length,
+        createdAt: new Date().toISOString(),
+        runName: currentRunName
+      };
+      
+      // Add to archived routes
+      setArchivedRoutes(prev => [...prev, archivedRoute]);
+      
+      // Clear current working state
+      setVisits([]);
+      setOptimisation(null);
+      setRunName('');
+      setHighlightNameField(false);
+      setOriginalOptimalOrder([]);
+      
+      // Clear the map markers and directions
+      updateMapWithVisits([]);
+      
+      toast({
+        title: "Route Completed",
+        description: `${currentRunName} has been archived successfully. You can now start planning your next route.`,
+      });
+      
+    } catch (error) {
+      console.error('Archive route error:', error);
+      toast({
+        title: "Archive Failed",
+        description: "Failed to complete and archive the route. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
+
   // Robust CSV parser for handling quoted fields with commas
   const parseCSVLine = (line: string): string[] => {
     const result: string[] = [];
@@ -1845,6 +1922,17 @@ export default function RoutePlanner() {
                       </CardDescription>
                     </div>
                     <div className="flex items-center gap-2">
+                      <Button
+                        variant="default"
+                        size="sm"
+                        onClick={archiveCurrentRoute}
+                        data-testid="button-complete-route"
+                        className="bg-green-600 hover:bg-green-700 text-white"
+                      >
+                        <CheckCircle className="h-4 w-4 mr-2" />
+                        Complete Route
+                      </Button>
+                      <Separator orientation="vertical" className="h-6" />
                       <Button
                         variant="outline"
                         size="sm"
