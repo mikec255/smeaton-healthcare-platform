@@ -17,6 +17,7 @@ import { AdminLayout } from '@/components/layout/admin-layout';
 import addVisitFormImage from '@assets/Screenshot 2025-09-25 at 21.25.12_1758832010337.png';
 import mapWithVisitsImage from '@assets/Screenshot 2025-09-25 at 21.25.32_1758832016194.png';
 import optimizedResultsImage from '@assets/Screenshot 2025-09-25 at 21.26.36_1758832021971.png';
+import autoOptimizationImage from '@assets/Screenshot 2025-09-25 at 21.35.30_1758832541305.png';
 import {
   DndContext,
   closestCenter,
@@ -1281,11 +1282,43 @@ export default function RoutePlanner() {
 
                       <Separator />
 
-                      {/* Step 3 */}
+                      {/* Step 3 - Auto-Optimization */}
+                      <div className="space-y-4">
+                        <div className="flex items-center gap-3">
+                          <div className="flex items-center justify-center w-8 h-8 bg-green-600 text-white rounded-full text-sm font-semibold">
+                            3
+                          </div>
+                          <h3 className="text-lg font-semibold">Auto-Optimization Feature</h3>
+                        </div>
+                        <p className="text-gray-600 dark:text-gray-400 ml-11">
+                          The system automatically arranges visits for minimum travel time as you add them. 
+                          If you manually reorder visits, red indicators show the optimal positions.
+                        </p>
+                        <div className="ml-11">
+                          <img 
+                            src={autoOptimizationImage} 
+                            alt="Auto-optimization with optimal position indicators"
+                            className="rounded-lg border shadow-md w-full max-w-2xl"
+                          />
+                        </div>
+                        <div className="ml-11 space-y-2">
+                          <h4 className="font-medium">Auto-Optimization Features:</h4>
+                          <ul className="text-sm text-gray-600 dark:text-gray-400 space-y-1">
+                            <li>• <strong>Automatic Ordering:</strong> Visits are arranged for minimum travel time when added</li>
+                            <li>• <strong>Red Optimal Indicators:</strong> Shows "Optimal: #X" when visits are moved out of efficient order</li>
+                            <li>• <strong>Restore Optimal Button:</strong> Click to return visits to their most efficient arrangement</li>
+                            <li>• <strong>Manual Override:</strong> You can still drag and drop to reorder visits as needed</li>
+                          </ul>
+                        </div>
+                      </div>
+
+                      <Separator />
+
+                      {/* Step 4 */}
                       <div className="space-y-4">
                         <div className="flex items-center gap-3">
                           <div className="flex items-center justify-center w-8 h-8 bg-blue-600 text-white rounded-full text-sm font-semibold">
-                            3
+                            4
                           </div>
                           <h3 className="text-lg font-semibold">Create Optimised Route</h3>
                         </div>
@@ -1317,7 +1350,7 @@ export default function RoutePlanner() {
                       {/* Time Compliance Guide */}
                       <div className="space-y-4">
                         <div className="flex items-center gap-3">
-                          <div className="flex items-center justify-center w-8 h-8 bg-green-600 text-white rounded-full text-sm font-semibold">
+                          <div className="flex items-center justify-center w-8 h-8 bg-purple-600 text-white rounded-full text-sm font-semibold">
                             ✓
                           </div>
                           <h3 className="text-lg font-semibold">Understanding Time Compliance</h3>
@@ -1343,7 +1376,7 @@ export default function RoutePlanner() {
                       {/* Import/Export Guide */}
                       <div className="space-y-4">
                         <div className="flex items-center gap-3">
-                          <div className="flex items-center justify-center w-8 h-8 bg-purple-600 text-white rounded-full text-sm font-semibold">
+                          <div className="flex items-center justify-center w-8 h-8 bg-orange-600 text-white rounded-full text-sm font-semibold">
                             💾
                           </div>
                           <h3 className="text-lg font-semibold">Import & Export Routes</h3>
