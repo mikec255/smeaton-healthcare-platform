@@ -84,6 +84,7 @@ export default function RoutePlanner() {
   const mapInstanceRef = useRef<GoogleMap | null>(null);
   const markersRef = useRef<any[]>([]);
   const directionsRendererRef = useRef<any>(null);
+  const timeLabelsRef = useRef<any[]>([]);
 
   // Load Google Maps script
   useEffect(() => {
@@ -283,6 +284,9 @@ export default function RoutePlanner() {
       directionsRendererRef.current.setDirections({ routes: [] });
     }
 
+    // Clear time labels
+    clearTimeLabels();
+
     const bounds = new window.google.maps.LatLngBounds();
     let hasValidCoords = false;
 
@@ -323,9 +327,85 @@ export default function RoutePlanner() {
     }
   };
 
+  // Clear time labels
+  const clearTimeLabels = () => {
+    timeLabelsRef.current.forEach(label => {
+      if (label.setMap) label.setMap(null);
+    });
+    timeLabelsRef.current = [];
+  };
+
+  // Create time label overlay
+  const createTimeLabel = (position: { lat: number; lng: number }, text: string) => {
+    if (!window.google?.maps) return null;
+
+    class TimeLabel extends window.google.maps.OverlayView {
+      private position: { lat: number; lng: number };
+      private text: string;
+      private div?: HTMLElement;
+
+      constructor(position: { lat: number; lng: number }, text: string) {
+        super();
+        this.position = position;
+        this.text = text;
+      }
+
+      onAdd() {
+        this.div = document.createElement('div');
+        this.div.style.cssText = `
+          position: absolute;
+          background: rgba(25, 118, 210, 0.9);
+          color: white;
+          padding: 4px 8px;
+          border-radius: 12px;
+          font-size: 12px;
+          font-weight: 600;
+          white-space: nowrap;
+          pointer-events: none;
+          border: 2px solid white;
+          box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+          z-index: 1000;
+        `;
+        this.div.textContent = this.text;
+
+        const panes = this.getPanes();
+        if (panes) {
+          panes.overlayLayer.appendChild(this.div);
+        }
+      }
+
+      draw() {
+        if (!this.div) return;
+
+        const projection = this.getProjection();
+        if (!projection) return;
+
+        const point = projection.fromLatLngToDivPixel(
+          new window.google.maps.LatLng(this.position.lat, this.position.lng)
+        );
+
+        if (point) {
+          this.div.style.left = `${point.x - this.div.offsetWidth / 2}px`;
+          this.div.style.top = `${point.y - this.div.offsetHeight / 2}px`;
+        }
+      }
+
+      onRemove() {
+        if (this.div && this.div.parentNode) {
+          this.div.parentNode.removeChild(this.div);
+        }
+      }
+    }
+
+    return new TimeLabel(position, text);
+  };
+
   // Update map with optimized route
   const updateMapWithOptimizedRoute = (result: OptimizationResult) => {
     if (!mapInstanceRef.current || !window.google?.maps || !directionsRendererRef.current) return;
+
+    // Clear existing time labels
+    clearTimeLabels();
 
     const validVisits = result.optimizedOrder.filter(v => v.latitude && v.longitude);
     if (validVisits.length < 2) return;
@@ -349,6 +429,34 @@ export default function RoutePlanner() {
     }, (response: any, status: any) => {
       if (status === 'OK') {
         directionsRendererRef.current.setDirections(response);
+
+        // Add time labels for each route segment
+        const route = response.routes[0];
+        if (route && route.legs) {
+          route.legs.forEach((leg: any, index: number) => {
+            if (leg.duration && leg.duration.value) {
+              const minutes = Math.round(leg.duration.value / 60);
+              
+              // Calculate midpoint of the leg
+              const startLat = leg.start_location.lat();
+              const startLng = leg.start_location.lng();
+              const endLat = leg.end_location.lat();
+              const endLng = leg.end_location.lng();
+              
+              const midpoint = {
+                lat: (startLat + endLat) / 2,
+                lng: (startLng + endLng) / 2
+              };
+
+              // Create time label
+              const timeLabel = createTimeLabel(midpoint, `${minutes} min`);
+              if (timeLabel) {
+                timeLabel.setMap(mapInstanceRef.current);
+                timeLabelsRef.current.push(timeLabel);
+              }
+            }
+          });
+        }
       }
     });
   };
