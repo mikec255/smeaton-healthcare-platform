@@ -123,6 +123,13 @@ export const navigationItems: NavItem[] = [
     description: 'View customer feedback for CQC compliance and quality improvement'
   },
   {
+    id: 'route-planner-test',
+    label: 'Route Planner',
+    icon: MapPin,
+    href: '/admin/route-planner',
+    description: 'Optimize domiciliary care visit routes with Google Maps integration'
+  },
+  {
     id: 'tools',
     label: 'Tools & Compliance',
     icon: Calculator,
