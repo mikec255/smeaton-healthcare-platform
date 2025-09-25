@@ -13,7 +13,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest, queryClient } from '@/lib/queryClient';
 import jsPDF from 'jspdf';
-import { MapPin, Plus, Trash2, Play, Save, Clock, Car, Footprints, Route, AlertCircle, TrendingDown, Map, GripVertical, Download, Upload, FileText, File, HelpCircle } from 'lucide-react';
+import { MapPin, Plus, Trash2, Play, Save, Clock, Car, Footprints, Route, AlertCircle, TrendingDown, Map, GripVertical, Download, Upload, FileText, File, HelpCircle, Archive } from 'lucide-react';
 import { AdminLayout } from '@/components/layout/admin-layout';
 import addVisitFormImage from '@assets/Screenshot 2025-09-25 at 21.25.12_1758832010337.png';
 import mapWithVisitsImage from '@assets/Screenshot 2025-09-25 at 21.25.32_1758832016194.png';
@@ -110,6 +110,15 @@ interface OptimisationResult {
   totalDistanceMeters?: number;
   totalTravelMinutes?: number;
   totalServiceMinutes?: number;
+}
+
+interface ArchivedRoute {
+  id: string;
+  label: string; // Morning, Lunch, Tea, Bed, or custom
+  route: OptimisationResult;
+  visitCount: number;
+  createdAt: string; // ISO string to avoid serialization issues
+  runName: string;
 }
 
 interface GoogleMap {
@@ -230,6 +239,7 @@ export default function RoutePlanner() {
   const [highlightNameField, setHighlightNameField] = useState(false);
   const [showHowToGuide, setShowHowToGuide] = useState(false);
   const [originalOptimalOrder, setOriginalOptimalOrder] = useState<string[]>([]);
+  const [archivedRoutes, setArchivedRoutes] = useState<ArchivedRoute[]>([]);
   
   const mapRef = useRef<HTMLDivElement>(null);
   const mapInstanceRef = useRef<GoogleMap | null>(null);
@@ -2057,6 +2067,75 @@ export default function RoutePlanner() {
                       </div>
                     </div>
                   )}
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Archived Routes Section */}
+            {archivedRoutes.length > 0 && (
+              <Card className="mt-6">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Archive className="h-5 w-5" />
+                    Archived Routes ({archivedRoutes.length})
+                  </CardTitle>
+                  <CardDescription>
+                    Previously completed and archived route optimizations
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    {archivedRoutes.map((archived, index) => (
+                      <div key={archived.id} className="border rounded-lg p-4 bg-gray-50 dark:bg-gray-800/50" data-testid={`archived-route-${index}`}>
+                        <div className="flex items-center justify-between mb-3">
+                          <div className="flex items-center gap-3">
+                            <span className="text-2xl" data-testid={`archived-route-icon-${index}`}>
+                              {archived.label === 'Morning' && '🌅'}
+                              {archived.label === 'Lunch' && '🍽️'}
+                              {archived.label === 'Tea' && '☕'}
+                              {archived.label === 'Bed' && '🌙'}
+                              {!['Morning', 'Lunch', 'Tea', 'Bed'].includes(archived.label) && '📋'}
+                            </span>
+                            <div>
+                              <h3 className="font-semibold text-lg" data-testid={`archived-route-title-${index}`}>{archived.label} Route</h3>
+                              <p className="text-sm text-muted-foreground" data-testid={`archived-route-details-${index}`}>
+                                {archived.runName} • {archived.visitCount} visits • {new Date(archived.createdAt).toLocaleDateString()}
+                              </p>
+                            </div>
+                          </div>
+                          <Badge variant="secondary" data-testid={`archived-route-badge-${index}`}>Archived</Badge>
+                        </div>
+                        
+                        {/* Route Statistics */}
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm" data-testid={`archived-route-stats-${index}`}>
+                          <div className="text-center">
+                            <div className="font-semibold text-lg text-blue-600 dark:text-blue-400" data-testid={`archived-route-visits-${index}`}>
+                              {archived.visitCount}
+                            </div>
+                            <div className="text-muted-foreground">Visits</div>
+                          </div>
+                          <div className="text-center">
+                            <div className="font-semibold text-lg text-green-600 dark:text-green-400" data-testid={`archived-route-distance-${index}`}>
+                              {formatDistance(archived.route?.totalDistanceMeters || 0)}
+                            </div>
+                            <div className="text-muted-foreground">Distance</div>
+                          </div>
+                          <div className="text-center">
+                            <div className="font-semibold text-lg text-orange-600 dark:text-orange-400" data-testid={`archived-route-travel-time-${index}`}>
+                              {formatDuration(archived.route?.totalTravelMinutes || 0)}
+                            </div>
+                            <div className="text-muted-foreground">Travel Time</div>
+                          </div>
+                          <div className="text-center">
+                            <div className="font-semibold text-lg text-purple-600 dark:text-purple-400" data-testid={`archived-route-care-time-${index}`}>
+                              {formatDuration(archived.route?.totalServiceMinutes || 0)}
+                            </div>
+                            <div className="text-muted-foreground">Care Time</div>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
                 </CardContent>
               </Card>
             )}
