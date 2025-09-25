@@ -203,6 +203,7 @@ export default function RoutePlanner() {
   const [highlightNameField, setHighlightNameField] = useState(false);
   const [showHowToGuide, setShowHowToGuide] = useState(false);
   const [originalOptimalOrder, setOriginalOptimalOrder] = useState<string[]>([]);
+  const [showMultipleVisitsDialog, setShowMultipleVisitsDialog] = useState(false);
   
   const mapRef = useRef<HTMLDivElement>(null);
   const mapInstanceRef = useRef<GoogleMap | null>(null);
@@ -1671,15 +1672,25 @@ export default function RoutePlanner() {
                   </div>
                 </div>
 
-                <Button 
-                  onClick={addVisit} 
-                  disabled={!newAddress.trim() || geocodeMutation.isPending}
-                  className="w-full"
-                  data-testid="button-add-visit"
-                >
-                  <Plus className="h-4 w-4 mr-2" />
-                  Add Visit
-                </Button>
+                <div className="grid grid-cols-2 gap-2">
+                  <Button 
+                    onClick={addVisit} 
+                    disabled={!newAddress.trim() || geocodeMutation.isPending}
+                    data-testid="button-add-visit"
+                  >
+                    <Plus className="h-4 w-4 mr-2" />
+                    Add Visit
+                  </Button>
+                  
+                  <Button 
+                    onClick={() => setShowMultipleVisitsDialog(true)}
+                    variant="outline"
+                    data-testid="button-add-multiple-visits"
+                  >
+                    <Plus className="h-4 w-4 mr-2" />
+                    Add Multiple
+                  </Button>
+                </div>
               </CardContent>
             </Card>
 
