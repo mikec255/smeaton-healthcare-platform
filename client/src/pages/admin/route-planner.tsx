@@ -345,16 +345,23 @@ export default function RoutePlanner() {
           } : visit
         );
         
-        // Auto-optimize the visits for minimum travel time
-        const optimizedVisits = await autoOptimizeVisits(updatedVisits);
-        setVisits(optimizedVisits);
-        updateMapWithVisits(optimizedVisits);
+        // Check if ALL visits now have coordinates
+        const allGeocoded = updatedVisits.every(v => v.latitude && v.longitude);
         
-        if (optimizedVisits.length > 1) {
+        if (allGeocoded && updatedVisits.length > 1) {
+          // Only auto-optimize when all visits are geocoded
+          const optimizedVisits = await autoOptimizeVisits(updatedVisits);
+          setVisits(optimizedVisits);
+          updateMapWithVisits(optimizedVisits);
+          
           toast({
-            title: "Visit Added & Auto-Optimized",
-            description: "Visits have been automatically arranged for minimum travel time. You can manually reorder them if needed.",
+            title: "All Visits Added & Auto-Optimized", 
+            description: "All visits have been geocoded and automatically arranged for minimum travel time.",
           });
+        } else {
+          // Just update the visit list without optimizing
+          setVisits(updatedVisits);
+          updateMapWithVisits(updatedVisits);
         }
       } else {
         toast({
@@ -958,8 +965,6 @@ export default function RoutePlanner() {
                                .replace(/Please call.*$/gi, '')
                                .trim();
     
-    console.log('Parsing details:', cleanDetails); // Debug log
-    
     // Pattern A: count x duration format like "7 x 30 mins Morning"
     const patternA = /(?:(\d+)\s*[xX]\s*)?(\d+)\s*min(?:ute)?s?\s*(morning|lunch|tea|bed(?:time)?|am|pm)/gi;
     
@@ -984,15 +989,11 @@ export default function RoutePlanner() {
     const matchesB = Array.from(cleanDetails.matchAll(patternB));
     const matchesC = Array.from(cleanDetails.matchAll(patternC));
     
-    console.log(`Found ${matchesA.length} A matches, ${matchesB.length} B matches, ${matchesC.length} C matches`); // Debug log
-    
     // Process Pattern A matches: "7 x 30 mins Morning"
     matchesA.forEach(match => {
       const frequency = parseInt(match[1]) || 1;
       const duration = parseInt(match[2]);
       const timeSlot = normalizeTimeSlot(match[3]);
-      
-      console.log(`Pattern A: ${frequency} x ${duration}min ${timeSlot}`); // Debug log
       
       for (let i = 0; i < frequency; i++) {
         visits.push({ timeSlot, duration });
@@ -1006,8 +1007,6 @@ export default function RoutePlanner() {
       const frequency = parseInt(match[2]);
       const timeSlot = normalizeTimeSlot(match[3] || match[4]);
       
-      console.log(`Pattern B: ${frequency} x ${duration}min ${timeSlot}`); // Debug log
-      
       for (let i = 0; i < frequency; i++) {
         visits.push({ timeSlot, duration });
       }
@@ -1019,14 +1018,10 @@ export default function RoutePlanner() {
       const frequency = parseInt(match[3]);
       const timeSlot = normalizeTimeSlot(match[4]);
       
-      console.log(`Pattern C: ${frequency} x ${duration}min ${timeSlot}`); // Debug log
-      
       for (let i = 0; i < frequency; i++) {
         visits.push({ timeSlot, duration });
       }
     });
-    
-    console.log(`Total visits created: ${visits.length}`); // Debug log
     return visits;
   };
 
