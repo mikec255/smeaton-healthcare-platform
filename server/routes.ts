@@ -3277,15 +3277,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
           // Calculate travel time between this visit and the next
           if (currentVisit.latitude && currentVisit.longitude && 
               nextVisit.latitude && nextVisit.longitude) {
-            // Simple distance-based travel time estimation (replace with Google Maps API call if needed)
-            const distance = Math.sqrt(
-              Math.pow(nextVisit.latitude - currentVisit.latitude, 2) + 
-              Math.pow(nextVisit.longitude - currentVisit.longitude, 2)
-            ) * 111000; // Convert degrees to meters (approximate)
+            // Use Haversine formula for accurate distance calculation
+            const R = 6371; // Earth's radius in kilometers
+            const lat1Rad = currentVisit.latitude * Math.PI / 180;
+            const lat2Rad = nextVisit.latitude * Math.PI / 180;
+            const deltaLatRad = (nextVisit.latitude - currentVisit.latitude) * Math.PI / 180;
+            const deltaLngRad = (nextVisit.longitude - currentVisit.longitude) * Math.PI / 180;
+
+            const a = Math.sin(deltaLatRad/2) * Math.sin(deltaLatRad/2) +
+                     Math.cos(lat1Rad) * Math.cos(lat2Rad) *
+                     Math.sin(deltaLngRad/2) * Math.sin(deltaLngRad/2);
+            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+            const distanceKm = R * c;
             
-            // Estimate travel time: ~30 km/h average speed for domiciliary care
-            const travelTimeMinutes = Math.round((distance / 1000) / 30 * 60);
-            allOptimizedVisits[i].travelTimeToNext = Math.max(5, Math.min(60, travelTimeMinutes)); // Between 5-60 minutes
+            // Realistic travel time estimation for domiciliary care
+            // Urban areas: 25 km/h average (traffic, parking, finding addresses)
+            // Add 3 minutes base time for parking and approach
+            const baseTimeMinutes = 3;
+            const drivingTimeMinutes = (distanceKm / 25) * 60;
+            const totalTravelTime = Math.round(baseTimeMinutes + drivingTimeMinutes);
+            
+            allOptimizedVisits[i].travelTimeToNext = Math.max(5, Math.min(45, totalTravelTime));
           } else {
             allOptimizedVisits[i].travelTimeToNext = 10; // Default 10 minutes
           }
