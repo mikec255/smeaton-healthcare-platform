@@ -348,33 +348,43 @@ export default function RoutePlanner() {
     },
     onSuccess: async ({ visitId, result }) => {
       if (result && !result.error) {
-        const updatedVisits = visits.map(visit => 
-          visit.id === visitId ? {
-            ...visit,
-            latitude: result.latitude,
-            longitude: result.longitude,
-            address: result.formattedAddress || visit.address
-          } : visit
-        );
-        
-        // Check if ALL visits now have coordinates
-        const allGeocoded = updatedVisits.every(v => v.latitude && v.longitude);
-        
-        if (allGeocoded && updatedVisits.length > 1) {
-          // Only auto-optimize when all visits are geocoded
-          const optimizedVisits = await autoOptimizeVisits(updatedVisits);
-          setVisits(optimizedVisits);
-          updateMapWithVisits(optimizedVisits);
+        // Use a functional update to ensure we get the latest state
+        setVisits(currentVisits => {
+          const updatedVisits = currentVisits.map(visit => 
+            visit.id === visitId ? {
+              ...visit,
+              latitude: result.latitude,
+              longitude: result.longitude,
+              address: result.formattedAddress || visit.address
+            } : visit
+          );
           
-          toast({
-            title: "All Visits Added & Auto-Optimized", 
-            description: "All visits have been geocoded and automatically arranged for minimum travel time.",
-          });
-        } else {
-          // Just update the visit list without optimizing
-          setVisits(updatedVisits);
+          // Update map immediately with the current state
           updateMapWithVisits(updatedVisits);
-        }
+          
+          // Check if ALL visits now have coordinates using the updated state
+          const allGeocoded = updatedVisits.every(v => v.latitude && v.longitude);
+          
+          if (allGeocoded && updatedVisits.length > 1) {
+            // Delay auto-optimization slightly to allow all state updates to complete
+            setTimeout(async () => {
+              try {
+                const optimizedVisits = await autoOptimizeVisits(updatedVisits);
+                setVisits(optimizedVisits);
+                updateMapWithVisits(optimizedVisits);
+                
+                toast({
+                  title: "All Visits Added & Auto-Optimized", 
+                  description: "All visits have been geocoded and automatically arranged for minimum travel time.",
+                });
+              } catch (error) {
+                console.log('Auto-optimization failed, keeping current order');
+              }
+            }, 100);
+          }
+          
+          return updatedVisits;
+        });
       } else {
         toast({
           title: "Geocoding Failed",
@@ -668,8 +678,6 @@ export default function RoutePlanner() {
       clientName: multipleVisitsClient.trim() || undefined,
     }));
 
-    console.log('Creating visits:', newVisits.length, 'Current visits:', visits.length);
-
     // Check if there's an existing optimized route
     if (optimisation && optimisation.optimisedOrder.length > 0) {
       // Smart insertion into existing route - prioritize travel time over time restrictions
@@ -677,7 +685,6 @@ export default function RoutePlanner() {
     } else {
       // Normal addition when no route exists
       const updatedVisits = [...visits, ...newVisits];
-      console.log('Setting visits to:', updatedVisits.length, updatedVisits.map(v => `${v.timeSlot} (${v.id.slice(-5)})`));
       setVisits(updatedVisits);
 
       // Geocode all new visits
