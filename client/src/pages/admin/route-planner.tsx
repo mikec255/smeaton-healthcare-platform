@@ -209,16 +209,7 @@ export default function RoutePlanner() {
   // Multiple visits form state
   const [multipleVisitsAddress, setMultipleVisitsAddress] = useState('');
   const [multipleVisitsClient, setMultipleVisitsClient] = useState('');
-  const [multipleVisits, setMultipleVisits] = useState([
-    { timeSlot: 'Morning', duration: 30, earliestTime: '', latestTime: '', enabled: false },
-    { timeSlot: 'Lunch', duration: 15, earliestTime: '', latestTime: '', enabled: false },
-    { timeSlot: 'Tea', duration: 15, earliestTime: '', latestTime: '', enabled: false },
-    { timeSlot: 'Bed', duration: 45, earliestTime: '', latestTime: '', enabled: false },
-    { timeSlot: 'Commission Morning', duration: 30, earliestTime: '', latestTime: '', enabled: false },
-    { timeSlot: 'Commission Lunch', duration: 15, earliestTime: '', latestTime: '', enabled: false },
-    { timeSlot: 'Commission Tea', duration: 15, earliestTime: '', latestTime: '', enabled: false },
-    { timeSlot: 'Commission Bed', duration: 45, earliestTime: '', latestTime: '', enabled: false }
-  ]);
+  const [selectedTimeSlots, setSelectedTimeSlots] = useState<string[]>([]);
   
   const mapRef = useRef<HTMLDivElement>(null);
   const mapInstanceRef = useRef<GoogleMap | null>(null);
@@ -656,23 +647,22 @@ export default function RoutePlanner() {
       return;
     }
 
-    const enabledVisits = multipleVisits.filter(v => v.enabled);
-    if (enabledVisits.length === 0) {
+    if (selectedTimeSlots.length === 0) {
       toast({
-        title: "No Visits Selected",
+        title: "No Time Slots Selected",
         description: "Please select at least one time slot.",
         variant: "destructive",
       });
       return;
     }
 
-    const newVisits: Visit[] = enabledVisits.map((visit, index) => ({
+    const newVisits: Visit[] = selectedTimeSlots.map((timeSlot, index) => ({
       id: (Date.now() + index).toString(),
       address: multipleVisitsAddress.trim(),
-      durationMinutes: visit.duration,
-      timeSlot: visit.timeSlot,
-      earliestTime: visit.earliestTime || undefined,
-      latestTime: visit.latestTime || undefined,
+      durationMinutes: newDuration,
+      timeSlot: timeSlot,
+      earliestTime: newEarliestTime || undefined,
+      latestTime: newLatestTime || undefined,
       clientName: multipleVisitsClient.trim() || undefined,
     }));
 
@@ -696,21 +686,16 @@ export default function RoutePlanner() {
       // Clear form and close dialog for normal addition
       setMultipleVisitsAddress('');
       setMultipleVisitsClient('');
-      setMultipleVisits([
-        { timeSlot: 'Commission Morning', duration: 30, earliestTime: '', latestTime: '', enabled: false },
-        { timeSlot: 'Commission Lunch', duration: 15, earliestTime: '', latestTime: '', enabled: false },
-        { timeSlot: 'Commission Tea', duration: 15, earliestTime: '', latestTime: '', enabled: false },
-        { timeSlot: 'Commission Bed', duration: 45, earliestTime: '', latestTime: '', enabled: false },
-        { timeSlot: 'Morning', duration: 30, earliestTime: '', latestTime: '', enabled: false },
-        { timeSlot: 'Lunch', duration: 15, earliestTime: '', latestTime: '', enabled: false },
-        { timeSlot: 'Tea', duration: 15, earliestTime: '', latestTime: '', enabled: false },
-        { timeSlot: 'Bed', duration: 45, earliestTime: '', latestTime: '', enabled: false }
-      ]);
+      setSelectedTimeSlots([]);
+      setNewDuration(30);
+      setNewTimeSlot('none');
+      setNewEarliestTime('');
+      setNewLatestTime('');
       setShowMultipleVisitsDialog(false);
 
       toast({
         title: "Multiple Visits Added",
-        description: `Added ${enabledVisits.length} visits for ${multipleVisitsAddress.trim()}`,
+        description: `Added ${selectedTimeSlots.length} visits for ${multipleVisitsAddress.trim()}`,
       });
     }
   };
@@ -2280,181 +2265,101 @@ export default function RoutePlanner() {
               </div>
             </div>
 
-            {/* Time Slots */}
-            <div className="space-y-6">
-              {/* Regular Care Visits */}
-              <div className="space-y-4">
+            {/* Visit Settings */}
+            <div className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <h4 className="font-medium text-sm">Care Visits</h4>
-                  <p className="text-xs text-muted-foreground">Regular domiciliary care visits throughout the day</p>
+                  <Label htmlFor="multiple-duration">Duration (mins)</Label>
+                  <Input
+                    id="multiple-duration"
+                    type="number"
+                    min="15"
+                    max="240"
+                    step="15"
+                    value={newDuration}
+                    onChange={(e) => setNewDuration(parseInt(e.target.value) || 30)}
+                    data-testid="input-multiple-duration"
+                  />
                 </div>
                 
-                {multipleVisits.filter(visit => !visit.timeSlot.includes('Commission')).map((visit, index) => {
-                  const originalIndex = multipleVisits.findIndex(v => v.timeSlot === visit.timeSlot);
-                  return (
-                    <div key={visit.timeSlot} className="border rounded-lg p-4 space-y-3">
-                      <div className="flex items-center gap-3">
-                        <Checkbox
-                          checked={visit.enabled}
-                          onCheckedChange={(checked) => {
-                            const updated = [...multipleVisits];
-                            updated[originalIndex].enabled = !!checked;
-                            setMultipleVisits(updated);
-                          }}
-                          data-testid={`checkbox-${visit.timeSlot.toLowerCase()}`}
-                        />
-                        <div className="flex items-center gap-2">
-                          <span className="text-lg">
-                            {visit.timeSlot === 'Morning' && '🌅'}
-                            {visit.timeSlot === 'Lunch' && '🍽️'}
-                            {visit.timeSlot === 'Tea' && '☕'}
-                            {visit.timeSlot === 'Bed' && '🌙'}
-                          </span>
-                          <span className="font-medium">
-                            {visit.timeSlot === 'Morning' && 'Morning Care'}
-                            {visit.timeSlot === 'Lunch' && 'Lunch Care'}
-                            {visit.timeSlot === 'Tea' && 'Tea Care'}
-                            {visit.timeSlot === 'Bed' && 'Bed Care'}
-                          </span>
-                        </div>
-                      </div>
-                      
-                      {visit.enabled && (
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mt-3">
-                          <div>
-                            <Label className="text-xs">Duration (minutes)</Label>
-                            <Input
-                              type="number"
-                              min="5"
-                              max="240"
-                              value={visit.duration}
-                              onChange={(e) => {
-                                const updated = [...multipleVisits];
-                                updated[originalIndex].duration = parseInt(e.target.value) || 30;
-                                setMultipleVisits(updated);
-                              }}
-                              data-testid={`input-duration-${visit.timeSlot.toLowerCase()}`}
-                            />
-                          </div>
-                          
-                          <div>
-                            <Label className="text-xs">Earliest Time</Label>
-                            <Input
-                              type="time"
-                              value={visit.earliestTime}
-                              onChange={(e) => {
-                                const updated = [...multipleVisits];
-                                updated[originalIndex].earliestTime = e.target.value;
-                                setMultipleVisits(updated);
-                              }}
-                              data-testid={`input-earliest-${visit.timeSlot.toLowerCase()}`}
-                            />
-                          </div>
-                          
-                          <div>
-                            <Label className="text-xs">Latest Time</Label>
-                            <Input
-                              type="time"
-                              value={visit.latestTime}
-                              onChange={(e) => {
-                                const updated = [...multipleVisits];
-                                updated[originalIndex].latestTime = e.target.value;
-                                setMultipleVisits(updated);
-                              }}
-                              data-testid={`input-latest-${visit.timeSlot.toLowerCase()}`}
-                            />
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  );
-                })}
+                <div>
+                  <Label htmlFor="multiple-time-slot">Time Slot</Label>
+                  <Select value={newTimeSlot} onValueChange={setNewTimeSlot}>
+                    <SelectTrigger data-testid="select-multiple-time-slot">
+                      <SelectValue placeholder="Select time slot" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="none">No preference</SelectItem>
+                      <SelectItem value="Morning">Morning (07:00-11:00)</SelectItem>
+                      <SelectItem value="Lunch">Lunch (11:00-15:00)</SelectItem>
+                      <SelectItem value="Tea">Tea (15:00-18:00)</SelectItem>
+                      <SelectItem value="Bed">Bed (18:00-23:00)</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
 
-              {/* Commission Visits */}
-              <div className="space-y-4">
-                <div>
-                  <h4 className="font-medium text-sm">Commission Visits</h4>
-                  <p className="text-xs text-muted-foreground">Commission time slots that work the same as care visits</p>
+              <div className="space-y-2">
+                <Label className="text-sm font-medium">Customer Time Window (Optional)</Label>
+                <p className="text-xs text-muted-foreground">Specific window promised to customer within the time slot</p>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="multiple-earliest-time">Earliest Time</Label>
+                    <Input
+                      id="multiple-earliest-time"
+                      type="time"
+                      value={newEarliestTime}
+                      onChange={(e) => setNewEarliestTime(e.target.value)}
+                      placeholder="Optional"
+                      data-testid="input-multiple-earliest-time"
+                    />
+                  </div>
+                  
+                  <div>
+                    <Label htmlFor="multiple-latest-time">Latest Time</Label>
+                    <Input
+                      id="multiple-latest-time"
+                      type="time"
+                      value={newLatestTime}
+                      onChange={(e) => setNewLatestTime(e.target.value)}
+                      placeholder="Optional"
+                      data-testid="input-multiple-latest-time"
+                    />
+                  </div>
                 </div>
+              </div>
+
+              {/* Time Slot Selection */}
+              <div className="space-y-3">
+                <Label className="text-sm font-medium">Select Time Slots for Multiple Visits</Label>
+                <p className="text-xs text-muted-foreground">Check which time slots you want to add visits for using the settings above</p>
                 
-                {multipleVisits.filter(visit => visit.timeSlot.includes('Commission')).map((visit, index) => {
-                  const originalIndex = multipleVisits.findIndex(v => v.timeSlot === visit.timeSlot);
-                  return (
-                    <div key={visit.timeSlot} className="border rounded-lg p-4 space-y-3 bg-green-50 dark:bg-green-950/30">
-                      <div className="flex items-center gap-3">
-                        <Checkbox
-                          checked={visit.enabled}
-                          onCheckedChange={(checked) => {
-                            const updated = [...multipleVisits];
-                            updated[originalIndex].enabled = !!checked;
-                            setMultipleVisits(updated);
-                          }}
-                          data-testid={`checkbox-${visit.timeSlot.toLowerCase().replace(' ', '-')}`}
-                        />
-                        <div className="flex items-center gap-2">
-                          <span className="text-lg">
-                            {visit.timeSlot === 'Commission Morning' && '💼🌅'}
-                            {visit.timeSlot === 'Commission Lunch' && '💼🍽️'}
-                            {visit.timeSlot === 'Commission Tea' && '💼☕'}
-                            {visit.timeSlot === 'Commission Bed' && '💼🌙'}
-                          </span>
-                          <span className="font-medium">
-                            {visit.timeSlot}
-                          </span>
-                        </div>
+                <div className="grid grid-cols-2 gap-3">
+                  {['Morning', 'Lunch', 'Tea', 'Bed'].map((slot) => (
+                    <div key={slot} className="flex items-center space-x-3 p-3 border rounded-lg">
+                      <Checkbox
+                        checked={selectedTimeSlots.includes(slot)}
+                        onCheckedChange={(checked) => {
+                          if (checked) {
+                            setSelectedTimeSlots([...selectedTimeSlots, slot]);
+                          } else {
+                            setSelectedTimeSlots(selectedTimeSlots.filter(s => s !== slot));
+                          }
+                        }}
+                        data-testid={`checkbox-${slot.toLowerCase()}`}
+                      />
+                      <div className="flex items-center gap-2">
+                        <span className="text-lg">
+                          {slot === 'Morning' && '🌅'}
+                          {slot === 'Lunch' && '🍽️'}
+                          {slot === 'Tea' && '☕'}
+                          {slot === 'Bed' && '🌙'}
+                        </span>
+                        <span className="text-sm font-medium">{slot}</span>
                       </div>
-                      
-                      {visit.enabled && (
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mt-3">
-                          <div>
-                            <Label className="text-xs">Duration (minutes)</Label>
-                            <Input
-                              type="number"
-                              min="5"
-                              max="240"
-                              value={visit.duration}
-                              onChange={(e) => {
-                                const updated = [...multipleVisits];
-                                updated[originalIndex].duration = parseInt(e.target.value) || 30;
-                                setMultipleVisits(updated);
-                              }}
-                              data-testid={`input-duration-${visit.timeSlot.toLowerCase().replace(' ', '-')}`}
-                            />
-                          </div>
-                          
-                          <div>
-                            <Label className="text-xs">Earliest Time</Label>
-                            <Input
-                              type="time"
-                              value={visit.earliestTime}
-                              onChange={(e) => {
-                                const updated = [...multipleVisits];
-                                updated[originalIndex].earliestTime = e.target.value;
-                                setMultipleVisits(updated);
-                              }}
-                              data-testid={`input-earliest-${visit.timeSlot.toLowerCase().replace(' ', '-')}`}
-                            />
-                          </div>
-                          
-                          <div>
-                            <Label className="text-xs">Latest Time</Label>
-                            <Input
-                              type="time"
-                              value={visit.latestTime}
-                              onChange={(e) => {
-                                const updated = [...multipleVisits];
-                                updated[originalIndex].latestTime = e.target.value;
-                                setMultipleVisits(updated);
-                              }}
-                              data-testid={`input-latest-${visit.timeSlot.toLowerCase().replace(' ', '-')}`}
-                            />
-                          </div>
-                        </div>
-                      )}
                     </div>
-                  );
-                })}
+                  ))}
+                </div>
               </div>
             </div>
 
@@ -2469,7 +2374,7 @@ export default function RoutePlanner() {
               </Button>
               <Button 
                 onClick={addMultipleVisits}
-                disabled={!multipleVisitsAddress.trim() || !multipleVisits.some(v => v.enabled)}
+                disabled={!multipleVisitsAddress.trim() || selectedTimeSlots.length === 0}
                 data-testid="button-save-multiple"
               >
                 <Plus className="h-4 w-4 mr-2" />
