@@ -190,9 +190,6 @@ export default function RoutePlanner() {
   const [newEarliestTime, setNewEarliestTime] = useState('');
   const [newLatestTime, setNewLatestTime] = useState('');
   const [newClientName, setNewClientName] = useState('');
-  const [startLocation, setStartLocation] = useState('');
-  const [endLocation, setEndLocation] = useState('');
-  const [roundTrip, setRoundTrip] = useState(true);
   
   const mapRef = useRef<HTMLDivElement>(null);
   const mapInstanceRef = useRef<GoogleMap | null>(null);
@@ -325,7 +322,7 @@ export default function RoutePlanner() {
       saveRun: boolean;
       startLocation?: string;
       endLocation?: string;
-      roundTrip: boolean;
+      roundTrip?: boolean;
     }): Promise<OptimizationResult> => {
       const response = await apiRequest('POST', '/api/route-planner/optimize', data);
       return await response.json();
@@ -648,9 +645,6 @@ export default function RoutePlanner() {
       runDate,
       runName: autoRunName,
       saveRun: true, // Always save the optimized run
-      startLocation: startLocation.trim() || undefined,
-      endLocation: roundTrip ? undefined : (endLocation.trim() || undefined),
-      roundTrip,
     });
   };
 
@@ -677,7 +671,82 @@ export default function RoutePlanner() {
           </p>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Travel Mode and Settings Bar */}
+        <Card className="mb-6">
+          <CardContent className="p-4">
+            <div className="flex flex-wrap items-center gap-4">
+              <div className="flex items-center gap-2">
+                <Label htmlFor="travel-mode">Travel Mode:</Label>
+                <Select value={travelMode} onValueChange={(value: 'driving' | 'walking') => setTravelMode(value)}>
+                  <SelectTrigger className="w-[140px]" data-testid="select-travel-mode">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="driving">
+                      <div className="flex items-center gap-2">
+                        <Car className="h-4 w-4" />
+                        Driving
+                      </div>
+                    </SelectItem>
+                    <SelectItem value="walking">
+                      <div className="flex items-center gap-2">
+                        <Footprints className="h-4 w-4" />
+                        Walking
+                      </div>
+                    </SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <Label htmlFor="departure-time">Departure:</Label>
+                <Input
+                  id="departure-time"
+                  type="time"
+                  value={departureTime}
+                  onChange={(e) => setDepartureTime(e.target.value)}
+                  className="w-[120px]"
+                  data-testid="input-departure-time"
+                />
+              </div>
+              
+              <div className="flex items-center gap-2">
+                <Label htmlFor="run-date">Date:</Label>
+                <Input
+                  id="run-date"
+                  type="date"
+                  value={runDate}
+                  onChange={(e) => setRunDate(e.target.value)}
+                  className="w-[140px]"
+                  data-testid="input-run-date"
+                />
+              </div>
+
+              <div className="flex items-center gap-2">
+                <Label htmlFor="run-name">Run Name:</Label>
+                <Input
+                  id="run-name"
+                  placeholder="Auto-generated if blank"
+                  value={runName}
+                  onChange={(e) => setRunName(e.target.value)}
+                  className="w-[200px]"
+                  data-testid="input-run-name"
+                />
+              </div>
+
+              <Button 
+                onClick={optimizeRoute}
+                disabled={visits.length < 2 || optimizeMutation.isPending}
+                data-testid="button-optimize-route"
+              >
+                <Play className="h-4 w-4 mr-2" />
+                {optimizeMutation.isPending ? 'Creating Route...' : 'Create Optimized Run'}
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
           {/* Controls Panel */}
           <div className="lg:col-span-1 space-y-6">
             
@@ -781,123 +850,6 @@ export default function RoutePlanner() {
               </CardContent>
             </Card>
 
-            {/* Route Settings */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Route className="h-5 w-5" />
-                  Route Settings
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div>
-                  <Label htmlFor="travel-mode">Travel Mode</Label>
-                  <Select value={travelMode} onValueChange={(value: 'driving' | 'walking') => setTravelMode(value)}>
-                    <SelectTrigger data-testid="select-travel-mode">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="driving">
-                        <div className="flex items-center gap-2">
-                          <Car className="h-4 w-4" />
-                          Driving
-                        </div>
-                      </SelectItem>
-                      <SelectItem value="walking">
-                        <div className="flex items-center gap-2">
-                          <Footprints className="h-4 w-4" />
-                          Walking
-                        </div>
-                      </SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <Label htmlFor="departure-time">Departure Time</Label>
-                    <Input
-                      id="departure-time"
-                      type="time"
-                      value={departureTime}
-                      onChange={(e) => setDepartureTime(e.target.value)}
-                      data-testid="input-departure-time"
-                    />
-                  </div>
-                  
-                  <div>
-                    <Label htmlFor="run-date">Run Date</Label>
-                    <Input
-                      id="run-date"
-                      type="date"
-                      value={runDate}
-                      onChange={(e) => setRunDate(e.target.value)}
-                      data-testid="input-run-date"
-                    />
-                  </div>
-                </div>
-
-                <div>
-                  <Label htmlFor="start-location">Start Location</Label>
-                  <Input
-                    id="start-location"
-                    placeholder="Carer home address or depot"
-                    value={startLocation}
-                    onChange={(e) => setStartLocation(e.target.value)}
-                    data-testid="input-start-location"
-                  />
-                </div>
-
-                <div className="flex items-center space-x-2">
-                  <input
-                    type="checkbox"
-                    id="round-trip"
-                    checked={roundTrip}
-                    onChange={(e) => setRoundTrip(e.target.checked)}
-                    data-testid="checkbox-round-trip"
-                    className="rounded border-gray-300"
-                  />
-                  <Label htmlFor="round-trip">Round trip (return to start)</Label>
-                </div>
-
-                {!roundTrip && (
-                  <div>
-                    <Label htmlFor="end-location">End Location</Label>
-                    <Input
-                      id="end-location"
-                      placeholder="Different end location"
-                      value={endLocation}
-                      onChange={(e) => setEndLocation(e.target.value)}
-                      data-testid="input-end-location"
-                    />
-                  </div>
-                )}
-
-                <div>
-                  <Label htmlFor="run-name">Run Name (Optional)</Label>
-                  <Input
-                    id="run-name"
-                    placeholder="Leave blank for auto-generated name"
-                    value={runName}
-                    onChange={(e) => setRunName(e.target.value)}
-                    data-testid="input-run-name"
-                  />
-                </div>
-
-                <Button 
-                  onClick={optimizeRoute}
-                  disabled={visits.length < 2 || optimizeMutation.isPending}
-                  className="w-full"
-                  data-testid="button-optimize-route"
-                >
-                  <Play className="h-4 w-4 mr-2" />
-                  {optimizeMutation.isPending ? 'Creating Shortest Route...' : 'Create Optimized Run'}
-                </Button>
-                <p className="text-xs text-muted-foreground text-center mt-2">
-                  Automatically creates a run with the shortest travel time between all addresses
-                </p>
-              </CardContent>
-            </Card>
 
             {/* Visits List */}
             <Card>
@@ -1069,8 +1021,8 @@ export default function RoutePlanner() {
           </div>
 
           {/* Map Panel */}
-          <div className="lg:col-span-2">
-            <Card className="h-[800px]">
+          <div className="lg:col-span-3">
+            <Card className="h-[600px]">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <MapPin className="h-5 w-5" />
@@ -1088,7 +1040,7 @@ export default function RoutePlanner() {
                   )}
                 </CardDescription>
               </CardHeader>
-              <CardContent className="p-0 h-[calc(800px-80px)]">
+              <CardContent className="p-0 h-[calc(600px-80px)]">
                 {!isMapLoaded ? (
                   <div className="h-full flex items-center justify-center">
                     <div className="text-center space-y-2">
@@ -1108,7 +1060,7 @@ export default function RoutePlanner() {
                     ref={mapRef} 
                     className="w-full h-full rounded-b-lg"
                     data-testid="map-container"
-                    style={{ minHeight: '720px' }}
+                    style={{ minHeight: '520px' }}
                   />
                 )}
               </CardContent>
