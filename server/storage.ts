@@ -1,4 +1,4 @@
-import { type User, type InsertUser, type Job, type InsertJob, type Application, type InsertApplication, type ContactSubmission, type InsertContactSubmission, type Feedback, type InsertFeedback, type Newsletter, type InsertNewsletter, type NewsletterBlock, type InsertNewsletterBlock, type Template, type InsertTemplate, type Subscriber, type InsertSubscriber, type Campaign, type InsertCampaign, type Delivery, type InsertDelivery, type BlogCategory, type InsertBlogCategory, type BlogPost, type InsertBlogPost, type AuditLog, type InsertAuditLog, type CqcAudit, type InsertCqcAudit, type CqcAuditCategory, type InsertCqcAuditCategory, type CqcQualityStatement, type InsertCqcQualityStatement, type CqcEvidenceCategory, type InsertCqcEvidenceCategory, type CqcAuditEvidence, type InsertCqcAuditEvidence, type CqcQualityAssessment, type InsertCqcQualityAssessment, type CqcComplianceRecord, type InsertCqcComplianceRecord, type KnowledgeQuestionnaire, type InsertKnowledgeQuestionnaire, type KnowledgeQuestion, type InsertKnowledgeQuestion, type KnowledgeSession, type InsertKnowledgeSession, type KnowledgeResponse, type InsertKnowledgeResponse, type KnowledgeAction, type InsertKnowledgeAction, type RecruitmentApplication, type InsertRecruitmentApplication, type ProfessionalReference, type InsertProfessionalReference, type Client, type InsertClient, type Visit, type InsertVisit, type Run, type InsertRun, type RunStop, type InsertRunStop, type Geocode, type InsertGeocode } from "@shared/schema";
+import { type User, type InsertUser, type Job, type InsertJob, type Application, type InsertApplication, type ContactSubmission, type InsertContactSubmission, type Feedback, type InsertFeedback, type Newsletter, type InsertNewsletter, type NewsletterBlock, type InsertNewsletterBlock, type Template, type InsertTemplate, type Subscriber, type InsertSubscriber, type Campaign, type InsertCampaign, type Delivery, type InsertDelivery, type BlogCategory, type InsertBlogCategory, type BlogPost, type InsertBlogPost, type AuditLog, type InsertAuditLog, type CqcAudit, type InsertCqcAudit, type CqcAuditCategory, type InsertCqcAuditCategory, type CqcQualityStatement, type InsertCqcQualityStatement, type CqcEvidenceCategory, type InsertCqcEvidenceCategory, type CqcAuditEvidence, type InsertCqcAuditEvidence, type CqcQualityAssessment, type InsertCqcQualityAssessment, type CqcComplianceRecord, type InsertCqcComplianceRecord, type CqcChecklistItem, type InsertCqcChecklistItem, type CqcAuditResponse, type InsertCqcAuditResponse, type KnowledgeQuestionnaire, type InsertKnowledgeQuestionnaire, type KnowledgeQuestion, type InsertKnowledgeQuestion, type KnowledgeSession, type InsertKnowledgeSession, type KnowledgeResponse, type InsertKnowledgeResponse, type KnowledgeAction, type InsertKnowledgeAction, type RecruitmentApplication, type InsertRecruitmentApplication, type ProfessionalReference, type InsertProfessionalReference, type Client, type InsertClient, type Visit, type InsertVisit, type Run, type InsertRun, type RunStop, type InsertRunStop, type Geocode, type InsertGeocode } from "@shared/schema";
 import { randomUUID } from "crypto";
 import { db } from "./db";
 import { users, jobs, applications, contactSubmissions, blogCategories, blogPosts, auditLogs, cqcAudits, cqcAuditCategories, cqcQualityStatements, cqcEvidenceCategories, cqcAuditEvidence, cqcQualityAssessments, cqcComplianceRecords, knowledgeQuestionnaires, knowledgeQuestions, knowledgeSessions, knowledgeResponses, knowledgeActions, recruitmentApplications, professionalReferences, clients, visits, runs, runStops, geocodeCache } from "@shared/schema";
@@ -1829,6 +1829,98 @@ export class MemStorage implements IStorage {
     this.geocodes.set(id, updatedGeocode);
     return updatedGeocode;
   }
+
+  // CQC Quality Statements (stub implementations for MemStorage)
+  async getAllCqcQualityStatements(keyQuestion?: string): Promise<CqcQualityStatement[]> {
+    return [];
+  }
+
+  async getCqcQualityStatement(id: string): Promise<CqcQualityStatement | undefined> {
+    return undefined;
+  }
+
+  async createCqcQualityStatement(statement: InsertCqcQualityStatement): Promise<CqcQualityStatement> {
+    const id = randomUUID();
+    const now = new Date();
+    return { id, createdAt: now, ...statement } as CqcQualityStatement;
+  }
+
+  async updateCqcQualityStatement(id: string, updates: Partial<InsertCqcQualityStatement>): Promise<CqcQualityStatement | undefined> {
+    return undefined;
+  }
+
+  async deleteCqcQualityStatement(id: string): Promise<boolean> {
+    return false;
+  }
+
+  // CQC Evidence Categories (stub implementations for MemStorage)
+  async getAllCqcEvidenceCategories(): Promise<CqcEvidenceCategory[]> {
+    return [];
+  }
+
+  async getCqcEvidenceCategory(id: string): Promise<CqcEvidenceCategory | undefined> {
+    return undefined;
+  }
+
+  async createCqcEvidenceCategory(category: InsertCqcEvidenceCategory): Promise<CqcEvidenceCategory> {
+    const id = randomUUID();
+    return { id, ...category } as CqcEvidenceCategory;
+  }
+
+  async updateCqcEvidenceCategory(id: string, updates: Partial<InsertCqcEvidenceCategory>): Promise<CqcEvidenceCategory | undefined> {
+    return undefined;
+  }
+
+  async deleteCqcEvidenceCategory(id: string): Promise<boolean> {
+    return false;
+  }
+
+  // CQC Audit Evidence (stub implementations for MemStorage)
+  async getAllCqcAuditEvidence(filters?: { auditId?: string; evidenceCategoryId?: string; qualityStatementId?: string }): Promise<CqcAuditEvidence[]> {
+    return [];
+  }
+
+  async getCqcAuditEvidence(id: string): Promise<CqcAuditEvidence | undefined> {
+    return undefined;
+  }
+
+  async createCqcAuditEvidence(evidence: InsertCqcAuditEvidence): Promise<CqcAuditEvidence> {
+    const id = randomUUID();
+    const now = new Date();
+    return { id, createdAt: now, ...evidence } as CqcAuditEvidence;
+  }
+
+  async updateCqcAuditEvidence(id: string, updates: Partial<InsertCqcAuditEvidence>): Promise<CqcAuditEvidence | undefined> {
+    return undefined;
+  }
+
+  async deleteCqcAuditEvidence(id: string): Promise<boolean> {
+    return false;
+  }
+
+  // CQC Quality Assessments (stub implementations for MemStorage)
+  async getAllCqcQualityAssessments(filters?: { auditId?: string; qualityStatementId?: string; assessmentRating?: string }): Promise<CqcQualityAssessment[]> {
+    return [];
+  }
+
+  async getCqcQualityAssessment(id: string): Promise<CqcQualityAssessment | undefined> {
+    return undefined;
+  }
+
+  async createCqcQualityAssessment(assessment: InsertCqcQualityAssessment): Promise<CqcQualityAssessment> {
+    const id = randomUUID();
+    const now = new Date();
+    return { id, createdAt: now, updatedAt: now, ...assessment } as CqcQualityAssessment;
+  }
+
+  async updateCqcQualityAssessment(id: string, updates: Partial<InsertCqcQualityAssessment>): Promise<CqcQualityAssessment | undefined> {
+    return undefined;
+  }
+
+  async deleteCqcQualityAssessment(id: string): Promise<boolean> {
+    return false;
+  }
+
 }
 
 // Database storage implementation using Drizzle ORM
@@ -2997,8 +3089,32 @@ export class DrizzleStorage implements IStorage {
   }
 
   // Route Planning - Runs
-  async getAllRuns(): Promise<Run[]> {
-    return await db.select().from(runs).orderBy(desc(runs.createdAt));
+  async getAllRuns(filters?: { date?: string; travelMode?: string; status?: string; createdBy?: string }): Promise<Run[]> {
+    let query = db.select().from(runs);
+    
+    if (filters?.date) {
+      const targetDate = new Date(filters.date);
+      const startOfDay = new Date(targetDate.setHours(0, 0, 0, 0));
+      const endOfDay = new Date(targetDate.setHours(23, 59, 59, 999));
+      query = query.where(and(
+        gte(runs.date, startOfDay),
+        lte(runs.date, endOfDay)
+      ));
+    }
+    
+    if (filters?.travelMode) {
+      query = query.where(eq(runs.travelMode, filters.travelMode));
+    }
+    
+    if (filters?.status) {
+      query = query.where(eq(runs.status, filters.status));
+    }
+    
+    if (filters?.createdBy) {
+      query = query.where(eq(runs.createdBy, filters.createdBy));
+    }
+    
+    return await query.orderBy(desc(runs.createdAt));
   }
 
   async getRun(id: string): Promise<Run | undefined> {
