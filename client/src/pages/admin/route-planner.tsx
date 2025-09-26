@@ -543,40 +543,15 @@ export default function RoutePlanner() {
       return await response.json();
     },
     onSuccess: (result: any) => {
-      // Handle new shift-based structure
-      let optimisedOrder = result.optimizedRoutes?.flatMap((route: any) => route.visits) || result.optimizedOrder || result.optimisedOrder || [];
+      console.log('🔍 Raw optimization result:', result);
       
-      // Extract and add travel times to each visit
+      // Handle new shift-based structure - USE optimizedOrder which has travel times!
+      let optimisedOrder = result.optimizedOrder || result.optimisedOrder || result.optimizedRoutes?.flatMap((route: any) => route.visits) || [];
+      
+      // Simple fix: Travel times should already be on the visits from the backend
       if (optimisedOrder && optimisedOrder.length > 0) {
-        optimisedOrder = optimisedOrder.map((visit: Visit, index: number) => {
-          // Check if there's travel time information in the result
-          const nextVisit = optimisedOrder[index + 1];
-          let travelTimeToNext: number | undefined;
-          
-          // Try to extract travel time from various possible response structures
-          if (result.optimizedRoutes && result.optimizedRoutes.length > 0) {
-            // Check if travel times are in route segments
-            const routeWithVisit = result.optimizedRoutes.find((route: any) => 
-              route.visits && route.visits.some((v: any) => v.id === visit.id)
-            );
-            if (routeWithVisit && routeWithVisit.segments) {
-              const visitIndex = routeWithVisit.visits.findIndex((v: any) => v.id === visit.id);
-              if (visitIndex >= 0 && visitIndex < routeWithVisit.segments.length) {
-                travelTimeToNext = routeWithVisit.segments[visitIndex]?.travelMinutes;
-              }
-            }
-          }
-          
-          // Fallback: check if travel time is directly on the visit
-          if (!travelTimeToNext && visit.travelTimeToNext) {
-            travelTimeToNext = visit.travelTimeToNext;
-          }
-          
-          return {
-            ...visit,
-            travelTimeToNext: nextVisit ? travelTimeToNext : undefined
-          };
-        });
+        console.log('🔍 First visit with travel time:', optimisedOrder[0]);
+        console.log('🔍 Travel times on visits:', optimisedOrder.map((v: any) => ({ id: v.id, travelTimeToNext: v.travelTimeToNext })));
       }
       
       const ukResult: OptimisationResult = {
