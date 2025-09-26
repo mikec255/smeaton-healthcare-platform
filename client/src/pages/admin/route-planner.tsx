@@ -208,6 +208,11 @@ function SortableVisitItem({ visit, index, onRemove }: { visit: Visit; index: nu
                   {visit.timeSlot}
                 </Badge>
               )}
+              {(visit.earliestTime || visit.latestTime) && (
+                <span className="text-xs font-medium text-blue-600 dark:text-blue-400">
+                  🕐 {visit.earliestTime || '—'} - {visit.latestTime || '—'}
+                </span>
+              )}
             </div>
           </div>
         </div>
