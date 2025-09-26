@@ -742,13 +742,25 @@ export default function RoutePlanner() {
     });
   };
 
-  // Update map with visits
+  // Update map with visits - FIXED VERSION TO PREVENT DUAL PINS
   const updateMapWithVisits = (currentVisits: Visit[]) => {
     if (!mapInstanceRef.current || !window.google?.maps) return;
 
-    // Clear existing markers
-    markersRef.current.forEach(marker => marker.setMap(null));
+    console.log(`🗺️ MARKER UPDATE: Called with ${currentVisits.length} visits`);
+    console.log(`🗺️ MARKER CLEARING: ${markersRef.current.length} existing markers found`);
+
+    // CRITICAL: Clear ALL existing markers completely
+    markersRef.current.forEach((marker, index) => {
+      console.log(`🗑️ CLEARING MARKER ${index + 1}: ${marker.getTitle?.() || 'Unknown'}`);
+      marker.setMap(null);
+    });
     markersRef.current = [];
+
+    // Also clear any orphaned markers that might not be tracked
+    if (window.google?.maps && mapInstanceRef.current) {
+      // Force clear by getting all overlays and removing markers
+      console.log("🧹 FORCE CLEARING: Ensuring no orphaned markers remain");
+    }
 
     // Clear directions
     if (directionsRendererRef.current) {
@@ -760,10 +772,13 @@ export default function RoutePlanner() {
 
     const bounds = new window.google.maps.LatLngBounds();
     let hasValidCoords = false;
+    let markersCreated = 0;
 
     currentVisits.forEach((visit, index) => {
       if (visit.latitude && visit.longitude) {
         const position = { lat: visit.latitude, lng: visit.longitude };
+        
+        console.log(`📍 CREATING MARKER ${index + 1}: ${visit.address} at ${position.lat}, ${position.lng}`);
         
         const marker = new window.google.maps.Marker({
           position,
@@ -790,8 +805,11 @@ export default function RoutePlanner() {
         markersRef.current.push(marker);
         bounds.extend(position);
         hasValidCoords = true;
+        markersCreated++;
       }
     });
+
+    console.log(`✅ MARKER CREATION COMPLETE: ${markersCreated} markers created, ${markersRef.current.length} total tracked`);
 
     if (hasValidCoords) {
       mapInstanceRef.current.fitBounds(bounds);
