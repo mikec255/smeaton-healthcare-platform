@@ -218,7 +218,18 @@ export class GoogleMapsService {
     
     for (let attempt = 0; attempt < this.MAX_RETRIES; attempt++) {
       try {
-        // Format coordinates for API
+        // CRITICAL FIX: Use Directions API for individual pairs to match Google Maps website exactly
+        // This API gives identical results to what users see on Google Maps
+        if (origins.length === 1 && destinations.length === 1) {
+          const origin = origins[0];
+          const dest = destinations[0];
+          const directionsResult = await this.getDirectionsForDistanceMatrix(origin, dest, mode, departureTimeEpoch);
+          if (directionsResult) {
+            return directionsResult;
+          }
+        }
+        
+        // Fallback to Distance Matrix API for bulk requests
         const originsStr = origins.map(coord => `${coord.lat},${coord.lng}`).join('|');
         const destinationsStr = destinations.map(coord => `${coord.lat},${coord.lng}`).join('|');
         
@@ -397,6 +408,70 @@ export class GoogleMapsService {
     console.warn(`Large distance matrix request chunked. Processing ${originChunk.length}x${destinationChunk.length} of ${origins.length}x${destinations.length}`);
     
     return this.getDistanceMatrix(originChunk, destinationChunk, mode, departureTimeEpoch);
+  }
+
+  // CRITICAL FIX: Use Directions API for individual routes (matches Google Maps website exactly)
+  private async getDirectionsForDistanceMatrix(
+    origin: { lat: number; lng: number },
+    destination: { lat: number; lng: number },
+    mode: 'walking' | 'driving',
+    departureTimeEpoch?: number
+  ): Promise<DistanceMatrixResult | null> {
+    try {
+      let url = `${this.baseUrl}/directions/json?origin=${origin.lat},${origin.lng}&destination=${destination.lat},${destination.lng}&mode=${mode}&units=metric&language=en&region=GB&key=${this.apiKey}`;
+      
+      // Add traffic and departure time for driving
+      if (mode === 'driving' && departureTimeEpoch) {
+        url += `&departure_time=${departureTimeEpoch}&traffic_model=best_guess`;
+      }
+      
+      // Add walking-specific parameters to match Google Maps website
+      if (mode === 'walking') {
+        url += '&avoid=ferries&alternatives=false';
+      }
+      
+      console.log(`🎯 USING DIRECTIONS API (matches Google Maps website): ${origin.lat},${origin.lng} → ${destination.lat},${destination.lng} (${mode})`);
+      
+      const response = await fetch(url);
+      const data = await response.json() as any; // Directions API response
+      
+      if (data.status === 'OK' && data.routes && data.routes.length > 0) {
+        const route = data.routes[0];
+        const leg = route.legs[0];
+        
+        // Convert Directions API response to Distance Matrix format
+        const result: DistanceMatrixResult = {
+          origins: [`${origin.lat},${origin.lng}`],
+          destinations: [`${destination.lat},${destination.lng}`],
+          rows: [{
+            elements: [{
+              status: 'OK',
+              distance: leg.distance ? {
+                text: leg.distance.text,
+                value: leg.distance.value
+              } : null,
+              duration: leg.duration ? {
+                text: leg.duration.text,
+                value: leg.duration.value
+              } : null,
+              duration_in_traffic: leg.duration_in_traffic ? {
+                text: leg.duration_in_traffic.text,
+                value: leg.duration_in_traffic.value
+              } : null
+            }]
+          }]
+        };
+        
+        console.log(`✅ DIRECTIONS API SUCCESS: ${leg.duration?.text} (matches Google Maps website)`);
+        return result;
+      }
+      
+      console.warn(`⚠️ DIRECTIONS API failed: ${data.status}`);
+      return null;
+    } catch (error) {
+      console.error('Directions API error:', error);
+      return null;
+    }
   }
 
   // Generate cache key for distance matrix
