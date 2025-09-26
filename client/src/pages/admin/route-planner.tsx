@@ -896,33 +896,8 @@ export default function RoutePlanner() {
       if (status === 'OK') {
         directionsRendererRef.current.setDirections(response);
 
-        // Add time labels for each route segment
-        const route = response.routes[0];
-        if (route && route.legs) {
-          route.legs.forEach((leg: any, index: number) => {
-            if (leg.duration && leg.duration.value) {
-              const minutes = Math.round(leg.duration.value / 60);
-              
-              // Calculate midpoint of the leg
-              const startLat = leg.start_location.lat();
-              const startLng = leg.start_location.lng();
-              const endLat = leg.end_location.lat();
-              const endLng = leg.end_location.lng();
-              
-              const midpoint = {
-                lat: (startLat + endLat) / 2,
-                lng: (startLng + endLng) / 2
-              };
-
-              // Create time label
-              const timeLabel = createTimeLabel(midpoint, `${minutes} min`);
-              if (timeLabel) {
-                timeLabel.setMap(mapInstanceRef.current);
-                timeLabelsRef.current.push(timeLabel);
-              }
-            }
-          });
-        }
+        // Note: Time labels removed to avoid confusion with authoritative list times
+        // The list shows the accurate traffic-aware times from Distance Matrix API
       }
     });
   };
