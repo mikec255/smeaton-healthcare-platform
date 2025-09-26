@@ -2669,13 +2669,23 @@ export default function RoutePlanner() {
                         </div>
                         <div className="text-center">
                           <div className="font-semibold text-lg text-orange-600 dark:text-orange-400">
-                            {formatDuration((optimisation.optimizedRoutes?.reduce((total: number, route: any) => total + (route.metrics?.travelTimeHours * 60 || 0), 0)) || optimisation.totalTravelMinutes || 0)}
+                            {formatDuration(
+                              optimisation.optimisedOrder?.reduce((total: number, visit: any, index: number) => {
+                                // Sum up actual travelTimeToNext values from individual visits
+                                return total + (visit.travelTimeToNext || 0);
+                              }, 0) || 0
+                            )}
                           </div>
                           <div className="text-muted-foreground">Travel Time</div>
                         </div>
                         <div className="text-center">
                           <div className="font-semibold text-lg text-purple-600 dark:text-purple-400">
-                            {formatDuration((optimisation.optimizedRoutes?.reduce((total: number, route: any) => total + (route.metrics?.serviceTimeHours * 60 || 0), 0)) || optimisation.totalServiceMinutes || 0)}
+                            {formatDuration(
+                              optimisation.optimisedOrder?.reduce((total: number, visit: any) => {
+                                // Sum up actual service times from individual visits  
+                                return total + (visit.durationMinutes || 0);
+                              }, 0) || 0
+                            )}
                           </div>
                           <div className="text-muted-foreground">Care Hours (Provided)</div>
                         </div>
@@ -2805,13 +2815,21 @@ export default function RoutePlanner() {
                             </div>
                             <div className="text-center">
                               <div className="font-semibold text-lg text-orange-600 dark:text-orange-400" data-testid={`archived-route-travel-time-${index}`}>
-                                {formatDuration((archived.route?.optimizedRoutes?.reduce((total: number, route: any) => total + (route.metrics?.travelTimeHours * 60 || 0), 0)) || 0)}
+                                {formatDuration(
+                                  archived.route?.optimisedOrder?.reduce((total: number, visit: any) => {
+                                    return total + (visit.travelTimeToNext || 0);
+                                  }, 0) || 0
+                                )}
                               </div>
                               <div className="text-muted-foreground">Travel Time</div>
                             </div>
                             <div className="text-center">
                               <div className="font-semibold text-lg text-purple-600 dark:text-purple-400" data-testid={`archived-route-care-time-${index}`}>
-                                {formatDuration((archived.route?.optimizedRoutes?.reduce((total: number, route: any) => total + (route.metrics?.serviceTimeHours * 60 || 0), 0)) || 0)}
+                                {formatDuration(
+                                  archived.route?.optimisedOrder?.reduce((total: number, visit: any) => {
+                                    return total + (visit.durationMinutes || 0);
+                                  }, 0) || 0
+                                )}
                               </div>
                               <div className="text-muted-foreground">Care Time</div>
                             </div>
