@@ -972,11 +972,7 @@ export default function RoutePlanner() {
 
   const formatDistance = (meters: number) => {
     const miles = meters * 0.000621371;
-    if (miles >= 1) {
-      return `${miles.toFixed(1)} mi`;
-    }
-    const feet = meters * 3.28084;
-    return `${Math.round(feet)} ft`;
+    return `${miles.toFixed(1)} mi`;
   };
 
   // Export route to CSV
