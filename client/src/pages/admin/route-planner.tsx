@@ -2764,6 +2764,29 @@ export default function RoutePlanner() {
                                         )}
                                       </div>
                                     </div>
+                                    
+                                    {/* Travel Time to Next Customer */}
+                                    {visitIndex < archived.route.optimisedOrder.length - 1 && visit.travelTimeToNext && (
+                                      <div className="text-right">
+                                        <div className="flex items-center gap-2 text-green-600 dark:text-green-400">
+                                          <Clock className="h-4 w-4" />
+                                          <span className="font-medium">
+                                            {visit.travelTimeToNext} min
+                                          </span>
+                                        </div>
+                                        <p className="text-xs text-muted-foreground">
+                                          to next customer
+                                        </p>
+                                      </div>
+                                    )}
+                                    
+                                    {visitIndex === archived.route.optimisedOrder.length - 1 && (
+                                      <div className="text-right">
+                                        <div className="flex items-center gap-2 text-gray-500">
+                                          <span className="text-sm font-medium">Final destination</span>
+                                        </div>
+                                      </div>
+                                    )}
                                   </div>
                                 ))}
                               </div>
