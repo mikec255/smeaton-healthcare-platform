@@ -2515,7 +2515,7 @@ export default function RoutePlanner() {
                               <span className="text-2xl">{timeSlotIcons[timeSlot as keyof typeof timeSlotIcons]}</span>
                               <div>
                                 <h3 className="font-semibold text-lg text-gray-900 dark:text-gray-100">{timeSlot} Visits</h3>
-                                <p className="text-sm text-gray-600 dark:text-gray-400">{visitsInSlot.length} visit{visitsInSlot.length !== 1 ? 's' : ''}</p>
+                                <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">{visitsInSlot.length} visit{visitsInSlot.length !== 1 ? 's' : ''}</p>
                               </div>
                             </div>
 
