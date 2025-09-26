@@ -219,12 +219,19 @@ export class AdvancedRouteOptimizer {
               }
               
               if (durationValue) {
-                // Store duration in minutes - use Google's formatting for display accuracy
-                let timeMinutes = Math.round(durationValue / 60);
-                
-                // Extract just the time part from Google's text (e.g. "4 mins" from "4 mins (224s)")
-                const cleanGoogleText = durationText ? durationText.split(' (')[0] : `${timeMinutes} min`;
+                // Extract Google's exact displayed time instead of calculating our own
+                const cleanGoogleText = durationText ? durationText.split(' (')[0] : 'Unknown';
                 this.durationTexts[`${i + oi},${j + di}`] = cleanGoogleText;
+                
+                // Parse Google's exact displayed minutes to match their rounding precisely
+                let timeMinutes = Math.round(durationValue / 60); // Fallback calculation
+                if (cleanGoogleText && cleanGoogleText.includes(' min')) {
+                  const googleMinutes = parseInt(cleanGoogleText.split(' ')[0]);
+                  if (!isNaN(googleMinutes)) {
+                    timeMinutes = googleMinutes; // Use Google's exact displayed time
+                    console.log(`PRECISION FIX: Using Google's displayed time "${cleanGoogleText}" instead of calculated ${Math.round(durationValue / 60)} min`);
+                  }
+                }
                 
                 // Special handling for same-location visits (same coordinates, different visits)
                 // Add buffer time for walking between different units/houses at same postcode
