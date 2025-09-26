@@ -543,16 +543,8 @@ export default function RoutePlanner() {
       return await response.json();
     },
     onSuccess: (result: any) => {
-      console.log('🔍 Raw optimization result:', result);
-      
       // Handle new shift-based structure - USE optimizedOrder which has travel times!
       let optimisedOrder = result.optimizedOrder || result.optimisedOrder || result.optimizedRoutes?.flatMap((route: any) => route.visits) || [];
-      
-      // Simple fix: Travel times should already be on the visits from the backend
-      if (optimisedOrder && optimisedOrder.length > 0) {
-        console.log('🔍 First visit with travel time:', optimisedOrder[0]);
-        console.log('🔍 Travel times on visits:', optimisedOrder.map((v: any) => ({ id: v.id, travelTimeToNext: v.travelTimeToNext })));
-      }
       
       const ukResult: OptimisationResult = {
         ...result,
