@@ -420,6 +420,41 @@ export class GoogleMapsService {
     return this.getDistanceMatrix(originChunk, destinationChunk, mode, departureTimeEpoch);
   }
 
+  // Handle multiple origins/destinations using individual Directions API calls
+  private async getDirectionsMatrixFromIndividualCalls(
+    origins: Array<{ lat: number; lng: number }>,
+    destinations: Array<{ lat: number; lng: number }>,
+    mode: 'walking' | 'driving',
+    departureTimeEpoch?: number
+  ): Promise<DistanceMatrixResult> {
+    const rows = [];
+    
+    for (const origin of origins) {
+      const elements = [];
+      for (const destination of destinations) {
+        const directionsResult = await this.getDirectionsForDistanceMatrix(origin, destination, mode, departureTimeEpoch);
+        if (directionsResult && directionsResult.rows[0].elements[0]) {
+          elements.push(directionsResult.rows[0].elements[0]);
+        } else {
+          // Fallback element for failed requests
+          elements.push({
+            status: 'NOT_FOUND',
+            distance: null,
+            duration: null,
+            duration_in_traffic: null
+          });
+        }
+      }
+      rows.push({ elements });
+    }
+    
+    return {
+      origins: origins.map(o => `${o.lat},${o.lng}`),
+      destinations: destinations.map(d => `${d.lat},${d.lng}`),
+      rows
+    };
+  }
+
   // CRITICAL FIX: Use Directions API for individual routes (matches Google Maps website exactly)
   private async getDirectionsForDistanceMatrix(
     origin: { lat: number; lng: number },
