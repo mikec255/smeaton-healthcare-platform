@@ -258,11 +258,7 @@ export class GoogleMapsService {
         
         let url = `${this.baseUrl}/directions/json?origin=${originStr}&destination=${destinationStr}${waypointsStr}&mode=${mode}&key=${this.apiKey}`;
         
-        // For driving mode, add real-time traffic parameters to match Distance Matrix
-        if (mode === 'driving') {
-          const departureTime = Math.floor(Date.now() / 1000);
-          url += `&departure_time=${departureTime}&traffic_model=best_guess`;
-        }
+        // Use standard times without traffic to match manual Google Maps checks
         
         const response = await fetch(url);
         const data = await response.json() as GoogleDirectionsResponse;

@@ -3,6 +3,7 @@ import { GoogleMapsService, type DistanceMatrixResult } from './google-maps-serv
 // Advanced Route Optimization Service for Domiciliary Care
 export class AdvancedRouteOptimizer {
   private googleMapsService: GoogleMapsService;
+  private durationTexts: Record<string, string> = {}; // Store Google's formatted duration texts
   
   // Configuration for domiciliary care
   private readonly MAX_DAILY_HOURS = 8; // 8-hour work day
@@ -203,19 +204,25 @@ export class AdvancedRouteOptimizer {
             if (element?.status === 'OK') {
               // Always use standard duration to match manual Google Maps checks
               let durationValue = null;
+              let durationText = null;
               if (element.duration) {
                 durationValue = element.duration.value;
-                console.log(`Using standard duration for ${i + oi} to ${j + di}: ${Math.round(durationValue / 60)} min`);
+                durationText = element.duration.text; // Use Google's exact formatting
+                console.log(`Using standard duration for ${i + oi} to ${j + di}: ${durationText} (${durationValue}s)`);
               }
               
               if (durationValue) {
-                // Store duration in minutes
+                // Store duration in minutes - use Google's formatting for display accuracy
                 let timeMinutes = Math.round(durationValue / 60);
+                
+                // Store the exact Google text for display (e.g. "7 mins" matches Google Maps UI)
+                this.durationTexts[`${i + oi},${j + di}`] = durationText || `${timeMinutes} min`;
                 
                 // Special handling for same-location visits (same coordinates, different visits)
                 // Add buffer time for walking between different units/houses at same postcode
                 if (timeMinutes === 0 && i + oi !== j + di) {
                   timeMinutes = 3; // 3 minutes buffer for same-location visits
+                  this.durationTexts[`${i + oi},${j + di}`] = '3 mins'; // Override with buffer time
                   console.log(`Same-location visits detected (${i + oi} to ${j + di}), using 3min buffer time`);
                 }
                 
