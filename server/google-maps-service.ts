@@ -218,8 +218,8 @@ export class GoogleMapsService {
     
     for (let attempt = 0; attempt < this.MAX_RETRIES; attempt++) {
       try {
-        // CRITICAL FIX: Use Directions API for individual pairs to match Google Maps website exactly
-        // This API gives identical results to what users see on Google Maps
+        // CRITICAL FIX: FORCE all calls to use Directions API to match Google Maps website exactly
+        // This API gives identical results to what users see on Google Maps website
         if (origins.length === 1 && destinations.length === 1) {
           const origin = origins[0];
           const dest = destinations[0];
@@ -227,6 +227,12 @@ export class GoogleMapsService {
           if (directionsResult) {
             return directionsResult;
           }
+        }
+        
+        // For multi-origin requests, call Directions API for each pair individually  
+        if (origins.length > 1 || destinations.length > 1) {
+          console.log(`🎯 FORCING INDIVIDUAL DIRECTIONS API CALLS instead of bulk Distance Matrix`);
+          return await this.getDirectionsMatrixFromIndividualCalls(origins, destinations, mode, departureTimeEpoch);
         }
         
         // Fallback to Distance Matrix API for bulk requests
