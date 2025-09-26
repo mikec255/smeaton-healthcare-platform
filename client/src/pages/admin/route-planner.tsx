@@ -1232,22 +1232,11 @@ export default function RoutePlanner() {
 
   const archiveCurrentRoute = () => {
     if (!optimisation) return;
-    
-    if (!runName.trim()) {
-      setHighlightNameField(true);
-      toast({
-        title: "Name Required",
-        description: "Please name your run before completing the route.",
-        variant: "destructive",
-      });
-      // Remove highlight after 3 seconds
-      setTimeout(() => setHighlightNameField(false), 3000);
-      return;
-    }
 
     try {
-      // Store current values before clearing state
-      const currentRunName = runName.trim();
+      // Store current values before clearing state - generate default name if not provided
+      const currentRunName = runName.trim() || `Route ${new Date().toLocaleDateString()} ${new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}`;
+      setHighlightNameField(false); // Clear any previous highlight
       
       // Determine if we can auto-detect a meaningful label
       let autoDetectedLabel = '';
