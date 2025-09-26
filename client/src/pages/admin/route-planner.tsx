@@ -2290,14 +2290,14 @@ export default function RoutePlanner() {
                         <div className="flex items-center gap-2">
                           <span>🌅</span>
                           <span>Morning</span>
-                          <span className="text-xs text-muted-foreground ml-2">07:00 - 12:00</span>
+                          <span className="text-xs text-muted-foreground ml-2">07:00 - 11:00</span>
                         </div>
                       </SelectItem>
                       <SelectItem value="Lunch">
                         <div className="flex items-center gap-2">
                           <span>🍽️</span>
                           <span>Lunch</span>
-                          <span className="text-xs text-muted-foreground ml-2">11:30 - 14:00</span>
+                          <span className="text-xs text-muted-foreground ml-2">11:00 - 15:00</span>
                         </div>
                       </SelectItem>
                       <SelectItem value="Tea">
@@ -2311,7 +2311,7 @@ export default function RoutePlanner() {
                         <div className="flex items-center gap-2">
                           <span>🌙</span>
                           <span>Bed</span>
-                          <span className="text-xs text-muted-foreground ml-2">18:00 - 22:00</span>
+                          <span className="text-xs text-muted-foreground ml-2">18:00 - 23:00</span>
                         </div>
                       </SelectItem>
                     </SelectContent>
