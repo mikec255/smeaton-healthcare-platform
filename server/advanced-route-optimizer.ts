@@ -201,12 +201,9 @@ export class AdvancedRouteOptimizer {
           for (let di = 0; di < destChunk.length; di++) {
             const element = result.rows[oi]?.elements[di];
             if (element?.status === 'OK') {
-              // Prefer duration_in_traffic for driving mode when available
+              // Always use standard duration to match manual Google Maps checks
               let durationValue = null;
-              if (mode === 'driving' && element.duration_in_traffic) {
-                durationValue = element.duration_in_traffic.value;
-                console.log(`Using traffic-aware duration for ${i + oi} to ${j + di}: ${Math.round(durationValue / 60)} min`);
-              } else if (element.duration) {
+              if (element.duration) {
                 durationValue = element.duration.value;
                 console.log(`Using standard duration for ${i + oi} to ${j + di}: ${Math.round(durationValue / 60)} min`);
               }
