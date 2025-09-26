@@ -2786,13 +2786,13 @@ export default function RoutePlanner() {
                             </div>
                             <div className="text-center">
                               <div className="font-semibold text-lg text-orange-600 dark:text-orange-400" data-testid={`archived-route-travel-time-${index}`}>
-                                {formatDuration(archived.route?.totalTravelMinutes || 0)}
+                                {formatDuration((archived.route?.optimizedRoutes?.reduce((total: number, route: any) => total + (route.metrics?.travelTimeHours * 60 || 0), 0)) || 0)}
                               </div>
                               <div className="text-muted-foreground">Travel Time</div>
                             </div>
                             <div className="text-center">
                               <div className="font-semibold text-lg text-purple-600 dark:text-purple-400" data-testid={`archived-route-care-time-${index}`}>
-                                {formatDuration(archived.route?.totalServiceMinutes || 0)}
+                                {formatDuration((archived.route?.optimizedRoutes?.reduce((total: number, route: any) => total + (route.metrics?.serviceTimeHours * 60 || 0), 0)) || 0)}
                               </div>
                               <div className="text-muted-foreground">Care Time</div>
                             </div>
