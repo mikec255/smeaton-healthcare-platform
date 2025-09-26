@@ -23,39 +23,51 @@ export class GoogleMapsService {
     }
   }
 
-  // Enhance address for better geocoding accuracy, especially for UK postcodes
+  // Enhanced address parsing to fix dual pin issue
   private enhanceAddressForGeocoding(address: string): string {
-    const trimmedAddress = address.trim().toLowerCase();
+    const trimmedAddress = address.trim();
+    
+    // CRITICAL FIX: Detect house number vs postcode-only to prevent dual pins
+    // Check if address starts with house number (e.g., "6 north road" or "flat 1,")
+    const hasHouseNumber = /^\s*(\d+[a-z]?|flat\s+\d+|apartment\s+\d+|unit\s+\d+)/i.test(trimmedAddress);
     
     // UK Postcode patterns (basic detection)
     const ukPostcodePattern = /^([a-z]{1,2}\d{1,2}[a-z]?\s*\d[a-z]{2})$/i;
     
-    // Devon/Cornwall/Plymouth specific postcodes
-    const devonCornwallPattern = /^(pl|ex|tr)\d/i;
+    if (hasHouseNumber) {
+      // Full address with house number - geocode as-is for exact door location
+      console.log(`📍 GEOCODING FULL ADDRESS: "${address}" (has house number)`);
+      return trimmedAddress;
+    }
     
-    if (ukPostcodePattern.test(trimmedAddress)) {
-      // If it's a Devon/Cornwall postcode (PL/EX/TR), be more specific
-      if (devonCornwallPattern.test(trimmedAddress)) {
-        // PL postcodes are Plymouth area
-        if (trimmedAddress.startsWith('pl')) {
-          return `${address}, Plymouth, Devon, UK`;
+    // Check if it's postcode-only input
+    if (ukPostcodePattern.test(trimmedAddress.toLowerCase())) {
+      const lowerAddress = trimmedAddress.toLowerCase();
+      
+      // Devon/Cornwall/Plymouth specific postcodes - enhance for better postcode center accuracy
+      if (/^(pl|ex|tr)\d/i.test(lowerAddress)) {
+        if (lowerAddress.startsWith('pl')) {
+          console.log(`📍 GEOCODING POSTCODE: "${address}" → enhanced for Plymouth area`);
+          return `${trimmedAddress}, Plymouth, Devon, UK`;
         }
-        // EX postcodes could be Exeter or other Devon areas
-        else if (trimmedAddress.startsWith('ex')) {
-          return `${address}, Devon, UK`;
+        else if (lowerAddress.startsWith('ex')) {
+          console.log(`📍 GEOCODING POSTCODE: "${address}" → enhanced for Devon area`);
+          return `${trimmedAddress}, Devon, UK`;
         }
-        // TR postcodes are Cornwall
-        else if (trimmedAddress.startsWith('tr')) {
-          return `${address}, Cornwall, UK`;
+        else if (lowerAddress.startsWith('tr')) {
+          console.log(`📍 GEOCODING POSTCODE: "${address}" → enhanced for Cornwall area`);
+          return `${trimmedAddress}, Cornwall, UK`;
         }
       }
       
-      // Generic UK postcode enhancement
-      return `${address}, UK`;
+      // Generic UK postcode enhancement for postcode center
+      console.log(`📍 GEOCODING POSTCODE: "${address}" → enhanced for UK`);
+      return `${trimmedAddress}, UK`;
     }
     
-    // If it's already a full address or doesn't look like a UK postcode, return as-is
-    return address;
+    // Already a full address or international - return as-is
+    console.log(`📍 GEOCODING OTHER: "${address}" (no enhancement needed)`);
+    return trimmedAddress;
   }
 
   // Geocode a single address to coordinates with caching and retry logic

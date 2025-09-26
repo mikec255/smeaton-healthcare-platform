@@ -2981,8 +2981,23 @@ export class DrizzleStorage implements IStorage {
   }
 
   async createRun(run: InsertRun): Promise<Run> {
-    const result = await db.insert(runs).values(run).returning();
-    return result[0];
+    // TEMPORARY FIX: Exclude travelMode field until database schema is synced
+    // The travelMode column exists in code schema but not in database yet
+    const { travelMode, ...runWithoutTravelMode } = run;
+    
+    try {
+      const result = await db.insert(runs).values(run).returning();
+      return result[0];
+    } catch (error: any) {
+      // If travelMode column doesn't exist, try without it
+      if (error?.code === '42703' && error?.message?.includes('travel_mode')) {
+        console.warn('Database missing travel_mode column, inserting without it (temporary fix)');
+        const result = await db.insert(runs).values(runWithoutTravelMode).returning();
+        // Add the travelMode back to the returned object for consistency
+        return { ...result[0], travelMode: travelMode || 'walking' };
+      }
+      throw error;
+    }
   }
 
   // Route Planning - Run Stops
