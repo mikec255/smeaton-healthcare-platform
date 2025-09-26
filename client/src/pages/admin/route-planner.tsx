@@ -13,7 +13,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest, queryClient } from '@/lib/queryClient';
 import jsPDF from 'jspdf';
-import { MapPin, Plus, Trash2, Play, Save, Clock, Car, Footprints, Route, AlertCircle, TrendingDown, Map, GripVertical, Download, Upload, FileText, File, HelpCircle, Archive, CheckCircle } from 'lucide-react';
+import { MapPin, Plus, Trash2, Play, Save, Clock, Car, Footprints, Route, AlertCircle, TrendingDown, Map, GripVertical, Download, Upload, FileText, File, HelpCircle, Archive, CheckCircle, ChevronDown, ChevronUp } from 'lucide-react';
 import { AdminLayout } from '@/components/layout/admin-layout';
 import addVisitFormImage from '@assets/Screenshot 2025-09-25 at 21.25.12_1758832010337.png';
 import mapWithVisitsImage from '@assets/Screenshot 2025-09-25 at 21.25.32_1758832016194.png';
@@ -241,6 +241,7 @@ export default function RoutePlanner() {
   const [showHowToGuide, setShowHowToGuide] = useState(false);
   const [originalOptimalOrder, setOriginalOptimalOrder] = useState<string[]>([]);
   const [archivedRoutes, setArchivedRoutes] = useState<ArchivedRoute[]>([]);
+  const [expandedArchivedIds, setExpandedArchivedIds] = useState<Set<string>>(new Set());
   const [showLabelDialog, setShowLabelDialog] = useState(false);
   const [selectedLabel, setSelectedLabel] = useState<string>('');
   const [customLabel, setCustomLabel] = useState<string>('');
@@ -328,6 +329,48 @@ export default function RoutePlanner() {
       });
     }
   };
+
+  // Load expanded archived routes from localStorage on mount
+  useEffect(() => {
+    try {
+      const savedExpanded = localStorage.getItem('expandedArchivedRoutes');
+      if (savedExpanded) {
+        const expandedIds = JSON.parse(savedExpanded);
+        setExpandedArchivedIds(new Set(expandedIds));
+      }
+    } catch (error) {
+      console.error('Failed to load archived routes expansion state:', error);
+    }
+  }, []);
+
+  // Save expanded archived routes to localStorage when it changes
+  useEffect(() => {
+    try {
+      const expandedArray = Array.from(expandedArchivedIds);
+      localStorage.setItem('expandedArchivedRoutes', JSON.stringify(expandedArray));
+    } catch (error) {
+      console.error('Failed to save archived routes expansion state:', error);
+    }
+  }, [expandedArchivedIds]);
+
+  // Auto-expand new archived routes and ensure they default to expanded
+  useEffect(() => {
+    if (archivedRoutes.length > 0) {
+      const newIds = archivedRoutes.filter(route => !expandedArchivedIds.has(route.id)).map(route => route.id);
+      
+      if (newIds.length > 0) {
+        setExpandedArchivedIds(prev => new Set([...prev, ...newIds]));
+        
+        // Auto-scroll to the last archived route after a brief delay
+        setTimeout(() => {
+          const lastArchivedElement = document.querySelector(`[data-testid="archived-route-${archivedRoutes.length - 1}"]`);
+          if (lastArchivedElement) {
+            lastArchivedElement.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+          }
+        }, 100);
+      }
+    }
+  }, [archivedRoutes, expandedArchivedIds]);
 
   // Auto-optimize visits for minimum travel time
   const autoOptimizeVisits = async (visitsToOptimize: Visit[]) => {
@@ -1138,6 +1181,41 @@ export default function RoutePlanner() {
         title: "Archive Failed",
         description: "Failed to complete and archive the route. Please try again.",
         variant: "destructive",
+      });
+    }
+  };
+
+  // Archived routes management functions
+  const toggleArchivedExpansion = (archivedId: string) => {
+    setExpandedArchivedIds(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(archivedId)) {
+        newSet.delete(archivedId);
+      } else {
+        newSet.add(archivedId);
+      }
+      return newSet;
+    });
+  };
+
+  const expandAllArchived = () => {
+    const allIds = archivedRoutes.map(route => route.id);
+    setExpandedArchivedIds(new Set(allIds));
+  };
+
+  const collapseAllArchived = () => {
+    setExpandedArchivedIds(new Set());
+  };
+
+  const clearArchivedHistory = () => {
+    if (archivedRoutes.length === 0) return;
+    
+    if (window.confirm(`Are you sure you want to clear all ${archivedRoutes.length} archived routes? This action cannot be undone.`)) {
+      setArchivedRoutes([]);
+      setExpandedArchivedIds(new Set());
+      toast({
+        title: "History Cleared",
+        description: "All archived routes have been removed.",
       });
     }
   };
@@ -2420,28 +2498,63 @@ export default function RoutePlanner() {
 
             {/* Completed Routes Section */}
             {archivedRoutes.length > 0 && (
-              <Card className="mt-6 border-2 border-green-200 dark:border-green-800">
-                <CardHeader className="bg-green-50 dark:bg-green-950/30">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <CardTitle className="flex items-center gap-2">
-                        <Archive className="h-5 w-5" />
-                        Completed Routes ({archivedRoutes.length})
-                      </CardTitle>
-                      <CardDescription>
-                        Previously completed and archived route optimizations
-                      </CardDescription>
+              <div className="mt-6 space-y-4">
+                {/* Archived Routes Header with Controls */}
+                <Card className="border-2 border-green-200 dark:border-green-800">
+                  <CardHeader className="bg-green-50 dark:bg-green-950/30">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <CardTitle className="flex items-center gap-2">
+                          <Archive className="h-5 w-5" />
+                          Completed Routes ({archivedRoutes.length})
+                        </CardTitle>
+                        <CardDescription>
+                          Archived route history - all routes shown expanded below
+                        </CardDescription>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={expandAllArchived}
+                          disabled={expandedArchivedIds.size === archivedRoutes.length}
+                          data-testid="button-expand-all-archived"
+                        >
+                          <ChevronDown className="h-4 w-4 mr-1" />
+                          Expand All
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={collapseAllArchived}
+                          disabled={expandedArchivedIds.size === 0}
+                          data-testid="button-collapse-all-archived"
+                        >
+                          <ChevronUp className="h-4 w-4 mr-1" />
+                          Collapse All
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={clearArchivedHistory}
+                          className="text-red-600 hover:text-red-700 dark:text-red-400"
+                          data-testid="button-clear-archived-history"
+                        >
+                          <Trash2 className="h-4 w-4 mr-1" />
+                          Clear History
+                        </Button>
+                      </div>
                     </div>
-                    <Badge variant="outline" className="bg-white dark:bg-gray-800 text-green-700 dark:text-green-300">
-                      Archived
-                    </Badge>
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-4">
-                    {archivedRoutes.map((archived, index) => (
-                      <div key={archived.id} className="border rounded-lg p-4 bg-gray-50 dark:bg-gray-800/50" data-testid={`archived-route-${index}`}>
-                        <div className="flex items-center justify-between mb-3">
+                  </CardHeader>
+                </Card>
+
+                {/* Individual Archived Route Cards */}
+                {archivedRoutes.map((archived, index) => {
+                  const isExpanded = expandedArchivedIds.has(archived.id);
+                  return (
+                    <Card key={archived.id} className="border-2 border-green-200 dark:border-green-800" data-testid={`archived-route-${index}`}>
+                      <CardHeader className="bg-green-50 dark:bg-green-950/30 cursor-pointer" onClick={() => toggleArchivedExpansion(archived.id)}>
+                        <div className="flex items-center justify-between">
                           <div className="flex items-center gap-3">
                             <span className="text-2xl" data-testid={`archived-route-icon-${index}`}>
                               {archived.label === 'Morning' && '🌅'}
@@ -2451,47 +2564,108 @@ export default function RoutePlanner() {
                               {!['Morning', 'Lunch', 'Tea', 'Bed'].includes(archived.label) && '📋'}
                             </span>
                             <div>
-                              <h3 className="font-semibold text-lg" data-testid={`archived-route-title-${index}`}>{archived.label} Route</h3>
+                              <h3 className="font-semibold text-lg" data-testid={`archived-route-title-${index}`}>
+                                {archived.label} Route
+                              </h3>
                               <p className="text-sm text-muted-foreground" data-testid={`archived-route-details-${index}`}>
                                 {archived.runName} • {archived.visitCount} visits • {new Date(archived.createdAt).toLocaleDateString()}
                               </p>
                             </div>
                           </div>
-                          <Badge variant="secondary" data-testid={`archived-route-badge-${index}`}>Archived</Badge>
-                        </div>
-                        
-                        {/* Route Statistics */}
-                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm" data-testid={`archived-route-stats-${index}`}>
-                          <div className="text-center">
-                            <div className="font-semibold text-lg text-blue-600 dark:text-blue-400" data-testid={`archived-route-visits-${index}`}>
-                              {archived.visitCount}
-                            </div>
-                            <div className="text-muted-foreground">Visits</div>
-                          </div>
-                          <div className="text-center">
-                            <div className="font-semibold text-lg text-green-600 dark:text-green-400" data-testid={`archived-route-distance-${index}`}>
-                              {formatDistance(archived.route?.totalDistanceMeters || 0)}
-                            </div>
-                            <div className="text-muted-foreground">Distance</div>
-                          </div>
-                          <div className="text-center">
-                            <div className="font-semibold text-lg text-orange-600 dark:text-orange-400" data-testid={`archived-route-travel-time-${index}`}>
-                              {formatDuration(archived.route?.totalTravelMinutes || 0)}
-                            </div>
-                            <div className="text-muted-foreground">Travel Time</div>
-                          </div>
-                          <div className="text-center">
-                            <div className="font-semibold text-lg text-purple-600 dark:text-purple-400" data-testid={`archived-route-care-time-${index}`}>
-                              {formatDuration(archived.route?.totalServiceMinutes || 0)}
-                            </div>
-                            <div className="text-muted-foreground">Care Time</div>
+                          <div className="flex items-center gap-2">
+                            <Badge variant="outline" className="bg-white dark:bg-gray-800 text-green-700 dark:text-green-300">
+                              Archived
+                            </Badge>
+                            {isExpanded ? 
+                              <ChevronUp className="h-5 w-5 text-muted-foreground" /> : 
+                              <ChevronDown className="h-5 w-5 text-muted-foreground" />
+                            }
                           </div>
                         </div>
-                      </div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
+                      </CardHeader>
+                      
+                      {isExpanded && (
+                        <CardContent>
+                          {/* Route Statistics */}
+                          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm mb-6" data-testid={`archived-route-stats-${index}`}>
+                            <div className="text-center">
+                              <div className="font-semibold text-lg text-blue-600 dark:text-blue-400" data-testid={`archived-route-visits-${index}`}>
+                                {archived.visitCount}
+                              </div>
+                              <div className="text-muted-foreground">Visits</div>
+                            </div>
+                            <div className="text-center">
+                              <div className="font-semibold text-lg text-green-600 dark:text-green-400" data-testid={`archived-route-distance-${index}`}>
+                                {formatDistance(archived.route?.totalDistanceMeters || 0)}
+                              </div>
+                              <div className="text-muted-foreground">Distance</div>
+                            </div>
+                            <div className="text-center">
+                              <div className="font-semibold text-lg text-orange-600 dark:text-orange-400" data-testid={`archived-route-travel-time-${index}`}>
+                                {formatDuration(archived.route?.totalTravelMinutes || 0)}
+                              </div>
+                              <div className="text-muted-foreground">Travel Time</div>
+                            </div>
+                            <div className="text-center">
+                              <div className="font-semibold text-lg text-purple-600 dark:text-purple-400" data-testid={`archived-route-care-time-${index}`}>
+                                {formatDuration(archived.route?.totalServiceMinutes || 0)}
+                              </div>
+                              <div className="text-muted-foreground">Care Time</div>
+                            </div>
+                          </div>
+
+                          {/* Optimized Route Details */}
+                          {archived.route?.optimisedOrder && archived.route.optimisedOrder.length > 0 && (
+                            <div>
+                              <h4 className="font-semibold mb-3 flex items-center gap-2">
+                                <MapPin className="h-4 w-4" />
+                                Optimized Visit Order
+                              </h4>
+                              <div className="space-y-2">
+                                {archived.route.optimisedOrder.map((visit: any, visitIndex: number) => (
+                                  <div key={visit.id || visitIndex} className="flex items-center gap-3 p-3 bg-gray-50 dark:bg-gray-800/50 rounded-lg" data-testid={`archived-visit-${index}-${visitIndex}`}>
+                                    <span className="text-sm font-medium text-gray-600 dark:text-gray-400 w-8">
+                                      #{visitIndex + 1}
+                                    </span>
+                                    <div className="flex-1">
+                                      <div className="flex items-center gap-2 mb-1">
+                                        {visit.clientName && (
+                                          <span className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                                            {visit.clientName}
+                                          </span>
+                                        )}
+                                        {visit.timeSlot && (
+                                          <Badge variant="secondary" className="text-xs">
+                                            {visit.timeSlot}
+                                          </Badge>
+                                        )}
+                                      </div>
+                                      <p className="text-sm text-muted-foreground">
+                                        {visit.address}
+                                      </p>
+                                      <div className="flex items-center gap-4 text-xs text-muted-foreground mt-1">
+                                        <span className="flex items-center gap-1">
+                                          <Clock className="h-3 w-3" />
+                                          {visit.durationMinutes}m
+                                        </span>
+                                        {visit.earliestTime && visit.latestTime && (
+                                          <span>
+                                            Window: {visit.earliestTime} - {visit.latestTime}
+                                          </span>
+                                        )}
+                                      </div>
+                                    </div>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+                        </CardContent>
+                      )}
+                    </Card>
+                  );
+                })}
+              </div>
             )}
           </div>
         </div>
