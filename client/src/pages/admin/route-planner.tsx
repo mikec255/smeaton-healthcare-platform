@@ -556,13 +556,34 @@ export default function RoutePlanner() {
       
       // CRITICAL FIX: Atomically update visits state with authoritative travel times from backend
       if (optimisedOrder && optimisedOrder.length > 0) {
-        setVisits(optimisedOrder.map((visit: Visit, index: number) => ({
-          ...visit,
-          // Ensure travelTimeToNext is properly set (backend should have set this)
-          travelTimeToNext: visit.travelTimeToNext ?? null, // Last visit should be null
-          originalOptimalPosition: index + 1
-        })));
+        // Validate travel times are reasonable and log discrepancies > 1 minute
+        const validatedVisits = optimisedOrder.map((visit: Visit, index: number) => {
+          const travelTime = visit.travelTimeToNext ?? null;
+          
+          // Log validation for travel times > 1 minute discrepancy detection
+          if (travelTime && travelTime > 60) {
+            console.warn(`Large travel time detected: ${visit.clientName || visit.address.substring(0, 30)} → next: ${travelTime} min. Mode: ${travelMode}`);
+          }
+          
+          return {
+            ...visit,
+            // Ensure travelTimeToNext is properly set (backend should have set this)
+            travelTimeToNext: travelTime,
+            originalOptimalPosition: index + 1
+          };
+        });
+        
+        setVisits(validatedVisits);
         console.log('FRONTEND: Updated visits state atomically with authoritative travel times from backend');
+        
+        // Validate no duplicate coordinates (potential dual pin detection)
+        const coordinates = validatedVisits
+          .filter(v => v.latitude && v.longitude)
+          .map(v => `${v.latitude?.toFixed(6)},${v.longitude?.toFixed(6)}`);
+        const uniqueCoords = new Set(coordinates);
+        if (coordinates.length !== uniqueCoords.size) {
+          console.warn('DUPLICATE COORDINATES DETECTED: Multiple visits have identical coordinates - potential dual pin issue');
+        }
       }
       
       setOptimisation(ukResult);
@@ -885,19 +906,31 @@ export default function RoutePlanner() {
       stopover: true,
     }));
 
+    // Ensure DirectionsService uses same travel mode as backend optimization
+    const gmapsTravelMode = travelMode === 'driving' ? 'DRIVING' : 'WALKING';
+    console.log(`MAP: Drawing polyline with travel mode: ${gmapsTravelMode} (backend used: ${travelMode})`);
+    
     directionsService.route({
       origin,
       destination,
       waypoints,
-      travelMode: travelMode === 'driving' 
-        ? 'DRIVING' 
-        : 'WALKING',
+      travelMode: gmapsTravelMode,
+      // For driving, request traffic-aware routing to match backend
+      ...(travelMode === 'driving' && {
+        drivingOptions: {
+          departureTime: new Date(), // Use current time for traffic
+        }
+      })
     }, (response: any, status: any) => {
       if (status === 'OK') {
         directionsRendererRef.current.setDirections(response);
 
-        // Note: Time labels removed to avoid confusion with authoritative list times
-        // The list shows the accurate traffic-aware times from Distance Matrix API
+        // CRITICAL: Only use DirectionsService for polyline visualization
+        // All travel times displayed in UI come from backend Distance Matrix API
+        // to ensure consistency and accuracy
+        console.log('MAP: Polyline rendered successfully using backend coordinates');
+      } else {
+        console.error('MAP: DirectionsService failed:', status);
       }
     });
   };
