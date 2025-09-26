@@ -774,39 +774,55 @@ export default function RoutePlanner() {
     let hasValidCoords = false;
     let markersCreated = 0;
 
+    // Track unique positions to prevent duplicate pins
+    const uniquePositions = new Set<string>();
+    const validVisits: Visit[] = [];
+
     currentVisits.forEach((visit, index) => {
       if (visit.latitude && visit.longitude) {
-        const position = { lat: visit.latitude, lng: visit.longitude };
+        const positionKey = `${visit.latitude.toFixed(6)},${visit.longitude.toFixed(6)}`;
         
-        console.log(`📍 CREATING MARKER ${index + 1}: ${visit.address} at ${position.lat}, ${position.lng}`);
+        if (uniquePositions.has(positionKey)) {
+          console.log(`⚠️ DUPLICATE POSITION DETECTED: Skipping duplicate marker for ${visit.address} at ${visit.latitude}, ${visit.longitude}`);
+          return; // Skip this duplicate position
+        }
         
-        const marker = new window.google.maps.Marker({
-          position,
-          map: mapInstanceRef.current,
-          title: visit.address,
-          label: (index + 1).toString(),
-        });
-
-        const infoWindow = new window.google.maps.InfoWindow({
-          content: `
-            <div>
-              <h4>${visit.clientName || 'Visit'}</h4>
-              <p><strong>Address:</strong> ${visit.address}</p>
-              <p><strong>Duration:</strong> ${visit.durationMinutes} minutes</p>
-              ${visit.timeSlot ? `<p><strong>Time Slot:</strong> ${visit.timeSlot}</p>` : ''}
-            </div>
-          `,
-        });
-
-        marker.addListener('click', () => {
-          infoWindow.open(mapInstanceRef.current, marker);
-        });
-
-        markersRef.current.push(marker);
-        bounds.extend(position);
-        hasValidCoords = true;
-        markersCreated++;
+        uniquePositions.add(positionKey);
+        validVisits.push({ ...visit, originalIndex: index });
       }
+    });
+
+    validVisits.forEach((visit, displayIndex) => {
+      const position = { lat: visit.latitude!, lng: visit.longitude! };
+      
+      console.log(`📍 CREATING MARKER ${displayIndex + 1}: ${visit.address} at ${position.lat}, ${position.lng}`);
+      
+      const marker = new window.google.maps.Marker({
+        position,
+        map: mapInstanceRef.current,
+        title: visit.address,
+        label: (displayIndex + 1).toString(),
+      });
+
+      const infoWindow = new window.google.maps.InfoWindow({
+        content: `
+          <div>
+            <h4>${visit.clientName || 'Visit'}</h4>
+            <p><strong>Address:</strong> ${visit.address}</p>
+            <p><strong>Duration:</strong> ${visit.durationMinutes} minutes</p>
+            ${visit.timeSlot ? `<p><strong>Time Slot:</strong> ${visit.timeSlot}</p>` : ''}
+          </div>
+        `,
+      });
+
+      marker.addListener('click', () => {
+        infoWindow.open(mapInstanceRef.current, marker);
+      });
+
+      markersRef.current.push(marker);
+      bounds.extend(position);
+      hasValidCoords = true;
+      markersCreated++;
     });
 
     console.log(`✅ MARKER CREATION COMPLETE: ${markersCreated} markers created, ${markersRef.current.length} total tracked`);
