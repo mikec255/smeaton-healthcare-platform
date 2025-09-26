@@ -483,9 +483,6 @@ export default function RoutePlanner() {
             } : visit
           );
           
-          // Update map immediately with the current state
-          updateMapWithVisits(updatedVisits);
-          
           // Check if ALL visits now have coordinates using the updated state
           const allGeocoded = updatedVisits.every(v => v.latitude && v.longitude);
           
@@ -503,8 +500,13 @@ export default function RoutePlanner() {
                 });
               } catch (error) {
                 console.log('Auto-optimization failed, keeping current order');
+                // If auto-optimization fails, update map with current state
+                updateMapWithVisits(updatedVisits);
               }
             }, 100);
+          } else {
+            // Single visit or not all geocoded yet - update map immediately
+            updateMapWithVisits(updatedVisits);
           }
           
           return updatedVisits;
