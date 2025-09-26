@@ -363,10 +363,10 @@ export default function RoutePlanner() {
 
       mapInstanceRef.current = map;
 
-      // Initialize directions renderer
+      // Initialize directions renderer - CRITICAL: Suppress markers to prevent dual pins
       directionsRendererRef.current = new window.google.maps.DirectionsRenderer({
         draggable: false,
-        suppressMarkers: false,
+        suppressMarkers: true, // CRITICAL FIX: Prevent DirectionsRenderer from creating additional markers
       });
       directionsRendererRef.current.setMap(map);
       
@@ -970,6 +970,8 @@ export default function RoutePlanner() {
       destination,
       waypoints,
       travelMode: gmapsTravelMode,
+      // CRITICAL: Use coordinates directly to prevent re-geocoding addresses
+      optimizeWaypoints: false, // CRITICAL FIX: Prevent API from re-ordering or re-geocoding
       // For driving, request traffic-aware routing to match backend
       ...(travelMode === 'driving' && {
         drivingOptions: {
@@ -978,11 +980,13 @@ export default function RoutePlanner() {
       })
     }, (response: any, status: any) => {
       if (status === 'OK') {
+        // CRITICAL: DirectionsRenderer already configured with suppressMarkers: true
+        // This ensures ONLY polyline is drawn, no additional markers created
         directionsRendererRef.current.setDirections(response);
 
         // CRITICAL: Only use DirectionsService for polyline visualization
         // All travel times displayed in UI come from backend Distance Matrix API
-        // to ensure consistency and accuracy
+        // All markers come from backend geocoding results in visit.latitude/longitude
         console.log('MAP: Polyline rendered successfully using backend coordinates');
       } else {
         console.error('MAP: DirectionsService failed:', status);

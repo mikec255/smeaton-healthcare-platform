@@ -91,7 +91,22 @@ export class GoogleMapsService {
     for (let attempt = 0; attempt < this.MAX_RETRIES; attempt++) {
       try {
         const encodedAddress = encodeURIComponent(enhancedAddress);
-        const url = `${this.baseUrl}/geocode/json?address=${encodedAddress}&key=${this.apiKey}&region=uk`;
+        
+        // CRITICAL FIX: Use components parameter for postcode-only inputs to force postcode-level results
+        const ukPostcodePattern = /^([a-z]{1,2}\d{1,2}[a-z]?\s*\d[a-z]{2})$/i;
+        const hasHouseNumber = /^\s*(\d+[a-z]?|flat\s+\d+|apartment\s+\d+|unit\s+\d+)/i.test(address.trim());
+        
+        let url: string;
+        if (!hasHouseNumber && ukPostcodePattern.test(address.trim())) {
+          // For postcode-only inputs, use components parameter to force postcode-level results
+          const postcode = address.trim().toUpperCase().replace(/\s+/g, ' ');
+          url = `${this.baseUrl}/geocode/json?components=postal_code:${encodeURIComponent(postcode)}|country:GB&key=${this.apiKey}`;
+          console.log(`🎯 POSTCODE-ONLY GEOCODING: Using components=postal_code:${postcode}|country:GB`);
+        } else {
+          // For full addresses, use standard address parameter
+          url = `${this.baseUrl}/geocode/json?address=${encodedAddress}&key=${this.apiKey}&region=uk`;
+          console.log(`🏠 FULL ADDRESS GEOCODING: Using address parameter`);
+        }
         
         const response = await fetch(url);
         const data = await response.json() as GoogleGeocodeResponse;
@@ -99,26 +114,22 @@ export class GoogleMapsService {
         if (data.status === 'OK' && data.results.length > 0) {
           let result = data.results[0];
           
-          // CRITICAL FIX: For postcode-only inputs, ensure we get the postcode center, not a specific address
+          // CRITICAL FIX: For postcode-only inputs, filter to 'postal_code' types only
           const ukPostcodePattern = /^([a-z]{1,2}\d{1,2}[a-z]?\s*\d[a-z]{2})$/i;
           const hasHouseNumber = /^\s*(\d+[a-z]?|flat\s+\d+|apartment\s+\d+|unit\s+\d+)/i.test(address.trim());
           
           if (!hasHouseNumber && ukPostcodePattern.test(address.trim())) {
-            // This is a postcode-only query - find the best postcode-level result
-            console.log(`🎯 POSTCODE-ONLY QUERY DETECTED: "${address}" - filtering for postcode center`);
+            // This is a postcode-only query - filter to postal_code types only
+            console.log(`🎯 POSTCODE-ONLY QUERY: "${address}" - filtering for types containing 'postal_code'`);
             
-            // Look for the result with the most general location type (postal_code, sublocality, etc.)
-            const postcodeResult = data.results.find(r => 
-              r.types.includes('postal_code') || 
-              r.types.includes('sublocality') ||
-              r.geometry.location_type === 'APPROXIMATE'
-            );
+            // Filter results to only those with 'postal_code' type
+            const postcodeResults = data.results.filter(r => r.types.includes('postal_code'));
             
-            if (postcodeResult) {
-              result = postcodeResult;
+            if (postcodeResults.length > 0) {
+              result = postcodeResults[0];
               console.log(`✅ FOUND POSTCODE CENTER: ${result.formatted_address} (types: ${result.types.join(', ')})`);
             } else {
-              console.log(`⚠️ NO POSTCODE CENTER FOUND, using first result: ${result.formatted_address}`);
+              console.log(`⚠️ NO POSTAL_CODE TYPE FOUND, using first result: ${result.formatted_address} (types: ${result.types.join(', ')})`);
             }
           } else if (hasHouseNumber) {
             console.log(`🏠 FULL ADDRESS QUERY: "${address}" - using precise location`);
@@ -460,9 +471,11 @@ interface GoogleGeocodeResponse {
     formatted_address: string;
     geometry: {
       location: { lat: number; lng: number };
+      location_type?: string;
     };
     place_id: string;
     address_components: GoogleAddressComponent[];
+    types: string[]; // CRITICAL: Add types property for result classification
   }>;
 }
 
