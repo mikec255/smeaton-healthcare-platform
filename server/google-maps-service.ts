@@ -224,9 +224,18 @@ export class GoogleMapsService {
         
         let url = `${this.baseUrl}/distancematrix/json?origins=${originsStr}&destinations=${destinationsStr}&mode=${mode}&units=metric&key=${this.apiKey}`;
         
+        // CRITICAL FIX: Add same parameters as Google Maps website to ensure identical results
+        url += '&language=en&region=GB';
+        
         // For driving mode, add traffic data when departure time is provided
         if (mode === 'driving' && departureTimeEpoch) {
           url += `&departure_time=${departureTimeEpoch}&traffic_model=best_guess`;
+        }
+        
+        // For walking mode, add avoid parameters to match Google Maps default behavior
+        if (mode === 'walking') {
+          // This ensures we use the same walking route algorithm as Google Maps website
+          url += '&avoid=ferries';
         }
         
         const response = await fetch(url);
