@@ -379,7 +379,7 @@ export class AdvancedRouteOptimizer {
         ...visit,
         calculatedStartTime: `${startHour.toString().padStart(2, '0')}:${startMin.toString().padStart(2, '0')}`,
         calculatedEndTime: `${endHour.toString().padStart(2, '0')}:${endMinute.toString().padStart(2, '0')}`,
-        travelTimeToNext,
+        travelTimeToNext: travelTimeToNext ?? undefined,
         // CRITICAL: Include Google's exact text for frontend display
         travelTimeText: googleText
       };

@@ -3296,7 +3296,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { 
         visits, 
         mode = 'driving', // Default to driving for domiciliary care
-        departureTime = '08:00:00',
+        departureTime, // CRITICAL FIX: Remove hardcoded default - use actual user value
         runDate,
         runName,
         saveRun = false,
@@ -3307,6 +3307,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (!Array.isArray(visits) || visits.length === 0) {
         return res.status(400).json({ message: "Please provide an array of visits" });
       }
+
+      // Validate and provide fallback for departureTime
+      const validDepartureTime = departureTime || '08:00';
+      console.log(`FIXED: Using departure time: ${validDepartureTime} (from frontend: ${departureTime})`);
 
       // Import the advanced optimizer
       const { AdvancedRouteOptimizer } = await import('./advanced-route-optimizer');
@@ -3354,7 +3358,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         mode,
         optimizationStrategy,
         maxRoutesPerDay,
-        considerTimeWindows: true
+        considerTimeWindows: true,
+        departureTime: validDepartureTime // CRITICAL FIX: Pass the actual user's shift start time
       });
 
       // Convert to legacy format for compatibility with frontend
