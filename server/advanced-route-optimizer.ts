@@ -215,8 +215,9 @@ export class AdvancedRouteOptimizer {
                 // Store duration in minutes - use Google's formatting for display accuracy
                 let timeMinutes = Math.round(durationValue / 60);
                 
-                // Store the exact Google text for display (e.g. "7 mins" matches Google Maps UI)
-                this.durationTexts[`${i + oi},${j + di}`] = durationText || `${timeMinutes} min`;
+                // Extract just the time part from Google's text (e.g. "4 mins" from "4 mins (224s)")
+                const cleanGoogleText = durationText ? durationText.split(' (')[0] : `${timeMinutes} min`;
+                this.durationTexts[`${i + oi},${j + di}`] = cleanGoogleText;
                 
                 // Special handling for same-location visits (same coordinates, different visits)
                 // Add buffer time for walking between different units/houses at same postcode
@@ -346,6 +347,9 @@ export class AdvancedRouteOptimizer {
           // Get Google's exact text formatting for display accuracy
           const googleTextKey = `${currentOrderIndex},${nextOrderIndex}`;
           const googleText = this.durationTexts[googleTextKey];
+          
+          // Store Google's exact text for frontend display
+          (visitsWithTimes[i] as any).travelTimeText = googleText;
           
           console.log(`FINAL: Travel time from visit ${i} (original index ${currentOrderIndex}) to ${i+1} (original index ${nextOrderIndex}): ${travelTimeToNext} min (from Google Maps API) [Google text: ${googleText}]`);
         } else {
