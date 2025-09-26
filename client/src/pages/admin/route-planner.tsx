@@ -613,7 +613,7 @@ export default function RoutePlanner() {
     }
   });
 
-  // Add new visit
+  // Add new visit - PREVENT DUPLICATE ADDRESSES
   const addVisit = async () => {
     if (!newAddress.trim()) {
       toast({
@@ -628,6 +628,23 @@ export default function RoutePlanner() {
       toast({
         title: "Time Slot Required",
         description: "Please select a commissioning time slot for the visit.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const addressToAdd = newAddress.trim();
+    
+    // CRITICAL FIX: Check for duplicate addresses to prevent dual pins
+    const existingVisit = visits.find(v => 
+      v.address.toLowerCase().trim() === addressToAdd.toLowerCase().trim()
+    );
+    
+    if (existingVisit) {
+      console.log(`🚫 DUPLICATE VISIT BLOCKED: Address "${addressToAdd}" already exists as visit ID ${existingVisit.id}`);
+      toast({
+        title: "Duplicate Address",
+        description: `Address "${addressToAdd}" has already been added to the route.`,
         variant: "destructive",
       });
       return;
@@ -669,7 +686,7 @@ export default function RoutePlanner() {
 
     const newVisit: Visit = {
       id: Date.now().toString(),
-      address: newAddress.trim(),
+      address: addressToAdd,
       durationMinutes: newDuration,
       timeSlot: newTimeSlot,
       earliestTime: newEarliestTime || undefined,
@@ -677,13 +694,15 @@ export default function RoutePlanner() {
       clientName: newClientName.trim() || undefined,
     };
 
+    console.log(`➕ CREATING NEW VISIT: "${addressToAdd}" with ID ${newVisit.id}`);
+
     const updatedVisits = [...visits, newVisit];
     setVisits(updatedVisits);
 
     // Geocode the new address
     geocodeMutation.mutate({
       visitId: newVisit.id,
-      address: newAddress.trim()
+      address: addressToAdd
     });
 
     // Clear form
