@@ -233,6 +233,7 @@ export default function RoutePlanner() {
   const [isMapLoaded, setIsMapLoaded] = useState(false);
   const [newAddress, setNewAddress] = useState('');
   const [newDuration, setNewDuration] = useState(30);
+  const [newTimeSlot, setNewTimeSlot] = useState('');
   const [newEarliestTime, setNewEarliestTime] = useState('');
   const [newLatestTime, setNewLatestTime] = useState('');
   const [newClientName, setNewClientName] = useState('');
@@ -494,10 +495,20 @@ export default function RoutePlanner() {
       return;
     }
 
+    if (!newTimeSlot) {
+      toast({
+        title: "Time Slot Required",
+        description: "Please select a commissioning time slot for the visit.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     const newVisit: Visit = {
       id: Date.now().toString(),
       address: newAddress.trim(),
       durationMinutes: newDuration,
+      timeSlot: newTimeSlot,
       earliestTime: newEarliestTime || undefined,
       latestTime: newLatestTime || undefined,
       clientName: newClientName.trim() || undefined,
@@ -515,6 +526,7 @@ export default function RoutePlanner() {
     // Clear form
     setNewAddress('');
     setNewDuration(30);
+    setNewTimeSlot('');
     setNewEarliestTime('');
     setNewLatestTime('');
     setNewClientName('');
@@ -1959,6 +1971,48 @@ export default function RoutePlanner() {
                   </div>
                 </div>
 
+                {/* Commissioning Time Slot */}
+                <div>
+                  <Label htmlFor="time-slot">Commissioning Time Slot *</Label>
+                  <Select value={newTimeSlot} onValueChange={setNewTimeSlot}>
+                    <SelectTrigger data-testid="select-time-slot">
+                      <SelectValue placeholder="Select commissioning slot" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Morning">
+                        <div className="flex items-center gap-2">
+                          <span>🌅</span>
+                          <span>Morning</span>
+                          <span className="text-xs text-muted-foreground ml-2">07:00 - 12:00</span>
+                        </div>
+                      </SelectItem>
+                      <SelectItem value="Lunch">
+                        <div className="flex items-center gap-2">
+                          <span>🍽️</span>
+                          <span>Lunch</span>
+                          <span className="text-xs text-muted-foreground ml-2">11:30 - 14:00</span>
+                        </div>
+                      </SelectItem>
+                      <SelectItem value="Tea">
+                        <div className="flex items-center gap-2">
+                          <span>☕</span>
+                          <span>Tea</span>
+                          <span className="text-xs text-muted-foreground ml-2">15:00 - 18:00</span>
+                        </div>
+                      </SelectItem>
+                      <SelectItem value="Bed">
+                        <div className="flex items-center gap-2">
+                          <span>🌙</span>
+                          <span>Bed</span>
+                          <span className="text-xs text-muted-foreground ml-2">18:00 - 22:00</span>
+                        </div>
+                      </SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Required commissioning time slot for compliance and scheduling
+                  </p>
+                </div>
 
                 <div className="space-y-2">
                   <Label className="text-sm font-medium">Customer Time Window (Optional)</Label>
@@ -1992,7 +2046,7 @@ export default function RoutePlanner() {
 
                 <Button 
                   onClick={addVisit} 
-                  disabled={!newAddress.trim() || geocodeMutation.isPending}
+                  disabled={!newAddress.trim() || !newTimeSlot || geocodeMutation.isPending}
                   data-testid="button-add-visit"
                   className="w-full"
                 >
