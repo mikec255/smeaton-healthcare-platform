@@ -2100,10 +2100,11 @@ export default function RoutePlanner() {
                       <Label htmlFor="earliest-time">Earliest Time</Label>
                       <Input
                         id="earliest-time"
-                        type="time"
+                        type="text"
                         value={newEarliestTime}
                         onChange={(e) => setNewEarliestTime(e.target.value)}
-                        placeholder="Optional"
+                        placeholder="e.g. 09:30"
+                        autoComplete="off"
                         data-testid="input-earliest-time"
                       />
                     </div>
@@ -2112,10 +2113,11 @@ export default function RoutePlanner() {
                       <Label htmlFor="latest-time">Latest Time</Label>
                       <Input
                         id="latest-time"
-                        type="time"
+                        type="text"
                         value={newLatestTime}
                         onChange={(e) => setNewLatestTime(e.target.value)}
-                        placeholder="Optional"
+                        placeholder="e.g. 11:30"
+                        autoComplete="off"
                         data-testid="input-latest-time"
                       />
                     </div>
