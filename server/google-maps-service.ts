@@ -146,7 +146,11 @@ export class GoogleMapsService {
           
           // Cache successful result
           this.geocodeCache.set(cacheKey, geocodeResult);
-          console.log(`💾 CACHED GEOCODING: "${address}" → ${result.formatted_address} (${result.geometry.location.lat}, ${result.geometry.location.lng})`);
+          console.log(`💾 CACHED GEOCODING SUCCESS:`);
+          console.log(`   INPUT: "${address}"`);
+          console.log(`   RESOLVED TO: "${result.formatted_address}"`);
+          console.log(`   COORDINATES: ${result.geometry.location.lat}, ${result.geometry.location.lng}`);
+          console.log(`   ⚠️  CRITICAL: Does this match what Google Maps website shows for the same input?`);
           return geocodeResult;
         } else if (data.status === 'OVER_QUERY_LIMIT' && attempt < this.MAX_RETRIES - 1) {
           // Retry on quota exceeded
