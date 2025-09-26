@@ -351,6 +351,8 @@ export class AdvancedRouteOptimizer {
       
       // Calculate travel time to next visit for display - AUTHORITATIVE SOURCE
       let travelTimeToNext = null; // Default to null for last visit
+      let googleText = null; // Store Google's exact text
+      
       if (i < visitsWithTimes.length - 1) {
         const currentOrderIndex = route.visitOrder[i];
         const nextOrderIndex = route.visitOrder[i + 1];
@@ -360,10 +362,7 @@ export class AdvancedRouteOptimizer {
           
           // Get Google's exact text formatting for display accuracy
           const googleTextKey = `${currentOrderIndex},${nextOrderIndex}`;
-          const googleText = this.durationTexts[googleTextKey];
-          
-          // Store Google's exact text for frontend display
-          (visitsWithTimes[i] as any).travelTimeText = googleText;
+          googleText = this.durationTexts[googleTextKey];
           
           console.log(`FINAL: Travel time from visit ${i} (original index ${currentOrderIndex}) to ${i+1} (original index ${nextOrderIndex}): ${travelTimeToNext} min (from Google Maps API) [Google text: ${googleText}]`);
         } else {
@@ -380,7 +379,9 @@ export class AdvancedRouteOptimizer {
         ...visit,
         calculatedStartTime: `${startHour.toString().padStart(2, '0')}:${startMin.toString().padStart(2, '0')}`,
         calculatedEndTime: `${endHour.toString().padStart(2, '0')}:${endMinute.toString().padStart(2, '0')}`,
-        travelTimeToNext
+        travelTimeToNext,
+        // CRITICAL: Include Google's exact text for frontend display
+        travelTimeText: googleText
       };
 
       // Update current time for next visit
