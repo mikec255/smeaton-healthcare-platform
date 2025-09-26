@@ -1327,8 +1327,13 @@ export default function RoutePlanner() {
         runName: archiveData.runName
       };
       
-      // Add to archived routes
-      setArchivedRoutes(prev => [...prev, archivedRoute]);
+      // Add to archived routes - replace any existing route with same label (time slot)
+      setArchivedRoutes(prev => {
+        // Remove any existing archived route with the same label
+        const filteredRoutes = prev.filter(route => route.label !== normalizedLabel);
+        // Add the new route
+        return [...filteredRoutes, archivedRoute];
+      });
       
       // Clear current working state
       setVisits([]);
