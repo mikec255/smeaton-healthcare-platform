@@ -224,6 +224,29 @@ function SortableVisitItem({ visit, index, onRemove }: { visit: Visit; index: nu
   );
 }
 
+// Helper function to parse time string (HH:mm) to minutes since midnight
+const parseTimeToMinutes = (timeStr: string): number | null => {
+  if (!timeStr || !timeStr.trim()) return null;
+  
+  const time = timeStr.trim();
+  const timeRegex = /^([01]?\d|2[0-3]):([0-5]\d)$/;
+  const match = time.match(timeRegex);
+  
+  if (!match) return null;
+  
+  const hours = parseInt(match[1], 10);
+  const minutes = parseInt(match[2], 10);
+  
+  return hours * 60 + minutes;
+};
+
+// Helper function to validate time format
+const isValidTimeFormat = (timeStr: string): boolean => {
+  if (!timeStr || !timeStr.trim()) return true; // Empty is valid (optional)
+  const timeRegex = /^([01]?\d|2[0-3]):([0-5]\d)$/;
+  return timeRegex.test(timeStr.trim());
+};
+
 export default function RoutePlanner() {
   const { toast } = useToast();
   const [visits, setVisits] = useState<Visit[]>([]);
@@ -547,6 +570,40 @@ export default function RoutePlanner() {
       return;
     }
 
+    // Validate time format
+    if (newEarliestTime && !isValidTimeFormat(newEarliestTime)) {
+      toast({
+        title: "Invalid Time Format",
+        description: "Please enter earliest time in HH:mm format (e.g., 09:30).",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (newLatestTime && !isValidTimeFormat(newLatestTime)) {
+      toast({
+        title: "Invalid Time Format",
+        description: "Please enter latest time in HH:mm format (e.g., 11:30).",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Validate time window logic
+    if (newEarliestTime && newLatestTime) {
+      const earliestMinutes = parseTimeToMinutes(newEarliestTime);
+      const latestMinutes = parseTimeToMinutes(newLatestTime);
+      
+      if (earliestMinutes !== null && latestMinutes !== null && earliestMinutes >= latestMinutes) {
+        toast({
+          title: "Invalid Time Window",
+          description: "Earliest time must be before latest time.",
+          variant: "destructive",
+        });
+        return;
+      }
+    }
+
     const newVisit: Visit = {
       id: Date.now().toString(),
       address: newAddress.trim(),
@@ -853,13 +910,27 @@ export default function RoutePlanner() {
     }
 
     // Validate time windows
-    const invalidTimeWindows = visits.filter(v => 
-      v.earliestTime && v.latestTime && v.earliestTime > v.latestTime
-    );
+    const invalidTimeWindows = visits.filter(v => {
+      if (!v.earliestTime || !v.latestTime) return false;
+      
+      const earliestMinutes = parseTimeToMinutes(v.earliestTime);
+      const latestMinutes = parseTimeToMinutes(v.latestTime);
+      
+      if (earliestMinutes === null || latestMinutes === null) {
+        return true; // Invalid format
+      }
+      
+      return earliestMinutes >= latestMinutes;
+    });
+    
     if (invalidTimeWindows.length > 0) {
+      const visitDetails = invalidTimeWindows.map(v => 
+        `${v.clientName || v.address.substring(0, 30)}... (${v.earliestTime} - ${v.latestTime})`
+      ).join(', ');
+      
       toast({
         title: "Invalid Time Windows",
-        description: "Some visits have earliest time later than latest time. Please fix these before optimising.",
+        description: `Please fix these visits: ${visitDetails}. Earliest time must be before latest time and in HH:mm format.`,
         variant: "destructive",
       });
       return;
