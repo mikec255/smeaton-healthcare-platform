@@ -222,16 +222,6 @@ function SortableVisitItem({ visit, index, onRemove }: { visit: Visit; index: nu
                   🕐 {visit.earliestTime || '—'} - {visit.latestTime || '—'}
                 </span>
               )}
-              {(visit.calculatedStartTime || visit.calculatedEndTime) && (
-                <span className="text-xs font-bold text-green-600 dark:text-green-400 bg-green-50 dark:bg-green-900/20 px-2 py-1 rounded-md">
-                  📅 {visit.calculatedStartTime ? formatTimeDisplay(visit.calculatedStartTime) : '—'} - {visit.calculatedEndTime ? formatTimeDisplay(visit.calculatedEndTime) : '—'}
-                </span>
-              )}
-              {visit.travelTimeToNext && (
-                <span className="text-xs font-medium text-purple-600 dark:text-purple-400">
-                  🚗 {visit.travelTimeToNext}m to next
-                </span>
-              )}
             </div>
             {/* Time window validation warnings */}
             {visit.calculatedStartTime && getTimeSlotStatus(visit) === 'outside-commissioning' && (
