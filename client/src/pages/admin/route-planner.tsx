@@ -388,16 +388,22 @@ const getTimeSlotStatus = (visit: any) => {
   let customerStart = commissioningStart;
   let customerEnd = commissioningEnd;
   
-  if (visit.earliestTime && visit.latestTime) {
-    const earliestParts = visit.earliestTime.split(':');
-    const latestParts = visit.latestTime.split(':');
-    customerStart = parseInt(earliestParts[0]) * 60 + parseInt(earliestParts[1]);
-    customerEnd = parseInt(latestParts[0]) * 60 + parseInt(latestParts[1]);
+  // Support single-sided customer windows (earliest OR latest time)
+  if (visit.earliestTime || visit.latestTime) {
+    if (visit.earliestTime) {
+      const earliestParts = visit.earliestTime.split(':');
+      customerStart = parseInt(earliestParts[0]) * 60 + parseInt(earliestParts[1]);
+    }
+    if (visit.latestTime) {
+      const latestParts = visit.latestTime.split(':');
+      customerEnd = parseInt(latestParts[0]) * 60 + parseInt(latestParts[1]);
+    }
   }
 
   // Check compliance against both constraints
   const outsideCommissioning = calculatedStart < commissioningStart || calculatedEnd > commissioningEnd;
-  const outsideCustomer = calculatedStart < customerStart || calculatedEnd > customerEnd;
+  // Customer windows are ARRIVAL windows - only check if visit starts within their preferred time
+  const outsideCustomer = calculatedStart < customerStart || calculatedStart > customerEnd;
   
   if (outsideCommissioning) {
     return 'outside-commissioning'; // Red - outside commissioning window (cannot be moved)
