@@ -13,7 +13,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest, queryClient } from '@/lib/queryClient';
 import jsPDF from 'jspdf';
-import { MapPin, Plus, Trash2, Play, Save, Clock, Car, Footprints, Route, AlertCircle, TrendingDown, Map, GripVertical, Download, Upload, FileText, File, HelpCircle, Archive, CheckCircle, ChevronDown, ChevronUp } from 'lucide-react';
+import { MapPin, Plus, Trash2, Play, Save, Clock, Car, Footprints, Route, AlertCircle, TrendingDown, Map, GripVertical, Download, Upload, FileText, File, HelpCircle, Archive, CheckCircle, ChevronDown, ChevronUp, Edit } from 'lucide-react';
 import { AdminLayout } from '@/components/layout/admin-layout';
 import addVisitFormImage from '@assets/Screenshot 2025-09-25 at 21.25.12_1758832010337.png';
 import mapWithVisitsImage from '@assets/Screenshot 2025-09-25 at 21.25.32_1758832016194.png';
@@ -410,7 +410,7 @@ export default function RoutePlanner() {
       const newIds = archivedRoutes.filter(route => !expandedArchivedIds.has(route.id)).map(route => route.id);
       
       if (newIds.length > 0) {
-        setExpandedArchivedIds(prev => new Set([...prev, ...newIds]));
+        setExpandedArchivedIds(prev => new Set([...Array.from(prev), ...newIds]));
         
         // Auto-scroll to the last archived route after a brief delay
         setTimeout(() => {
@@ -1315,6 +1315,68 @@ export default function RoutePlanner() {
       toast({
         title: "History Cleared",
         description: "All archived routes have been removed.",
+      });
+    }
+  };
+
+  // Load archived route back into working area for editing
+  const loadArchivedRouteForEditing = (archived: ArchivedRoute) => {
+    if (!archived.route?.optimisedOrder) {
+      toast({
+        title: "Cannot Load Route",
+        description: "This archived route has no visit data to load.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Check if there are current visits that would be overwritten
+    if (visits.length > 0) {
+      const confirmOverwrite = window.confirm(
+        "Loading this route will replace your current working visits. Continue?"
+      );
+      if (!confirmOverwrite) return;
+    }
+
+    try {
+      // Convert archived visits back to working format
+      const editableVisits: Visit[] = archived.route.optimisedOrder.map((archivedVisit: any, index: number) => ({
+        id: `edit_${Date.now()}_${index}`,
+        address: archivedVisit.address,
+        durationMinutes: archivedVisit.durationMinutes || 30,
+        timeSlot: archivedVisit.timeSlot || '',
+        earliestTime: archivedVisit.earliestTime,
+        latestTime: archivedVisit.latestTime, 
+        clientName: archivedVisit.clientName,
+        latitude: archivedVisit.latitude,
+        longitude: archivedVisit.longitude,
+      }));
+
+      // Load the visits into working area
+      setVisits(editableVisits);
+      setRunName(`${archived.runName} (Edit)`);
+      
+      // Clear optimization results since we're editing
+      setOptimisation(null);
+      setOriginalOptimalOrder([]);
+      
+      // Update map with loaded visits
+      updateMapWithVisits(editableVisits);
+      
+      toast({
+        title: "Route Loaded for Editing",
+        description: `"${archived.label}" route has been loaded. You can now edit visits and re-optimize.`,
+      });
+
+      // Scroll to the top of the page to show the working area
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      
+    } catch (error) {
+      console.error('Error loading archived route:', error);
+      toast({
+        title: "Load Failed",
+        description: "Failed to load the archived route for editing.",
+        variant: "destructive",
       });
     }
   };
@@ -2588,13 +2650,13 @@ export default function RoutePlanner() {
                         </div>
                         <div className="text-center">
                           <div className="font-semibold text-lg text-orange-600 dark:text-orange-400">
-                            {formatDuration(optimisation.totalTravelMinutes || 0)}
+                            {formatDuration((optimisation.optimizedRoutes?.reduce((total: number, route: any) => total + (route.metrics?.travelTimeHours * 60 || 0), 0)) || optimisation.totalTravelMinutes || 0)}
                           </div>
                           <div className="text-muted-foreground">Travel Time</div>
                         </div>
                         <div className="text-center">
                           <div className="font-semibold text-lg text-purple-600 dark:text-purple-400">
-                            {formatDuration(optimisation.totalServiceMinutes || 0)}
+                            {formatDuration((optimisation.optimizedRoutes?.reduce((total: number, route: any) => total + (route.metrics?.serviceTimeHours * 60 || 0), 0)) || optimisation.totalServiceMinutes || 0)}
                           </div>
                           <div className="text-muted-foreground">Care Hours (Provided)</div>
                         </div>
@@ -2682,6 +2744,19 @@ export default function RoutePlanner() {
                             </div>
                           </div>
                           <div className="flex items-center gap-2">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                loadArchivedRouteForEditing(archived);
+                              }}
+                              className="text-blue-600 hover:text-blue-700 dark:text-blue-400"
+                              data-testid={`button-edit-archived-${index}`}
+                            >
+                              <Edit className="h-4 w-4 mr-1" />
+                              Edit Route
+                            </Button>
                             <Badge variant="outline" className="bg-white dark:bg-gray-800 text-green-700 dark:text-green-300">
                               Archived
                             </Badge>
@@ -2766,7 +2841,7 @@ export default function RoutePlanner() {
                                     </div>
                                     
                                     {/* Travel Time to Next Customer */}
-                                    {visitIndex < archived.route.optimisedOrder.length - 1 && visit.travelTimeToNext && (
+                                    {archived.route.optimisedOrder && visitIndex < archived.route.optimisedOrder.length - 1 && visit.travelTimeToNext && (
                                       <div className="text-right">
                                         <div className="flex items-center gap-2 text-green-600 dark:text-green-400">
                                           <Clock className="h-4 w-4" />
@@ -2780,7 +2855,7 @@ export default function RoutePlanner() {
                                       </div>
                                     )}
                                     
-                                    {visitIndex === archived.route.optimisedOrder.length - 1 && (
+                                    {archived.route.optimisedOrder && visitIndex === archived.route.optimisedOrder.length - 1 && (
                                       <div className="text-right">
                                         <div className="flex items-center gap-2 text-gray-500">
                                           <span className="text-sm font-medium">Final destination</span>
