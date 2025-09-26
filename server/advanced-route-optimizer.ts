@@ -330,19 +330,23 @@ export class AdvancedRouteOptimizer {
       const endHour = Math.floor(endTime / 60);
       const endMinute = endTime % 60;
       
-      // Calculate travel time to next visit for display
-      let travelTimeToNext = undefined;
+      // Calculate travel time to next visit for display - AUTHORITATIVE SOURCE
+      let travelTimeToNext = null; // Default to null for last visit
       if (i < visitsWithTimes.length - 1) {
         const currentOrderIndex = route.visitOrder[i];
         const nextOrderIndex = route.visitOrder[i + 1];
         
         if (durationMatrix[currentOrderIndex] && durationMatrix[currentOrderIndex][nextOrderIndex] !== undefined) {
-          travelTimeToNext = durationMatrix[currentOrderIndex][nextOrderIndex];
+          travelTimeToNext = Math.round(durationMatrix[currentOrderIndex][nextOrderIndex]); // Ensure integer minutes
           console.log(`FINAL: Travel time from visit ${i} (original index ${currentOrderIndex}) to ${i+1} (original index ${nextOrderIndex}): ${travelTimeToNext} min (from Google Maps API)`);
         } else {
           travelTimeToNext = 10; // Default 10 minutes if matrix data is missing
           console.warn(`Missing duration matrix data for ${currentOrderIndex} to ${nextOrderIndex}, using fallback: ${travelTimeToNext} min`);
         }
+      } else {
+        // Last visit has no travel time to next
+        travelTimeToNext = null;
+        console.log(`Last visit (${i}) has no travel time to next - set to null`);
       }
 
       visitsWithTimes[i] = {

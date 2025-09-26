@@ -3300,80 +3300,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
 
       // Convert to legacy format for compatibility with frontend
-      // Flatten all routes into a single optimized order and calculate travel times
+      // Flatten all routes into a single optimized order - travel times already calculated by optimizer
       const allOptimizedVisits = optimizationResult.optimizedRoutes.flatMap(route => route.visits);
       
-      // Add travel times between all visits using Google Maps Distance Matrix API
-      if (allOptimizedVisits.length > 1) {
-        try {
-          const googleMapsService = new GoogleMapsService();
-          
-          // Prepare origins and destinations for Distance Matrix API
-          const origins = [];
-          const destinations = [];
-          
-          for (let i = 0; i < allOptimizedVisits.length - 1; i++) {
-            const currentVisit = allOptimizedVisits[i];
-            const nextVisit = allOptimizedVisits[i + 1];
-            
-            if (currentVisit.latitude && currentVisit.longitude && 
-                nextVisit.latitude && nextVisit.longitude) {
-              origins.push({ lat: currentVisit.latitude, lng: currentVisit.longitude });
-              destinations.push({ lat: nextVisit.latitude, lng: nextVisit.longitude });
-            }
-          }
-          
-          if (origins.length > 0) {
-            // Get real Google Maps travel times
-            const distanceMatrix = await googleMapsService.getDistanceMatrix(
-              origins,
-              destinations,
-              mode === 'driving' ? 'driving' : 'walking'
-            );
-            
-            if (distanceMatrix && distanceMatrix.rows.length > 0) {
-              // Apply real Google Maps travel times
-              let matrixIndex = 0;
-              for (let i = 0; i < allOptimizedVisits.length - 1; i++) {
-                const currentVisit = allOptimizedVisits[i];
-                const nextVisit = allOptimizedVisits[i + 1];
-                
-                if (currentVisit.latitude && currentVisit.longitude && 
-                    nextVisit.latitude && nextVisit.longitude) {
-                  
-                  const element = distanceMatrix.rows[matrixIndex]?.elements[0];
-                  if (element?.status === 'OK' && element.duration && element.distance) {
-                    // Extract both travel time and distance from Google Maps
-                    const travelTimeMinutes = Math.round(element.duration.value / 60);
-                    const distanceMeters = element.distance.value;
-                    
-                    (allOptimizedVisits[i] as any).travelTimeToNext = Math.max(1, travelTimeMinutes);
-                    (allOptimizedVisits[i] as any).distanceToNext = distanceMeters;
-                  } else {
-                    (allOptimizedVisits[i] as any).travelTimeToNext = 10; // Fallback
-                    (allOptimizedVisits[i] as any).distanceToNext = 1000; // Fallback 1km
-                  }
-                  matrixIndex++;
-                } else {
-                  (allOptimizedVisits[i] as any).travelTimeToNext = 10; // Default for missing coordinates
-                }
-              }
-            } else {
-              // Fallback if Google Maps API fails
-              console.warn('Distance Matrix API failed, using fallback travel times');
-              for (let i = 0; i < allOptimizedVisits.length - 1; i++) {
-                (allOptimizedVisits[i] as any).travelTimeToNext = 10;
-              }
-            }
-          }
-        } catch (error) {
-          console.error('Error calculating travel times with Google Maps:', error);
-          // Fallback to default times if API fails
-          for (let i = 0; i < allOptimizedVisits.length - 1; i++) {
-            (allOptimizedVisits[i] as any).travelTimeToNext = 10;
-          }
-        }
-      }
+      // CRITICAL: Do NOT recalculate travel times here - they are already set by advanced-route-optimizer.ts
+      // The optimizer has already calculated authoritative travel times using Google Maps API
+      console.log(`Using authoritative travel times from optimizer for ${allOptimizedVisits.length} visits`);
       
       const result = {
         optimizedOrder: allOptimizedVisits.length > 0 ? allOptimizedVisits : visits,

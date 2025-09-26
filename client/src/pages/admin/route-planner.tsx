@@ -554,12 +554,23 @@ export default function RoutePlanner() {
         totalServiceMinutes: result.optimizedRoutes?.reduce((total: number, route: any) => total + (route.metrics?.serviceTimeHours * 60 || 0), 0) || result.totalServiceMinutes || 0
       };
       
+      // CRITICAL FIX: Atomically update visits state with authoritative travel times from backend
+      if (optimisedOrder && optimisedOrder.length > 0) {
+        setVisits(optimisedOrder.map((visit: Visit, index: number) => ({
+          ...visit,
+          // Ensure travelTimeToNext is properly set (backend should have set this)
+          travelTimeToNext: visit.travelTimeToNext ?? null, // Last visit should be null
+          originalOptimalPosition: index + 1
+        })));
+        console.log('FRONTEND: Updated visits state atomically with authoritative travel times from backend');
+      }
+      
       setOptimisation(ukResult);
       
-      // First update markers for ALL visits so every visit gets a pin
-      updateMapWithVisits(ukResult.optimisedOrder!);
+      // Update map with the optimized visits that have travel times
+      updateMapWithVisits(optimisedOrder);
       
-      // Then add the optimized route line (with waypoint limit for Google Maps)
+      // Add the optimized route line (with waypoint limit for Google Maps)
       updateMapWithOptimisedRoute(ukResult);
       
       const totalVisits = ukResult.optimisedOrder?.length || 0;
@@ -1786,7 +1797,14 @@ export default function RoutePlanner() {
             <div className="flex flex-wrap items-center gap-4">
               <div className="flex items-center gap-2">
                 <Label htmlFor="travel-mode">Travel Mode:</Label>
-                <Select value={travelMode} onValueChange={(value: 'driving' | 'walking') => setTravelMode(value)}>
+                <Select value={travelMode} onValueChange={(value: 'driving' | 'walking') => {
+                  // CRITICAL: When mode changes, invalidate optimization data to prevent stale travel times
+                  if (value !== travelMode) {
+                    setOptimisation(null);
+                    console.log(`MODE CHANGE: Travel mode changed from ${travelMode} to ${value}, cleared optimization data`);
+                  }
+                  setTravelMode(value);
+                }}>
                   <SelectTrigger className="w-[140px]" data-testid="select-travel-mode">
                     <SelectValue />
                   </SelectTrigger>
