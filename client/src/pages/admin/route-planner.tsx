@@ -2176,6 +2176,7 @@ export default function RoutePlanner() {
                         onChange={(e) => setNewEarliestTime(e.target.value)}
                         placeholder="e.g. 09:30"
                         autoComplete="off"
+                        className="font-semibold"
                         data-testid="input-earliest-time"
                       />
                     </div>
@@ -2189,6 +2190,7 @@ export default function RoutePlanner() {
                         onChange={(e) => setNewLatestTime(e.target.value)}
                         placeholder="e.g. 11:30"
                         autoComplete="off"
+                        className="font-semibold"
                         data-testid="input-latest-time"
                       />
                     </div>
