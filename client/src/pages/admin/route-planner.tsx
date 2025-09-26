@@ -544,10 +544,44 @@ export default function RoutePlanner() {
     },
     onSuccess: (result: any) => {
       // Handle new shift-based structure
+      let optimisedOrder = result.optimizedRoutes?.flatMap((route: any) => route.visits) || result.optimizedOrder || result.optimisedOrder || [];
+      
+      // Extract and add travel times to each visit
+      if (optimisedOrder && optimisedOrder.length > 0) {
+        optimisedOrder = optimisedOrder.map((visit: Visit, index: number) => {
+          // Check if there's travel time information in the result
+          const nextVisit = optimisedOrder[index + 1];
+          let travelTimeToNext: number | undefined;
+          
+          // Try to extract travel time from various possible response structures
+          if (result.optimizedRoutes && result.optimizedRoutes.length > 0) {
+            // Check if travel times are in route segments
+            const routeWithVisit = result.optimizedRoutes.find((route: any) => 
+              route.visits && route.visits.some((v: any) => v.id === visit.id)
+            );
+            if (routeWithVisit && routeWithVisit.segments) {
+              const visitIndex = routeWithVisit.visits.findIndex((v: any) => v.id === visit.id);
+              if (visitIndex >= 0 && visitIndex < routeWithVisit.segments.length) {
+                travelTimeToNext = routeWithVisit.segments[visitIndex]?.travelMinutes;
+              }
+            }
+          }
+          
+          // Fallback: check if travel time is directly on the visit
+          if (!travelTimeToNext && visit.travelTimeToNext) {
+            travelTimeToNext = visit.travelTimeToNext;
+          }
+          
+          return {
+            ...visit,
+            travelTimeToNext: nextVisit ? travelTimeToNext : undefined
+          };
+        });
+      }
+      
       const ukResult: OptimisationResult = {
         ...result,
-        // Create backward compatibility fields from optimizedRoutes
-        optimisedOrder: result.optimizedRoutes?.flatMap((route: any) => route.visits) || result.optimizedOrder || result.optimisedOrder || [],
+        optimisedOrder,
         totalDistanceMeters: result.optimizedRoutes?.reduce((total: number, route: any) => total + route.totalDistanceMeters, 0) || result.totalDistanceMeters || 0,
         totalTravelMinutes: result.optimizedRoutes?.reduce((total: number, route: any) => total + (route.metrics?.travelTimeHours * 60 || 0), 0) || result.totalTravelMinutes || 0,
         totalServiceMinutes: result.optimizedRoutes?.reduce((total: number, route: any) => total + (route.metrics?.serviceTimeHours * 60 || 0), 0) || result.totalServiceMinutes || 0
