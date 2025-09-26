@@ -3192,7 +3192,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Distance Matrix API
   app.post("/api/route-planner/distance-matrix", requireAdmin, async (req, res) => {
     try {
-      const { origins, destinations, mode = 'walking' } = req.body;
+      const { origins, destinations, mode = 'driving' } = req.body;
       
       if (!Array.isArray(origins) || !Array.isArray(destinations)) {
         return res.status(400).json({ message: "Please provide origins and destinations arrays" });

@@ -2557,13 +2557,7 @@ export default function RoutePlanner() {
                                         <div className="flex items-center gap-2 text-green-600 dark:text-green-400">
                                           <Clock className="h-4 w-4" />
                                           <span className="font-medium" data-testid={`travel-time-${visit.originalIndex}`}>
-                                            {(() => {
-                                              console.log(`🔍 Visit ${slotIndex + 1} (${visit.id}):`, { 
-                                                travelTimeToNext: visit.travelTimeToNext, 
-                                                address: visit.address?.substring(0, 20) + '...' 
-                                              });
-                                              return visit.travelTimeToNext ? `${visit.travelTimeToNext} min` : 'Calculating...';
-                                            })()}
+                                            {visit.travelTimeToNext ? `${visit.travelTimeToNext} min` : 'Calculating...'}
                                           </span>
                                         </div>
                                         <p className="text-xs text-muted-foreground">
