@@ -247,6 +247,29 @@ const isValidTimeFormat = (timeStr: string): boolean => {
   return timeRegex.test(timeStr.trim());
 };
 
+// Helper function to auto-format time input
+const formatTimeInput = (input: string): string => {
+  if (!input) return '';
+  
+  // Remove all non-digits
+  const digits = input.replace(/\D/g, '');
+  
+  if (digits.length === 0) return '';
+  if (digits.length === 1) return digits;
+  if (digits.length === 2) return digits;
+  if (digits.length === 3) {
+    // 3 digits: assume first digit is hour, last two are minutes (e.g., 930 -> 9:30)
+    return `${digits[0]}:${digits.slice(1)}`;
+  }
+  if (digits.length === 4) {
+    // 4 digits: first two are hours, last two are minutes (e.g., 1000 -> 10:00)
+    return `${digits.slice(0, 2)}:${digits.slice(2, 4)}`;
+  }
+  
+  // More than 4 digits, take first 4
+  return `${digits.slice(0, 2)}:${digits.slice(2, 4)}`;
+};
+
 export default function RoutePlanner() {
   const { toast } = useToast();
   const [visits, setVisits] = useState<Visit[]>([]);
@@ -2173,8 +2196,11 @@ export default function RoutePlanner() {
                         id="earliest-time"
                         type="text"
                         value={newEarliestTime}
-                        onChange={(e) => setNewEarliestTime(e.target.value)}
-                        placeholder="e.g. 09:30"
+                        onChange={(e) => {
+                          const formatted = formatTimeInput(e.target.value);
+                          setNewEarliestTime(formatted);
+                        }}
+                        placeholder="e.g. 930 or 09:30"
                         autoComplete="off"
                         className="font-semibold"
                         data-testid="input-earliest-time"
@@ -2187,8 +2213,11 @@ export default function RoutePlanner() {
                         id="latest-time"
                         type="text"
                         value={newLatestTime}
-                        onChange={(e) => setNewLatestTime(e.target.value)}
-                        placeholder="e.g. 11:30"
+                        onChange={(e) => {
+                          const formatted = formatTimeInput(e.target.value);
+                          setNewLatestTime(formatted);
+                        }}
+                        placeholder="e.g. 1130 or 11:30"
                         autoComplete="off"
                         className="font-semibold"
                         data-testid="input-latest-time"
