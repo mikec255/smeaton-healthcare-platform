@@ -342,7 +342,12 @@ export class AdvancedRouteOptimizer {
         
         if (durationMatrix[currentOrderIndex] && durationMatrix[currentOrderIndex][nextOrderIndex] !== undefined) {
           travelTimeToNext = Math.round(durationMatrix[currentOrderIndex][nextOrderIndex]); // Ensure integer minutes
-          console.log(`FINAL: Travel time from visit ${i} (original index ${currentOrderIndex}) to ${i+1} (original index ${nextOrderIndex}): ${travelTimeToNext} min (from Google Maps API)`);
+          
+          // Get Google's exact text formatting for display accuracy
+          const googleTextKey = `${currentOrderIndex},${nextOrderIndex}`;
+          const googleText = this.durationTexts[googleTextKey];
+          
+          console.log(`FINAL: Travel time from visit ${i} (original index ${currentOrderIndex}) to ${i+1} (original index ${nextOrderIndex}): ${travelTimeToNext} min (from Google Maps API) [Google text: ${googleText}]`);
         } else {
           travelTimeToNext = 10; // Default 10 minutes if matrix data is missing
           console.warn(`Missing duration matrix data for ${currentOrderIndex} to ${nextOrderIndex}, using fallback: ${travelTimeToNext} min`);
