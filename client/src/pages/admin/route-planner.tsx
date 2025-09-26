@@ -233,6 +233,21 @@ function SortableVisitItem({ visit, index, onRemove }: { visit: Visit; index: nu
                 </span>
               )}
             </div>
+            {/* Time window validation warnings */}
+            {visit.calculatedStartTime && getTimeSlotStatus(visit) === 'outside-commissioning' && (
+              <div className="mt-2 p-2 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-md">
+                <p className="text-xs text-red-600 dark:text-red-400 font-medium" data-testid={`warning-commissioning-${index}`}>
+                  🚨 Outside commissioning time slot
+                </p>
+              </div>
+            )}
+            {visit.calculatedStartTime && getTimeSlotStatus(visit) === 'outside-customer' && (
+              <div className="mt-2 p-2 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-md">
+                <p className="text-xs text-amber-600 dark:text-amber-400 font-medium" data-testid={`warning-customer-${index}`}>
+                  ⚠️ Outside customer window - could be renegotiated
+                </p>
+              </div>
+            )}
           </div>
         </div>
         <Button
@@ -348,6 +363,59 @@ const calculateVisitTimes = (visits: Visit[], shiftStart: string): Visit[] => {
   });
   
   return updatedVisits;
+};
+
+// Check visit time compliance with dual constraint system
+const getTimeSlotStatus = (visit: any) => {
+  if (!visit.calculatedStartTime || !visit.calculatedEndTime || !visit.timeSlot) {
+    return 'within'; // Default to within if no time info
+  }
+
+  // Parse calculated times (format: "14:05")
+  const startParts = visit.calculatedStartTime.split(':');
+  const endParts = visit.calculatedEndTime.split(':');
+  const calculatedStart = parseInt(startParts[0]) * 60 + parseInt(startParts[1]);
+  const calculatedEnd = parseInt(endParts[0]) * 60 + parseInt(endParts[1]);
+
+  // Parse commissioning time slot ranges (broad windows)
+  let commissioningStart = 0, commissioningEnd = 0;
+  
+  if (visit.timeSlot.includes('Morning')) {
+    commissioningStart = 7 * 60;      // 7:00 AM
+    commissioningEnd = 11 * 60 + 30;  // 11:30 AM
+  } else if (visit.timeSlot.includes('Lunch')) {
+    commissioningStart = 9 * 60;      // 9:00 AM
+    commissioningEnd = 14 * 60 + 30;  // 2:30 PM
+  } else if (visit.timeSlot.includes('Tea')) {
+    commissioningStart = 14 * 60;     // 2:00 PM
+    commissioningEnd = 18 * 60 + 30;  // 6:30 PM
+  } else if (visit.timeSlot.includes('Bed')) {
+    commissioningStart = 18 * 60;     // 6:00 PM
+    commissioningEnd = 22 * 60 + 30;  // 10:30 PM
+  }
+
+  // Parse customer-specific time windows (optional, narrower windows)
+  let customerStart = commissioningStart;
+  let customerEnd = commissioningEnd;
+  
+  if (visit.earliestTime && visit.latestTime) {
+    const earliestParts = visit.earliestTime.split(':');
+    const latestParts = visit.latestTime.split(':');
+    customerStart = parseInt(earliestParts[0]) * 60 + parseInt(earliestParts[1]);
+    customerEnd = parseInt(latestParts[0]) * 60 + parseInt(latestParts[1]);
+  }
+
+  // Check compliance against both constraints
+  const outsideCommissioning = calculatedStart < commissioningStart || calculatedEnd > commissioningEnd;
+  const outsideCustomer = calculatedStart < customerStart || calculatedEnd > customerEnd;
+  
+  if (outsideCommissioning) {
+    return 'outside-commissioning'; // Red - outside commissioning window (cannot be moved)
+  } else if (outsideCustomer) {
+    return 'outside-customer'; // Amber - outside customer window but within commissioning (negotiable)
+  } else {
+    return 'within-customer'; // Green - within customer's promised window
+  }
 };
 
 export default function RoutePlanner() {
@@ -1977,58 +2045,6 @@ export default function RoutePlanner() {
     event.target.value = '';
   };
 
-  // Check visit time compliance with dual constraint system
-  const getTimeSlotStatus = (visit: any) => {
-    if (!visit.calculatedStartTime || !visit.calculatedEndTime || !visit.timeSlot) {
-      return 'within'; // Default to within if no time info
-    }
-
-    // Parse calculated times (format: "14:05")
-    const startParts = visit.calculatedStartTime.split(':');
-    const endParts = visit.calculatedEndTime.split(':');
-    const calculatedStart = parseInt(startParts[0]) * 60 + parseInt(startParts[1]);
-    const calculatedEnd = parseInt(endParts[0]) * 60 + parseInt(endParts[1]);
-
-    // Parse commissioning time slot ranges (broad windows)
-    let commissioningStart = 0, commissioningEnd = 0;
-    
-    if (visit.timeSlot.includes('Morning')) {
-      commissioningStart = 7 * 60;  // 7:00 AM
-      commissioningEnd = 11 * 60;   // 11:00 AM
-    } else if (visit.timeSlot.includes('Lunch')) {
-      commissioningStart = 11 * 60; // 11:00 AM
-      commissioningEnd = 15 * 60;   // 3:00 PM
-    } else if (visit.timeSlot.includes('Tea')) {
-      commissioningStart = 15 * 60; // 3:00 PM
-      commissioningEnd = 18 * 60;   // 6:00 PM
-    } else if (visit.timeSlot.includes('Bed')) {
-      commissioningStart = 18 * 60; // 6:00 PM
-      commissioningEnd = 23 * 60;   // 11:00 PM
-    }
-
-    // Parse customer-specific time windows (optional, narrower windows)
-    let customerStart = commissioningStart;
-    let customerEnd = commissioningEnd;
-    
-    if (visit.earliestTime && visit.latestTime) {
-      const earliestParts = visit.earliestTime.split(':');
-      const latestParts = visit.latestTime.split(':');
-      customerStart = parseInt(earliestParts[0]) * 60 + parseInt(earliestParts[1]);
-      customerEnd = parseInt(latestParts[0]) * 60 + parseInt(latestParts[1]);
-    }
-
-    // Check compliance against both constraints
-    const outsideCommissioning = calculatedStart < commissioningStart || calculatedEnd > commissioningEnd;
-    const outsideCustomer = calculatedStart < customerStart || calculatedEnd > customerEnd;
-    
-    if (outsideCommissioning) {
-      return 'outside-commissioning'; // Red - outside commissioning window (cannot be moved)
-    } else if (outsideCustomer) {
-      return 'outside-customer'; // Amber - outside customer window but within commissioning (negotiable)
-    } else {
-      return 'within-customer'; // Green - within customer's promised window
-    }
-  };
 
   return (
     <AdminLayout>
