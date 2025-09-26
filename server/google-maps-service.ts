@@ -97,7 +97,33 @@ export class GoogleMapsService {
         const data = await response.json() as GoogleGeocodeResponse;
 
         if (data.status === 'OK' && data.results.length > 0) {
-          const result = data.results[0];
+          let result = data.results[0];
+          
+          // CRITICAL FIX: For postcode-only inputs, ensure we get the postcode center, not a specific address
+          const ukPostcodePattern = /^([a-z]{1,2}\d{1,2}[a-z]?\s*\d[a-z]{2})$/i;
+          const hasHouseNumber = /^\s*(\d+[a-z]?|flat\s+\d+|apartment\s+\d+|unit\s+\d+)/i.test(address.trim());
+          
+          if (!hasHouseNumber && ukPostcodePattern.test(address.trim())) {
+            // This is a postcode-only query - find the best postcode-level result
+            console.log(`🎯 POSTCODE-ONLY QUERY DETECTED: "${address}" - filtering for postcode center`);
+            
+            // Look for the result with the most general location type (postal_code, sublocality, etc.)
+            const postcodeResult = data.results.find(r => 
+              r.types.includes('postal_code') || 
+              r.types.includes('sublocality') ||
+              r.geometry.location_type === 'APPROXIMATE'
+            );
+            
+            if (postcodeResult) {
+              result = postcodeResult;
+              console.log(`✅ FOUND POSTCODE CENTER: ${result.formatted_address} (types: ${result.types.join(', ')})`);
+            } else {
+              console.log(`⚠️ NO POSTCODE CENTER FOUND, using first result: ${result.formatted_address}`);
+            }
+          } else if (hasHouseNumber) {
+            console.log(`🏠 FULL ADDRESS QUERY: "${address}" - using precise location`);
+          }
+          
           const geocodeResult = {
             address: address,
             formattedAddress: result.formatted_address,
@@ -109,6 +135,7 @@ export class GoogleMapsService {
           
           // Cache successful result
           this.geocodeCache.set(cacheKey, geocodeResult);
+          console.log(`💾 CACHED GEOCODING: "${address}" → ${result.formatted_address} (${result.geometry.location.lat}, ${result.geometry.location.lng})`);
           return geocodeResult;
         } else if (data.status === 'OVER_QUERY_LIMIT' && attempt < this.MAX_RETRIES - 1) {
           // Retry on quota exceeded
