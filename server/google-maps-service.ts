@@ -23,13 +23,52 @@ export class GoogleMapsService {
     }
   }
 
+  // Enhance address for better geocoding accuracy, especially for UK postcodes
+  private enhanceAddressForGeocoding(address: string): string {
+    const trimmedAddress = address.trim().toLowerCase();
+    
+    // UK Postcode patterns (basic detection)
+    const ukPostcodePattern = /^([a-z]{1,2}\d{1,2}[a-z]?\s*\d[a-z]{2})$/i;
+    
+    // Devon/Cornwall/Plymouth specific postcodes
+    const devonCornwallPattern = /^(pl|ex|tr)\d/i;
+    
+    if (ukPostcodePattern.test(trimmedAddress)) {
+      // If it's a Devon/Cornwall postcode (PL/EX/TR), be more specific
+      if (devonCornwallPattern.test(trimmedAddress)) {
+        // PL postcodes are Plymouth area
+        if (trimmedAddress.startsWith('pl')) {
+          return `${address}, Plymouth, Devon, UK`;
+        }
+        // EX postcodes could be Exeter or other Devon areas
+        else if (trimmedAddress.startsWith('ex')) {
+          return `${address}, Devon, UK`;
+        }
+        // TR postcodes are Cornwall
+        else if (trimmedAddress.startsWith('tr')) {
+          return `${address}, Cornwall, UK`;
+        }
+      }
+      
+      // Generic UK postcode enhancement
+      return `${address}, UK`;
+    }
+    
+    // If it's already a full address or doesn't look like a UK postcode, return as-is
+    return address;
+  }
+
   // Geocode a single address to coordinates with caching and retry logic
   async geocodeAddress(address: string): Promise<GeocodeResult | null> {
     if (!this.apiKey) {
       throw new Error('Google Maps API key not configured');
     }
 
-    // Check cache first
+    // Enhance UK postcodes for better accuracy
+    const enhancedAddress = this.enhanceAddressForGeocoding(address);
+    console.log(`Geocoding: "${address}" enhanced to: "${enhancedAddress}"`);
+
+    // Check cache first (use original address for cache key to avoid duplicates)
     const cacheKey = GoogleMapsService.getCacheKey(address);
     if (this.geocodeCache.has(cacheKey)) {
       return this.geocodeCache.get(cacheKey)!;
@@ -39,8 +78,8 @@ export class GoogleMapsService {
     
     for (let attempt = 0; attempt < this.MAX_RETRIES; attempt++) {
       try {
-        const encodedAddress = encodeURIComponent(address);
-        const url = `${this.baseUrl}/geocode/json?address=${encodedAddress}&key=${this.apiKey}`;
+        const encodedAddress = encodeURIComponent(enhancedAddress);
+        const url = `${this.baseUrl}/geocode/json?address=${encodedAddress}&key=${this.apiKey}&region=uk`;
         
         const response = await fetch(url);
         const data = await response.json() as GoogleGeocodeResponse;
