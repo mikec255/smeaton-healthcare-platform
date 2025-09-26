@@ -66,7 +66,7 @@ export class GoogleMapsService {
 
     // Enhance UK postcodes for better accuracy
     const enhancedAddress = this.enhanceAddressForGeocoding(address);
-    console.log(`Geocoding: "${address}" enhanced to: "${enhancedAddress}"`);
+    console.log(`🌍 GEOCODING: "${address}" → "${enhancedAddress}"`);
 
     // Check cache first (use original address for cache key to avoid duplicates)
     const cacheKey = GoogleMapsService.getCacheKey(address);
