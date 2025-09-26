@@ -2949,8 +2949,18 @@ export class DrizzleStorage implements IStorage {
   }
 
   // Route Planning - Clients
-  async getAllClients(): Promise<Client[]> {
-    return await db.select().from(clients).orderBy(clients.name);
+  async getAllClients(filters?: { isActive?: boolean; postcode?: string }): Promise<Client[]> {
+    let query = db.select().from(clients);
+    
+    if (filters?.isActive !== undefined) {
+      query = query.where(eq(clients.isActive, filters.isActive));
+    }
+    
+    if (filters?.postcode) {
+      query = query.where(eq(clients.postcode, filters.postcode));
+    }
+    
+    return await query.orderBy(clients.name);
   }
 
   async createClient(client: InsertClient): Promise<Client> {
@@ -2959,8 +2969,26 @@ export class DrizzleStorage implements IStorage {
   }
 
   // Route Planning - Visits
-  async getAllVisits(): Promise<Visit[]> {
-    return await db.select().from(visits).orderBy(visits.visitDate, visits.timeSlot);
+  async getAllVisits(filters?: { date?: string; clientId?: string; timeSlot?: string; status?: string }): Promise<Visit[]> {
+    let query = db.select().from(visits);
+    
+    if (filters?.date) {
+      query = query.where(eq(visits.visitDate, filters.date));
+    }
+    
+    if (filters?.clientId) {
+      query = query.where(eq(visits.clientId, filters.clientId));
+    }
+    
+    if (filters?.timeSlot) {
+      query = query.where(eq(visits.timeSlot, filters.timeSlot));
+    }
+    
+    if (filters?.status) {
+      query = query.where(eq(visits.status, filters.status));
+    }
+    
+    return await query.orderBy(visits.visitDate, visits.timeSlot);
   }
 
   async createVisit(visit: InsertVisit): Promise<Visit> {

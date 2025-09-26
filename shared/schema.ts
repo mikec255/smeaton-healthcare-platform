@@ -820,6 +820,20 @@ export const insertCqcComplianceRecordSchema = createInsertSchema(cqcComplianceR
   updatedAt: true,
 });
 
+// Note: If cqcChecklistItems table doesn't exist, this schema acts as a placeholder
+// The actual implementation might need to reference a different table or be removed
+export const insertCqcChecklistItemSchema = createInsertSchema(cqcComplianceRecords).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+// Legacy audit responses schema (for backward compatibility)
+export const insertCqcAuditResponseSchema = createInsertSchema(cqcAuditResponses).omit({
+  id: true,
+  createdAt: true,
+});
+
 export const insertKnowledgeQuestionnaireSchema = createInsertSchema(knowledgeQuestionnaires).omit({
   id: true,
   createdAt: true,

@@ -88,6 +88,8 @@ interface RouteMetrics {
   totalTimeHours: number;
   travelTimeHours: number;
   serviceTimeHours: number;
+  totalTravelMinutes?: number; // Computed from travelTimeHours * 60
+  totalServiceMinutes?: number; // Computed from serviceTimeHours * 60
   fuelCost: number;
   staffCost: number;
   totalCost: number;
@@ -137,6 +139,13 @@ interface GoogleMaps {
   LatLng: any;
   OverlayView: any;
   Geocoder: any;
+  Animation: {
+    DROP: any;
+    BOUNCE: any;
+  };
+  marker: {
+    AdvancedMarkerElement: any;
+  };
 }
 
 declare global {
@@ -323,7 +332,7 @@ export default function RoutePlanner() {
       }
 
       const script = document.createElement('script');
-      script.src = `https://maps.googleapis.com/maps/api/js?key=${import.meta.env.VITE_GOOGLE_MAPS_JS_KEY}&libraries=geometry,places`;
+      script.src = `https://maps.googleapis.com/maps/api/js?key=${import.meta.env.VITE_GOOGLE_MAPS_JS_KEY}&libraries=geometry,places,marker&loading=async`;
       script.async = true;
       script.defer = true;
       script.onload = () => {
@@ -528,6 +537,47 @@ export default function RoutePlanner() {
     }
   });
 
+  // Update visit coordinates mutation for draggable pins
+  const updateCoordinatesMutation = useMutation({
+    mutationFn: async (data: { visitId: string; latitude: number; longitude: number }) => {
+      const response = await apiRequest('PATCH', `/api/route-planner/visit/${data.visitId}/coordinates`, {
+        latitude: data.latitude,
+        longitude: data.longitude
+      });
+      return await response.json();
+    },
+    onSuccess: (result) => {
+      // Update the visit in the state with new coordinates and potentially new address
+      setVisits(currentVisits => 
+        currentVisits.map(visit => 
+          visit.id === result.visitId 
+            ? { 
+                ...visit, 
+                latitude: result.latitude, 
+                longitude: result.longitude,
+                address: result.address // Update address if reverse geocoding provided one
+              }
+            : visit
+        )
+      );
+      
+      toast({
+        title: "Pin Location Updated",
+        description: `Visit marker moved to: ${result.address}`,
+      });
+
+      // Clear optimization since coordinates changed
+      setOptimisation(null);
+    },
+    onError: (error) => {
+      toast({
+        title: "Failed to Update Pin",
+        description: "Could not update pin location. Please try again.",
+        variant: "destructive",
+      });
+    }
+  });
+
   // Route optimisation mutation
   const optimiseMutation = useMutation({
     mutationFn: async (data: {
@@ -580,8 +630,8 @@ export default function RoutePlanner() {
         
         // Validate no duplicate coordinates (potential dual pin detection)
         const coordinates = validatedVisits
-          .filter(v => v.latitude && v.longitude)
-          .map(v => `${v.latitude?.toFixed(6)},${v.longitude?.toFixed(6)}`);
+          .filter((v: Visit) => v.latitude && v.longitude)
+          .map((v: Visit) => `${v.latitude?.toFixed(6)},${v.longitude?.toFixed(6)}`);
         const uniqueCoords = new Set(coordinates);
         if (coordinates.length !== uniqueCoords.size) {
           console.warn('DUPLICATE COORDINATES DETECTED: Multiple visits have identical coordinates - potential dual pin issue');
@@ -807,7 +857,7 @@ export default function RoutePlanner() {
         }
         
         uniquePositions.add(positionKey);
-        validVisits.push({ ...visit, originalIndex: index });
+        validVisits.push({ ...visit, originalOptimalPosition: index + 1 });
       }
     });
 
@@ -821,6 +871,8 @@ export default function RoutePlanner() {
         map: mapInstanceRef.current,
         title: visit.address,
         label: (displayIndex + 1).toString(),
+        draggable: true, // ENABLE DRAGGING
+        animation: window.google.maps.Animation.DROP,
       });
 
       const infoWindow = new window.google.maps.InfoWindow({
@@ -836,6 +888,67 @@ export default function RoutePlanner() {
 
       marker.addListener('click', () => {
         infoWindow.open(mapInstanceRef.current, marker);
+      });
+
+      // Add drag event listeners for draggable pins functionality
+      let isDragging = false;
+      let originalPosition = { lat: position.lat, lng: position.lng };
+
+      marker.addListener('dragstart', () => {
+        isDragging = true;
+        originalPosition = { lat: position.lat, lng: position.lng };
+        
+        // Close any open info windows during drag
+        infoWindow.close();
+        
+        // Visual feedback: Change cursor and marker appearance
+        marker.setTitle(`Dragging: ${visit.address}`);
+        marker.setAnimation(null); // Remove drop animation during drag
+        
+        console.log(`🔍 DRAG START: ${visit.clientName || visit.address} at ${originalPosition.lat}, ${originalPosition.lng}`);
+      });
+
+      marker.addListener('drag', (event: any) => {
+        // Visual feedback during drag - update title with current coordinates
+        const currentPos = event.latLng;
+        if (currentPos) {
+          const lat = currentPos.lat();
+          const lng = currentPos.lng();
+          marker.setTitle(`Dragging to: ${lat.toFixed(6)}, ${lng.toFixed(6)}`);
+        }
+      });
+
+      marker.addListener('dragend', (event: any) => {
+        isDragging = false;
+        const newPos = event.latLng;
+        
+        if (newPos) {
+          const newLat = newPos.lat();
+          const newLng = newPos.lng();
+          
+          console.log(`📌 DRAG END: ${visit.clientName || visit.address} moved from ${originalPosition.lat}, ${originalPosition.lng} to ${newLat}, ${newLng}`);
+          
+          // Check if position actually changed (minimum threshold to avoid unnecessary API calls)
+          const latDiff = Math.abs(newLat - originalPosition.lat);
+          const lngDiff = Math.abs(newLng - originalPosition.lng);
+          const minMovement = 0.000001; // ~0.1 meter precision
+          
+          if (latDiff > minMovement || lngDiff > minMovement) {
+            // Update coordinates via API
+            updateCoordinatesMutation.mutate({
+              visitId: visit.id,
+              latitude: newLat,
+              longitude: newLng
+            });
+            
+            // Restore marker title
+            marker.setTitle(`${visit.address} (moved)`);
+          } else {
+            // Position didn't change significantly, restore original title
+            marker.setTitle(visit.address);
+            console.log(`📌 DRAG CANCELLED: Position change too small, ignoring`);
+          }
+        }
       });
 
       markersRef.current.push(marker);

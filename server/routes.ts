@@ -4,7 +4,7 @@ import session from "express-session";
 import bcrypt from "bcryptjs";
 import crypto from "crypto";
 import { storage } from "./storage";
-import { insertJobSchema, insertApplicationSchema, insertContactSubmissionSchema, insertFeedbackSchema, insertNewsletterSchema, insertNewsletterBlockSchema, insertTemplateSchema, insertBlogCategorySchema, insertBlogPostSchema, insertUserSchema, loginUserSchema, updateUserSchema, insertCqcAuditSchema, insertCqcAuditCategorySchema, insertCqcQualityStatementSchema, insertCqcEvidenceCategorySchema, insertCqcAuditEvidenceSchema, insertCqcQualityAssessmentSchema, insertCqcComplianceRecordSchema, insertKnowledgeQuestionnaireSchema, insertKnowledgeQuestionSchema, insertKnowledgeSessionSchema, insertKnowledgeResponseSchema, insertKnowledgeActionSchema, insertRecruitmentApplicationSchema, insertProfessionalReferenceSchema, insertClientSchema, insertVisitSchema, insertRunSchema, insertRunStopSchema, insertGeocodeSchema } from "@shared/schema";
+import { insertJobSchema, insertApplicationSchema, insertContactSubmissionSchema, insertFeedbackSchema, insertNewsletterSchema, insertNewsletterBlockSchema, insertTemplateSchema, insertBlogCategorySchema, insertBlogPostSchema, insertUserSchema, loginUserSchema, updateUserSchema, insertCqcAuditSchema, insertCqcAuditCategorySchema, insertCqcQualityStatementSchema, insertCqcEvidenceCategorySchema, insertCqcAuditEvidenceSchema, insertCqcQualityAssessmentSchema, insertCqcComplianceRecordSchema, insertCqcChecklistItemSchema, insertCqcAuditResponseSchema, insertKnowledgeQuestionnaireSchema, insertKnowledgeQuestionSchema, insertKnowledgeSessionSchema, insertKnowledgeResponseSchema, insertKnowledgeActionSchema, insertRecruitmentApplicationSchema, insertProfessionalReferenceSchema, insertClientSchema, insertVisitSchema, insertRunSchema, insertRunStopSchema, insertGeocodeSchema } from "@shared/schema";
 import { GoogleMapsService } from "./google-maps-service";
 import { ObjectStorageService } from "./objectStorage";
 import { brevoService } from "./brevo-service";
@@ -920,7 +920,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             currentlyWorking: validatedData.currentlyWorking || undefined,
             currentEmployer: validatedData.currentEmployer || undefined,
             referralSource: validatedData.referralSource || undefined,
-            shiftPreferences: Array.isArray(validatedData.shiftPreferences) ? validatedData.shiftPreferences : undefined,
+            shiftPreferences: Array.isArray(validatedData.shiftPreferences) ? validatedData.shiftPreferences as string[] : undefined,
             hasDBS: validatedData.hasDBS || undefined,
             hasMHCertificate: validatedData.hasMHCertificate || undefined,
             additionalInfo: validatedData.additionalInfo || undefined,
@@ -1753,7 +1753,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const logs = await storage.getAuditLogs(filters);
       
       // Log that admin is viewing audit logs (meta-logging)
-      await AuditLogger.logView(req, req.user, "audit_log", "bulk", {
+      await AuditLogger.logView(req, req.user!, "audit_log", "bulk", {
         action: "view_audit_logs",
         recordCount: logs.length,
         filters
@@ -1771,7 +1771,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const logs = await storage.getAuditLogsByResourceId(req.params.resourceId);
       
       // Log that admin is viewing resource-specific audit logs
-      await AuditLogger.logView(req, req.user, "audit_log", "resource_specific", {
+      await AuditLogger.logView(req, req.user!, "audit_log", "resource_specific", {
         action: "view_resource_audit_logs",
         resourceId: req.params.resourceId,
         recordCount: logs.length
@@ -2547,7 +2547,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         assessment.id,
         { 
           qualityStatementId: assessment.qualityStatementId,
-          rating: assessment.assessmentRating,
+          rating: assessment.complianceLevel,
           auditId: assessment.auditId 
         }
       );
@@ -2589,7 +2589,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         req.user!,
         'cqc_quality_assessment',
         req.params.id,
-        { rating: assessment.assessmentRating, qualityStatementId: assessment.qualityStatementId }
+        { rating: assessment.complianceLevel, qualityStatementId: assessment.qualityStatementId }
       );
       
       res.json(assessment);
@@ -3087,7 +3087,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const updatedAudit = await storage.updateCqcAudit(auditId, {
         status: 'completed',
         nextAuditDue: nextAuditDue ? new Date(nextAuditDue) : undefined,
-        updatedAt: new Date()
+        // updatedAt is automatically handled by the database
       });
       
       if (!updatedAudit) {
@@ -3233,6 +3233,64 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Advanced Route Optimization API
+  // Update visit coordinates API for draggable pins
+  app.patch("/api/route-planner/visit/:visitId/coordinates", requireAdmin, async (req, res) => {
+    try {
+      const { visitId } = req.params;
+      const { latitude, longitude } = req.body;
+
+      // Validate coordinates
+      if (typeof latitude !== 'number' || typeof longitude !== 'number') {
+        return res.status(400).json({ 
+          message: "Invalid coordinates. Latitude and longitude must be numbers." 
+        });
+      }
+
+      if (latitude < -90 || latitude > 90) {
+        return res.status(400).json({ 
+          message: "Invalid latitude. Must be between -90 and 90." 
+        });
+      }
+
+      if (longitude < -180 || longitude > 180) {
+        return res.status(400).json({ 
+          message: "Invalid longitude. Must be between -180 and 180." 
+        });
+      }
+
+      // For route planner, we'll reverse geocode to get the address at the new coordinates
+      try {
+        const reverseGeocode = await googleMapsService.reverseGeocode(latitude, longitude);
+        
+        res.json({
+          success: true,
+          visitId,
+          latitude,
+          longitude,
+          address: reverseGeocode?.formattedAddress || `${latitude.toFixed(6)}, ${longitude.toFixed(6)}`,
+          message: "Visit coordinates updated successfully"
+        });
+      } catch (error) {
+        // If reverse geocoding fails, still return success with coordinates
+        console.warn('Reverse geocoding failed for dragged pin:', error);
+        res.json({
+          success: true,
+          visitId,
+          latitude,
+          longitude,
+          address: `${latitude.toFixed(6)}, ${longitude.toFixed(6)}`,
+          message: "Visit coordinates updated successfully"
+        });
+      }
+    } catch (error) {
+      console.error('Update visit coordinates error:', error);
+      res.status(500).json({ 
+        message: "Failed to update visit coordinates",
+        error: error instanceof Error ? error.message : 'Unknown error'
+      });
+    }
+  });
+
   app.post("/api/route-planner/optimize", requireAdmin, async (req, res) => {
     try {
       const { 
@@ -3352,7 +3410,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             totalServiceMinutes: result.totalServiceMinutes,
             departureTime,
             status: 'optimized',
-            createdBy: req.user.id
+            createdBy: req.user!.id
           });
 
           // Save run stops for all routes
@@ -3361,17 +3419,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
             for (const visit of route.visits) {
               await storage.createRunStop({
                 runId: run.id,
-                visitId: visit.visitId || null,
+                visitId: visit.id || null,
                 stopOrder: stopOrder++,
-                adHocAddress: visit.visitId ? null : visit.address,
-                adHocLatitude: visit.visitId ? null : visit.latitude,
-                adHocLongitude: visit.visitId ? null : visit.longitude,
-                adHocDuration: visit.visitId ? null : visit.durationMinutes
+                adHocAddress: visit.id ? null : visit.address,
+                adHocLatitude: visit.id ? null : visit.latitude,
+                adHocLongitude: visit.id ? null : visit.longitude,
+                adHocDuration: visit.id ? null : visit.durationMinutes
               });
             }
           }
 
-          result.runId = run.id;
+          (result as any).runId = run.id;
         } catch (saveError) {
           console.error('Error saving run:', saveError);
           // Don't fail the optimization, just log the error

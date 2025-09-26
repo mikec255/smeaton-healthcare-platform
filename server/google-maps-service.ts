@@ -383,6 +383,60 @@ export class GoogleMapsService {
     return null;
   }
 
+  // Reverse geocode coordinates to get address
+  async reverseGeocode(latitude: number, longitude: number): Promise<GeocodeResult | null> {
+    if (!this.apiKey) {
+      throw new Error('Google Maps API key not configured');
+    }
+
+    // Check cache first
+    const cacheKey = `reverse_${latitude.toFixed(6)}_${longitude.toFixed(6)}`;
+    if (this.geocodeCache.has(cacheKey)) {
+      return this.geocodeCache.get(cacheKey)!;
+    }
+
+    let lastError: any;
+    
+    for (let attempt = 0; attempt < this.MAX_RETRIES; attempt++) {
+      try {
+        const url = `${this.baseUrl}/geocode/json?latlng=${latitude},${longitude}&key=${this.apiKey}&region=uk`;
+        
+        const response = await fetch(url);
+        const data = await response.json() as GoogleGeocodeResponse;
+
+        if (data.status === 'OK' && data.results.length > 0) {
+          const result = data.results[0];
+          const geocodeResult: GeocodeResult = {
+            address: result.formatted_address, // For reverse geocoding, use formatted address as the address
+            latitude,
+            longitude,
+            formattedAddress: result.formatted_address,
+            postcode: this.extractPostcode(result.address_components),
+            placeId: result.place_id
+          };
+          
+          // Cache the result
+          this.geocodeCache.set(cacheKey, geocodeResult);
+          return geocodeResult;
+        } else if (data.status === 'OVER_QUERY_LIMIT' && attempt < this.MAX_RETRIES - 1) {
+          await this.exponentialBackoff(attempt);
+          continue;
+        } else {
+          console.error('Reverse geocoding failed:', data.status, data.error_message);
+          return null;
+        }
+      } catch (error) {
+        lastError = error;
+        if (attempt < this.MAX_RETRIES - 1) {
+          await this.exponentialBackoff(attempt);
+        }
+      }
+    }
+    
+    console.error(`Reverse geocoding failed after ${this.MAX_RETRIES} attempts:`, lastError);
+    return null;
+  }
+
   // Helper method to extract postcode from address components
   private extractPostcode(components: GoogleAddressComponent[]): string | null {
     const postcodeComponent = components.find(

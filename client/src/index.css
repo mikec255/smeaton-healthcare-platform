@@ -120,6 +120,27 @@
   html {
     font-size: 16px;
   }
+
+  /* Google Maps draggable pins styling */
+  .gm-style > div {
+    transition: opacity 0.2s ease-in-out;
+  }
+
+  /* Custom cursor styles for draggable elements */
+  .gm-style .gm-style-mtc {
+    cursor: default;
+  }
+
+  /* Ensure map markers have proper cursor indication */
+  .gm-style img[src*="marker"] {
+    cursor: move !important;
+  }
+
+  /* Visual feedback for map interactions */
+  .gm-style .gm-style-iw {
+    border-radius: 8px;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  }
   
   @media (max-width: 640px) {
     html {
