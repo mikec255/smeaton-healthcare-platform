@@ -222,6 +222,16 @@ function SortableVisitItem({ visit, index, onRemove }: { visit: Visit; index: nu
                   🕐 {visit.earliestTime || '—'} - {visit.latestTime || '—'}
                 </span>
               )}
+              {(visit.calculatedStartTime || visit.calculatedEndTime) && (
+                <span className="text-xs font-bold text-green-600 dark:text-green-400 bg-green-50 dark:bg-green-900/20 px-2 py-1 rounded-md">
+                  📅 {visit.calculatedStartTime ? formatTimeDisplay(visit.calculatedStartTime) : '—'} - {visit.calculatedEndTime ? formatTimeDisplay(visit.calculatedEndTime) : '—'}
+                </span>
+              )}
+              {visit.travelTimeToNext && (
+                <span className="text-xs font-medium text-purple-600 dark:text-purple-400">
+                  🚗 {visit.travelTimeToNext}m to next
+                </span>
+              )}
             </div>
           </div>
         </div>
@@ -284,11 +294,68 @@ const formatTimeInput = (input: string): string => {
   return `${digits.slice(0, 2)}:${digits.slice(2, 4)}`;
 };
 
+// Helper function to format time for display (24h to 12h AM/PM)
+const formatTimeDisplay = (timeStr: string): string => {
+  if (!timeStr) return '';
+  
+  const [hours, minutes] = timeStr.split(':').map(Number);
+  const hour12 = hours === 0 ? 12 : hours > 12 ? hours - 12 : hours;
+  const ampm = hours >= 12 ? 'PM' : 'AM';
+  
+  return `${hour12}:${minutes.toString().padStart(2, '0')} ${ampm}`;
+};
+
+// Helper function to add minutes to a time string
+const addMinutesToTime = (timeStr: string, minutesToAdd: number): string => {
+  if (!timeStr) return '';
+  
+  const [hours, minutes] = timeStr.split(':').map(Number);
+  const totalMinutes = hours * 60 + minutes + minutesToAdd;
+  
+  const newHours = Math.floor(totalMinutes / 60) % 24;
+  const newMinutes = totalMinutes % 60;
+  
+  return `${newHours.toString().padStart(2, '0')}:${newMinutes.toString().padStart(2, '0')}`;
+};
+
+// Function to calculate visit times based on shift start and travel times
+const calculateVisitTimes = (visits: Visit[], shiftStart: string): Visit[] => {
+  if (!visits.length || !shiftStart) return visits;
+  
+  let currentTime = shiftStart;
+  
+  const updatedVisits = visits.map((visit, i) => {
+    // Create new visit object instead of mutating (fix state mutation)
+    const updatedVisit = {
+      ...visit,
+      calculatedStartTime: currentTime
+    };
+    
+    // Calculate departure time (arrival + service duration)
+    const serviceMinutes = visit.durationMinutes || 30;
+    updatedVisit.calculatedEndTime = addMinutesToTime(currentTime, serviceMinutes);
+    
+    // CRITICAL FIX: Always advance currentTime to visit end time first
+    currentTime = updatedVisit.calculatedEndTime;
+    
+    // Then add travel time if available and there's a next visit
+    if (i < visits.length - 1) {
+      const travelTime = visit.travelTimeToNext || 0; // Default to 0 if undefined
+      currentTime = addMinutesToTime(currentTime, travelTime);
+    }
+    
+    return updatedVisit;
+  });
+  
+  return updatedVisits;
+};
+
 export default function RoutePlanner() {
   const { toast } = useToast();
   const [visits, setVisits] = useState<Visit[]>([]);
   const [travelMode, setTravelMode] = useState<'driving' | 'walking'>('driving');
   const [runName, setRunName] = useState('');
+  const [shiftStartTime, setShiftStartTime] = useState('08:00');
   const [optimisation, setOptimisation] = useState<OptimisationResult | null>(null);
   const [isMapLoaded, setIsMapLoaded] = useState(false);
   const [newAddress, setNewAddress] = useState('');
@@ -432,6 +499,24 @@ export default function RoutePlanner() {
     }
   }, [archivedRoutes, expandedArchivedIds]);
 
+  // Automatic recalculation: recompute calculated times when shiftStartTime or visit timing data changes
+  useEffect(() => {
+    if (visits.length > 0 && shiftStartTime) {
+      const visitsWithTimes = calculateVisitTimes(visits, shiftStartTime);
+      
+      // Only update if calculated times have actually changed to prevent infinite loops
+      const hasTimeChanges = visits.some((visit, index) => {
+        const newVisit = visitsWithTimes[index];
+        return visit.calculatedStartTime !== newVisit.calculatedStartTime ||
+               visit.calculatedEndTime !== newVisit.calculatedEndTime;
+      });
+      
+      if (hasTimeChanges) {
+        setVisits(visitsWithTimes);
+      }
+    }
+  }, [shiftStartTime, visits.length, ...visits.map(v => `${v.id}-${v.durationMinutes}-${v.travelTimeToNext}`)]);
+
   // Auto-optimize visits for minimum travel time
   const autoOptimizeVisits = async (visitsToOptimize: Visit[]) => {
     // Only auto-optimize if we have at least 2 visits with coordinates
@@ -442,7 +527,7 @@ export default function RoutePlanner() {
       const response = await apiRequest('POST', '/api/route-planner/optimize', {
         visits: visitsWithCoords,
         mode: travelMode,
-        departureTime: '08:00',
+        departureTime: shiftStartTime,
         runDate: new Date().toISOString().split('T')[0],
         runName: 'auto-optimization',
         saveRun: false,
@@ -625,7 +710,9 @@ export default function RoutePlanner() {
           };
         });
         
-        setVisits(validatedVisits);
+        // Calculate visit times based on shift start time
+        const visitsWithTimes = calculateVisitTimes(validatedVisits, shiftStartTime);
+        setVisits(visitsWithTimes);
         console.log('FRONTEND: Updated visits state atomically with authoritative travel times from backend');
         
         // Validate no duplicate coordinates (potential dual pin detection)
@@ -1162,7 +1249,7 @@ export default function RoutePlanner() {
     optimiseMutation.mutate({
       visits,
       mode: travelMode,
-      departureTime: '08:00', // Default start time for ongoing routes
+      departureTime: shiftStartTime + ':00', // Use shift start time from UI
       runDate: new Date().toISOString().split('T')[0], // Current date
       runName: autoRunName,
       saveRun: true, // Always save the optimised run
@@ -1998,6 +2085,24 @@ export default function RoutePlanner() {
                   }}
                   className={`w-[200px] ${highlightNameField ? 'border-red-500 ring-red-500 focus:border-red-500 focus:ring-red-500' : ''}`}
                   data-testid="input-run-name"
+                />
+              </div>
+
+              <div className="flex items-center gap-2">
+                <Label htmlFor="shift-start-time">Shift Start:</Label>
+                <Input
+                  id="shift-start-time"
+                  type="time"
+                  value={shiftStartTime}
+                  onChange={(e) => {
+                    setShiftStartTime(e.target.value);
+                    // Clear optimization when shift start time changes to recalculate visit times
+                    if (optimisation) {
+                      setOptimisation(null);
+                    }
+                  }}
+                  className="w-[120px]"
+                  data-testid="input-shift-start-time"
                 />
               </div>
 
