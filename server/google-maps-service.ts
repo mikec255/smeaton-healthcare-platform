@@ -174,7 +174,10 @@ export class GoogleMapsService {
         
         let url = `${this.baseUrl}/distancematrix/json?origins=${originsStr}&destinations=${destinationsStr}&mode=${mode}&units=metric&key=${this.apiKey}`;
         
-        // Use standard times without traffic to match manual Google Maps checks
+        // For driving mode, add traffic data when departure time is provided
+        if (mode === 'driving' && departureTimeEpoch) {
+          url += `&departure_time=${departureTimeEpoch}&traffic_model=best_guess`;
+        }
         
         const response = await fetch(url);
         const data = await response.json() as GoogleDistanceMatrixResponse;
