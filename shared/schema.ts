@@ -666,7 +666,7 @@ export const professionalReferences = pgTable("professional_references", {
 // Route Planning Tables for Domiciliary Care Service
 
 // Time slot enum values
-export const timeSlotEnum = ["AM", "Lunch", "Tea", "Bed"] as const;
+export const timeSlotEnum = ["Morning", "Lunch", "Tea", "Bed"] as const;
 export type TimeSlot = typeof timeSlotEnum[number];
 
 // Status enum values for visits and runs

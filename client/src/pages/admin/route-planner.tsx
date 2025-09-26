@@ -1804,14 +1804,6 @@ export default function RoutePlanner() {
     } else if (visit.timeSlot.includes('Bed')) {
       commissioningStart = 18 * 60; // 6:00 PM
       commissioningEnd = 23 * 60;   // 11:00 PM
-    } else if (visit.timeSlot.includes('AM')) {
-      // Legacy support for AM slots
-      commissioningStart = 7 * 60;  // 7:00 AM
-      commissioningEnd = 11 * 60;   // 11:00 AM
-    } else if (visit.timeSlot.includes('PM')) {
-      // Legacy support for PM slots  
-      commissioningStart = 11 * 60; // 11:00 AM
-      commissioningEnd = 15 * 60;   // 3:00 PM
     }
 
     // Parse customer-specific time windows (optional, narrower windows)
