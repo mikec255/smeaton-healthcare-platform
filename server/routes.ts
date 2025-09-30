@@ -3153,7 +3153,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const userId = req.session?.user?.id;
       const reportData = {
         ...req.body,
-        createdBy: userId
+        createdBy: userId,
+        // Convert "YYYY-MM" format to "YYYY-MM-01" for proper date storage
+        reportMonth: req.body.reportMonth.includes('-') && req.body.reportMonth.length === 7 
+          ? `${req.body.reportMonth}-01` 
+          : req.body.reportMonth
       };
       
       const report = await storage.createFinanceReport(reportData);
@@ -3169,7 +3173,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.patch("/api/finance-reports/:id", requireAdmin, async (req, res) => {
     try {
-      const report = await storage.updateFinanceReport(req.params.id, req.body);
+      const updateData = { ...req.body };
+      // Convert "YYYY-MM" format to "YYYY-MM-01" for proper date storage if present
+      if (updateData.reportMonth && updateData.reportMonth.includes('-') && updateData.reportMonth.length === 7) {
+        updateData.reportMonth = `${updateData.reportMonth}-01`;
+      }
+      
+      const report = await storage.updateFinanceReport(req.params.id, updateData);
       if (!report) {
         return res.status(404).json({ error: "Finance report not found" });
       }
