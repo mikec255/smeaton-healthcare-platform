@@ -193,6 +193,9 @@ export default function FinanceReportsPage() {
     new Date(b.reportMonth).getTime() - new Date(a.reportMonth).getTime()
   );
 
+  // Custom tooltip formatter for currency
+  const formatCurrency = (value: number) => `£${value.toFixed(2)}`;
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -259,7 +262,7 @@ export default function FinanceReportsPage() {
                         name="trainingELearning"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Training E-Learning</FormLabel>
+                            <FormLabel>Training E-Learning (£)</FormLabel>
                             <FormControl>
                               <Input type="number" step="0.01" {...field} data-testid="input-training-elearning" />
                             </FormControl>
@@ -272,7 +275,7 @@ export default function FinanceReportsPage() {
                         name="trainingPractical"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Training Practical</FormLabel>
+                            <FormLabel>Training Practical (£)</FormLabel>
                             <FormControl>
                               <Input type="number" step="0.01" {...field} data-testid="input-training-practical" />
                             </FormControl>
@@ -285,7 +288,7 @@ export default function FinanceReportsPage() {
                         name="shadowShifts"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Shadow Shifts</FormLabel>
+                            <FormLabel>Shadow Shifts (£)</FormLabel>
                             <FormControl>
                               <Input type="number" step="0.01" {...field} data-testid="input-shadow-shifts" />
                             </FormControl>
@@ -298,7 +301,7 @@ export default function FinanceReportsPage() {
                         name="hoursDays"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Hours (Days)</FormLabel>
+                            <FormLabel>Hours (Days) (£)</FormLabel>
                             <FormControl>
                               <Input type="number" step="0.01" {...field} data-testid="input-hours-days" />
                             </FormControl>
@@ -311,7 +314,7 @@ export default function FinanceReportsPage() {
                         name="nightsWakings"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Nights (Wakings)</FormLabel>
+                            <FormLabel>Nights (Wakings) (£)</FormLabel>
                             <FormControl>
                               <Input type="number" step="0.01" {...field} data-testid="input-nights-wakings" />
                             </FormControl>
@@ -324,7 +327,7 @@ export default function FinanceReportsPage() {
                         name="nightsSleeping"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Nights (Sleeping)</FormLabel>
+                            <FormLabel>Nights (Sleeping) (£)</FormLabel>
                             <FormControl>
                               <Input type="number" step="0.01" {...field} data-testid="input-nights-sleeping" />
                             </FormControl>
@@ -337,7 +340,7 @@ export default function FinanceReportsPage() {
                         name="drivesCarers"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Drives</FormLabel>
+                            <FormLabel>Drives (£)</FormLabel>
                             <FormControl>
                               <Input type="number" step="0.01" {...field} data-testid="input-drives-carers" />
                             </FormControl>
@@ -350,7 +353,7 @@ export default function FinanceReportsPage() {
                         name="millageCarers"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Mileage</FormLabel>
+                            <FormLabel>Mileage (£)</FormLabel>
                             <FormControl>
                               <Input type="number" step="0.01" {...field} data-testid="input-millage-carers" />
                             </FormControl>
@@ -363,7 +366,7 @@ export default function FinanceReportsPage() {
                         name="expensesCarers"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Expenses</FormLabel>
+                            <FormLabel>Expenses (£)</FormLabel>
                             <FormControl>
                               <Input type="number" step="0.01" {...field} data-testid="input-expenses-carers" />
                             </FormControl>
@@ -386,7 +389,7 @@ export default function FinanceReportsPage() {
                         name="officeOvertime"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Overtime</FormLabel>
+                            <FormLabel>Overtime (£)</FormLabel>
                             <FormControl>
                               <Input type="number" step="0.01" {...field} data-testid="input-office-overtime" />
                             </FormControl>
@@ -399,7 +402,7 @@ export default function FinanceReportsPage() {
                         name="officeExpense"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Expense</FormLabel>
+                            <FormLabel>Expense (£)</FormLabel>
                             <FormControl>
                               <Input type="number" step="0.01" {...field} data-testid="input-office-expense" />
                             </FormControl>
@@ -412,7 +415,7 @@ export default function FinanceReportsPage() {
                         name="officeTravel"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Travel</FormLabel>
+                            <FormLabel>Travel (£)</FormLabel>
                             <FormControl>
                               <Input type="number" step="0.01" {...field} data-testid="input-office-travel" />
                             </FormControl>
@@ -425,7 +428,7 @@ export default function FinanceReportsPage() {
                         name="officeOncall"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Oncall</FormLabel>
+                            <FormLabel>Oncall (£)</FormLabel>
                             <FormControl>
                               <Input type="number" step="0.01" {...field} data-testid="input-office-oncall" />
                             </FormControl>
@@ -445,7 +448,7 @@ export default function FinanceReportsPage() {
                         name="drivers"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Drivers Costs</FormLabel>
+                            <FormLabel>Drivers Costs (£)</FormLabel>
                             <FormControl>
                               <Input type="number" step="0.01" {...field} data-testid="input-drivers" />
                             </FormControl>
@@ -465,7 +468,7 @@ export default function FinanceReportsPage() {
                         name="holiday"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Holiday</FormLabel>
+                            <FormLabel>Holiday (£)</FormLabel>
                             <FormControl>
                               <Input type="number" step="0.01" {...field} data-testid="input-holiday" />
                             </FormControl>
@@ -478,7 +481,7 @@ export default function FinanceReportsPage() {
                         name="costToEmployer"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Cost to Employer</FormLabel>
+                            <FormLabel>Cost to Employer (£)</FormLabel>
                             <FormControl>
                               <Input type="number" step="0.01" {...field} data-testid="input-cost-to-employer" />
                             </FormControl>
@@ -531,8 +534,8 @@ export default function FinanceReportsPage() {
                     <LineChart data={chartData}>
                       <CartesianGrid strokeDasharray="3 3" />
                       <XAxis dataKey="month" />
-                      <YAxis />
-                      <Tooltip />
+                      <YAxis tickFormatter={formatCurrency} />
+                      <Tooltip formatter={formatCurrency} />
                       <Legend />
                       <Line type="monotone" dataKey="carers" stroke="#8884d8" name="Carers" />
                       <Line type="monotone" dataKey="office" stroke="#82ca9d" name="Office" />
@@ -557,8 +560,8 @@ export default function FinanceReportsPage() {
                     <BarChart data={chartData}>
                       <CartesianGrid strokeDasharray="3 3" />
                       <XAxis dataKey="month" />
-                      <YAxis />
-                      <Tooltip />
+                      <YAxis tickFormatter={formatCurrency} />
+                      <Tooltip formatter={formatCurrency} />
                       <Legend />
                       <Bar dataKey="total" fill="#8884d8" name="Total Cost" />
                     </BarChart>
@@ -580,8 +583,8 @@ export default function FinanceReportsPage() {
                     <BarChart data={chartData}>
                       <CartesianGrid strokeDasharray="3 3" />
                       <XAxis dataKey="month" />
-                      <YAxis />
-                      <Tooltip />
+                      <YAxis tickFormatter={formatCurrency} />
+                      <Tooltip formatter={formatCurrency} />
                       <Legend />
                       <Bar dataKey="carers" fill="#8884d8" name="Carers" />
                       <Bar dataKey="office" fill="#82ca9d" name="Office" />
