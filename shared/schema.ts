@@ -1006,9 +1006,12 @@ export const financeReports = pgTable("finance_reports", {
   // Drivers Section
   drivers: doublePrecision("drivers").default(0),
   
-  // Overall Section
+  // Company Overheads Section
   holiday: doublePrecision("holiday").default(0),
   costToEmployer: doublePrecision("cost_to_employer").default(0),
+  
+  // Invoice Values
+  invoiceValues: doublePrecision("invoice_values").default(0),
   
   createdBy: varchar("created_by").references(() => users.id),
   createdAt: timestamp("created_at").defaultNow(),
