@@ -171,16 +171,38 @@ export default function FinanceReportsPage() {
     form.reset();
   };
 
-  // Prepare chart data
+  // Prepare chart data with individual metrics
   const chartData = reports
     .map(report => ({
       month: format(new Date(report.reportMonth + "T00:00:00"), "MMM yyyy"),
-      carers: (report.trainingELearning || 0) + (report.trainingPractical || 0) + (report.shadowShifts || 0) + 
+      // Training costs
+      training: (report.trainingELearning || 0) + (report.trainingPractical || 0),
+      trainingELearning: report.trainingELearning || 0,
+      trainingPractical: report.trainingPractical || 0,
+      shadowShifts: report.shadowShifts || 0,
+      // Hours worked costs
+      hoursWorked: (report.hoursDays || 0) + (report.nightsWakings || 0) + (report.nightsSleeping || 0),
+      hoursDays: report.hoursDays || 0,
+      nightsWakings: report.nightsWakings || 0,
+      nightsSleeping: report.nightsSleeping || 0,
+      // Travel costs
+      drivesCarers: report.drivesCarers || 0,
+      millageCarers: report.millageCarers || 0,
+      expensesCarers: report.expensesCarers || 0,
+      // Office costs
+      office: (report.officeOvertime || 0) + (report.officeExpense || 0) + (report.officeTravel || 0) + (report.officeOncall || 0),
+      officeOvertime: report.officeOvertime || 0,
+      officeExpense: report.officeExpense || 0,
+      officeTravel: report.officeTravel || 0,
+      officeOncall: report.officeOncall || 0,
+      // Other costs
+      drivers: report.drivers || 0,
+      holiday: report.holiday || 0,
+      costToEmployer: report.costToEmployer || 0,
+      // Totals
+      carersTotal: (report.trainingELearning || 0) + (report.trainingPractical || 0) + (report.shadowShifts || 0) + 
               (report.hoursDays || 0) + (report.nightsWakings || 0) + (report.nightsSleeping || 0) + 
               (report.drivesCarers || 0) + (report.millageCarers || 0) + (report.expensesCarers || 0),
-      office: (report.officeOvertime || 0) + (report.officeExpense || 0) + (report.officeTravel || 0) + (report.officeOncall || 0),
-      drivers: report.drivers || 0,
-      overall: (report.holiday || 0) + (report.costToEmployer || 0),
       total: ((report.trainingELearning || 0) + (report.trainingPractical || 0) + (report.shadowShifts || 0) + 
              (report.hoursDays || 0) + (report.nightsWakings || 0) + (report.nightsSleeping || 0) + 
              (report.drivesCarers || 0) + (report.millageCarers || 0) + (report.expensesCarers || 0) +
@@ -523,10 +545,63 @@ export default function FinanceReportsPage() {
 
         <TabsContent value="charts" className="space-y-4">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            {/* Training Costs */}
             <Card>
               <CardHeader>
-                <CardTitle>Department Costs Trend</CardTitle>
-                <CardDescription>Monthly cost breakdown by department</CardDescription>
+                <CardTitle>Training Costs</CardTitle>
+                <CardDescription>E-Learning, Practical, and Shadow Shifts</CardDescription>
+              </CardHeader>
+              <CardContent>
+                {chartData.length > 0 ? (
+                  <ResponsiveContainer width="100%" height={300}>
+                    <BarChart data={chartData}>
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis dataKey="month" />
+                      <YAxis tickFormatter={formatCurrency} />
+                      <Tooltip formatter={formatCurrency} />
+                      <Legend />
+                      <Bar dataKey="trainingELearning" fill="#8884d8" name="E-Learning" />
+                      <Bar dataKey="trainingPractical" fill="#82ca9d" name="Practical" />
+                      <Bar dataKey="shadowShifts" fill="#ffc658" name="Shadow Shifts" />
+                    </BarChart>
+                  </ResponsiveContainer>
+                ) : (
+                  <p className="text-center text-muted-foreground py-8">No data available</p>
+                )}
+              </CardContent>
+            </Card>
+
+            {/* Hours Worked */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Hours Worked Costs</CardTitle>
+                <CardDescription>Days, Waking Nights, and Sleeping Nights</CardDescription>
+              </CardHeader>
+              <CardContent>
+                {chartData.length > 0 ? (
+                  <ResponsiveContainer width="100%" height={300}>
+                    <BarChart data={chartData}>
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis dataKey="month" />
+                      <YAxis tickFormatter={formatCurrency} />
+                      <Tooltip formatter={formatCurrency} />
+                      <Legend />
+                      <Bar dataKey="hoursDays" fill="#8884d8" name="Day Hours" />
+                      <Bar dataKey="nightsWakings" fill="#82ca9d" name="Waking Nights" />
+                      <Bar dataKey="nightsSleeping" fill="#ffc658" name="Sleeping Nights" />
+                    </BarChart>
+                  </ResponsiveContainer>
+                ) : (
+                  <p className="text-center text-muted-foreground py-8">No data available</p>
+                )}
+              </CardContent>
+            </Card>
+
+            {/* Travel & Expenses */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Travel & Expenses</CardTitle>
+                <CardDescription>Drives, Mileage, and Expenses</CardDescription>
               </CardHeader>
               <CardContent>
                 {chartData.length > 0 ? (
@@ -537,22 +612,75 @@ export default function FinanceReportsPage() {
                       <YAxis tickFormatter={formatCurrency} />
                       <Tooltip formatter={formatCurrency} />
                       <Legend />
-                      <Line type="monotone" dataKey="carers" stroke="#8884d8" name="Carers" />
-                      <Line type="monotone" dataKey="office" stroke="#82ca9d" name="Office" />
-                      <Line type="monotone" dataKey="drivers" stroke="#ffc658" name="Drivers" />
-                      <Line type="monotone" dataKey="overall" stroke="#ff7c7c" name="Overall" />
+                      <Line type="monotone" dataKey="drivesCarers" stroke="#8884d8" name="Drives" />
+                      <Line type="monotone" dataKey="millageCarers" stroke="#82ca9d" name="Mileage" />
+                      <Line type="monotone" dataKey="expensesCarers" stroke="#ffc658" name="Expenses" />
                     </LineChart>
                   </ResponsiveContainer>
                 ) : (
-                  <p className="text-center text-muted-foreground py-8">No data available for charts</p>
+                  <p className="text-center text-muted-foreground py-8">No data available</p>
                 )}
               </CardContent>
             </Card>
 
+            {/* Office Costs */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Office Costs</CardTitle>
+                <CardDescription>Overtime, Expense, Travel, and On-call</CardDescription>
+              </CardHeader>
+              <CardContent>
+                {chartData.length > 0 ? (
+                  <ResponsiveContainer width="100%" height={300}>
+                    <BarChart data={chartData}>
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis dataKey="month" />
+                      <YAxis tickFormatter={formatCurrency} />
+                      <Tooltip formatter={formatCurrency} />
+                      <Legend />
+                      <Bar dataKey="officeOvertime" fill="#8884d8" name="Overtime" />
+                      <Bar dataKey="officeExpense" fill="#82ca9d" name="Expense" />
+                      <Bar dataKey="officeTravel" fill="#ffc658" name="Travel" />
+                      <Bar dataKey="officeOncall" fill="#ff7c7c" name="On-call" />
+                    </BarChart>
+                  </ResponsiveContainer>
+                ) : (
+                  <p className="text-center text-muted-foreground py-8">No data available</p>
+                )}
+              </CardContent>
+            </Card>
+
+            {/* Drivers & Other */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Drivers & Other Costs</CardTitle>
+                <CardDescription>Drivers, Holiday, and Cost to Employer</CardDescription>
+              </CardHeader>
+              <CardContent>
+                {chartData.length > 0 ? (
+                  <ResponsiveContainer width="100%" height={300}>
+                    <LineChart data={chartData}>
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis dataKey="month" />
+                      <YAxis tickFormatter={formatCurrency} />
+                      <Tooltip formatter={formatCurrency} />
+                      <Legend />
+                      <Line type="monotone" dataKey="drivers" stroke="#8884d8" name="Drivers" />
+                      <Line type="monotone" dataKey="holiday" stroke="#82ca9d" name="Holiday" />
+                      <Line type="monotone" dataKey="costToEmployer" stroke="#ffc658" name="Cost to Employer" />
+                    </LineChart>
+                  </ResponsiveContainer>
+                ) : (
+                  <p className="text-center text-muted-foreground py-8">No data available</p>
+                )}
+              </CardContent>
+            </Card>
+
+            {/* Total Overview */}
             <Card>
               <CardHeader>
                 <CardTitle>Total Monthly Costs</CardTitle>
-                <CardDescription>Total expenses over time</CardDescription>
+                <CardDescription>Overall expenses over time</CardDescription>
               </CardHeader>
               <CardContent>
                 {chartData.length > 0 ? (
@@ -567,33 +695,7 @@ export default function FinanceReportsPage() {
                     </BarChart>
                   </ResponsiveContainer>
                 ) : (
-                  <p className="text-center text-muted-foreground py-8">No data available for charts</p>
-                )}
-              </CardContent>
-            </Card>
-
-            <Card className="lg:col-span-2">
-              <CardHeader>
-                <CardTitle>Department Comparison</CardTitle>
-                <CardDescription>Compare costs across departments month by month</CardDescription>
-              </CardHeader>
-              <CardContent>
-                {chartData.length > 0 ? (
-                  <ResponsiveContainer width="100%" height={300}>
-                    <BarChart data={chartData}>
-                      <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis dataKey="month" />
-                      <YAxis tickFormatter={formatCurrency} />
-                      <Tooltip formatter={formatCurrency} />
-                      <Legend />
-                      <Bar dataKey="carers" fill="#8884d8" name="Carers" />
-                      <Bar dataKey="office" fill="#82ca9d" name="Office" />
-                      <Bar dataKey="drivers" fill="#ffc658" name="Drivers" />
-                      <Bar dataKey="overall" fill="#ff7c7c" name="Overall" />
-                    </BarChart>
-                  </ResponsiveContainer>
-                ) : (
-                  <p className="text-center text-muted-foreground py-8">No data available for charts</p>
+                  <p className="text-center text-muted-foreground py-8">No data available</p>
                 )}
               </CardContent>
             </Card>
