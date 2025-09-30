@@ -11,7 +11,8 @@ import {
   Settings,
   BarChart3,
   FileText,
-  MapPin
+  MapPin,
+  DollarSign
 } from 'lucide-react';
 
 export interface NavItem {
@@ -157,6 +158,13 @@ export const navigationItems: NavItem[] = [
         icon: MapPin, 
         href: '/admin/route-planner',
         description: 'Optimize domiciliary care visit routes with Google Maps integration'
+      },
+      { 
+        id: 'finance-reports', 
+        label: 'Finance Reports', 
+        icon: DollarSign, 
+        href: '/admin/finance-reports',
+        description: 'Track and analyze monthly financial data across departments'
       }
     ]
   },
@@ -305,6 +313,13 @@ export const adminRoutes: Record<string, AdminRoute> = {
     title: 'Route Planner',
     description: 'Optimize domiciliary care visit routes with Google Maps integration',
     breadcrumbLabel: 'Route Planner',
+    parentId: 'tools'
+  },
+  '/admin/finance-reports': {
+    path: '/admin/finance-reports',
+    title: 'Finance Reports',
+    description: 'Track and analyze monthly financial data across departments',
+    breadcrumbLabel: 'Finance Reports',
     parentId: 'tools'
   }
 };
