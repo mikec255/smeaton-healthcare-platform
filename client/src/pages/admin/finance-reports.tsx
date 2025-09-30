@@ -234,7 +234,7 @@ export default function FinanceReportsPage() {
   const formatCurrency = (value: number) => `£${value.toFixed(2)}`;
 
   return (
-    <div className="space-y-6">
+    <div className="container mx-auto py-8 space-y-6">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold tracking-tight" data-testid="text-page-title">Finance Reports</h1>
