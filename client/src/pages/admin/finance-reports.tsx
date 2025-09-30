@@ -195,12 +195,14 @@ export default function FinanceReportsPage() {
       officeExpense: report.officeExpense || 0,
       officeTravel: report.officeTravel || 0,
       officeOncall: report.officeOncall || 0,
-      // Other costs
+      // Drivers costs
       drivers: report.drivers || 0,
+      // Company Overheads
+      companyOverheads: (report.holiday || 0) + (report.costToEmployer || 0),
       holiday: report.holiday || 0,
       costToEmployer: report.costToEmployer || 0,
-      // Totals
-      carersTotal: (report.trainingELearning || 0) + (report.trainingPractical || 0) + (report.shadowShifts || 0) + 
+      // Main Category Totals
+      carers: (report.trainingELearning || 0) + (report.trainingPractical || 0) + (report.shadowShifts || 0) + 
               (report.hoursDays || 0) + (report.nightsWakings || 0) + (report.nightsSleeping || 0) + 
               (report.drivesCarers || 0) + (report.millageCarers || 0) + (report.expensesCarers || 0),
       total: ((report.trainingELearning || 0) + (report.trainingPractical || 0) + (report.shadowShifts || 0) + 
@@ -481,9 +483,9 @@ export default function FinanceReportsPage() {
                     </div>
                   </div>
 
-                  {/* Overall Section */}
+                  {/* Company Overheads Section */}
                   <div className="space-y-4">
-                    <h3 className="text-lg font-semibold">Overall Section</h3>
+                    <h3 className="text-lg font-semibold">Company Overheads</h3>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <FormField
                         control={form.control}
@@ -545,10 +547,37 @@ export default function FinanceReportsPage() {
 
         <TabsContent value="charts" className="space-y-4">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-            {/* Training Costs */}
+            {/* Main Categories Overview */}
+            <Card className="lg:col-span-2">
+              <CardHeader>
+                <CardTitle>Department Overview</CardTitle>
+                <CardDescription>Carers, Office, Drivers, and Company Overheads</CardDescription>
+              </CardHeader>
+              <CardContent>
+                {chartData.length > 0 ? (
+                  <ResponsiveContainer width="100%" height={300}>
+                    <BarChart data={chartData}>
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis dataKey="month" />
+                      <YAxis tickFormatter={formatCurrency} />
+                      <Tooltip formatter={formatCurrency} />
+                      <Legend />
+                      <Bar dataKey="carers" fill="#8884d8" name="Carers" />
+                      <Bar dataKey="office" fill="#82ca9d" name="Office" />
+                      <Bar dataKey="drivers" fill="#ffc658" name="Drivers" />
+                      <Bar dataKey="companyOverheads" fill="#ff7c7c" name="Company Overheads" />
+                    </BarChart>
+                  </ResponsiveContainer>
+                ) : (
+                  <p className="text-center text-muted-foreground py-8">No data available</p>
+                )}
+              </CardContent>
+            </Card>
+
+            {/* Carers Breakdown */}
             <Card>
               <CardHeader>
-                <CardTitle>Training Costs</CardTitle>
+                <CardTitle>Carers - Training</CardTitle>
                 <CardDescription>E-Learning, Practical, and Shadow Shifts</CardDescription>
               </CardHeader>
               <CardContent>
@@ -571,10 +600,9 @@ export default function FinanceReportsPage() {
               </CardContent>
             </Card>
 
-            {/* Hours Worked */}
             <Card>
               <CardHeader>
-                <CardTitle>Hours Worked Costs</CardTitle>
+                <CardTitle>Carers - Hours Worked</CardTitle>
                 <CardDescription>Days, Waking Nights, and Sleeping Nights</CardDescription>
               </CardHeader>
               <CardContent>
@@ -597,10 +625,9 @@ export default function FinanceReportsPage() {
               </CardContent>
             </Card>
 
-            {/* Travel & Expenses */}
             <Card>
               <CardHeader>
-                <CardTitle>Travel & Expenses</CardTitle>
+                <CardTitle>Carers - Travel & Expenses</CardTitle>
                 <CardDescription>Drives, Mileage, and Expenses</CardDescription>
               </CardHeader>
               <CardContent>
@@ -623,10 +650,10 @@ export default function FinanceReportsPage() {
               </CardContent>
             </Card>
 
-            {/* Office Costs */}
+            {/* Office Breakdown */}
             <Card>
               <CardHeader>
-                <CardTitle>Office Costs</CardTitle>
+                <CardTitle>Office Costs Breakdown</CardTitle>
                 <CardDescription>Overtime, Expense, Travel, and On-call</CardDescription>
               </CardHeader>
               <CardContent>
@@ -650,11 +677,11 @@ export default function FinanceReportsPage() {
               </CardContent>
             </Card>
 
-            {/* Drivers & Other */}
+            {/* Company Overheads Breakdown */}
             <Card>
               <CardHeader>
-                <CardTitle>Drivers & Other Costs</CardTitle>
-                <CardDescription>Drivers, Holiday, and Cost to Employer</CardDescription>
+                <CardTitle>Company Overheads Breakdown</CardTitle>
+                <CardDescription>Holiday and Cost to Employer</CardDescription>
               </CardHeader>
               <CardContent>
                 {chartData.length > 0 ? (
@@ -665,7 +692,6 @@ export default function FinanceReportsPage() {
                       <YAxis tickFormatter={formatCurrency} />
                       <Tooltip formatter={formatCurrency} />
                       <Legend />
-                      <Line type="monotone" dataKey="drivers" stroke="#8884d8" name="Drivers" />
                       <Line type="monotone" dataKey="holiday" stroke="#82ca9d" name="Holiday" />
                       <Line type="monotone" dataKey="costToEmployer" stroke="#ffc658" name="Cost to Employer" />
                     </LineChart>
@@ -677,7 +703,7 @@ export default function FinanceReportsPage() {
             </Card>
 
             {/* Total Overview */}
-            <Card>
+            <Card className="lg:col-span-2">
               <CardHeader>
                 <CardTitle>Total Monthly Costs</CardTitle>
                 <CardDescription>Overall expenses over time</CardDescription>
@@ -725,10 +751,10 @@ export default function FinanceReportsPage() {
                     <TableHeader>
                       <TableRow>
                         <TableHead>Month</TableHead>
-                        <TableHead className="text-right">Carers Total</TableHead>
-                        <TableHead className="text-right">Office Total</TableHead>
+                        <TableHead className="text-right">Carers</TableHead>
+                        <TableHead className="text-right">Office</TableHead>
                         <TableHead className="text-right">Drivers</TableHead>
-                        <TableHead className="text-right">Overall</TableHead>
+                        <TableHead className="text-right">Company Overheads</TableHead>
                         <TableHead className="text-right">Grand Total</TableHead>
                         <TableHead className="text-right">Actions</TableHead>
                       </TableRow>
@@ -741,8 +767,8 @@ export default function FinanceReportsPage() {
                           (report.expensesCarers || 0);
                         const officeTotal = (report.officeOvertime || 0) + (report.officeExpense || 0) + 
                           (report.officeTravel || 0) + (report.officeOncall || 0);
-                        const overallTotal = (report.holiday || 0) + (report.costToEmployer || 0);
-                        const grandTotal = carersTotal + officeTotal + (report.drivers || 0) + overallTotal;
+                        const companyOverheadsTotal = (report.holiday || 0) + (report.costToEmployer || 0);
+                        const grandTotal = carersTotal + officeTotal + (report.drivers || 0) + companyOverheadsTotal;
 
                         return (
                           <TableRow key={report.id} data-testid={`row-report-${report.id}`}>
@@ -752,7 +778,7 @@ export default function FinanceReportsPage() {
                             <TableCell className="text-right">£{carersTotal.toFixed(2)}</TableCell>
                             <TableCell className="text-right">£{officeTotal.toFixed(2)}</TableCell>
                             <TableCell className="text-right">£{(report.drivers || 0).toFixed(2)}</TableCell>
-                            <TableCell className="text-right">£{overallTotal.toFixed(2)}</TableCell>
+                            <TableCell className="text-right">£{companyOverheadsTotal.toFixed(2)}</TableCell>
                             <TableCell className="text-right font-semibold">£{grandTotal.toFixed(2)}</TableCell>
                             <TableCell className="text-right">
                               <div className="flex justify-end gap-2">
