@@ -980,3 +980,48 @@ export type InsertRunStop = z.infer<typeof insertRunStopSchema>;
 export type RunStop = typeof runStops.$inferSelect;
 export type InsertGeocode = z.infer<typeof insertGeocodeSchema>;
 export type Geocode = typeof geocodeCache.$inferSelect;
+
+// Finance Reports
+export const financeReports = pgTable("finance_reports", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  reportMonth: date("report_month").notNull(), // Month and year this report is for
+  
+  // Carers Section
+  trainingELearning: doublePrecision("training_e_learning").default(0),
+  trainingPractical: doublePrecision("training_practical").default(0),
+  shadowShifts: doublePrecision("shadow_shifts").default(0),
+  hoursDays: doublePrecision("hours_days").default(0),
+  nightsWakings: doublePrecision("nights_wakings").default(0),
+  nightsSleeping: doublePrecision("nights_sleeping").default(0),
+  drivesCarers: doublePrecision("drives_carers").default(0),
+  millageCarers: doublePrecision("millage_carers").default(0),
+  expensesCarers: doublePrecision("expenses_carers").default(0),
+  
+  // Office Section
+  officeOvertime: doublePrecision("office_overtime").default(0),
+  officeExpense: doublePrecision("office_expense").default(0),
+  officeTravel: doublePrecision("office_travel").default(0),
+  officeOncall: doublePrecision("office_oncall").default(0),
+  
+  // Drivers Section
+  drivers: doublePrecision("drivers").default(0),
+  
+  // Overall Section
+  holiday: doublePrecision("holiday").default(0),
+  costToEmployer: doublePrecision("cost_to_employer").default(0),
+  
+  createdBy: varchar("created_by").references(() => users.id),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+}, (table) => ({
+  uniqueMonth: unique().on(table.reportMonth),
+}));
+
+export const insertFinanceReportSchema = createInsertSchema(financeReports).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export type InsertFinanceReport = z.infer<typeof insertFinanceReportSchema>;
+export type FinanceReport = typeof financeReports.$inferSelect;
