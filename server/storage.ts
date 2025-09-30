@@ -1,7 +1,7 @@
-import { type User, type InsertUser, type Job, type InsertJob, type Application, type InsertApplication, type ContactSubmission, type InsertContactSubmission, type Feedback, type InsertFeedback, type Newsletter, type InsertNewsletter, type NewsletterBlock, type InsertNewsletterBlock, type Template, type InsertTemplate, type Subscriber, type InsertSubscriber, type Campaign, type InsertCampaign, type Delivery, type InsertDelivery, type BlogCategory, type InsertBlogCategory, type BlogPost, type InsertBlogPost, type AuditLog, type InsertAuditLog, type CqcAudit, type InsertCqcAudit, type CqcAuditCategory, type InsertCqcAuditCategory, type CqcQualityStatement, type InsertCqcQualityStatement, type CqcEvidenceCategory, type InsertCqcEvidenceCategory, type CqcAuditEvidence, type InsertCqcAuditEvidence, type CqcQualityAssessment, type InsertCqcQualityAssessment, type CqcComplianceRecord, type InsertCqcComplianceRecord, type CqcChecklistItem, type InsertCqcChecklistItem, type CqcAuditResponse, type InsertCqcAuditResponse, type KnowledgeQuestionnaire, type InsertKnowledgeQuestionnaire, type KnowledgeQuestion, type InsertKnowledgeQuestion, type KnowledgeSession, type InsertKnowledgeSession, type KnowledgeResponse, type InsertKnowledgeResponse, type KnowledgeAction, type InsertKnowledgeAction, type RecruitmentApplication, type InsertRecruitmentApplication, type ProfessionalReference, type InsertProfessionalReference, type Client, type InsertClient, type Visit, type InsertVisit, type Run, type InsertRun, type RunStop, type InsertRunStop, type Geocode, type InsertGeocode } from "@shared/schema";
+import { type User, type InsertUser, type Job, type InsertJob, type Application, type InsertApplication, type ContactSubmission, type InsertContactSubmission, type Feedback, type InsertFeedback, type Newsletter, type InsertNewsletter, type NewsletterBlock, type InsertNewsletterBlock, type Template, type InsertTemplate, type Subscriber, type InsertSubscriber, type Campaign, type InsertCampaign, type Delivery, type InsertDelivery, type BlogCategory, type InsertBlogCategory, type BlogPost, type InsertBlogPost, type AuditLog, type InsertAuditLog, type CqcAudit, type InsertCqcAudit, type CqcAuditCategory, type InsertCqcAuditCategory, type CqcQualityStatement, type InsertCqcQualityStatement, type CqcEvidenceCategory, type InsertCqcEvidenceCategory, type CqcAuditEvidence, type InsertCqcAuditEvidence, type CqcQualityAssessment, type InsertCqcQualityAssessment, type CqcComplianceRecord, type InsertCqcComplianceRecord, type CqcChecklistItem, type InsertCqcChecklistItem, type CqcAuditResponse, type InsertCqcAuditResponse, type KnowledgeQuestionnaire, type InsertKnowledgeQuestionnaire, type KnowledgeQuestion, type InsertKnowledgeQuestion, type KnowledgeSession, type InsertKnowledgeSession, type KnowledgeResponse, type InsertKnowledgeResponse, type KnowledgeAction, type InsertKnowledgeAction, type RecruitmentApplication, type InsertRecruitmentApplication, type ProfessionalReference, type InsertProfessionalReference, type FinanceReport, type InsertFinanceReport, type Client, type InsertClient, type Visit, type InsertVisit, type Run, type InsertRun, type RunStop, type InsertRunStop, type Geocode, type InsertGeocode } from "@shared/schema";
 import { randomUUID } from "crypto";
 import { db } from "./db";
-import { users, jobs, applications, contactSubmissions, blogCategories, blogPosts, auditLogs, cqcAudits, cqcAuditCategories, cqcQualityStatements, cqcEvidenceCategories, cqcAuditEvidence, cqcQualityAssessments, cqcComplianceRecords, knowledgeQuestionnaires, knowledgeQuestions, knowledgeSessions, knowledgeResponses, knowledgeActions, recruitmentApplications, professionalReferences, clients, visits, runs, runStops, geocodeCache } from "@shared/schema";
+import { users, jobs, applications, contactSubmissions, blogCategories, blogPosts, auditLogs, cqcAudits, cqcAuditCategories, cqcQualityStatements, cqcEvidenceCategories, cqcAuditEvidence, cqcQualityAssessments, cqcComplianceRecords, knowledgeQuestionnaires, knowledgeQuestions, knowledgeSessions, knowledgeResponses, knowledgeActions, recruitmentApplications, professionalReferences, financeReports, clients, visits, runs, runStops, geocodeCache } from "@shared/schema";
 import { eq, and, desc } from "drizzle-orm";
 import bcrypt from "bcryptjs";
 
@@ -227,6 +227,14 @@ export interface IStorage {
   updateKnowledgeAction(id: string, updates: Partial<InsertKnowledgeAction>): Promise<KnowledgeAction | undefined>;
   deleteKnowledgeAction(id: string): Promise<boolean>;
 
+  // Finance Reports
+  getAllFinanceReports(): Promise<FinanceReport[]>;
+  getFinanceReport(id: string): Promise<FinanceReport | undefined>;
+  getFinanceReportByMonth(reportMonth: string): Promise<FinanceReport | undefined>;
+  createFinanceReport(report: InsertFinanceReport): Promise<FinanceReport>;
+  updateFinanceReport(id: string, updates: Partial<InsertFinanceReport>): Promise<FinanceReport | undefined>;
+  deleteFinanceReport(id: string): Promise<boolean>;
+  
   // Route Planning - Clients
   getAllClients(filters?: { isActive?: boolean; postcode?: string }): Promise<Client[]>;
   getClient(id: string): Promise<Client | undefined>;
@@ -3011,6 +3019,39 @@ export class DrizzleStorage implements IStorage {
 
   async deleteKnowledgeAction(id: string): Promise<boolean> {
     const result = await db.delete(knowledgeActions).where(eq(knowledgeActions.id, id)).returning();
+    return result.length > 0;
+  }
+
+  // Finance Reports
+  async getAllFinanceReports(): Promise<FinanceReport[]> {
+    return await db.select().from(financeReports).orderBy(desc(financeReports.reportMonth));
+  }
+
+  async getFinanceReport(id: string): Promise<FinanceReport | undefined> {
+    const result = await db.select().from(financeReports).where(eq(financeReports.id, id)).limit(1);
+    return result[0];
+  }
+
+  async getFinanceReportByMonth(reportMonth: string): Promise<FinanceReport | undefined> {
+    const result = await db.select().from(financeReports).where(eq(financeReports.reportMonth, reportMonth)).limit(1);
+    return result[0];
+  }
+
+  async createFinanceReport(report: InsertFinanceReport): Promise<FinanceReport> {
+    const result = await db.insert(financeReports).values(report).returning();
+    return result[0];
+  }
+
+  async updateFinanceReport(id: string, updates: Partial<InsertFinanceReport>): Promise<FinanceReport | undefined> {
+    const result = await db.update(financeReports)
+      .set({ ...updates, updatedAt: new Date() })
+      .where(eq(financeReports.id, id))
+      .returning();
+    return result[0];
+  }
+
+  async deleteFinanceReport(id: string): Promise<boolean> {
+    const result = await db.delete(financeReports).where(eq(financeReports.id, id)).returning();
     return result.length > 0;
   }
 

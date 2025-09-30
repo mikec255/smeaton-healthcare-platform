@@ -3111,6 +3111,91 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Finance Reports
+  app.get("/api/finance-reports", requireAdmin, async (req, res) => {
+    try {
+      const reports = await storage.getAllFinanceReports();
+      res.json(reports);
+    } catch (error) {
+      console.error("Error fetching finance reports:", error);
+      res.status(500).json({ error: "Failed to fetch finance reports" });
+    }
+  });
+
+  app.get("/api/finance-reports/:id", requireAdmin, async (req, res) => {
+    try {
+      const report = await storage.getFinanceReport(req.params.id);
+      if (!report) {
+        return res.status(404).json({ error: "Finance report not found" });
+      }
+      res.json(report);
+    } catch (error) {
+      console.error("Error fetching finance report:", error);
+      res.status(500).json({ error: "Failed to fetch finance report" });
+    }
+  });
+
+  app.get("/api/finance-reports/month/:month", requireAdmin, async (req, res) => {
+    try {
+      const report = await storage.getFinanceReportByMonth(req.params.month);
+      if (!report) {
+        return res.status(404).json({ error: "Finance report not found for this month" });
+      }
+      res.json(report);
+    } catch (error) {
+      console.error("Error fetching finance report by month:", error);
+      res.status(500).json({ error: "Failed to fetch finance report" });
+    }
+  });
+
+  app.post("/api/finance-reports", requireAdmin, async (req, res) => {
+    try {
+      const userId = req.session?.user?.id;
+      const reportData = {
+        ...req.body,
+        createdBy: userId
+      };
+      
+      const report = await storage.createFinanceReport(reportData);
+      res.json(report);
+    } catch (error: any) {
+      console.error("Error creating finance report:", error);
+      if (error.code === '23505') { // Unique constraint violation
+        return res.status(400).json({ error: "A report for this month already exists" });
+      }
+      res.status(500).json({ error: "Failed to create finance report" });
+    }
+  });
+
+  app.patch("/api/finance-reports/:id", requireAdmin, async (req, res) => {
+    try {
+      const report = await storage.updateFinanceReport(req.params.id, req.body);
+      if (!report) {
+        return res.status(404).json({ error: "Finance report not found" });
+      }
+      res.json(report);
+    } catch (error: any) {
+      console.error("Error updating finance report:", error);
+      if (error.code === '23505') {
+        return res.status(400).json({ error: "A report for this month already exists" });
+      }
+      res.status(500).json({ error: "Failed to update finance report" });
+    }
+  });
+
+  app.delete("/api/finance-reports/:id", requireAdmin, async (req, res) => {
+    try {
+      const deleted = await storage.deleteFinanceReport(req.params.id);
+      if (!deleted) {
+        return res.status(404).json({ error: "Finance report not found" });
+      }
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Error deleting finance report:", error);
+      res.status(500).json({ error: "Failed to delete finance report" });
+    }
+  });
+
   // Route Planning and Optimization APIs
   const googleMapsService = new GoogleMapsService();
 
