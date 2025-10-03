@@ -1998,7 +1998,10 @@ export default function RoutePlanner() {
                 durationMinutes: parseInt(values[8]) || 30,
                 timeSlot: values[3] === 'None' ? '' : (values[3] || ''),
                 earliestTime: values[4] || '',
-                latestTime: values[5] || ''
+                latestTime: values[5] || '',
+                calculatedStartTime: values[6] || '',
+                calculatedEndTime: values[7] || '',
+                travelTimeToNext: values[9] ? parseInt(values[9]) : undefined
               };
             })
             .filter(visit => visit.address.trim()); // Only keep visits with valid addresses
