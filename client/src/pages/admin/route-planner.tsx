@@ -779,6 +779,9 @@ export default function RoutePlanner() {
         setVisits(visitsWithTimes);
         console.log('FRONTEND: Updated visits state atomically with authoritative travel times from backend');
         
+        // CRITICAL FIX: Update optimisation result with calculated times
+        ukResult.optimisedOrder = visitsWithTimes;
+        
         // Validate no duplicate coordinates (potential dual pin detection)
         const coordinates = validatedVisits
           .filter((v: Visit) => v.latitude && v.longitude)
