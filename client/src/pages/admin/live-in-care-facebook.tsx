@@ -77,7 +77,7 @@ export default function LiveInCareFacebook() {
                     <Clock className="w-8 h-8 text-purple-600" />
                   </div>
                   <div className="flex-1">
-                    <h3 className="text-3xl font-semibold text-gray-900 mb-2">24/7 Support</h3>
+                    <h3 className="text-3xl font-semibold text-gray-900 mb-2">Peace of Mind</h3>
                     <p className="text-2xl text-gray-600">Round-the-clock care and companionship</p>
                   </div>
                 </div>
