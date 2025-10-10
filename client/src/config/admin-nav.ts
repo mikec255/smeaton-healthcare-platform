@@ -197,6 +197,13 @@ export const navigationItems: NavItem[] = [
         icon: FileImage, 
         href: '/admin/live-in-care-flyer',
         description: 'A5 printable flyer for live-in care marketing'
+      },
+      { 
+        id: 'live-in-care-facebook', 
+        label: 'Live-In Care Facebook', 
+        icon: FileImage, 
+        href: '/admin/live-in-care-facebook',
+        description: 'Facebook post image (1080x1080) for live-in care promotion'
       }
     ]
   },
