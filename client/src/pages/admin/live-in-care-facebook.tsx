@@ -108,19 +108,10 @@ export default function LiveInCareFacebook() {
                   <div className="w-12 h-12 bg-pink-600 rounded-full flex items-center justify-center flex-shrink-0">
                     <Phone className="w-6 h-6 text-white" />
                   </div>
-                  <span className="text-3xl font-semibold text-gray-900">01752 848995</span>
-                </div>
-                <div className="flex items-center space-x-4">
-                  <div className="w-12 h-12 bg-purple-600 rounded-full flex items-center justify-center flex-shrink-0">
-                    <Mail className="w-6 h-6 text-white" />
+                  <div className="flex flex-col">
+                    <span className="text-3xl font-semibold text-gray-900">0330 165 8880</span>
+                    <span className="text-2xl text-gray-700">info@smeatonhealthcare.co.uk</span>
                   </div>
-                  <span className="text-2xl text-gray-700">info@smeatonhealthcare.co.uk</span>
-                </div>
-                <div className="flex items-center space-x-4">
-                  <div className="w-12 h-12 bg-pink-600 rounded-full flex items-center justify-center flex-shrink-0">
-                    <MapPin className="w-6 h-6 text-white" />
-                  </div>
-                  <span className="text-2xl text-gray-700">Serving Devon & Cornwall</span>
                 </div>
               </div>
             </div>
