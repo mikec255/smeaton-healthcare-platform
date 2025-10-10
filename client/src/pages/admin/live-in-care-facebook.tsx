@@ -108,7 +108,7 @@ export default function LiveInCareFacebook() {
                   <div className="w-12 h-12 bg-pink-600 rounded-full flex items-center justify-center flex-shrink-0">
                     <Phone className="w-6 h-6 text-white" />
                   </div>
-                  <span className="text-2xl font-semibold text-gray-900">0330 165 8880</span>
+                  <span className="text-2xl text-gray-700">0330 165 8880</span>
                 </div>
                 <div className="flex items-center space-x-3">
                   <div className="w-12 h-12 bg-purple-600 rounded-full flex items-center justify-center flex-shrink-0">
