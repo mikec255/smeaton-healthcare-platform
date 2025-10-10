@@ -53,7 +53,7 @@ export default function LiveInCareFacebook() {
                   Live-In Care
                 </h1>
                 <p className="text-3xl font-light opacity-90">
-                  Professional Care in the Comfort of Home
+                  Professional Care, surrounded by home comforts
                 </p>
               </div>
             </div>
