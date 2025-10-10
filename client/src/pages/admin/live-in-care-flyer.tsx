@@ -25,7 +25,7 @@ export default function LiveInCareFlyer() {
         </div>
 
         {/* A5 Flyer - Portrait */}
-        <div className="bg-white shadow-2xl mx-auto" style={{ width: '148mm', minHeight: '210mm' }}>
+        <div className="bg-white shadow-2xl mx-auto overflow-hidden" style={{ width: '148mm', height: '210mm' }}>
           {/* Header with Brand Colors */}
           <div className="bg-gradient-to-br from-[hsl(340,82%,52%)] to-[hsl(291,64%,42%)] text-white p-6 relative overflow-hidden">
             <div className="absolute inset-0 opacity-10">
