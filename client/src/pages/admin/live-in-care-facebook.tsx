@@ -50,7 +50,7 @@ export default function LiveInCareFacebook() {
               </div>
               <div className="relative z-10">
                 <h1 className="text-6xl font-bold mb-4 leading-tight">
-                  Live-In Care<br />Services
+                  Live-In Care
                 </h1>
                 <p className="text-3xl font-light opacity-90">
                   Professional Care in the Comfort of Home
