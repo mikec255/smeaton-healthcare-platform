@@ -12,7 +12,8 @@ import {
   BarChart3,
   FileText,
   MapPin,
-  DollarSign
+  DollarSign,
+  FileImage
 } from 'lucide-react';
 
 export interface NavItem {
@@ -189,6 +190,13 @@ export const navigationItems: NavItem[] = [
         icon: Mail, 
         href: '/admin/newsletters',
         description: 'Create, edit and send newsletters to subscribers'
+      },
+      { 
+        id: 'live-in-care-flyer', 
+        label: 'Live-In Care Flyer', 
+        icon: FileImage, 
+        href: '/admin/live-in-care-flyer',
+        description: 'A5 printable flyer for live-in care marketing'
       }
     ]
   },
@@ -321,6 +329,13 @@ export const adminRoutes: Record<string, AdminRoute> = {
     description: 'Track and analyze monthly financial data across departments',
     breadcrumbLabel: 'Finance Reports',
     parentId: 'tools'
+  },
+  '/admin/live-in-care-flyer': {
+    path: '/admin/live-in-care-flyer',
+    title: 'Live-In Care Flyer',
+    description: 'A5 printable flyer for live-in care marketing',
+    breadcrumbLabel: 'Live-In Care Flyer',
+    parentId: 'resources'
   }
 };
 

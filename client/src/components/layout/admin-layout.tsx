@@ -125,9 +125,9 @@ export function AdminLayout({ children }: AdminLayoutProps) {
                         const SubIcon = subItem.icon;
                         return (
                           <Link key={subItem.id} href={subItem.href}>
-                            <a
+                            <div
                               className={cn(
-                                "flex items-center space-x-3 px-3 py-2 rounded-lg text-sm transition-colors",
+                                "flex items-center space-x-3 px-3 py-2 rounded-lg text-sm transition-colors cursor-pointer",
                                 isActive(subItem.href)
                                   ? "bg-pink-50 dark:bg-pink-900/20 text-pink-600 dark:text-pink-400 font-medium"
                                   : "text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700"
@@ -136,7 +136,7 @@ export function AdminLayout({ children }: AdminLayoutProps) {
                             >
                               <SubIcon className="w-4 h-4" />
                               <span>{subItem.label}</span>
-                            </a>
+                            </div>
                           </Link>
                         );
                       })}
@@ -148,9 +148,9 @@ export function AdminLayout({ children }: AdminLayoutProps) {
 
             return (
               <Link key={item.id} href={item.href}>
-                <a
+                <div
                   className={cn(
-                    "flex items-center space-x-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors",
+                    "flex items-center space-x-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors cursor-pointer",
                     isActive(item.href)
                       ? "bg-pink-50 dark:bg-pink-900/20 text-pink-600 dark:text-pink-400"
                       : "text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
@@ -159,7 +159,7 @@ export function AdminLayout({ children }: AdminLayoutProps) {
                 >
                   <Icon className="w-5 h-5" />
                   <span>{item.label}</span>
-                </a>
+                </div>
               </Link>
             );
           })}

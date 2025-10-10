@@ -56,6 +56,7 @@ const RecruitmentApplicationsAdmin = lazy(() => import("@/pages/admin/recruitmen
 const ProfessionalReferencesAdmin = lazy(() => import("@/pages/admin/professional-references"));
 const RoutePlannerAdmin = lazy(() => import("@/pages/admin/route-planner"));
 const FinanceReportsAdmin = lazy(() => import("@/pages/admin/finance-reports"));
+const LiveInCareFlyer = lazy(() => import("@/pages/admin/live-in-care-flyer"));
 const RecruitmentApplication = lazy(() => import("@/pages/recruitment-application"));
 const ProfessionalReference = lazy(() => import("@/pages/professional-reference"));
 
@@ -134,6 +135,7 @@ function Router() {
             <Route path="/admin/cqc-toolkit" component={CqcToolkitAdmin} />
             <Route path="/admin/route-planner" component={RoutePlannerAdmin} />
             <Route path="/admin/finance-reports" component={FinanceReportsAdmin} />
+            <Route path="/admin/live-in-care-flyer" component={LiveInCareFlyer} />
             <Route path="/admin/recruitment-applications" component={RecruitmentApplicationsAdmin} />
             <Route path="/admin/professional-references" component={ProfessionalReferencesAdmin} />
             <Route path="/admin" component={Admin} />
