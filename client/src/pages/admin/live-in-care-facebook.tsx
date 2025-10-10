@@ -67,7 +67,7 @@ export default function LiveInCareFacebook() {
                     <Heart className="w-8 h-8 text-pink-600" />
                   </div>
                   <div className="flex-1">
-                    <h3 className="text-3xl font-semibold text-gray-900 mb-2">Personalized Care</h3>
+                    <h3 className="text-3xl font-semibold text-gray-900 mb-2">Personalised Care</h3>
                     <p className="text-2xl text-gray-600">One-to-one support tailored to individual needs</p>
                   </div>
                 </div>
