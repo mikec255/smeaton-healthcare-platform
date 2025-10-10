@@ -97,7 +97,7 @@ export default function LiveInCareFacebook() {
               <div className="bg-gradient-to-r from-pink-50 to-purple-50 rounded-2xl p-8 my-8">
                 <p className="text-2xl text-gray-700 mb-3">Starting from</p>
                 <p className="text-6xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-pink-600 to-purple-600 mb-3">
-                  £1,150/week
+                  £1,295/week
                 </p>
                 <p className="text-xl text-gray-600">Fully managed, professional service</p>
               </div>
