@@ -118,12 +118,6 @@ export default function LiveInCareFacebook() {
                 </div>
               </div>
             </div>
-
-            {/* Footer */}
-            <div className="bg-gray-900 text-white text-center py-6 flex-shrink-0">
-              <p className="text-3xl font-bold">Smeaton Healthcare</p>
-              <p className="text-xl opacity-75 mt-2">Caring for You, Supporting Your Independence</p>
-            </div>
           </div>
         </div>
 
