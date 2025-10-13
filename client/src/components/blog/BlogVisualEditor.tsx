@@ -252,15 +252,45 @@ function BlockRenderer({
 
     case "text":
       return (
-        <textarea
-          placeholder="Enter your text content..."
-          value={block.content.text || ""}
-          onChange={(e) => updateContent({ text: e.target.value })}
-          rows={4}
-          className="w-full bg-transparent border-none outline-none resize-none"
-          style={block.style}
-          data-testid={`text-input-${block.id}`}
-        />
+        <div className="space-y-3">
+          <textarea
+            placeholder="Enter your text content..."
+            value={block.content.text || ""}
+            onChange={(e) => updateContent({ text: e.target.value })}
+            rows={4}
+            className="w-full bg-transparent border-none outline-none resize-none"
+            style={block.style}
+            data-testid={`text-input-${block.id}`}
+          />
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="text-xs font-medium text-muted-foreground mb-1 block">Width</label>
+              <select
+                value={block.width || "100%"}
+                onChange={(e) => onUpdate({ ...block, width: e.target.value })}
+                className="w-full text-sm border border-border rounded px-3 py-2"
+                data-testid={`text-width-${block.id}`}
+              >
+                <option value="100%">Full Width</option>
+                <option value="50%">Half (50%)</option>
+                <option value="33%">Third (33%)</option>
+                <option value="66%">Two Thirds (66%)</option>
+              </select>
+            </div>
+            <div>
+              <label className="text-xs font-medium text-muted-foreground mb-1 block">Layout</label>
+              <select
+                value={block.layout || "full"}
+                onChange={(e) => onUpdate({ ...block, layout: e.target.value as "inline" | "full" })}
+                className="w-full text-sm border border-border rounded px-3 py-2"
+                data-testid={`text-layout-${block.id}`}
+              >
+                <option value="full">Full Width</option>
+                <option value="inline">Inline (Side-by-side)</option>
+              </select>
+            </div>
+          </div>
+        </div>
       );
 
     case "image":
@@ -271,6 +301,34 @@ function BlockRenderer({
             onImageUploaded={(url) => updateContent({ url })}
             onImageRemoved={() => updateContent({ url: "" })}
           />
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="text-xs font-medium text-muted-foreground mb-1 block">Image Size</label>
+              <select
+                value={block.imageWidth || "full"}
+                onChange={(e) => onUpdate({ ...block, imageWidth: e.target.value })}
+                className="w-full text-sm border border-border rounded px-3 py-2"
+                data-testid={`image-width-${block.id}`}
+              >
+                <option value="small">Small (25%)</option>
+                <option value="medium">Medium (50%)</option>
+                <option value="large">Large (75%)</option>
+                <option value="full">Full Width</option>
+              </select>
+            </div>
+            <div>
+              <label className="text-xs font-medium text-muted-foreground mb-1 block">Layout</label>
+              <select
+                value={block.layout || "full"}
+                onChange={(e) => onUpdate({ ...block, layout: e.target.value as "inline" | "full" })}
+                className="w-full text-sm border border-border rounded px-3 py-2"
+                data-testid={`image-layout-${block.id}`}
+              >
+                <option value="full">Full Width</option>
+                <option value="inline">Inline (Side-by-side)</option>
+              </select>
+            </div>
+          </div>
           <input
             type="text"
             placeholder="Alt text (for accessibility)"
@@ -278,6 +336,14 @@ function BlockRenderer({
             onChange={(e) => updateContent({ alt: e.target.value })}
             className="w-full text-sm border border-border rounded px-3 py-2"
             data-testid={`image-alt-${block.id}`}
+          />
+          <input
+            type="text"
+            placeholder="Caption (optional)"
+            value={block.content.caption || ""}
+            onChange={(e) => updateContent({ caption: e.target.value })}
+            className="w-full text-sm border border-border rounded px-3 py-2"
+            data-testid={`image-caption-${block.id}`}
           />
         </div>
       );

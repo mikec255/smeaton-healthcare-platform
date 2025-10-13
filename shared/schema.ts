@@ -32,6 +32,9 @@ export interface BlogBlock {
   content: Record<string, any>; // Content varies by block type
   style?: BlogBlockStyle;
   order: number;
+  width?: string; // Width for side-by-side layout: "33%", "50%", "66%", "100%"
+  imageWidth?: string; // For image blocks: "small", "medium", "large", "full"
+  layout?: "inline" | "full"; // Whether block is inline (side-by-side) or full width
 }
 
 export const users = pgTable("users", {

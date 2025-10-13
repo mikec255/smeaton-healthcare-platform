@@ -191,28 +191,48 @@ export default function Blog() {
     return cssProps.length > 0 ? ` style="${cssProps.join('; ')}"` : '';
   };
 
+  // Helper function to get image width class
+  const getImageWidthClass = (imageWidth?: string) => {
+    switch (imageWidth) {
+      case 'small': return 'w-1/4';
+      case 'medium': return 'w-1/2';
+      case 'large': return 'w-3/4';
+      default: return 'w-full';
+    }
+  };
+
   // Helper function to render visual editor blocks as HTML
   const renderBlocksAsHTML = (blocks: any[]): string => {
     if (!blocks || !Array.isArray(blocks)) return '';
     
-    return blocks.map(block => {
+    const rows: string[] = [];
+    let currentRow: string[] = [];
+    
+    blocks.forEach(block => {
       const styleAttr = blockStyleToCss(block.style);
+      const width = block.width || '100%';
+      const isInline = block.layout === 'inline';
+      
+      let html = '';
       
       switch (block.type) {
         case 'header':
           const level = block.content?.level || 'h2';
-          return `<${level}${styleAttr}>${block.content?.text || ''}</${level}>`;
+          html = `<${level}${styleAttr}>${block.content?.text || ''}</${level}>`;
+          break;
         
         case 'text':
           const textContent = block.content?.text || '';
           // Preserve line breaks by splitting on newlines and creating separate paragraphs
           const textParagraphs = textContent.split('\n').filter((p: string) => p.trim());
-          if (textParagraphs.length === 0) return '';
+          if (textParagraphs.length === 0) break;
+          const containerStyle = isInline ? ` style="width: ${width}"` : '';
           if (textParagraphs.length === 1) {
-            return `<p${styleAttr}>${textContent}</p>`;
+            html = `<div${containerStyle}><p${styleAttr}>${textContent}</p></div>`;
+          } else {
+            html = `<div${containerStyle}>${textParagraphs.map((para: string) => `<p${styleAttr} style="margin-bottom: 1em">${para}</p>`).join('')}</div>`;
           }
-          // Multiple paragraphs with spacing
-          return textParagraphs.map((para: string) => `<p${styleAttr} style="margin-bottom: 1em">${para}</p>`).join('');
+          break;
         
         case 'image':
           const imageSrc = block.content?.url || block.content?.src;
@@ -220,43 +240,72 @@ export default function Blog() {
             const alt = block.content?.alt || '';
             const caption = block.content?.caption || '';
             const proxyUrl = convertToProxyUrl(imageSrc);
-            return `
-              <div class="image-block"${styleAttr}>
-                <img src="${proxyUrl}" alt="${alt}" class="w-full h-auto rounded-lg" />
-                ${caption ? `<p class="text-sm text-gray-600 mt-2 italic">${caption}</p>` : ''}
+            const imgWidthClass = getImageWidthClass(block.imageWidth);
+            const imgContainerStyle = isInline ? ` style="width: ${width}"` : '';
+            html = `
+              <div class="image-block${isInline ? ' inline-block' : ''}"${styleAttr}${imgContainerStyle}>
+                <img src="${proxyUrl}" alt="${alt}" class="${imgWidthClass} h-auto rounded-lg" />
+                ${caption ? `<p class="text-sm text-gray-600 mt-2 italic text-center">${caption}</p>` : ''}
               </div>
             `;
           }
-          return '';
+          break;
         
         case 'quote':
-          return `<blockquote class="border-l-4 border-primary pl-4 italic"${styleAttr}>${block.content?.text || ''}</blockquote>`;
+          html = `<blockquote class="border-l-4 border-primary pl-4 italic"${styleAttr}>${block.content?.text || ''}</blockquote>`;
+          break;
         
         case 'list':
           const items = block.content?.items || [];
           const isNumbered = block.content?.listType === 'numbered' || block.content?.ordered;
           const listType = isNumbered ? 'ol' : 'ul';
-          return `<${listType} class="${isNumbered ? 'list-decimal' : 'list-disc'} ml-6 space-y-1"${styleAttr}>${items.map((item: string) => `<li>${item}</li>`).join('')}</${listType}>`;
+          html = `<${listType} class="${isNumbered ? 'list-decimal' : 'list-disc'} ml-6 space-y-1"${styleAttr}>${items.map((item: string) => `<li>${item}</li>`).join('')}</${listType}>`;
+          break;
         
         case 'divider':
-          return `<hr class="my-4"${styleAttr} />`;
+          html = `<hr class="my-4"${styleAttr} />`;
+          break;
         
         case 'spacer':
           const height = block.content?.height || '20px';
           const spacerStyle = blockStyleToCss(block.style);
           const combinedStyle = spacerStyle ? ` style="height: ${height}; ${spacerStyle.replace('style="', '').replace('"', '')}"` : ` style="height: ${height}"`;
-          return `<div${combinedStyle}></div>`;
+          html = `<div${combinedStyle}></div>`;
+          break;
         
         case 'button':
           const text = block.content?.text || 'Button';
           const url = block.content?.url || '#';
           const buttonClasses = "inline-block bg-primary text-white px-4 py-2 rounded hover:bg-primary/90";
-          return `<a href="${url}" class="${buttonClasses}"${styleAttr}>${text}</a>`;
+          html = `<a href="${url}" class="${buttonClasses}"${styleAttr}>${text}</a>`;
+          break;
         
         default:
-          return '';
+          break;
       }
-    }).join('\n');
+      
+      // Group inline blocks together
+      if (!html) return;
+      
+      if (isInline) {
+        currentRow.push(html);
+      } else {
+        // If we have accumulated inline blocks, render them first
+        if (currentRow.length > 0) {
+          rows.push(`<div class="flex gap-4 mb-4 flex-wrap">${currentRow.join('')}</div>`);
+          currentRow = [];
+        }
+        // Add the full-width block
+        rows.push(`<div class="mb-4">${html}</div>`);
+      }
+    });
+    
+    // Don't forget remaining inline blocks
+    if (currentRow.length > 0) {
+      rows.push(`<div class="flex gap-4 mb-4 flex-wrap">${currentRow.join('')}</div>`);
+    }
+    
+    return rows.join('\n');
   };
 
   // Transform API data to component format

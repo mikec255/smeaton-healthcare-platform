@@ -108,9 +108,21 @@ export default function BlogAdmin() {
     return cssProps;
   };
 
-  // Helper function to render visual editor blocks
+  // Helper function to get image width class
+  const getImageWidthClass = (imageWidth?: string) => {
+    switch (imageWidth) {
+      case 'small': return 'w-1/4';
+      case 'medium': return 'w-1/2';
+      case 'large': return 'w-3/4';
+      default: return 'w-full';
+    }
+  };
+
+  // Helper function to render visual editor blocks with inline layout support
   const renderBlock = (block: BlogBlock, index: number) => {
     const style = blockStyleToInlineCSS(block.style);
+    const width = block.width || '100%';
+    const containerStyle = { ...style, width: block.layout === 'inline' ? width : '100%' };
     
     switch (block.type) {
       case 'header':
@@ -123,11 +135,11 @@ export default function BlogAdmin() {
         const paragraphs = text.split('\n').filter((p: string) => p.trim());
         if (paragraphs.length === 0) return null;
         if (paragraphs.length === 1) {
-          return <p key={index} style={style}>{text}</p>;
+          return <div key={index} style={containerStyle}><p style={style}>{text}</p></div>;
         }
         // Multiple paragraphs with spacing
         return (
-          <div key={index}>
+          <div key={index} style={containerStyle}>
             {paragraphs.map((para: string, i: number) => (
               <p key={`${index}-${i}`} style={{ ...style, marginBottom: i < paragraphs.length - 1 ? '1em' : undefined }}>
                 {para}
@@ -139,12 +151,13 @@ export default function BlogAdmin() {
       case 'image':
         const imageUrl = block.content?.url || block.content?.src;
         if (!imageUrl) return null;
+        const imgWidthClass = getImageWidthClass(block.imageWidth);
         return (
-          <div key={index} style={style}>
+          <div key={index} style={containerStyle} className={block.layout === 'inline' ? 'inline-block' : ''}>
             <img 
               src={convertToProxyUrl(imageUrl)} 
               alt={block.content?.alt || 'Blog image'} 
-              className="w-full h-auto rounded-lg"
+              className={`${imgWidthClass} h-auto rounded-lg`}
             />
             {block.content?.caption && (
               <p className="text-sm text-gray-600 mt-2 text-center">{block.content.caption}</p>
@@ -181,6 +194,44 @@ export default function BlogAdmin() {
       default:
         return null;
     }
+  };
+
+  // Helper function to group blocks for rendering (handles inline layouts)
+  const renderBlocks = (blocks: BlogBlock[]) => {
+    const rows: JSX.Element[] = [];
+    let currentRow: JSX.Element[] = [];
+    
+    blocks.forEach((block, index) => {
+      const element = renderBlock(block, index);
+      if (!element) return;
+      
+      if (block.layout === 'inline') {
+        currentRow.push(element);
+      } else {
+        // If we have accumulated inline blocks, render them first
+        if (currentRow.length > 0) {
+          rows.push(
+            <div key={`row-${index}`} className="flex gap-4 mb-4 flex-wrap">
+              {currentRow}
+            </div>
+          );
+          currentRow = [];
+        }
+        // Add the full-width block
+        rows.push(<div key={`block-${index}`} className="mb-4">{element}</div>);
+      }
+    });
+    
+    // Don't forget remaining inline blocks
+    if (currentRow.length > 0) {
+      rows.push(
+        <div key="row-final" className="flex gap-4 mb-4 flex-wrap">
+          {currentRow}
+        </div>
+      );
+    }
+    
+    return rows;
   };
 
   // Open preview dialog
@@ -1026,7 +1077,7 @@ export default function BlogAdmin() {
               {/* Content - Visual Editor Blocks */}
               {previewPost.blocks && previewPost.blocks.length > 0 ? (
                 <div className="space-y-4">
-                  {previewPost.blocks.map((block, index) => renderBlock(block, index))}
+                  {renderBlocks(previewPost.blocks)}
                 </div>
               ) : (
                 <p className="text-gray-500 italic">No content available. Add content using the Visual Editor.</p>
