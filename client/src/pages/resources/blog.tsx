@@ -2,11 +2,13 @@ import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Skeleton } from "@/components/ui/skeleton";
-import { ArrowLeft, Calendar, Clock, ArrowRight, Filter } from "lucide-react";
+import { ArrowLeft, Calendar, Clock, ArrowRight, Filter, Share2 } from "lucide-react";
 import { useState, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { type BlogPost, type BlogCategory } from "@shared/schema";
 import DOMPurify from "dompurify";
+import { SiFacebook, SiX, SiLinkedin, SiWhatsapp } from "react-icons/si";
+import { Mail } from "lucide-react";
 import teamMeetingImg from "@assets/generated_images/Healthcare_team_meeting_photo_21dc58ac.png";
 import homeCareImg from "@assets/generated_images/Home_care_support_photo_f0866fa2.png";
 import trainingImg from "@assets/generated_images/Healthcare_training_session_photo_91ddee63.png";
@@ -26,6 +28,87 @@ interface TransformedBlogPost {
   category: string;
   image: string;
   fullContent: string;
+}
+
+// Social Share Component
+interface SocialShareProps {
+  url: string;
+  title: string;
+  description?: string;
+}
+
+function SocialShare({ url, title, description }: SocialShareProps) {
+  const encodedUrl = encodeURIComponent(url);
+  const encodedTitle = encodeURIComponent(title);
+  const encodedDescription = encodeURIComponent(description || '');
+
+  const shareLinks = {
+    facebook: `https://www.facebook.com/sharer/sharer.php?u=${encodedUrl}`,
+    twitter: `https://twitter.com/intent/tweet?url=${encodedUrl}&text=${encodedTitle}`,
+    linkedin: `https://www.linkedin.com/sharing/share-offsite/?url=${encodedUrl}`,
+    whatsapp: `https://wa.me/?text=${encodedTitle}%20${encodedUrl}`,
+    email: `mailto:?subject=${encodedTitle}&body=${encodedDescription}%0A%0A${encodedUrl}`
+  };
+
+  const handleShare = (platform: string) => {
+    window.open(shareLinks[platform as keyof typeof shareLinks], '_blank', 'width=600,height=400');
+  };
+
+  return (
+    <div className="flex items-center gap-3 py-4 border-t border-b border-gray-200 my-6">
+      <div className="flex items-center gap-2 text-gray-600">
+        <Share2 className="h-5 w-5" />
+        <span className="font-medium">Share:</span>
+      </div>
+      <div className="flex gap-2">
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => handleShare('facebook')}
+          className="hover:bg-blue-50 hover:border-blue-500 hover:text-blue-600"
+          data-testid="share-facebook"
+        >
+          <SiFacebook className="h-4 w-4" />
+        </Button>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => handleShare('twitter')}
+          className="hover:bg-sky-50 hover:border-sky-500 hover:text-sky-600"
+          data-testid="share-twitter"
+        >
+          <SiX className="h-4 w-4" />
+        </Button>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => handleShare('linkedin')}
+          className="hover:bg-blue-50 hover:border-blue-700 hover:text-blue-700"
+          data-testid="share-linkedin"
+        >
+          <SiLinkedin className="h-4 w-4" />
+        </Button>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => handleShare('whatsapp')}
+          className="hover:bg-green-50 hover:border-green-600 hover:text-green-600"
+          data-testid="share-whatsapp"
+        >
+          <SiWhatsapp className="h-4 w-4" />
+        </Button>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => handleShare('email')}
+          className="hover:bg-gray-50 hover:border-gray-600 hover:text-gray-700"
+          data-testid="share-email"
+        >
+          <Mail className="h-4 w-4" />
+        </Button>
+      </div>
+    </div>
+  );
 }
 
 export default function Blog() {
@@ -447,6 +530,13 @@ export default function Blog() {
                               />
                             </div>
                           )}
+                          
+                          {/* Social Share Bar */}
+                          <SocialShare 
+                            url={`${window.location.origin}/resources/blog#${post.id}`}
+                            title={post.title}
+                            description={post.excerpt || ''}
+                          />
                           
                           {/* Full Article Content */}
                           <div 
