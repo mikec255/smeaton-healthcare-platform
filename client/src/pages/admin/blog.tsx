@@ -13,7 +13,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useToast } from "@/hooks/use-toast";
-import { Plus, Edit, Trash2, ArrowLeft, Eye, EyeOff, Upload, Calendar, User, BookOpen, Tag, Save } from "lucide-react";
+import { Plus, Edit, Trash2, ArrowLeft, Eye, EyeOff, Upload, Calendar, User, BookOpen, Tag, Save, FileSearch } from "lucide-react";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { type BlogPost, insertBlogPostSchema, insertBlogCategorySchema, blogCategories, type BlogBlock } from "@shared/schema";
 import BlogVisualEditor from "@/components/blog/BlogVisualEditor";
@@ -42,6 +42,8 @@ export default function BlogAdmin() {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isCategoryModalOpen, setIsCategoryModalOpen] = useState(false);
   const [isVisualEditorOpen, setIsVisualEditorOpen] = useState(false);
+  const [isPreviewOpen, setIsPreviewOpen] = useState(false);
+  const [previewPost, setPreviewPost] = useState<BlogPost | null>(null);
   const [editingBlocks, setEditingBlocks] = useState<BlogBlock[]>([]);
   const [useVisualEditorForCreate, setUseVisualEditorForCreate] = useState(true);
   const [newPostBlocks, setNewPostBlocks] = useState<BlogBlock[]>([]);
@@ -56,6 +58,118 @@ export default function BlogAdmin() {
   const { data: categories = [], isLoading: categoriesLoading } = useQuery<BlogCategory[]>({
     queryKey: ["/api/blog-categories"],
   });
+
+  // Helper function to get category name from ID
+  const getCategoryName = (categoryId: string | null): string => {
+    if (!categoryId) return "Uncategorized";
+    const category = categories.find(cat => cat.id === categoryId);
+    return category?.name || "Uncategorized";
+  };
+
+  // Helper function to format date
+  const formatDate = (dateString: Date | null): string => {
+    if (!dateString) return "Unknown date";
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-GB', { 
+      year: 'numeric', 
+      month: 'long', 
+      day: 'numeric' 
+    });
+  };
+
+  // Helper function to convert Google Cloud Storage URL to proxy URL
+  const convertToProxyUrl = (url: string): string => {
+    if (!url.includes('storage.googleapis.com')) {
+      return url;
+    }
+    const match = url.match(/\.private\/uploads\/(.+)/);
+    if (match) {
+      return `/objects/uploads/${match[1]}`;
+    }
+    return url;
+  };
+
+  // Helper function to convert block style object to inline CSS
+  const blockStyleToInlineCSS = (style: any): React.CSSProperties => {
+    if (!style || typeof style !== 'object') return {};
+    
+    const cssProps: React.CSSProperties = {};
+    
+    if (style.color) cssProps.color = style.color;
+    if (style.backgroundColor) cssProps.backgroundColor = style.backgroundColor;
+    if (style.fontSize) cssProps.fontSize = style.fontSize;
+    if (style.fontWeight) cssProps.fontWeight = style.fontWeight;
+    if (style.textAlign) cssProps.textAlign = style.textAlign;
+    if (style.margin) cssProps.margin = style.margin;
+    if (style.padding) cssProps.padding = style.padding;
+    if (style.borderRadius) cssProps.borderRadius = style.borderRadius;
+    if (style.border) cssProps.border = style.border;
+    
+    return cssProps;
+  };
+
+  // Helper function to render visual editor blocks
+  const renderBlock = (block: BlogBlock, index: number) => {
+    const style = blockStyleToInlineCSS(block.style);
+    
+    switch (block.type) {
+      case 'header':
+        const HeaderTag = (block.content?.level || 'h2') as keyof JSX.IntrinsicElements;
+        return <HeaderTag key={index} style={style}>{block.content?.text || ''}</HeaderTag>;
+      
+      case 'text':
+        return <p key={index} style={style}>{block.content?.text || ''}</p>;
+      
+      case 'image':
+        const imageUrl = block.content?.url || block.content?.src;
+        if (!imageUrl) return null;
+        return (
+          <div key={index} style={style}>
+            <img 
+              src={convertToProxyUrl(imageUrl)} 
+              alt={block.content?.alt || 'Blog image'} 
+              className="w-full h-auto rounded-lg"
+            />
+            {block.content?.caption && (
+              <p className="text-sm text-gray-600 mt-2 text-center">{block.content.caption}</p>
+            )}
+          </div>
+        );
+      
+      case 'list':
+        const ListTag = block.content?.ordered ? 'ol' : 'ul';
+        return (
+          <ListTag key={index} style={style} className={block.content?.ordered ? 'list-decimal' : 'list-disc'}>
+            {(block.content?.items || []).map((item: string, i: number) => (
+              <li key={i}>{item}</li>
+            ))}
+          </ListTag>
+        );
+      
+      case 'quote':
+        return (
+          <blockquote key={index} style={style} className="border-l-4 border-pink-600 pl-4 italic">
+            {block.content?.text || ''}
+          </blockquote>
+        );
+      
+      case 'code':
+        return (
+          <pre key={index} style={style} className="bg-gray-100 p-4 rounded overflow-x-auto">
+            <code>{block.content?.code || ''}</code>
+          </pre>
+        );
+      
+      default:
+        return null;
+    }
+  };
+
+  // Open preview dialog
+  const openPreview = (post: BlogPost) => {
+    setPreviewPost(post);
+    setIsPreviewOpen(true);
+  };
 
   // Visual editor functions
   const openVisualEditor = (post?: BlogPost) => {
@@ -787,6 +901,16 @@ export default function BlogAdmin() {
                     <Button
                       variant="outline"
                       size="sm"
+                      onClick={() => openPreview(post)}
+                      className="bg-blue-50 border-blue-200 hover:bg-blue-100 text-blue-700"
+                      data-testid={`button-preview-${post.id}`}
+                    >
+                      <FileSearch className="h-4 w-4 mr-1" />
+                      Preview
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
                       onClick={() => openVisualEditor(post)}
                       className="bg-primary/5 border-primary/20 hover:bg-primary/10"
                       data-testid={`visual-editor-${post.id}`}
@@ -814,15 +938,6 @@ export default function BlogAdmin() {
                       )}
                     </Button>
                     <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => openVisualEditor(post)}
-                      data-testid={`button-edit-${post.id}`}
-                    >
-                      <Edit className="h-4 w-4 mr-1" />
-                      Edit
-                    </Button>
-                    <Button
                       variant="destructive"
                       size="sm"
                       onClick={() => handleDeletePost(post.id)}
@@ -839,6 +954,69 @@ export default function BlogAdmin() {
           )}
         </CardContent>
       </Card>
+
+      {/* Preview Dialog */}
+      <Dialog open={isPreviewOpen} onOpenChange={setIsPreviewOpen}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <FileSearch className="h-5 w-5" />
+              Preview: {previewPost?.title}
+              {!previewPost?.isPublished && (
+                <Badge variant="secondary">Draft</Badge>
+              )}
+            </DialogTitle>
+          </DialogHeader>
+          
+          {previewPost && (
+            <article className="prose prose-lg max-w-none">
+              {/* Header with image if available */}
+              {previewPost.imagePath && (
+                <div className="mb-8">
+                  <img 
+                    src={convertToProxyUrl(previewPost.imagePath)} 
+                    alt={previewPost.title}
+                    className="w-full h-64 object-cover rounded-lg"
+                  />
+                </div>
+              )}
+
+              {/* Title */}
+              <h1 className="text-4xl font-bold mb-4">{previewPost.title}</h1>
+              
+              {/* Meta information */}
+              <div className="flex items-center gap-4 text-sm text-gray-600 mb-6 not-prose">
+                <span className="flex items-center gap-1">
+                  <User className="h-4 w-4" />
+                  {previewPost.author}
+                </span>
+                <span className="flex items-center gap-1">
+                  <Calendar className="h-4 w-4" />
+                  {formatDate(previewPost.createdAt)}
+                </span>
+                <span className="flex items-center gap-1">
+                  <Tag className="h-4 w-4" />
+                  {getCategoryName(previewPost.categoryId)}
+                </span>
+              </div>
+
+              {/* Excerpt */}
+              {previewPost.excerpt && (
+                <p className="text-xl text-gray-600 mb-8 italic">{previewPost.excerpt}</p>
+              )}
+
+              {/* Content - Visual Editor Blocks */}
+              {previewPost.blocks && previewPost.blocks.length > 0 ? (
+                <div className="space-y-4">
+                  {previewPost.blocks.map((block, index) => renderBlock(block, index))}
+                </div>
+              ) : (
+                <p className="text-gray-500 italic">No content available. Add content using the Visual Editor.</p>
+              )}
+            </article>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
