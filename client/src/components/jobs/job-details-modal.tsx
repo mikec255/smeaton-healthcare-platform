@@ -4,6 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { MapPin, PoundSterling, Building, Check, Phone, Mail } from "lucide-react";
 import { type Job } from "@shared/schema";
+import SocialShareBar from "@/components/shared/SocialShareBar";
 
 interface JobDetailsModalProps {
   job: Job;
@@ -112,6 +113,9 @@ export default function JobDetailsModal({ job, isOpen, onClose, onApply }: JobDe
                   <div className="whitespace-pre-line mb-6">{job.benefits}</div>
                 </>
               )}
+
+              {/* Social Share Bar */}
+              <SocialShareBar title={`${job.title} - Smeaton Healthcare`} />
             </div>
           </div>
           
