@@ -118,7 +118,23 @@ export default function BlogAdmin() {
         return <HeaderTag key={index} style={style}>{block.content?.text || ''}</HeaderTag>;
       
       case 'text':
-        return <p key={index} style={style}>{block.content?.text || ''}</p>;
+        const text = block.content?.text || '';
+        // Preserve line breaks by splitting on newlines and creating separate paragraphs
+        const paragraphs = text.split('\n').filter((p: string) => p.trim());
+        if (paragraphs.length === 0) return null;
+        if (paragraphs.length === 1) {
+          return <p key={index} style={style}>{text}</p>;
+        }
+        // Multiple paragraphs with spacing
+        return (
+          <div key={index}>
+            {paragraphs.map((para: string, i: number) => (
+              <p key={`${index}-${i}`} style={{ ...style, marginBottom: i < paragraphs.length - 1 ? '1em' : undefined }}>
+                {para}
+              </p>
+            ))}
+          </div>
+        );
       
       case 'image':
         const imageUrl = block.content?.url || block.content?.src;

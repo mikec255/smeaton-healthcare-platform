@@ -204,7 +204,15 @@ export default function Blog() {
           return `<${level}${styleAttr}>${block.content?.text || ''}</${level}>`;
         
         case 'text':
-          return `<p${styleAttr}>${block.content?.text || ''}</p>`;
+          const textContent = block.content?.text || '';
+          // Preserve line breaks by splitting on newlines and creating separate paragraphs
+          const textParagraphs = textContent.split('\n').filter((p: string) => p.trim());
+          if (textParagraphs.length === 0) return '';
+          if (textParagraphs.length === 1) {
+            return `<p${styleAttr}>${textContent}</p>`;
+          }
+          // Multiple paragraphs with spacing
+          return textParagraphs.map((para: string) => `<p${styleAttr} style="margin-bottom: 1em">${para}</p>`).join('');
         
         case 'image':
           const imageSrc = block.content?.url || block.content?.src;
