@@ -55,12 +55,12 @@ function SocialShare({ url, title, description }: SocialShareProps) {
   };
 
   return (
-    <div className="flex items-center gap-3 py-4 border-t border-b border-gray-200 my-6">
+    <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 py-4 border-t border-b border-gray-200 my-6">
       <div className="flex items-center gap-2 text-gray-600">
-        <Share2 className="h-5 w-5" />
-        <span className="font-medium">Share:</span>
+        <Share2 className="h-4 w-4 sm:h-5 sm:w-5" />
+        <span className="text-sm sm:text-base font-medium">Share:</span>
       </div>
-      <div className="flex gap-2">
+      <div className="flex flex-wrap gap-2">
         <Button
           variant="outline"
           size="sm"
@@ -454,12 +454,29 @@ export default function Blog() {
       </section>
 
       {/* Blog Posts */}
-      <section className="py-16">
+      <section className="py-8 md:py-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          {/* Mobile Filter Dropdown */}
+          <div className="mb-6 lg:hidden">
+            <label className="block text-sm font-medium text-foreground mb-2">Filter by Category</label>
+            <select
+              value={selectedCategory}
+              onChange={(e) => setSelectedCategory(e.target.value)}
+              className="w-full px-4 py-3 rounded-lg border border-slate-200 bg-white text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+              data-testid="mobile-category-filter"
+            >
+              {categoryOptions.map((category) => (
+                <option key={category} value={category}>
+                  {category}
+                </option>
+              ))}
+            </select>
+          </div>
+
           <div className="flex gap-8">
-            {/* Sidebar Filter */}
-            <aside className="w-64 flex-shrink-0">
-              <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-200 sticky top-8">
+            {/* Desktop Sidebar Filter */}
+            <aside className="hidden lg:block w-64 flex-shrink-0">
+              <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-200 sticky top-24">
                 <div className="flex items-center gap-2 mb-6">
                   <Filter className="h-5 w-5 text-primary" />
                   <h3 className="font-semibold text-foreground">Filter by Category</h3>
@@ -510,12 +527,12 @@ export default function Blog() {
                 className="bg-white rounded-2xl shadow-sm hover:shadow-lg transition-shadow border border-slate-200"
                 data-testid={`blog-post-${index}`}
               >
-                <div className="p-8">
-                  <div className="flex gap-6 flex-col sm:flex-row">
+                <div className="p-4 sm:p-6 md:p-8">
+                  <div className="flex gap-4 sm:gap-6 flex-col sm:flex-row">
                     {/* Small Thumbnail Image - only show if image exists */}
                     {post.image && (
                       <div className="flex-shrink-0">
-                        <div className="w-32 h-24 sm:w-40 sm:h-28 overflow-hidden rounded-lg">
+                        <div className="w-full sm:w-32 h-48 sm:h-24 md:w-40 md:h-28 overflow-hidden rounded-lg">
                           <img 
                             src={post.image} 
                             alt={post.title}
@@ -527,8 +544,8 @@ export default function Blog() {
                     )}
 
                     {/* Content */}
-                    <div className="flex-1 space-y-4">
-                      <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground">
+                    <div className="flex-1 space-y-3 sm:space-y-4">
+                      <div className="flex flex-wrap items-center gap-2 sm:gap-4 text-xs sm:text-sm text-muted-foreground">
                         <span className="bg-primary/10 text-primary px-3 py-1 rounded-full font-medium">
                           {post.category}
                         </span>
@@ -542,7 +559,7 @@ export default function Blog() {
                         </div>
                       </div>
                       
-                      <h2 className="text-2xl font-bold text-foreground hover:text-primary transition-colors">
+                      <h2 className="text-xl sm:text-2xl font-bold text-foreground hover:text-primary transition-colors">
                         {post.title}
                       </h2>
                       

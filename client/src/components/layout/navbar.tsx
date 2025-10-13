@@ -39,18 +39,18 @@ export default function Navbar() {
   ];
 
   return (
-    <nav className="fixed top-0 left-0 right-0 h-24 md:h-24 bg-white border-b border-gray-200 shadow-sm z-40 flex items-center">
-      <div className="container mx-auto px-4 flex justify-between items-center">
+    <nav className="fixed top-0 left-0 right-0 h-20 md:h-24 bg-white border-b border-gray-200 shadow-sm z-40">
+      <div className="container mx-auto px-4 h-full flex justify-between items-center">
         {/* Logo Section */}
-        <div className="flex items-center gap-6">
-          <Link href="/" data-testid="navbar-logo">
+        <div className="flex items-center gap-2 md:gap-6">
+          <Link href="/" data-testid="navbar-logo" className="flex-shrink-0">
             <img 
               src={logoImage} 
               alt="Smeaton Healthcare" 
-              className="h-20 md:h-40 w-auto"
+              className="h-12 sm:h-16 md:h-20 w-auto"
             />
           </Link>
-          <div className="hidden lg:block text-blue-700 text-lg font-bold">
+          <div className="hidden md:block text-blue-700 text-sm md:text-lg font-bold whitespace-nowrap">
             0330 165 8880
           </div>
         </div>
@@ -328,7 +328,7 @@ export default function Navbar() {
 
       {/* Mobile Menu - Simple overlay with consistent spacing */}
       {mobileMenuOpen && (
-        <div className="fixed inset-0 top-24 md:top-24 bg-white border-t border-gray-200 z-50 lg:hidden overflow-y-auto">
+        <div className="fixed inset-0 top-20 md:top-24 bg-white border-t border-gray-200 z-50 lg:hidden overflow-y-auto">
           <div className="container mx-auto px-4 py-4 space-y-6">
             {/* Home Link */}
             <Link 

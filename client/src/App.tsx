@@ -79,7 +79,7 @@ function Router() {
   return (
     <div className="min-h-screen flex flex-col">
       <Navbar />
-      <main className="flex-1 pt-20">
+      <main className="flex-1 pt-20 md:pt-24">
         <Suspense fallback={<PageSkeleton />}>
           <Switch>
             <Route path="/">
