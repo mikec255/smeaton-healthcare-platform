@@ -175,7 +175,7 @@ export default function Blog() {
     return blogPosts.map(post => {
       // Extract image from visual editor blocks or use imagePath
       const blockImage = extractImageFromBlocks(post.blocks || []);
-      const displayImage = blockImage || post.imagePath || teamMeetingImg;
+      const displayImage = blockImage || post.imagePath || '';
       
       // Render content from visual editor blocks or use regular content
       const hasBlocks = post.blocks && Array.isArray(post.blocks) && post.blocks.length > 0;
@@ -372,17 +372,19 @@ export default function Blog() {
               >
                 <div className="p-8">
                   <div className="flex gap-6 flex-col sm:flex-row">
-                    {/* Small Thumbnail Image */}
-                    <div className="flex-shrink-0">
-                      <div className="w-32 h-24 sm:w-40 sm:h-28 overflow-hidden rounded-lg">
-                        <img 
-                          src={post.image} 
-                          alt={post.title}
-                          className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
-                          data-testid={`blog-image-${index}`}
-                        />
+                    {/* Small Thumbnail Image - only show if image exists */}
+                    {post.image && (
+                      <div className="flex-shrink-0">
+                        <div className="w-32 h-24 sm:w-40 sm:h-28 overflow-hidden rounded-lg">
+                          <img 
+                            src={post.image} 
+                            alt={post.title}
+                            className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
+                            data-testid={`blog-image-${index}`}
+                          />
+                        </div>
                       </div>
-                    </div>
+                    )}
 
                     {/* Content */}
                     <div className="flex-1 space-y-4">
@@ -435,14 +437,16 @@ export default function Blog() {
                             </div>
                           </DialogHeader>
                           
-                          {/* Article Image in Modal */}
-                          <div className="aspect-video w-full overflow-hidden rounded-lg mb-6">
-                            <img 
-                              src={post.image} 
-                              alt={post.title}
-                              className="w-full h-full object-cover"
-                            />
-                          </div>
+                          {/* Article Image in Modal - only show if image exists */}
+                          {post.image && (
+                            <div className="aspect-video w-full overflow-hidden rounded-lg mb-6">
+                              <img 
+                                src={post.image} 
+                                alt={post.title}
+                                className="w-full h-full object-cover"
+                              />
+                            </div>
+                          )}
                           
                           {/* Full Article Content */}
                           <div 

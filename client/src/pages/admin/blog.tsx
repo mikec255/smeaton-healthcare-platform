@@ -153,11 +153,13 @@ export default function BlogAdmin() {
           </blockquote>
         );
       
-      case 'code':
+      case 'button':
         return (
-          <pre key={index} style={style} className="bg-gray-100 p-4 rounded overflow-x-auto">
-            <code>{block.content?.code || ''}</code>
-          </pre>
+          <div key={index} style={style}>
+            <button className="px-6 py-2 bg-pink-600 text-white rounded-lg hover:bg-pink-700">
+              {block.content?.text || 'Button'}
+            </button>
+          </div>
         );
       
       default:
