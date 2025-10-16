@@ -452,42 +452,75 @@ export default function RoutePlanner() {
     })
   );
 
-  // Initialize map
-  const initializeMap = () => {
-    if (!mapRef.current || !window.google?.maps) {
-      console.log('Map ref or Google Maps not available:', { mapRef: !!mapRef.current, google: !!window.google?.maps });
-      return;
+  // Load Google Maps script
+  useEffect(() => {
+    const loadGoogleMaps = () => {
+      if (window.google?.maps) {
+        setIsMapLoaded(true);
+        return;
+      }
+
+      const script = document.createElement('script');
+      script.src = `https://maps.googleapis.com/maps/api/js?key=${import.meta.env.VITE_GOOGLE_MAPS_JS_KEY}&libraries=geometry,places,marker&loading=async`;
+      script.async = true;
+      script.defer = true;
+      script.onload = () => {
+        setIsMapLoaded(true);
+      };
+      script.onerror = () => {
+        toast({
+          title: "Map Loading Error",
+          description: "Failed to load Google Maps. Please check your API key configuration.",
+          variant: "destructive",
+        });
+      };
+      document.head.appendChild(script);
+    };
+
+    loadGoogleMaps();
+  }, []);
+
+  // Initialize map when Google Maps is loaded
+  useEffect(() => {
+    if (isMapLoaded) {
+      // Small delay to ensure DOM is ready
+      setTimeout(() => {
+        if (!mapRef.current || !window.google?.maps) {
+          console.log('Map ref or Google Maps not available:', { mapRef: !!mapRef.current, google: !!window.google?.maps });
+          return;
+        }
+
+        try {
+          const map = new window.google.maps.Map(mapRef.current, {
+            zoom: 12,
+            center: { lat: 50.3755, lng: -4.1427 }, // Plymouth, Devon as default center
+            mapTypeId: 'roadmap',
+            streetViewControl: false,
+            mapTypeControl: false,
+            fullscreenControl: false,
+          });
+
+          mapInstanceRef.current = map;
+
+          // Initialize directions renderer - CRITICAL: Suppress markers to prevent dual pins
+          directionsRendererRef.current = new window.google.maps.DirectionsRenderer({
+            draggable: false,
+            suppressMarkers: true, // CRITICAL FIX: Prevent DirectionsRenderer from creating additional markers
+          });
+          directionsRendererRef.current.setMap(map);
+          
+          console.log('Map initialized successfully');
+        } catch (error) {
+          console.error('Failed to initialize map:', error);
+          toast({
+            title: "Map Initialization Error",
+            description: "Failed to initialize the map. Please refresh the page.",
+            variant: "destructive",
+          });
+        }
+      }, 100);
     }
-
-    try {
-      const map = new window.google.maps.Map(mapRef.current, {
-        zoom: 12,
-        center: { lat: 50.3755, lng: -4.1427 }, // Plymouth, Devon as default center
-        mapTypeId: 'roadmap',
-        streetViewControl: false,
-        mapTypeControl: false,
-        fullscreenControl: false,
-      });
-
-      mapInstanceRef.current = map;
-
-      // Initialize directions renderer - CRITICAL: Suppress markers to prevent dual pins
-      directionsRendererRef.current = new window.google.maps.DirectionsRenderer({
-        draggable: false,
-        suppressMarkers: true, // CRITICAL FIX: Prevent DirectionsRenderer from creating additional markers
-      });
-      directionsRendererRef.current.setMap(map);
-      
-      console.log('Map initialized successfully');
-    } catch (error) {
-      console.error('Failed to initialize map:', error);
-      toast({
-        title: "Map Initialization Error",
-        description: "Failed to initialize the map. Please refresh the page.",
-        variant: "destructive",
-      });
-    }
-  };
+  }, [isMapLoaded]);
 
   // Load expanded archived routes from localStorage on mount
   useEffect(() => {
