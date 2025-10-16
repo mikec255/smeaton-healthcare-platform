@@ -452,38 +452,6 @@ export default function RoutePlanner() {
     })
   );
 
-  // Load Google Maps script
-  useEffect(() => {
-    const loadGoogleMaps = () => {
-      if (window.google?.maps) {
-        setIsMapLoaded(true);
-        // Add a small delay to ensure DOM is ready
-        setTimeout(initializeMap, 100);
-        return;
-      }
-
-      const script = document.createElement('script');
-      script.src = `https://maps.googleapis.com/maps/api/js?key=${import.meta.env.VITE_GOOGLE_MAPS_JS_KEY}&libraries=geometry,places,marker&loading=async`;
-      script.async = true;
-      script.defer = true;
-      script.onload = () => {
-        setIsMapLoaded(true);
-        // Add a small delay to ensure DOM is ready
-        setTimeout(initializeMap, 100);
-      };
-      script.onerror = () => {
-        toast({
-          title: "Map Loading Error",
-          description: "Failed to load Google Maps. Please check your API key configuration.",
-          variant: "destructive",
-        });
-      };
-      document.head.appendChild(script);
-    };
-
-    loadGoogleMaps();
-  }, []);
-
   // Initialize map
   const initializeMap = () => {
     if (!mapRef.current || !window.google?.maps) {
