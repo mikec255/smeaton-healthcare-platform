@@ -1167,66 +1167,68 @@ export default function RecruitmentApplicationPage() {
                           </FormItem>
                         )}
                       />
-                      <div className="space-y-4">
-                        <h4 className="font-semibold text-sm">Reference Details</h4>
-                        <div className="grid gap-4 md:grid-cols-3">
-                          <FormField
-                            control={form.control}
-                            name={`employmentHistory.${index}.referenceName`}
-                            render={({ field }) => (
-                              <FormItem>
-                                <FormLabel>Reference Name</FormLabel>
-                                <FormControl>
-                                  <Input {...field} data-testid={`input-employment-reference-${index}`} />
-                                </FormControl>
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
-                          <FormField
-                            control={form.control}
-                            name={`employmentHistory.${index}.referencePhone`}
-                            render={({ field }) => (
-                              <FormItem>
-                                <FormLabel>Reference Phone</FormLabel>
-                                <FormControl>
-                                  <Input {...field} data-testid={`input-employment-reference-phone-${index}`} />
-                                </FormControl>
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
-                          <FormField
-                            control={form.control}
-                            name={`employmentHistory.${index}.referenceEmail`}
-                            render={({ field }) => (
-                              <FormItem>
-                                <FormLabel>Reference Email</FormLabel>
-                                <FormControl>
-                                  <Input type="email" {...field} data-testid={`input-employment-reference-email-${index}`} />
-                                </FormControl>
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
+                      <FormField
+                        control={form.control}
+                        name={`employmentHistory.${index}.useAsReference`}
+                        render={({ field }) => (
+                          <FormItem className="flex items-center space-x-2">
+                            <FormControl>
+                              <Checkbox
+                                checked={field.value}
+                                onCheckedChange={field.onChange}
+                                data-testid={`checkbox-use-as-reference-${index}`}
+                              />
+                            </FormControl>
+                            <FormLabel className="!mt-0 font-normal">Use this employer as a reference</FormLabel>
+                          </FormItem>
+                        )}
+                      />
+                      {form.watch(`employmentHistory.${index}.useAsReference`) && (
+                        <div className="space-y-4 pl-6 border-l-2 border-blue-200">
+                          <h4 className="font-semibold text-sm">Reference Contact Details</h4>
+                          <div className="grid gap-4 md:grid-cols-3">
+                            <FormField
+                              control={form.control}
+                              name={`employmentHistory.${index}.referenceName`}
+                              render={({ field }) => (
+                                <FormItem>
+                                  <FormLabel>Reference Name</FormLabel>
+                                  <FormControl>
+                                    <Input {...field} data-testid={`input-employment-reference-${index}`} />
+                                  </FormControl>
+                                  <FormMessage />
+                                </FormItem>
+                              )}
+                            />
+                            <FormField
+                              control={form.control}
+                              name={`employmentHistory.${index}.referencePhone`}
+                              render={({ field }) => (
+                                <FormItem>
+                                  <FormLabel>Reference Phone</FormLabel>
+                                  <FormControl>
+                                    <Input {...field} data-testid={`input-employment-reference-phone-${index}`} />
+                                  </FormControl>
+                                  <FormMessage />
+                                </FormItem>
+                              )}
+                            />
+                            <FormField
+                              control={form.control}
+                              name={`employmentHistory.${index}.referenceEmail`}
+                              render={({ field }) => (
+                                <FormItem>
+                                  <FormLabel>Reference Email</FormLabel>
+                                  <FormControl>
+                                    <Input type="email" {...field} data-testid={`input-employment-reference-email-${index}`} />
+                                  </FormControl>
+                                  <FormMessage />
+                                </FormItem>
+                              )}
+                            />
+                          </div>
                         </div>
-                        <FormField
-                          control={form.control}
-                          name={`employmentHistory.${index}.useAsReference`}
-                          render={({ field }) => (
-                            <FormItem className="flex items-center space-x-2">
-                              <FormControl>
-                                <Checkbox
-                                  checked={field.value}
-                                  onCheckedChange={field.onChange}
-                                  data-testid={`checkbox-use-as-reference-${index}`}
-                                />
-                              </FormControl>
-                              <FormLabel className="!mt-0 font-normal">Use this person as a reference (will automatically add to References section)</FormLabel>
-                            </FormItem>
-                          )}
-                        />
-                      </div>
+                      )}
                     </div>
                   ))}
                   <Button
