@@ -133,13 +133,13 @@ export default function RecruitmentApplicationsAdmin() {
     }
   });
 
-  // PDF generation function - single render with section-aware page breaks
+  // PDF generation function - natural pagination without forced section breaks
   const handleDownloadPDF = async () => {
     if (!pdfContentRef.current || !selectedApplication) return;
 
     setIsGeneratingPDF(true);
     
-    // Create a sandbox: off-screen container with zero padding for clean offset measurement
+    // Create a sandbox: off-screen container with zero padding for clean rendering
     const sandbox = document.createElement('div');
     sandbox.style.position = 'absolute';
     sandbox.style.left = '-9999px';
@@ -158,14 +158,6 @@ export default function RecruitmentApplicationsAdmin() {
       const contentClone = content.cloneNode(true) as HTMLElement;
       contentClone.style.padding = '0';
       sandbox.appendChild(contentClone);
-      
-      // Measure section offsets in the padding-free sandbox
-      const sections = Array.from(contentClone.querySelectorAll('.pdf-section')) as HTMLElement[];
-      const sandboxRect = contentClone.getBoundingClientRect();
-      const sectionOffsetsCSS = sections.map(section => {
-        const sectionRect = section.getBoundingClientRect();
-        return sectionRect.top - sandboxRect.top;
-      });
 
       // Render the sandbox content once
       const canvas = await html2canvas(contentClone, {
@@ -175,9 +167,6 @@ export default function RecruitmentApplicationsAdmin() {
         windowWidth: contentClone.scrollWidth,
         windowHeight: contentClone.scrollHeight,
       });
-
-      // Convert section offsets to CANVAS pixel space (after scaling)
-      const sectionOffsetsInCanvasSpace = sectionOffsetsCSS.map(offset => offset * scale);
 
       const pdf = new jsPDF('p', 'mm', 'a4');
       const pdfWidth = pdf.internal.pageSize.getWidth();
@@ -194,26 +183,9 @@ export default function RecruitmentApplicationsAdmin() {
       let currentY = 0;
       let pageNumber = 0;
 
+      // Simple natural pagination - just slice at page height boundaries
       while (currentY < canvasHeight) {
-        // Find the next section boundary AFTER currentY
-        const nextSectionY = sectionOffsetsInCanvasSpace.find(offset => offset > currentY) || Infinity;
-        
-        // Calculate slice end: stop at page height OR next section boundary (whichever comes first)
-        const naturalEnd = currentY + pageHeightInPx;
-        let sliceEnd = Math.min(naturalEnd, canvasHeight);
-        
-        // If this slice would cross a section boundary, stop before it to start section on fresh page
-        if (nextSectionY < naturalEnd && nextSectionY > currentY) {
-          sliceEnd = nextSectionY;
-        }
-        
-        const sourceHeight = sliceEnd - currentY;
-        
-        // Skip tiny slices (less than 30px) that would create blank pages from padding gaps
-        if (sourceHeight < 30) {
-          currentY = sliceEnd;
-          continue;
-        }
+        const sourceHeight = Math.min(pageHeightInPx, canvasHeight - currentY);
         
         // Create canvas for this page
         const pageCanvas = document.createElement('canvas');
@@ -248,7 +220,7 @@ export default function RecruitmentApplicationsAdmin() {
           );
         }
 
-        currentY = sliceEnd;
+        currentY += sourceHeight;
         pageNumber++;
       }
 

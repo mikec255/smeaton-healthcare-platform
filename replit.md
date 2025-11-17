@@ -5,10 +5,9 @@ This is a full-stack healthcare staffing platform called "Smeaton Healthcare" bu
 # Recent Changes (November 17, 2025)
 
 ## PDF Export Enhancement
-- Implemented section-aware pagination for recruitment application PDFs
-- Each of the 9 form sections now starts on a fresh page
-- Long sections (e.g., Employment History with 10+ entries) naturally span multiple consecutive pages
-- Uses sandbox-based rendering approach to eliminate padding artifacts and ensure clean section boundaries
+- Implemented natural pagination for recruitment application PDFs that flows like a normal document
+- Content breaks at A4 page boundaries only when it doesn't fit (no forced section breaks)
+- Uses sandbox-based rendering approach to eliminate padding artifacts
 - Proper A4 page sizing with 10mm margins throughout
 - Robust cleanup handling to prevent DOM memory leaks
 
