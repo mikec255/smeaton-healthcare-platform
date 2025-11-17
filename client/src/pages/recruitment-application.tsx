@@ -1640,7 +1640,7 @@ export default function RecruitmentApplicationPage() {
                     References
                   </CardTitle>
                   <CardDescription>
-                    Please provide 2-3 professional or character references
+                    We need references from your last two previous employers. However, if this is not possible, please provide at least one professional reference and a character reference.
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-6">
