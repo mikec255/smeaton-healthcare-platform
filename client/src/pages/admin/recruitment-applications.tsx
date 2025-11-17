@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useRef } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { RecruitmentApplication } from "@shared/schema";
 import { 
@@ -34,6 +34,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/hooks/use-toast";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import { 
@@ -41,26 +42,35 @@ import {
   UserCheck, 
   Clock, 
   CheckCircle, 
-  XCircle,
   Eye,
   Search,
   Filter,
   FileText,
   Mail,
   Phone,
-  MapPin,
   Calendar,
-  User
+  User,
+  Download,
+  Briefcase,
+  GraduationCap,
+  Heart,
+  Shield,
+  Building2,
+  CreditCard,
+  UserCircle,
+  Contact
 } from "lucide-react";
 import { format } from "date-fns";
-
-// Use shared type from schema.ts - no need for local interface
+import jsPDF from "jspdf";
+import html2canvas from "html2canvas";
 
 export default function RecruitmentApplicationsAdmin() {
   const [selectedApplication, setSelectedApplication] = useState<RecruitmentApplication | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [notes, setNotes] = useState("");
+  const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
+  const pdfContentRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
 
   // Fetch recruitment applications
@@ -78,7 +88,6 @@ export default function RecruitmentApplicationsAdmin() {
         title: "Status Updated",
         description: "Application status has been updated successfully.",
       });
-      // Invalidate and refetch applications
       queryClient.invalidateQueries({ 
         queryKey: ["/api/admin/recruitment-applications"] 
       });
@@ -97,25 +106,22 @@ export default function RecruitmentApplicationsAdmin() {
 
   // Notes update mutation
   const notesUpdateMutation = useMutation({
-    mutationFn: async ({ applicationId, notes }: { applicationId: string; notes: string }) => {
-      return apiRequest('PUT', `/api/admin/recruitment-applications/${applicationId}/notes`, { notes });
+    mutationFn: async ({ applicationId, adminNotes }: { applicationId: string; adminNotes: string }) => {
+      return apiRequest('PUT', `/api/admin/recruitment-applications/${applicationId}/notes`, { adminNotes });
     },
-    onSuccess: (data) => {
+    onSuccess: () => {
       toast({
         title: "Notes Saved",
         description: "Application notes have been saved successfully.",
       });
-      // Update the selected application with new notes
       if (selectedApplication) {
         setSelectedApplication({ ...selectedApplication, adminNotes: notes });
       }
-      // Invalidate and refetch applications
       queryClient.invalidateQueries({ 
         queryKey: ["/api/admin/recruitment-applications"] 
       });
     },
     onError: () => {
-      // Rollback local state on error
       if (selectedApplication) {
         setNotes(selectedApplication.adminNotes || "");
       }
@@ -127,13 +133,63 @@ export default function RecruitmentApplicationsAdmin() {
     }
   });
 
+  // PDF generation function
+  const handleDownloadPDF = async () => {
+    if (!pdfContentRef.current || !selectedApplication) return;
+
+    setIsGeneratingPDF(true);
+    try {
+      const content = pdfContentRef.current;
+      const canvas = await html2canvas(content, {
+        scale: 2,
+        useCORS: true,
+        logging: false,
+      });
+
+      const imgWidth = 210; // A4 width in mm
+      const pageHeight = 297; // A4 height in mm
+      const imgHeight = (canvas.height * imgWidth) / canvas.width;
+      let heightLeft = imgHeight;
+      let position = 0;
+
+      const pdf = new jsPDF('p', 'mm', 'a4');
+      const imgData = canvas.toDataURL('image/png');
+
+      pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+      heightLeft -= pageHeight;
+
+      while (heightLeft >= 0) {
+        position = heightLeft - imgHeight;
+        pdf.addPage();
+        pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+        heightLeft -= pageHeight;
+      }
+
+      const fileName = `Recruitment_Application_${selectedApplication.firstName}_${selectedApplication.lastName}_${format(new Date(), 'yyyy-MM-dd')}.pdf`;
+      pdf.save(fileName);
+
+      toast({
+        title: "PDF Downloaded",
+        description: "Application PDF has been downloaded successfully.",
+      });
+    } catch (error) {
+      console.error("Error generating PDF:", error);
+      toast({
+        title: "Error",
+        description: "Failed to generate PDF. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsGeneratingPDF(false);
+    }
+  };
+
   // Filter applications by search and status
   const filteredApplications = useMemo(() => {
     return applications.filter(app => {
       const matchesSearch = searchTerm === "" || 
         `${app.firstName} ${app.lastName}`.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        app.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        (app.applicationData?.position && app.applicationData.position.toLowerCase().includes(searchTerm.toLowerCase()));
+        app.email.toLowerCase().includes(searchTerm.toLowerCase());
       
       const matchesStatus = statusFilter === "all" || (app.status || 'pending') === statusFilter;
       
@@ -182,7 +238,7 @@ export default function RecruitmentApplicationsAdmin() {
     if (!selectedApplication) return;
     notesUpdateMutation.mutate({ 
       applicationId: selectedApplication.id, 
-      notes 
+      adminNotes: notes 
     });
   };
 
@@ -274,7 +330,7 @@ export default function RecruitmentApplicationsAdmin() {
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
               <Input
-                placeholder="Search by name, email, or position..."
+                placeholder="Search by name, email..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="pl-10"
@@ -329,7 +385,6 @@ export default function RecruitmentApplicationsAdmin() {
               <TableHeader>
                 <TableRow>
                   <TableHead>Applicant</TableHead>
-                  <TableHead>Position</TableHead>
                   <TableHead>Contact</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead>Applied</TableHead>
@@ -350,9 +405,6 @@ export default function RecruitmentApplicationsAdmin() {
                           </div>
                         </div>
                       </div>
-                    </TableCell>
-                    <TableCell>
-                      <div className="font-medium">{application.applicationData?.position || 'Not specified'}</div>
                     </TableCell>
                     <TableCell>
                       <div className="space-y-1">
@@ -398,160 +450,521 @@ export default function RecruitmentApplicationsAdmin() {
 
       {/* Application Details Modal */}
       <Dialog open={!!selectedApplication} onOpenChange={(open) => !open && setSelectedApplication(null)}>
-        <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto" data-testid="application-detail-modal">
+        <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto" data-testid="application-detail-modal">
           <DialogHeader>
-            <DialogTitle>Application Details</DialogTitle>
-            <DialogDescription>
-              View and manage recruitment application for {selectedApplication?.firstName} {selectedApplication?.lastName}
-            </DialogDescription>
+            <div className="flex items-center justify-between">
+              <div>
+                <DialogTitle>Application Details</DialogTitle>
+                <DialogDescription>
+                  View and manage recruitment application for {selectedApplication?.firstName} {selectedApplication?.lastName}
+                </DialogDescription>
+              </div>
+              <Button
+                onClick={handleDownloadPDF}
+                disabled={isGeneratingPDF}
+                variant="outline"
+                size="sm"
+                data-testid="button-download-pdf"
+              >
+                <Download className="h-4 w-4 mr-2" />
+                {isGeneratingPDF ? "Generating..." : "Download PDF"}
+              </Button>
+            </div>
           </DialogHeader>
           
           {selectedApplication && (
-            <div className="space-y-6">
-              {/* Personal Information */}
-              <div className="grid md:grid-cols-2 gap-6">
-                <div className="space-y-4">
+            <div ref={pdfContentRef} className="space-y-6 p-4">
+              {/* 1. Personal Information */}
+              <div className="space-y-4">
+                <div className="flex items-center gap-2">
+                  <UserCircle className="h-5 w-5 text-primary" />
                   <h3 className="text-lg font-semibold">Personal Information</h3>
-                  <div className="space-y-3">
-                    <div>
-                      <span className="font-medium">Name:</span> {selectedApplication.firstName} {selectedApplication.lastName}
-                    </div>
-                    <div>
-                      <span className="font-medium">Email:</span> {selectedApplication.email}
-                    </div>
-                    <div>
-                      <span className="font-medium">Phone:</span> {selectedApplication.phone}
-                    </div>
-                    {selectedApplication.applicationData?.address && (
-                      <div>
-                        <span className="font-medium">Address:</span> {selectedApplication.applicationData.address}
-                      </div>
-                    )}
-                  </div>
                 </div>
-                
-                <div className="space-y-4">
-                  <h3 className="text-lg font-semibold">Position & Availability</h3>
-                  <div className="space-y-3">
-                    {selectedApplication.applicationData?.position && (
-                      <div>
-                        <span className="font-medium">Position:</span> {selectedApplication.applicationData.position}
-                      </div>
-                    )}
-                    {selectedApplication.applicationData?.experience && (
-                      <div>
-                        <span className="font-medium">Experience:</span> {selectedApplication.applicationData.experience}
-                      </div>
-                    )}
-                    {selectedApplication.applicationData?.availability && (
-                      <div>
-                        <span className="font-medium">Availability:</span> {selectedApplication.applicationData.availability}
-                      </div>
-                    )}
+                <div className="grid md:grid-cols-3 gap-4 bg-muted/30 p-4 rounded-lg">
+                  <div>
+                    <span className="font-medium text-sm text-muted-foreground">Full Name:</span>
+                    <p className="text-sm">{selectedApplication.firstName} {selectedApplication.lastName}</p>
                   </div>
+                  {selectedApplication.applicationData?.dateOfBirth && (
+                    <div>
+                      <span className="font-medium text-sm text-muted-foreground">Date of Birth:</span>
+                      <p className="text-sm">{typeof selectedApplication.applicationData.dateOfBirth === 'string' ? format(new Date(selectedApplication.applicationData.dateOfBirth), 'dd/MM/yyyy') : 'Not provided'}</p>
+                    </div>
+                  )}
+                  <div>
+                    <span className="font-medium text-sm text-muted-foreground">Email:</span>
+                    <p className="text-sm">{selectedApplication.email}</p>
+                  </div>
+                  <div>
+                    <span className="font-medium text-sm text-muted-foreground">Phone:</span>
+                    <p className="text-sm">{selectedApplication.phone}</p>
+                  </div>
+                  {selectedApplication.applicationData?.address && (
+                    <div>
+                      <span className="font-medium text-sm text-muted-foreground">Address:</span>
+                      <p className="text-sm">{selectedApplication.applicationData.address}</p>
+                    </div>
+                  )}
+                  {selectedApplication.applicationData?.postcode && (
+                    <div>
+                      <span className="font-medium text-sm text-muted-foreground">Postcode:</span>
+                      <p className="text-sm">{selectedApplication.applicationData.postcode}</p>
+                    </div>
+                  )}
+                  {selectedApplication.applicationData?.nationalInsuranceNumber && (
+                    <div>
+                      <span className="font-medium text-sm text-muted-foreground">National Insurance Number:</span>
+                      <p className="text-sm">{selectedApplication.applicationData.nationalInsuranceNumber}</p>
+                    </div>
+                  )}
+                  {selectedApplication.applicationData?.gender && (
+                    <div>
+                      <span className="font-medium text-sm text-muted-foreground">Gender:</span>
+                      <p className="text-sm">{selectedApplication.applicationData.gender}</p>
+                    </div>
+                  )}
+                  {selectedApplication.applicationData?.maritalStatus && (
+                    <div>
+                      <span className="font-medium text-sm text-muted-foreground">Marital Status:</span>
+                      <p className="text-sm">{selectedApplication.applicationData.maritalStatus}</p>
+                    </div>
+                  )}
+                  {selectedApplication.applicationData?.ethnicOrigin && (
+                    <div>
+                      <span className="font-medium text-sm text-muted-foreground">Ethnic Origin:</span>
+                      <p className="text-sm">{selectedApplication.applicationData.ethnicOrigin}</p>
+                    </div>
+                  )}
+                  {selectedApplication.applicationData?.nationality && (
+                    <div>
+                      <span className="font-medium text-sm text-muted-foreground">Nationality:</span>
+                      <p className="text-sm">{selectedApplication.applicationData.nationality}</p>
+                    </div>
+                  )}
                 </div>
               </div>
 
-              {/* Legal & Health Information */}
+              <Separator />
+
+              {/* 2. Next of Kin */}
+              {selectedApplication.applicationData && (selectedApplication.applicationData.nextOfKinName || selectedApplication.applicationData.nextOfKinPhone || selectedApplication.applicationData.nextOfKinAddress) && (
+                <>
+                  <div className="space-y-4">
+                    <div className="flex items-center gap-2">
+                      <Contact className="h-5 w-5 text-primary" />
+                      <h3 className="text-lg font-semibold">Next of Kin</h3>
+                    </div>
+                    <div className="grid md:grid-cols-3 gap-4 bg-muted/30 p-4 rounded-lg">
+                      {selectedApplication.applicationData.nextOfKinName && (
+                        <div>
+                          <span className="font-medium text-sm text-muted-foreground">Name:</span>
+                          <p className="text-sm">{selectedApplication.applicationData.nextOfKinName}</p>
+                        </div>
+                      )}
+                      {selectedApplication.applicationData.nextOfKinPhone && (
+                        <div>
+                          <span className="font-medium text-sm text-muted-foreground">Phone:</span>
+                          <p className="text-sm">{selectedApplication.applicationData.nextOfKinPhone}</p>
+                        </div>
+                      )}
+                      {selectedApplication.applicationData.nextOfKinAddress && (
+                        <div className="md:col-span-3">
+                          <span className="font-medium text-sm text-muted-foreground">Address:</span>
+                          <p className="text-sm">{selectedApplication.applicationData.nextOfKinAddress}</p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                  <Separator />
+                </>
+              )}
+
+              {/* 3. Payroll/Bank Details */}
+              {selectedApplication.applicationData && (selectedApplication.applicationData.payrollType || selectedApplication.applicationData.bankName) && (
+                <>
+                  <div className="space-y-4">
+                    <div className="flex items-center gap-2">
+                      <CreditCard className="h-5 w-5 text-primary" />
+                      <h3 className="text-lg font-semibold">Payroll & Bank Details</h3>
+                    </div>
+                    <div className="grid md:grid-cols-3 gap-4 bg-muted/30 p-4 rounded-lg">
+                      {selectedApplication.applicationData.payrollType && (
+                        <div>
+                          <span className="font-medium text-sm text-muted-foreground">Payroll Type:</span>
+                          <p className="text-sm">{selectedApplication.applicationData.payrollType}</p>
+                        </div>
+                      )}
+                      {selectedApplication.applicationData.bankName && (
+                        <div>
+                          <span className="font-medium text-sm text-muted-foreground">Bank Name:</span>
+                          <p className="text-sm">{selectedApplication.applicationData.bankName}</p>
+                        </div>
+                      )}
+                      {selectedApplication.applicationData.accountType && (
+                        <div>
+                          <span className="font-medium text-sm text-muted-foreground">Account Type:</span>
+                          <p className="text-sm">{selectedApplication.applicationData.accountType}</p>
+                        </div>
+                      )}
+                      {selectedApplication.applicationData.accountName && (
+                        <div>
+                          <span className="font-medium text-sm text-muted-foreground">Account Name:</span>
+                          <p className="text-sm">{selectedApplication.applicationData.accountName}</p>
+                        </div>
+                      )}
+                      {selectedApplication.applicationData.accountNumber && (
+                        <div>
+                          <span className="font-medium text-sm text-muted-foreground">Account Number:</span>
+                          <p className="text-sm">{selectedApplication.applicationData.accountNumber}</p>
+                        </div>
+                      )}
+                      {selectedApplication.applicationData.sortCode && (
+                        <div>
+                          <span className="font-medium text-sm text-muted-foreground">Sort Code:</span>
+                          <p className="text-sm">{selectedApplication.applicationData.sortCode}</p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                  <Separator />
+                </>
+              )}
+
+              {/* 4. Worker Profile */}
+              {selectedApplication.applicationData && (selectedApplication.applicationData.workerTypes || selectedApplication.applicationData.travelMethod) && (
+                <>
+                  <div className="space-y-4">
+                    <div className="flex items-center gap-2">
+                      <Briefcase className="h-5 w-5 text-primary" />
+                      <h3 className="text-lg font-semibold">Worker Profile</h3>
+                    </div>
+                    <div className="grid md:grid-cols-2 gap-4 bg-muted/30 p-4 rounded-lg">
+                      {selectedApplication.applicationData.workerTypes && Array.isArray(selectedApplication.applicationData.workerTypes) && selectedApplication.applicationData.workerTypes.length > 0 && (
+                        <div>
+                          <span className="font-medium text-sm text-muted-foreground">Worker Types:</span>
+                          <div className="flex flex-wrap gap-1 mt-1">
+                            {selectedApplication.applicationData.workerTypes.map((type: string, idx: number) => (
+                              <Badge key={idx} variant="secondary" className="text-xs">{type}</Badge>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                      {selectedApplication.applicationData.travelMethod && (
+                        <div>
+                          <span className="font-medium text-sm text-muted-foreground">Travel Method:</span>
+                          <p className="text-sm">{selectedApplication.applicationData.travelMethod}</p>
+                        </div>
+                      )}
+                      {selectedApplication.applicationData.travelDistance && (
+                        <div>
+                          <span className="font-medium text-sm text-muted-foreground">Travel Distance:</span>
+                          <p className="text-sm">{selectedApplication.applicationData.travelDistance}</p>
+                        </div>
+                      )}
+                      {selectedApplication.applicationData.leadSkills && Array.isArray(selectedApplication.applicationData.leadSkills) && selectedApplication.applicationData.leadSkills.length > 0 && (
+                        <div>
+                          <span className="font-medium text-sm text-muted-foreground">Lead Skills:</span>
+                          <div className="flex flex-wrap gap-1 mt-1">
+                            {selectedApplication.applicationData.leadSkills.map((skill: string, idx: number) => (
+                              <Badge key={idx} variant="secondary" className="text-xs">{skill}</Badge>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                      {selectedApplication.applicationData.shiftPreferences && (
+                        <div>
+                          <span className="font-medium text-sm text-muted-foreground">Shift Preferences:</span>
+                          <p className="text-sm">{selectedApplication.applicationData.shiftPreferences}</p>
+                        </div>
+                      )}
+                      {selectedApplication.applicationData.availableDays && Array.isArray(selectedApplication.applicationData.availableDays) && selectedApplication.applicationData.availableDays.length > 0 && (
+                        <div>
+                          <span className="font-medium text-sm text-muted-foreground">Available Days:</span>
+                          <div className="flex flex-wrap gap-1 mt-1">
+                            {selectedApplication.applicationData.availableDays.map((day: string, idx: number) => (
+                              <Badge key={idx} variant="outline" className="text-xs">{day}</Badge>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                  <Separator />
+                </>
+              )}
+
+              {/* 5. Employment History */}
+              {selectedApplication.applicationData?.employmentHistory && Array.isArray(selectedApplication.applicationData.employmentHistory) && selectedApplication.applicationData.employmentHistory.length > 0 && (
+                <>
+                  <div className="space-y-4">
+                    <div className="flex items-center gap-2">
+                      <Building2 className="h-5 w-5 text-primary" />
+                      <h3 className="text-lg font-semibold">Employment History</h3>
+                    </div>
+                    <div className="space-y-3">
+                      {selectedApplication.applicationData.employmentHistory.map((job: any, idx: number) => (
+                        <div key={idx} className="bg-muted/30 p-4 rounded-lg">
+                          <div className="flex items-start justify-between mb-2">
+                            <div>
+                              <h4 className="font-semibold">{job.jobTitle}</h4>
+                              <p className="text-sm text-muted-foreground">{job.companyName}</p>
+                            </div>
+                            {job.currentlyEmployed && (
+                              <Badge variant="secondary">Current</Badge>
+                            )}
+                          </div>
+                          <div className="grid md:grid-cols-2 gap-2 text-sm">
+                            {job.startDate && (
+                              <div>
+                                <span className="font-medium text-muted-foreground">Start Date:</span> {typeof job.startDate === 'string' ? format(new Date(job.startDate), 'MMM yyyy') : 'Not provided'}
+                              </div>
+                            )}
+                            {job.endDate && !job.currentlyEmployed && (
+                              <div>
+                                <span className="font-medium text-muted-foreground">End Date:</span> {typeof job.endDate === 'string' ? format(new Date(job.endDate), 'MMM yyyy') : 'Not provided'}
+                              </div>
+                            )}
+                            {job.reasonForLeaving && (
+                              <div className="md:col-span-2">
+                                <span className="font-medium text-muted-foreground">Reason for Leaving:</span> {job.reasonForLeaving}
+                              </div>
+                            )}
+                            {(job.managerName || job.managerPhone || job.managerEmail) && (
+                              <div className="md:col-span-2">
+                                <span className="font-medium text-muted-foreground">Manager Contact:</span>
+                                <div className="ml-2 space-y-1">
+                                  {job.managerName && <p>Name: {job.managerName}</p>}
+                                  {job.managerPhone && <p>Phone: {job.managerPhone}</p>}
+                                  {job.managerEmail && <p>Email: {job.managerEmail}</p>}
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                  <Separator />
+                </>
+              )}
+
+              {/* 6. Education */}
+              {selectedApplication.applicationData?.education && Array.isArray(selectedApplication.applicationData.education) && selectedApplication.applicationData.education.length > 0 && (
+                <>
+                  <div className="space-y-4">
+                    <div className="flex items-center gap-2">
+                      <GraduationCap className="h-5 w-5 text-primary" />
+                      <h3 className="text-lg font-semibold">Education & Qualifications</h3>
+                    </div>
+                    <div className="space-y-2">
+                      {selectedApplication.applicationData.education.map((edu: any, idx: number) => (
+                        <div key={idx} className="bg-muted/30 p-3 rounded-lg">
+                          <div className="grid md:grid-cols-3 gap-2 text-sm">
+                            <div>
+                              <span className="font-medium text-muted-foreground">Type:</span> {edu.qualificationType}
+                            </div>
+                            <div>
+                              <span className="font-medium text-muted-foreground">Qualification:</span> {edu.qualificationName}
+                            </div>
+                            {edu.institution && (
+                              <div>
+                                <span className="font-medium text-muted-foreground">Institution:</span> {edu.institution}
+                              </div>
+                            )}
+                            {edu.yearObtained && (
+                              <div>
+                                <span className="font-medium text-muted-foreground">Year Obtained:</span> {edu.yearObtained}
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                  <Separator />
+                </>
+              )}
+
+              {/* 7. Health & Compliance */}
               {selectedApplication.applicationData && (
-                <div className="space-y-4">
-                  <h3 className="text-lg font-semibold">Legal & Health Information</h3>
-                  <div className="grid md:grid-cols-2 gap-6">
-                    <div className="space-y-3">
-                      {typeof selectedApplication.applicationData.rightToWork !== 'undefined' && (
+                <>
+                  <div className="space-y-4">
+                    <div className="flex items-center gap-2">
+                      <Heart className="h-5 w-5 text-primary" />
+                      <h3 className="text-lg font-semibold">Health & Compliance</h3>
+                    </div>
+                    <div className="grid md:grid-cols-2 gap-4 bg-muted/30 p-4 rounded-lg">
+                      {selectedApplication.applicationData.medicalConditions && Array.isArray(selectedApplication.applicationData.medicalConditions) && selectedApplication.applicationData.medicalConditions.length > 0 && (
                         <div>
-                          <span className="font-medium">Right to Work:</span> 
-                          <Badge className={selectedApplication.applicationData.rightToWork ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"}>
-                            {selectedApplication.applicationData.rightToWork ? "Yes" : "No"}
+                          <span className="font-medium text-sm text-muted-foreground">Medical Conditions:</span>
+                          <div className="flex flex-wrap gap-1 mt-1">
+                            {selectedApplication.applicationData.medicalConditions.map((condition: string, idx: number) => (
+                              <Badge key={idx} variant="outline" className="text-xs">{condition}</Badge>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                      {typeof selectedApplication.applicationData.medicationAffectsDriving !== 'undefined' && (
+                        <div>
+                          <span className="font-medium text-sm text-muted-foreground">Medication Affects Driving:</span>
+                          <Badge className={selectedApplication.applicationData.medicationAffectsDriving ? "bg-yellow-100 text-yellow-800" : "bg-green-100 text-green-800"}>
+                            {selectedApplication.applicationData.medicationAffectsDriving ? "Yes" : "No"}
                           </Badge>
                         </div>
                       )}
-                      {typeof selectedApplication.applicationData.transportReliable !== 'undefined' && (
+                      {typeof selectedApplication.applicationData.medicalAffectsNightWork !== 'undefined' && (
                         <div>
-                          <span className="font-medium">Reliable Transport:</span> 
-                          <Badge className={selectedApplication.applicationData.transportReliable ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"}>
-                            {selectedApplication.applicationData.transportReliable ? "Yes" : "No"}
+                          <span className="font-medium text-sm text-muted-foreground">Medical Affects Night Work:</span>
+                          <Badge className={selectedApplication.applicationData.medicalAffectsNightWork ? "bg-yellow-100 text-yellow-800" : "bg-green-100 text-green-800"}>
+                            {selectedApplication.applicationData.medicalAffectsNightWork ? "Yes" : "No"}
+                          </Badge>
+                        </div>
+                      )}
+                      {typeof selectedApplication.applicationData.hasCriminalConvictions !== 'undefined' && (
+                        <div className="md:col-span-2">
+                          <span className="font-medium text-sm text-muted-foreground">Criminal Convictions:</span>
+                          <Badge className={selectedApplication.applicationData.hasCriminalConvictions ? "bg-red-100 text-red-800" : "bg-green-100 text-green-800"}>
+                            {selectedApplication.applicationData.hasCriminalConvictions ? "Yes" : "No"}
+                          </Badge>
+                          {selectedApplication.applicationData.hasCriminalConvictions && selectedApplication.applicationData.convictionDetails && (
+                            <p className="text-sm mt-2 bg-background p-3 rounded border">{selectedApplication.applicationData.convictionDetails}</p>
+                          )}
+                        </div>
+                      )}
+                      {typeof selectedApplication.applicationData.dbsConsent !== 'undefined' && (
+                        <div>
+                          <span className="font-medium text-sm text-muted-foreground">DBS Consent:</span>
+                          <Badge className={selectedApplication.applicationData.dbsConsent ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"}>
+                            {selectedApplication.applicationData.dbsConsent ? "Yes" : "No"}
+                          </Badge>
+                        </div>
+                      )}
+                      {typeof selectedApplication.applicationData.workingTimeDirectiveOptOut !== 'undefined' && (
+                        <div>
+                          <span className="font-medium text-sm text-muted-foreground">Working Time Directive Opt-Out:</span>
+                          <Badge className={selectedApplication.applicationData.workingTimeDirectiveOptOut ? "bg-blue-100 text-blue-800" : "bg-gray-100 text-gray-800"}>
+                            {selectedApplication.applicationData.workingTimeDirectiveOptOut ? "Opted Out" : "Not Opted Out"}
                           </Badge>
                         </div>
                       )}
                     </div>
-                    <div className="space-y-3">
-                      {typeof selectedApplication.applicationData.criminalConvictions !== 'undefined' && (
+                  </div>
+                  <Separator />
+                </>
+              )}
+
+              {/* 8. Data Protection */}
+              {selectedApplication.applicationData && (typeof selectedApplication.applicationData.dataProtectionConsent !== 'undefined' || typeof selectedApplication.applicationData.dataHoldingConsent !== 'undefined') && (
+                <>
+                  <div className="space-y-4">
+                    <div className="flex items-center gap-2">
+                      <Shield className="h-5 w-5 text-primary" />
+                      <h3 className="text-lg font-semibold">Data Protection</h3>
+                    </div>
+                    <div className="grid md:grid-cols-2 gap-4 bg-muted/30 p-4 rounded-lg">
+                      {typeof selectedApplication.applicationData.dataProtectionConsent !== 'undefined' && (
                         <div>
-                          <span className="font-medium">Criminal Convictions:</span> 
-                          <Badge className={selectedApplication.applicationData.criminalConvictions ? "bg-red-100 text-red-800" : "bg-green-100 text-green-800"}>
-                            {selectedApplication.applicationData.criminalConvictions ? "Yes" : "No"}
+                          <span className="font-medium text-sm text-muted-foreground">Data Protection Consent:</span>
+                          <Badge className={selectedApplication.applicationData.dataProtectionConsent ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"}>
+                            {selectedApplication.applicationData.dataProtectionConsent ? "Consented" : "Not Consented"}
                           </Badge>
-                          {selectedApplication.applicationData.criminalConvictions && selectedApplication.applicationData.criminalDetails && (
-                            <p className="text-sm mt-1 bg-muted p-3 rounded">{selectedApplication.applicationData.criminalDetails}</p>
-                          )}
                         </div>
                       )}
-                      {typeof selectedApplication.applicationData.healthConditions !== 'undefined' && (
+                      {typeof selectedApplication.applicationData.dataHoldingConsent !== 'undefined' && (
                         <div>
-                          <span className="font-medium">Health Conditions:</span> 
-                          <Badge className={selectedApplication.applicationData.healthConditions ? "bg-yellow-100 text-yellow-800" : "bg-green-100 text-green-800"}>
-                            {selectedApplication.applicationData.healthConditions ? "Yes" : "No"}
+                          <span className="font-medium text-sm text-muted-foreground">Data Holding Consent:</span>
+                          <Badge className={selectedApplication.applicationData.dataHoldingConsent ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"}>
+                            {selectedApplication.applicationData.dataHoldingConsent ? "Consented" : "Not Consented"}
                           </Badge>
-                          {selectedApplication.applicationData.healthConditions && selectedApplication.applicationData.healthDetails && (
-                            <p className="text-sm mt-1 bg-muted p-3 rounded">{selectedApplication.applicationData.healthDetails}</p>
-                          )}
+                        </div>
+                      )}
+                      {selectedApplication.applicationData.dataTypesConsented && Array.isArray(selectedApplication.applicationData.dataTypesConsented) && selectedApplication.applicationData.dataTypesConsented.length > 0 && (
+                        <div className="md:col-span-2">
+                          <span className="font-medium text-sm text-muted-foreground">Data Types Consented:</span>
+                          <div className="flex flex-wrap gap-1 mt-1">
+                            {selectedApplication.applicationData.dataTypesConsented.map((type: string, idx: number) => (
+                              <Badge key={idx} variant="secondary" className="text-xs">{type}</Badge>
+                            ))}
+                          </div>
                         </div>
                       )}
                     </div>
                   </div>
-                </div>
+                  <Separator />
+                </>
               )}
 
-              {/* Emergency Contact */}
-              {selectedApplication.applicationData && (selectedApplication.applicationData.emergencyContactName || selectedApplication.applicationData.emergencyContactPhone) && (
-                <div className="space-y-4">
-                  <h3 className="text-lg font-semibold">Emergency Contact</h3>
-                  <div className="grid md:grid-cols-3 gap-4">
-                    {selectedApplication.applicationData.emergencyContactName && (
-                      <div>
-                        <span className="font-medium">Name:</span> {selectedApplication.applicationData.emergencyContactName}
-                      </div>
-                    )}
-                    {selectedApplication.applicationData.emergencyContactPhone && (
-                      <div>
-                        <span className="font-medium">Phone:</span> {selectedApplication.applicationData.emergencyContactPhone}
-                      </div>
-                    )}
-                    {selectedApplication.applicationData.emergencyContactRelationship && (
-                      <div>
-                        <span className="font-medium">Relationship:</span> {selectedApplication.applicationData.emergencyContactRelationship}
-                      </div>
-                    )}
+              {/* 9. References */}
+              {selectedApplication.applicationData?.references && Array.isArray(selectedApplication.applicationData.references) && selectedApplication.applicationData.references.length > 0 && (
+                <>
+                  <div className="space-y-4">
+                    <div className="flex items-center gap-2">
+                      <FileText className="h-5 w-5 text-primary" />
+                      <h3 className="text-lg font-semibold">References</h3>
+                    </div>
+                    <div className="space-y-3">
+                      {selectedApplication.applicationData.references.map((ref: any, idx: number) => (
+                        <div key={idx} className="bg-muted/30 p-4 rounded-lg">
+                          <div className="flex items-start justify-between mb-2">
+                            <div>
+                              <h4 className="font-semibold">{ref.fullName}</h4>
+                              <p className="text-sm text-muted-foreground">{ref.referenceType} Reference</p>
+                            </div>
+                          </div>
+                          <div className="grid md:grid-cols-2 gap-2 text-sm">
+                            {ref.company && (
+                              <div>
+                                <span className="font-medium text-muted-foreground">Organisation:</span> {ref.company}
+                              </div>
+                            )}
+                            {ref.jobTitle && (
+                              <div>
+                                <span className="font-medium text-muted-foreground">Job Title:</span> {ref.jobTitle}
+                              </div>
+                            )}
+                            {ref.relationship && (
+                              <div>
+                                <span className="font-medium text-muted-foreground">Relationship:</span> {ref.relationship}
+                              </div>
+                            )}
+                            {ref.applicantJobTitle && (
+                              <div>
+                                <span className="font-medium text-muted-foreground">Applicant's Position:</span> {ref.applicantJobTitle}
+                              </div>
+                            )}
+                            {ref.startDate && (
+                              <div>
+                                <span className="font-medium text-muted-foreground">Start Date:</span> {typeof ref.startDate === 'string' ? format(new Date(ref.startDate), 'MMM yyyy') : 'Not provided'}
+                              </div>
+                            )}
+                            {ref.endDate && (
+                              <div>
+                                <span className="font-medium text-muted-foreground">End Date:</span> {typeof ref.endDate === 'string' ? format(new Date(ref.endDate), 'MMM yyyy') : 'Not provided'}
+                              </div>
+                            )}
+                            {ref.email && (
+                              <div>
+                                <span className="font-medium text-muted-foreground">Email:</span> {ref.email}
+                              </div>
+                            )}
+                            {ref.phone && (
+                              <div>
+                                <span className="font-medium text-muted-foreground">Phone:</span> {ref.phone}
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
                   </div>
-                </div>
-              )}
-
-              {/* Motivation & Additional Info */}
-              {selectedApplication.applicationData && (selectedApplication.applicationData.motivationStatement || selectedApplication.applicationData.additionalInfo) && (
-                <div className="space-y-4">
-                  <h3 className="text-lg font-semibold">Motivation & Additional Information</h3>
-                  <div className="space-y-3">
-                    {selectedApplication.applicationData.motivationStatement && (
-                      <div>
-                        <span className="font-medium">Why do you want to work in healthcare?</span>
-                        <p className="text-sm mt-1 bg-muted p-3 rounded">{selectedApplication.applicationData.motivationStatement}</p>
-                      </div>
-                    )}
-                    {selectedApplication.applicationData.additionalInfo && (
-                      <div>
-                        <span className="font-medium">Additional Information:</span>
-                        <p className="text-sm mt-1 bg-muted p-3 rounded">{selectedApplication.applicationData.additionalInfo}</p>
-                      </div>
-                    )}
-                  </div>
-                </div>
+                  <Separator />
+                </>
               )}
 
               {/* Status Management */}
-              <div className="space-y-4 border-t pt-4">
+              <div className="space-y-4 bg-muted/20 p-4 rounded-lg">
                 <h3 className="text-lg font-semibold">Status Management</h3>
-                <div className="flex items-center gap-4">
+                <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
                   <div className="flex items-center gap-2">
                     <span className="font-medium">Status:</span>
                     <Select 
@@ -579,7 +992,7 @@ export default function RecruitmentApplicationsAdmin() {
               </div>
 
               {/* Admin Notes */}
-              <div className="space-y-4 border-t pt-4">
+              <div className="space-y-4 bg-muted/20 p-4 rounded-lg">
                 <h3 className="text-lg font-semibold">Admin Notes</h3>
                 <div className="space-y-3">
                   <Textarea
