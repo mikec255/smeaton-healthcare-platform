@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation } from "@tanstack/react-query";
@@ -62,9 +62,10 @@ const employmentHistorySchema = z.object({
   endDate: z.string().optional(),
   currentlyEmployed: z.boolean().default(false),
   reasonForLeaving: z.string().optional(),
-  managerName: z.string().optional(),
-  managerPhone: z.string().optional(),
-  managerEmail: z.string().email("Please enter a valid email").optional().or(z.literal("")),
+  referenceName: z.string().optional(),
+  referencePhone: z.string().optional(),
+  referenceEmail: z.string().email("Please enter a valid email").optional().or(z.literal("")),
+  useAsReference: z.boolean().default(false),
 });
 
 // Education record schema
@@ -212,9 +213,10 @@ export default function RecruitmentApplicationPage() {
           endDate: "",
           currentlyEmployed: false,
           reasonForLeaving: "",
-          managerName: "",
-          managerPhone: "",
-          managerEmail: "",
+          referenceName: "",
+          referencePhone: "",
+          referenceEmail: "",
+          useAsReference: false,
         }
       ],
       education: [
@@ -332,6 +334,39 @@ export default function RecruitmentApplicationPage() {
   };
 
   const watchCriminalConvictions = form.watch("hasCriminalConvictions");
+  const watchEmploymentHistory = form.watch("employmentHistory");
+
+  // Auto-sync employment references to References tab
+  useEffect(() => {
+    const currentReferences = form.getValues("references");
+    const employmentRefs = watchEmploymentHistory
+      .filter(emp => emp.useAsReference && emp.referenceName && emp.referenceEmail && emp.referencePhone)
+      .map(emp => ({
+        referenceType: "Professional" as const,
+        fullName: emp.referenceName || "",
+        company: emp.companyName || "",
+        jobTitle: emp.jobTitle || "",
+        relationship: "Former Manager/Supervisor",
+        startDate: emp.startDate || "",
+        endDate: emp.endDate || "",
+        applicantJobTitle: emp.jobTitle || "",
+        email: emp.referenceEmail || "",
+        phone: emp.referencePhone || "",
+      }));
+
+    // Filter out manually added references (not from employment)
+    const manualReferences = currentReferences.filter(ref => 
+      !employmentRefs.some(empRef => empRef.email === ref.email)
+    );
+
+    // Combine employment refs and manual refs
+    const updatedReferences = [...employmentRefs, ...manualReferences];
+    
+    // Only update if there's an actual change
+    if (JSON.stringify(updatedReferences) !== JSON.stringify(currentReferences)) {
+      form.setValue("references", updatedReferences);
+    }
+  }, [watchEmploymentHistory]);
 
   if (isSubmitted) {
     return (
@@ -1132,43 +1167,62 @@ export default function RecruitmentApplicationPage() {
                           </FormItem>
                         )}
                       />
-                      <div className="grid gap-4 md:grid-cols-3">
+                      <div className="space-y-4">
+                        <h4 className="font-semibold text-sm">Reference Details</h4>
+                        <div className="grid gap-4 md:grid-cols-3">
+                          <FormField
+                            control={form.control}
+                            name={`employmentHistory.${index}.referenceName`}
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Reference Name</FormLabel>
+                                <FormControl>
+                                  <Input {...field} data-testid={`input-employment-reference-${index}`} />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                          <FormField
+                            control={form.control}
+                            name={`employmentHistory.${index}.referencePhone`}
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Reference Phone</FormLabel>
+                                <FormControl>
+                                  <Input {...field} data-testid={`input-employment-reference-phone-${index}`} />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                          <FormField
+                            control={form.control}
+                            name={`employmentHistory.${index}.referenceEmail`}
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Reference Email</FormLabel>
+                                <FormControl>
+                                  <Input type="email" {...field} data-testid={`input-employment-reference-email-${index}`} />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                        </div>
                         <FormField
                           control={form.control}
-                          name={`employmentHistory.${index}.managerName`}
+                          name={`employmentHistory.${index}.useAsReference`}
                           render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Manager Name</FormLabel>
+                            <FormItem className="flex items-center space-x-2">
                               <FormControl>
-                                <Input {...field} data-testid={`input-employment-manager-${index}`} />
+                                <Checkbox
+                                  checked={field.value}
+                                  onCheckedChange={field.onChange}
+                                  data-testid={`checkbox-use-as-reference-${index}`}
+                                />
                               </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                        <FormField
-                          control={form.control}
-                          name={`employmentHistory.${index}.managerPhone`}
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Manager Phone</FormLabel>
-                              <FormControl>
-                                <Input {...field} data-testid={`input-employment-manager-phone-${index}`} />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                        <FormField
-                          control={form.control}
-                          name={`employmentHistory.${index}.managerEmail`}
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Manager Email</FormLabel>
-                              <FormControl>
-                                <Input type="email" {...field} data-testid={`input-employment-manager-email-${index}`} />
-                              </FormControl>
-                              <FormMessage />
+                              <FormLabel className="!mt-0 font-normal">Use this person as a reference (will automatically add to References section)</FormLabel>
                             </FormItem>
                           )}
                         />
@@ -1189,9 +1243,10 @@ export default function RecruitmentApplicationPage() {
                           endDate: "",
                           currentlyEmployed: false,
                           reasonForLeaving: "",
-                          managerName: "",
-                          managerPhone: "",
-                          managerEmail: "",
+                          referenceName: "",
+                          referencePhone: "",
+                          referenceEmail: "",
+                          useAsReference: false,
                         }
                       ]);
                     }}
