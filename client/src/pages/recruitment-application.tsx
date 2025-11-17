@@ -1698,8 +1698,13 @@ export default function RecruitmentApplicationPage() {
                   {form.watch("references").map((_, index) => (
                     <div key={index} className="border rounded-lg p-4 space-y-4 relative">
                       <div className="flex justify-between items-center mb-2">
-                        <h4 className="font-semibold">Reference {index + 1}</h4>
-                        {index > 1 && (
+                        <h4 className="font-semibold">
+                          Reference {index + 1}
+                          {form.watch(`references.${index}.referenceType`) === "Professional" && (
+                            <span className="text-xs text-blue-600 ml-2">(from Employment History)</span>
+                          )}
+                        </h4>
+                        {form.watch(`references.${index}.referenceType`) === "Character" && (
                           <Button
                             type="button"
                             variant="ghost"
@@ -1753,7 +1758,12 @@ export default function RecruitmentApplicationPage() {
                             <FormItem>
                               <FormLabel>Full Name *</FormLabel>
                               <FormControl>
-                                <Input {...field} data-testid={`input-reference-name-${index}`} />
+                                <Input 
+                                  {...field} 
+                                  readOnly={form.watch(`references.${index}.referenceType`) === "Professional"}
+                                  className={form.watch(`references.${index}.referenceType`) === "Professional" ? "bg-gray-100 cursor-not-allowed" : ""}
+                                  data-testid={`input-reference-name-${index}`} 
+                                />
                               </FormControl>
                               <FormMessage />
                             </FormItem>
@@ -1766,7 +1776,12 @@ export default function RecruitmentApplicationPage() {
                             <FormItem>
                               <FormLabel>Their Job Title</FormLabel>
                               <FormControl>
-                                <Input {...field} data-testid={`input-reference-job-title-${index}`} />
+                                <Input 
+                                  {...field} 
+                                  readOnly={form.watch(`references.${index}.referenceType`) === "Professional"}
+                                  className={form.watch(`references.${index}.referenceType`) === "Professional" ? "bg-gray-100 cursor-not-allowed" : ""}
+                                  data-testid={`input-reference-job-title-${index}`} 
+                                />
                               </FormControl>
                               <FormMessage />
                             </FormItem>
@@ -1779,7 +1794,12 @@ export default function RecruitmentApplicationPage() {
                             <FormItem>
                               <FormLabel>Company</FormLabel>
                               <FormControl>
-                                <Input {...field} data-testid={`input-reference-company-${index}`} />
+                                <Input 
+                                  {...field} 
+                                  readOnly={form.watch(`references.${index}.referenceType`) === "Professional"}
+                                  className={form.watch(`references.${index}.referenceType`) === "Professional" ? "bg-gray-100 cursor-not-allowed" : ""}
+                                  data-testid={`input-reference-company-${index}`} 
+                                />
                               </FormControl>
                               <FormMessage />
                             </FormItem>
@@ -1846,7 +1866,13 @@ export default function RecruitmentApplicationPage() {
                             <FormItem>
                               <FormLabel>Email Address *</FormLabel>
                               <FormControl>
-                                <Input type="email" {...field} data-testid={`input-reference-email-${index}`} />
+                                <Input 
+                                  type="email" 
+                                  {...field} 
+                                  readOnly={form.watch(`references.${index}.referenceType`) === "Professional"}
+                                  className={form.watch(`references.${index}.referenceType`) === "Professional" ? "bg-gray-100 cursor-not-allowed" : ""}
+                                  data-testid={`input-reference-email-${index}`} 
+                                />
                               </FormControl>
                               <FormMessage />
                             </FormItem>
@@ -1859,7 +1885,12 @@ export default function RecruitmentApplicationPage() {
                             <FormItem>
                               <FormLabel>Phone Number *</FormLabel>
                               <FormControl>
-                                <Input {...field} data-testid={`input-reference-phone-${index}`} />
+                                <Input 
+                                  {...field} 
+                                  readOnly={form.watch(`references.${index}.referenceType`) === "Professional"}
+                                  className={form.watch(`references.${index}.referenceType`) === "Professional" ? "bg-gray-100 cursor-not-allowed" : ""}
+                                  data-testid={`input-reference-phone-${index}`} 
+                                />
                               </FormControl>
                               <FormMessage />
                             </FormItem>
