@@ -279,21 +279,12 @@ export default function RecruitmentApplicationPage() {
 
   const nextStep = async () => {
     const fieldsToValidate = getFieldsForStep(currentStep);
-    console.log('=== NEXT STEP DEBUG ===');
-    console.log('Current Step:', currentStep);
-    console.log('Fields to validate:', fieldsToValidate);
-    console.log('Form values before validation:', form.getValues());
-    
     const isValid = await form.trigger(fieldsToValidate as any);
-    console.log('Validation result:', isValid);
-    console.log('Form errors:', form.formState.errors);
-    console.log('Form values after validation:', form.getValues());
     
     if (isValid) {
       setCurrentStep(prev => Math.min(prev + 1, STEPS.length));
       window.scrollTo(0, 0);
     } else {
-      console.log('Validation failed, showing error');
       toast({
         title: "Validation Error",
         description: "Please fill in all required fields before continuing.",
@@ -327,12 +318,7 @@ export default function RecruitmentApplicationPage() {
 
   // Auto-sync employment references to References tab
   useEffect(() => {
-    console.log('=== REFERENCES SYNC DEBUG ===');
-    console.log('Employment History:', watchEmploymentHistory);
-    console.log('Employment History with useAsReference:', watchEmploymentHistory.filter(emp => emp.useAsReference));
-    
     const currentReferences = form.getValues("references");
-    console.log('Current References:', currentReferences);
     
     // Create references for all employment records where useAsReference is checked
     const employmentRefs = watchEmploymentHistory
@@ -350,24 +336,16 @@ export default function RecruitmentApplicationPage() {
         phone: emp.referencePhone || "",
       }));
 
-    console.log('Created Employment Refs:', employmentRefs);
-
     // Keep only Character references (manually added)
     const manualReferences = currentReferences.filter(ref => ref.referenceType === "Character");
-    console.log('Manual Refs:', manualReferences);
 
     // Combine employment refs and manual refs
     const updatedReferences = [...employmentRefs, ...manualReferences];
-    console.log('Updated References (will set):', updatedReferences);
     
     // Only update if there's an actual change
     if (JSON.stringify(updatedReferences) !== JSON.stringify(currentReferences)) {
-      console.log('Setting references in form...');
       form.setValue("references", updatedReferences);
-    } else {
-      console.log('No change detected, skipping update');
     }
-    console.log('=== END DEBUG ===');
   }, [watchEmploymentHistory]);
 
   if (isSubmitted) {
