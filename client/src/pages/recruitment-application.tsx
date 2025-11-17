@@ -271,7 +271,10 @@ export default function RecruitmentApplicationPage() {
   });
 
   const onSubmit = async (data: ApplicationFormData) => {
-    submitMutation.mutate(data);
+    // Only submit if we're on the last step
+    if (currentStep === STEPS.length) {
+      submitMutation.mutate(data);
+    }
   };
 
   const nextStep = async () => {
@@ -338,10 +341,6 @@ export default function RecruitmentApplicationPage() {
 
     // Combine employment refs and manual refs
     const updatedReferences = [...employmentRefs, ...manualReferences];
-    
-    console.log("Employment refs:", employmentRefs);
-    console.log("Manual refs:", manualReferences);
-    console.log("Updated refs:", updatedReferences);
     
     // Only update if there's an actual change
     if (JSON.stringify(updatedReferences) !== JSON.stringify(currentReferences)) {
@@ -444,7 +443,16 @@ export default function RecruitmentApplicationPage() {
         </div>
 
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+          <form 
+            onSubmit={form.handleSubmit(onSubmit)} 
+            onKeyDown={(e) => {
+              // Prevent Enter key from submitting form unless on last step
+              if (e.key === 'Enter' && currentStep < STEPS.length) {
+                e.preventDefault();
+              }
+            }}
+            className="space-y-8"
+          >
             
             {/* Step 1: Personal Information */}
             {currentStep === 1 && (
