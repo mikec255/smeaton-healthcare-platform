@@ -316,9 +316,11 @@ export default function RecruitmentApplicationPage() {
   // Auto-sync employment references to References tab
   useEffect(() => {
     const currentReferences = form.getValues("references");
+    
+    // Create references for all employment records where useAsReference is checked
     const employmentRefs = watchEmploymentHistory
-      .filter(emp => emp.useAsReference && emp.referenceName && emp.referenceEmail && emp.referencePhone)
-      .map(emp => ({
+      .filter(emp => emp.useAsReference)
+      .map((emp, empIndex) => ({
         referenceType: "Professional" as const,
         fullName: emp.referenceName || "",
         company: emp.companyName || "",
@@ -329,12 +331,11 @@ export default function RecruitmentApplicationPage() {
         applicantJobTitle: emp.jobTitle || "",
         email: emp.referenceEmail || "",
         phone: emp.referencePhone || "",
+        _employmentIndex: empIndex, // Track which employment record this came from
       }));
 
-    // Filter out manually added references (not from employment)
-    const manualReferences = currentReferences.filter(ref => 
-      !employmentRefs.some(empRef => empRef.email === ref.email)
-    );
+    // Keep only Character references (manually added)
+    const manualReferences = currentReferences.filter(ref => ref.referenceType === "Character");
 
     // Combine employment refs and manual refs
     const updatedReferences = [...employmentRefs, ...manualReferences];
