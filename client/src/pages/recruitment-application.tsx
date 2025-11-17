@@ -108,6 +108,7 @@ const applicationFormSchema = z.object({
   
   // Next of Kin
   nextOfKinName: z.string().min(2, "Next of kin name is required"),
+  nextOfKinRelationship: z.string().min(2, "Relationship is required"),
   nextOfKinPhone: z.string().min(10, "Next of kin phone is required"),
   nextOfKinAddress: z.string().min(10, "Next of kin address is required"),
   
@@ -191,6 +192,7 @@ export default function RecruitmentApplicationPage() {
       ethnicOrigin: "",
       nationality: "",
       nextOfKinName: "",
+      nextOfKinRelationship: "",
       nextOfKinPhone: "",
       nextOfKinAddress: "",
       payrollType: "PAYE",
@@ -296,7 +298,7 @@ export default function RecruitmentApplicationPage() {
   const getFieldsForStep = (step: number): (keyof ApplicationFormData)[] => {
     switch (step) {
       case 1: return ["firstName", "lastName", "dateOfBirth", "email", "phone", "address", "postcode", "gender", "nationality"];
-      case 2: return ["nextOfKinName", "nextOfKinPhone", "nextOfKinAddress"];
+      case 2: return ["nextOfKinName", "nextOfKinRelationship", "nextOfKinPhone", "nextOfKinAddress"];
       case 3: return ["payrollType", "bankName", "accountType", "accountName", "accountNumber", "sortCode"];
       case 4: return ["workerTypes", "travelMethod", "travelDistance", "leadSkills", "shiftPreferences", "availableDays"];
       case 5: return ["employmentHistory"];
@@ -662,6 +664,19 @@ export default function RecruitmentApplicationPage() {
                         <FormLabel>Full Name *</FormLabel>
                         <FormControl>
                           <Input {...field} data-testid="input-kin-name" />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="nextOfKinRelationship"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Relationship *</FormLabel>
+                        <FormControl>
+                          <Input {...field} data-testid="input-kin-relationship" />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
