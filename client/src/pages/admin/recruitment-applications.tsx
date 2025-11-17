@@ -133,36 +133,76 @@ export default function RecruitmentApplicationsAdmin() {
     }
   });
 
-  // PDF generation function
+  // PDF generation function with proper A4 page handling and canvas slicing
   const handleDownloadPDF = async () => {
     if (!pdfContentRef.current || !selectedApplication) return;
 
     setIsGeneratingPDF(true);
     try {
       const content = pdfContentRef.current;
+      
       const canvas = await html2canvas(content, {
-        scale: 2,
+        scale: 1.5,
         useCORS: true,
         logging: false,
+        windowWidth: content.scrollWidth,
+        windowHeight: content.scrollHeight,
       });
 
-      const imgWidth = 210; // A4 width in mm
-      const pageHeight = 297; // A4 height in mm
-      const imgHeight = (canvas.height * imgWidth) / canvas.width;
-      let heightLeft = imgHeight;
-      let position = 0;
-
       const pdf = new jsPDF('p', 'mm', 'a4');
-      const imgData = canvas.toDataURL('image/png');
-
-      pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
-      heightLeft -= pageHeight;
-
-      while (heightLeft >= 0) {
-        position = heightLeft - imgHeight;
-        pdf.addPage();
-        pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
-        heightLeft -= pageHeight;
+      
+      const pdfWidth = pdf.internal.pageSize.getWidth();
+      const pdfHeight = pdf.internal.pageSize.getHeight();
+      
+      const margin = 10;
+      const contentWidth = pdfWidth - (2 * margin);
+      const contentHeight = pdfHeight - (2 * margin);
+      
+      const canvasWidth = canvas.width;
+      const canvasHeight = canvas.height;
+      
+      const scaleFactor = (contentWidth * 3.7795) / canvasWidth;
+      const pageHeightInPx = (contentHeight * 3.7795) / scaleFactor;
+      
+      const totalPages = Math.ceil(canvasHeight / pageHeightInPx);
+      
+      const ctx = canvas.getContext('2d');
+      if (!ctx) throw new Error('Could not get canvas context');
+      
+      for (let i = 0; i < totalPages; i++) {
+        if (i > 0) {
+          pdf.addPage();
+        }
+        
+        const sourceY = i * pageHeightInPx;
+        const sourceHeight = Math.min(pageHeightInPx, canvasHeight - sourceY);
+        
+        const pageCanvas = document.createElement('canvas');
+        pageCanvas.width = canvasWidth;
+        pageCanvas.height = sourceHeight;
+        const pageCtx = pageCanvas.getContext('2d');
+        
+        if (pageCtx) {
+          pageCtx.drawImage(
+            canvas,
+            0, sourceY,
+            canvasWidth, sourceHeight,
+            0, 0,
+            canvasWidth, sourceHeight
+          );
+          
+          const pageImgData = pageCanvas.toDataURL('image/png');
+          const imgHeight = (sourceHeight * contentWidth) / canvasWidth;
+          
+          pdf.addImage(
+            pageImgData,
+            'PNG',
+            margin,
+            margin,
+            contentWidth,
+            imgHeight
+          );
+        }
       }
 
       const fileName = `Recruitment_Application_${selectedApplication.firstName}_${selectedApplication.lastName}_${format(new Date(), 'yyyy-MM-dd')}.pdf`;
@@ -833,29 +873,48 @@ export default function RecruitmentApplicationsAdmin() {
                   <Shield className="h-6 w-6 text-primary" />
                   <h2 className="text-xl font-bold">8. Data Protection</h2>
                 </div>
-                <div className="grid md:grid-cols-2 gap-4 pl-4">
-                  <div>
-                    <label className="text-sm font-medium text-muted-foreground">Data Protection & Processing Consent</label>
-                    <p className="text-base mt-1">
-                      {selectedApplication.applicationData?.dataProtectionConsent ? 'Consented' : 'Not Consented'}
+                <div className="space-y-4 pl-4">
+                  <div className="rounded-md bg-blue-50 dark:bg-blue-900/20 p-4">
+                    <p className="text-sm text-blue-900 dark:text-blue-100">
+                      We collect and process your personal data in accordance with GDPR regulations. 
+                      Your data will be used solely for recruitment purposes and will be securely stored.
                     </p>
                   </div>
-                  <div>
-                    <label className="text-sm font-medium text-muted-foreground">Data Holding & Retention Consent</label>
-                    <p className="text-base mt-1">
-                      {selectedApplication.applicationData?.dataHoldingConsent ? 'Consented' : 'Not Consented'}
-                    </p>
+                  
+                  <div className="space-y-3">
+                    <h4 className="font-semibold text-sm">Personal data you consent to us holding and sharing:</h4>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm text-gray-700 dark:text-gray-300">
+                      <div>• Name</div>
+                      <div>• Date of Birth</div>
+                      <div>• Phone Number</div>
+                      <div>• Email Address</div>
+                      <div>• Postal Address</div>
+                      <div>• CV</div>
+                      <div>• Experience, Training & Qualifications</div>
+                      <div>• National Insurance Number</div>
+                      <div>• Right to Work Documents</div>
+                      <div>• Criminal Conviction(s)</div>
+                    </div>
                   </div>
-                  <div className="md:col-span-2">
-                    <label className="text-sm font-medium text-muted-foreground">Data Types Consented</label>
-                    <div className="flex flex-wrap gap-1 mt-1">
-                      {selectedApplication.applicationData?.dataTypesConsented && Array.isArray(selectedApplication.applicationData.dataTypesConsented) && selectedApplication.applicationData.dataTypesConsented.length > 0 ? (
-                        selectedApplication.applicationData.dataTypesConsented.map((type: string, idx: number) => (
-                          <Badge key={idx} variant="secondary" className="text-xs">{type}</Badge>
-                        ))
-                      ) : (
-                        <p className="text-base">—</p>
-                      )}
+
+                  <div className="space-y-4 pt-2">
+                    <div className={`border-2 rounded-md p-4 ${selectedApplication.applicationData?.dataProtectionConsent ? 'border-green-500 bg-green-50/50 dark:bg-green-900/10' : 'border-red-500 bg-red-50/50 dark:bg-red-900/10'}`}>
+                      <label className="text-sm font-medium text-muted-foreground">Data Protection Consent</label>
+                      <p className="text-sm mt-1 mb-2 text-muted-foreground italic">
+                        "I agree to the above statement regarding data protection and consent to my data being processed"
+                      </p>
+                      <p className={`text-base mt-2 font-semibold ${selectedApplication.applicationData?.dataProtectionConsent ? 'text-green-700 dark:text-green-400' : 'text-red-700 dark:text-red-400'}`}>
+                        {selectedApplication.applicationData?.dataProtectionConsent === true ? '✓ Consented' : '✗ Not Consented'}
+                      </p>
+                    </div>
+                    <div className={`border-2 rounded-md p-4 ${selectedApplication.applicationData?.dataHoldingConsent ? 'border-green-500 bg-green-50/50 dark:bg-green-900/10' : 'border-red-500 bg-red-50/50 dark:bg-red-900/10'}`}>
+                      <label className="text-sm font-medium text-muted-foreground">Data Holding Consent</label>
+                      <p className="text-sm mt-1 mb-2 text-muted-foreground italic">
+                        "I consent to the above information being held and shared for the purposes of providing or finding me work"
+                      </p>
+                      <p className={`text-base mt-2 font-semibold ${selectedApplication.applicationData?.dataHoldingConsent ? 'text-green-700 dark:text-green-400' : 'text-red-700 dark:text-red-400'}`}>
+                        {selectedApplication.applicationData?.dataHoldingConsent === true ? '✓ Consented' : '✗ Not Consented'}
+                      </p>
                     </div>
                   </div>
                 </div>
@@ -870,62 +929,146 @@ export default function RecruitmentApplicationsAdmin() {
                   <h2 className="text-xl font-bold">9. References</h2>
                 </div>
                 <div className="space-y-6 pl-4">
-                  {selectedApplication.applicationData?.references && Array.isArray(selectedApplication.applicationData.references) && selectedApplication.applicationData.references.length > 0 ? (
-                    selectedApplication.applicationData.references.map((ref: any, idx: number) => (
-                      <div key={idx} className="border-l-4 border-muted pl-4 space-y-3">
-                        <h4 className="font-semibold text-lg">
-                          Reference {idx + 1} - {ref.referenceType}
-                          {ref.referenceType === 'Professional' && (
-                            <span className="text-sm text-blue-600 ml-2 font-normal">(from Employment History)</span>
-                          )}
-                        </h4>
-                        <div className="grid md:grid-cols-2 gap-4">
-                          <div>
-                            <label className="text-sm font-medium text-muted-foreground">Full Name</label>
-                            <p className="text-base mt-1">{ref.fullName || '—'}</p>
-                          </div>
-                          <div>
-                            <label className="text-sm font-medium text-muted-foreground">Organisation/Company</label>
-                            <p className="text-base mt-1">{ref.company || '—'}</p>
-                          </div>
-                          <div>
-                            <label className="text-sm font-medium text-muted-foreground">Job Title/Position</label>
-                            <p className="text-base mt-1">{ref.jobTitle || '—'}</p>
-                          </div>
-                          <div>
-                            <label className="text-sm font-medium text-muted-foreground">Relationship</label>
-                            <p className="text-base mt-1">{ref.relationship || '—'}</p>
-                          </div>
-                          <div>
-                            <label className="text-sm font-medium text-muted-foreground">Applicant's Job Title</label>
-                            <p className="text-base mt-1">{ref.applicantJobTitle || '—'}</p>
-                          </div>
-                          <div>
-                            <label className="text-sm font-medium text-muted-foreground">Start Date</label>
-                            <p className="text-base mt-1">
-                              {ref.startDate ? format(new Date(ref.startDate), 'MMMM yyyy') : '—'}
-                            </p>
-                          </div>
-                          <div>
-                            <label className="text-sm font-medium text-muted-foreground">End Date</label>
-                            <p className="text-base mt-1">
-                              {ref.endDate ? format(new Date(ref.endDate), 'MMMM yyyy') : '—'}
-                            </p>
-                          </div>
-                          <div>
-                            <label className="text-sm font-medium text-muted-foreground">Email Address</label>
-                            <p className="text-base mt-1">{ref.email || '—'}</p>
-                          </div>
-                          <div>
-                            <label className="text-sm font-medium text-muted-foreground">Phone Number</label>
-                            <p className="text-base mt-1">{ref.phone || '—'}</p>
-                          </div>
-                        </div>
-                      </div>
-                    ))
-                  ) : (
-                    <p className="text-base text-muted-foreground">No references provided</p>
-                  )}
+                  {(() => {
+                    const allProfessionalRefs = selectedApplication.applicationData?.references?.filter((ref: any) => ref.referenceType === 'Professional') || [];
+                    const professionalRefs = allProfessionalRefs.filter((ref: any) => 
+                      ref.fullName && (ref.email || ref.phone)
+                    );
+                    const incompleteProfessionalRefs = allProfessionalRefs.length - professionalRefs.length;
+                    const characterRefs = selectedApplication.applicationData?.references?.filter((ref: any) => ref.referenceType === 'Character') || [];
+                    const hasAnyReferences = professionalRefs.length > 0 || characterRefs.length > 0;
+                    
+                    return (
+                      <>
+                        {allProfessionalRefs.length > 0 && (
+                          <>
+                            <div className="rounded-md bg-blue-50 dark:bg-blue-900/20 p-4 border-l-4 border-blue-500 mb-4">
+                              <p className="text-sm text-blue-900 dark:text-blue-100 font-medium">
+                                <strong>Note:</strong> Professional references below are automatically synced from the Employment History section (Section 5) where the applicant marked employers as references.
+                                {incompleteProfessionalRefs > 0 && (
+                                  <span className="block mt-2 text-amber-700 dark:text-amber-400">
+                                    ⚠ {incompleteProfessionalRefs} employer{incompleteProfessionalRefs > 1 ? 's were' : ' was'} marked as reference{incompleteProfessionalRefs > 1 ? 's' : ''} but {incompleteProfessionalRefs > 1 ? 'lack' : 'lacks'} complete contact details. Please refer to Section 5 for employer information.
+                                  </span>
+                                )}
+                              </p>
+                            </div>
+                          </>
+                        )}
+                        {professionalRefs.length > 0 && (
+                          <>
+                            <h4 className="font-semibold text-base text-muted-foreground">Professional References</h4>
+                            {professionalRefs.map((ref: any, idx: number) => (
+                              <div key={idx} className="border-l-4 border-blue-500 pl-4 space-y-3 bg-blue-50/30 dark:bg-blue-900/10 p-4 rounded">
+                                <h4 className="font-semibold text-lg">
+                                  Professional Reference {idx + 1}
+                                  <span className="text-sm text-blue-600 ml-2 font-normal">(from Employment History)</span>
+                                </h4>
+                                <div className="grid md:grid-cols-2 gap-4">
+                                  <div>
+                                    <label className="text-sm font-medium text-muted-foreground">Full Name</label>
+                                    <p className="text-base mt-1">{ref.fullName || '—'}</p>
+                                  </div>
+                                  <div>
+                                    <label className="text-sm font-medium text-muted-foreground">Organisation/Company</label>
+                                    <p className="text-base mt-1">{ref.company || '—'}</p>
+                                  </div>
+                                  <div>
+                                    <label className="text-sm font-medium text-muted-foreground">Job Title/Position</label>
+                                    <p className="text-base mt-1">{ref.jobTitle || '—'}</p>
+                                  </div>
+                                  <div>
+                                    <label className="text-sm font-medium text-muted-foreground">Relationship</label>
+                                    <p className="text-base mt-1">{ref.relationship || '—'}</p>
+                                  </div>
+                                  <div>
+                                    <label className="text-sm font-medium text-muted-foreground">Applicant's Job Title</label>
+                                    <p className="text-base mt-1">{ref.applicantJobTitle || '—'}</p>
+                                  </div>
+                                  <div>
+                                    <label className="text-sm font-medium text-muted-foreground">Start Date</label>
+                                    <p className="text-base mt-1">
+                                      {ref.startDate ? format(new Date(ref.startDate), 'MMMM yyyy') : '—'}
+                                    </p>
+                                  </div>
+                                  <div>
+                                    <label className="text-sm font-medium text-muted-foreground">End Date</label>
+                                    <p className="text-base mt-1">
+                                      {ref.endDate ? format(new Date(ref.endDate), 'MMMM yyyy') : '—'}
+                                    </p>
+                                  </div>
+                                  <div>
+                                    <label className="text-sm font-medium text-muted-foreground">Email Address</label>
+                                    <p className="text-base mt-1">{ref.email || '—'}</p>
+                                  </div>
+                                  <div>
+                                    <label className="text-sm font-medium text-muted-foreground">Phone Number</label>
+                                    <p className="text-base mt-1">{ref.phone || '—'}</p>
+                                  </div>
+                                </div>
+                              </div>
+                            ))}
+                          </>
+                        )}
+                        
+                        {characterRefs.length > 0 && (
+                          <>
+                            <h4 className="font-semibold text-base text-muted-foreground mt-6">Character References</h4>
+                            {characterRefs.map((ref: any, idx: number) => (
+                              <div key={idx} className="border-l-4 border-muted pl-4 space-y-3">
+                                <h4 className="font-semibold text-lg">Character Reference {idx + 1}</h4>
+                                <div className="grid md:grid-cols-2 gap-4">
+                                  <div>
+                                    <label className="text-sm font-medium text-muted-foreground">Full Name</label>
+                                    <p className="text-base mt-1">{ref.fullName || '—'}</p>
+                                  </div>
+                                  <div>
+                                    <label className="text-sm font-medium text-muted-foreground">Organisation/Company</label>
+                                    <p className="text-base mt-1">{ref.company || '—'}</p>
+                                  </div>
+                                  <div>
+                                    <label className="text-sm font-medium text-muted-foreground">Job Title/Position</label>
+                                    <p className="text-base mt-1">{ref.jobTitle || '—'}</p>
+                                  </div>
+                                  <div>
+                                    <label className="text-sm font-medium text-muted-foreground">Relationship</label>
+                                    <p className="text-base mt-1">{ref.relationship || '—'}</p>
+                                  </div>
+                                  <div>
+                                    <label className="text-sm font-medium text-muted-foreground">Applicant's Job Title</label>
+                                    <p className="text-base mt-1">{ref.applicantJobTitle || '—'}</p>
+                                  </div>
+                                  <div>
+                                    <label className="text-sm font-medium text-muted-foreground">Start Date</label>
+                                    <p className="text-base mt-1">
+                                      {ref.startDate ? format(new Date(ref.startDate), 'MMMM yyyy') : '—'}
+                                    </p>
+                                  </div>
+                                  <div>
+                                    <label className="text-sm font-medium text-muted-foreground">End Date</label>
+                                    <p className="text-base mt-1">
+                                      {ref.endDate ? format(new Date(ref.endDate), 'MMMM yyyy') : '—'}
+                                    </p>
+                                  </div>
+                                  <div>
+                                    <label className="text-sm font-medium text-muted-foreground">Email Address</label>
+                                    <p className="text-base mt-1">{ref.email || '—'}</p>
+                                  </div>
+                                  <div>
+                                    <label className="text-sm font-medium text-muted-foreground">Phone Number</label>
+                                    <p className="text-base mt-1">{ref.phone || '—'}</p>
+                                  </div>
+                                </div>
+                              </div>
+                            ))}
+                          </>
+                        )}
+                        
+                        {!hasAnyReferences && (
+                          <p className="text-base text-muted-foreground">No references provided</p>
+                        )}
+                      </>
+                    );
+                  })()}
                 </div>
               </div>
 
