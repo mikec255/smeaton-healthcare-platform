@@ -452,7 +452,7 @@ export default function RecruitmentApplicationPage() {
                       <FormItem>
                         <FormLabel>First Name *</FormLabel>
                         <FormControl>
-                          <Input {...field} data-testid="input-first-name" />
+                          <Input placeholder="Enter your first name" {...field} data-testid="input-first-name" />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -465,7 +465,7 @@ export default function RecruitmentApplicationPage() {
                       <FormItem>
                         <FormLabel>Last Name *</FormLabel>
                         <FormControl>
-                          <Input {...field} data-testid="input-last-name" />
+                          <Input placeholder="Enter your last name" {...field} data-testid="input-last-name" />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -491,7 +491,7 @@ export default function RecruitmentApplicationPage() {
                       <FormItem>
                         <FormLabel>Email Address *</FormLabel>
                         <FormControl>
-                          <Input type="email" {...field} data-testid="input-email" />
+                          <Input type="email" placeholder="your.email@example.com" {...field} data-testid="input-email" />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -504,7 +504,7 @@ export default function RecruitmentApplicationPage() {
                       <FormItem>
                         <FormLabel>Phone Number *</FormLabel>
                         <FormControl>
-                          <Input {...field} data-testid="input-phone" />
+                          <Input placeholder="07123 456789" {...field} data-testid="input-phone" />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -517,7 +517,7 @@ export default function RecruitmentApplicationPage() {
                       <FormItem>
                         <FormLabel>Postcode *</FormLabel>
                         <FormControl>
-                          <Input {...field} data-testid="input-postcode" />
+                          <Input placeholder="PL1 5AB" {...field} data-testid="input-postcode" />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -532,7 +532,7 @@ export default function RecruitmentApplicationPage() {
                           <FormLabel>Full Address *</FormLabel>
                           <FormControl>
                             <Textarea 
-                              
+                              placeholder="Please enter your full address" 
                               rows={3} 
                               {...field} 
                               data-testid="textarea-address"
@@ -550,7 +550,7 @@ export default function RecruitmentApplicationPage() {
                       <FormItem>
                         <FormLabel>National Insurance Number</FormLabel>
                         <FormControl>
-                          <Input {...field} data-testid="input-ni-number" />
+                          <Input placeholder="TK874296A" {...field} data-testid="input-ni-number" />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -610,7 +610,7 @@ export default function RecruitmentApplicationPage() {
                       <FormItem>
                         <FormLabel>Ethnic Origin</FormLabel>
                         <FormControl>
-                          <Input {...field} data-testid="input-ethnic-origin" />
+                          <Input placeholder="E.g., British, African, Asian" {...field} data-testid="input-ethnic-origin" />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -623,7 +623,7 @@ export default function RecruitmentApplicationPage() {
                       <FormItem>
                         <FormLabel>Nationality *</FormLabel>
                         <FormControl>
-                          <Input {...field} data-testid="input-nationality" />
+                          <Input placeholder="E.g., British, Nigerian" {...field} data-testid="input-nationality" />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -653,7 +653,7 @@ export default function RecruitmentApplicationPage() {
                       <FormItem>
                         <FormLabel>Full Name *</FormLabel>
                         <FormControl>
-                          <Input {...field} data-testid="input-kin-name" />
+                          <Input placeholder="Next of kin full name" {...field} data-testid="input-kin-name" />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -666,7 +666,7 @@ export default function RecruitmentApplicationPage() {
                       <FormItem>
                         <FormLabel>Phone Number *</FormLabel>
                         <FormControl>
-                          <Input {...field} data-testid="input-kin-phone" />
+                          <Input placeholder="07123 456789" {...field} data-testid="input-kin-phone" />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -680,7 +680,7 @@ export default function RecruitmentApplicationPage() {
                         <FormLabel>Address *</FormLabel>
                         <FormControl>
                           <Textarea 
-                            
+                            placeholder="Next of kin full address" 
                             rows={3} 
                             {...field} 
                             data-testid="textarea-kin-address"
@@ -741,7 +741,7 @@ export default function RecruitmentApplicationPage() {
                         <FormItem>
                           <FormLabel>Bank Name *</FormLabel>
                           <FormControl>
-                            <Input {...field} data-testid="input-bank-name" />
+                            <Input placeholder="E.g., Lloyds Bank" {...field} data-testid="input-bank-name" />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -776,7 +776,7 @@ export default function RecruitmentApplicationPage() {
                       <FormItem>
                         <FormLabel>Account Name *</FormLabel>
                         <FormControl>
-                          <Input {...field} data-testid="input-account-name" />
+                          <Input placeholder="Your name as it appears on your account" {...field} data-testid="input-account-name" />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -790,7 +790,7 @@ export default function RecruitmentApplicationPage() {
                         <FormItem>
                           <FormLabel>Account Number *</FormLabel>
                           <FormControl>
-                            <Input maxLength={8} {...field} data-testid="input-account-number" />
+                            <Input placeholder="12345678" maxLength={8} {...field} data-testid="input-account-number" />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -803,7 +803,7 @@ export default function RecruitmentApplicationPage() {
                         <FormItem>
                           <FormLabel>Sort Code *</FormLabel>
                           <FormControl>
-                            <Input {...field} data-testid="input-sort-code" />
+                            <Input placeholder="12-34-56" {...field} data-testid="input-sort-code" />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -1054,7 +1054,7 @@ export default function RecruitmentApplicationPage() {
                             <FormItem>
                               <FormLabel>Company Name *</FormLabel>
                               <FormControl>
-                                <Input {...field} data-testid={`input-employment-company-${index}`} />
+                                <Input placeholder="Company name" {...field} data-testid={`input-employment-company-${index}`} />
                               </FormControl>
                               <FormMessage />
                             </FormItem>
@@ -1067,7 +1067,7 @@ export default function RecruitmentApplicationPage() {
                             <FormItem>
                               <FormLabel>Job Title *</FormLabel>
                               <FormControl>
-                                <Input {...field} data-testid={`input-employment-title-${index}`} />
+                                <Input placeholder="Job title" {...field} data-testid={`input-employment-title-${index}`} />
                               </FormControl>
                               <FormMessage />
                             </FormItem>
@@ -1128,7 +1128,7 @@ export default function RecruitmentApplicationPage() {
                           <FormItem>
                             <FormLabel>Reason for Leaving</FormLabel>
                             <FormControl>
-                              <Textarea {...field} data-testid={`textarea-employment-reason-${index}`} />
+                              <Textarea placeholder="Reason for leaving" {...field} data-testid={`textarea-employment-reason-${index}`} />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
@@ -1142,7 +1142,7 @@ export default function RecruitmentApplicationPage() {
                             <FormItem>
                               <FormLabel>Manager Name</FormLabel>
                               <FormControl>
-                                <Input {...field} data-testid={`input-employment-manager-${index}`} />
+                                <Input placeholder="Manager name" {...field} data-testid={`input-employment-manager-${index}`} />
                               </FormControl>
                               <FormMessage />
                             </FormItem>
@@ -1155,7 +1155,7 @@ export default function RecruitmentApplicationPage() {
                             <FormItem>
                               <FormLabel>Manager Phone</FormLabel>
                               <FormControl>
-                                <Input {...field} data-testid={`input-employment-manager-phone-${index}`} />
+                                <Input placeholder="Phone number" {...field} data-testid={`input-employment-manager-phone-${index}`} />
                               </FormControl>
                               <FormMessage />
                             </FormItem>
@@ -1168,7 +1168,7 @@ export default function RecruitmentApplicationPage() {
                             <FormItem>
                               <FormLabel>Manager Email</FormLabel>
                               <FormControl>
-                                <Input type="email" {...field} data-testid={`input-employment-manager-email-${index}`} />
+                                <Input type="email" placeholder="email@example.com" {...field} data-testid={`input-employment-manager-email-${index}`} />
                               </FormControl>
                               <FormMessage />
                             </FormItem>
@@ -1273,7 +1273,7 @@ export default function RecruitmentApplicationPage() {
                             <FormItem>
                               <FormLabel>Qualification Name *</FormLabel>
                               <FormControl>
-                                <Input {...field} data-testid={`input-education-name-${index}`} />
+                                <Input placeholder="E.g., Health and Social Care" {...field} data-testid={`input-education-name-${index}`} />
                               </FormControl>
                               <FormMessage />
                             </FormItem>
@@ -1286,7 +1286,7 @@ export default function RecruitmentApplicationPage() {
                             <FormItem>
                               <FormLabel>Institution</FormLabel>
                               <FormControl>
-                                <Input {...field} data-testid={`input-education-institution-${index}`} />
+                                <Input placeholder="School/College/University" {...field} data-testid={`input-education-institution-${index}`} />
                               </FormControl>
                               <FormMessage />
                             </FormItem>
@@ -1299,7 +1299,7 @@ export default function RecruitmentApplicationPage() {
                             <FormItem>
                               <FormLabel>Year Obtained</FormLabel>
                               <FormControl>
-                                <Input {...field} data-testid={`input-education-year-${index}`} />
+                                <Input placeholder="E.g., 2020" {...field} data-testid={`input-education-year-${index}`} />
                               </FormControl>
                               <FormMessage />
                             </FormItem>
@@ -1483,7 +1483,7 @@ export default function RecruitmentApplicationPage() {
                           <FormLabel>Please provide details</FormLabel>
                           <FormControl>
                             <Textarea 
-                              
+                              placeholder="Please provide details about your criminal convictions" 
                               rows={3} 
                               {...field} 
                               data-testid="textarea-conviction-details"
@@ -1729,7 +1729,7 @@ export default function RecruitmentApplicationPage() {
                             <FormItem>
                               <FormLabel>Full Name *</FormLabel>
                               <FormControl>
-                                <Input {...field} data-testid={`input-reference-name-${index}`} />
+                                <Input placeholder="Reference full name" {...field} data-testid={`input-reference-name-${index}`} />
                               </FormControl>
                               <FormMessage />
                             </FormItem>
@@ -1742,7 +1742,7 @@ export default function RecruitmentApplicationPage() {
                             <FormItem>
                               <FormLabel>Their Job Title</FormLabel>
                               <FormControl>
-                                <Input {...field} data-testid={`input-reference-job-title-${index}`} />
+                                <Input placeholder="E.g., Manager" {...field} data-testid={`input-reference-job-title-${index}`} />
                               </FormControl>
                               <FormMessage />
                             </FormItem>
@@ -1755,7 +1755,7 @@ export default function RecruitmentApplicationPage() {
                             <FormItem>
                               <FormLabel>Company</FormLabel>
                               <FormControl>
-                                <Input {...field} data-testid={`input-reference-company-${index}`} />
+                                <Input placeholder="Company name" {...field} data-testid={`input-reference-company-${index}`} />
                               </FormControl>
                               <FormMessage />
                             </FormItem>
@@ -1768,7 +1768,7 @@ export default function RecruitmentApplicationPage() {
                             <FormItem>
                               <FormLabel>Relationship (for character references)</FormLabel>
                               <FormControl>
-                                <Input {...field} data-testid={`input-reference-relationship-${index}`} />
+                                <Input placeholder="E.g., Friend, Mentor" {...field} data-testid={`input-reference-relationship-${index}`} />
                               </FormControl>
                               <FormMessage />
                             </FormItem>
@@ -1807,7 +1807,7 @@ export default function RecruitmentApplicationPage() {
                             <FormItem>
                               <FormLabel>Your Job Title</FormLabel>
                               <FormControl>
-                                <Input {...field} data-testid={`input-reference-applicant-title-${index}`} />
+                                <Input placeholder="Your job title at this company" {...field} data-testid={`input-reference-applicant-title-${index}`} />
                               </FormControl>
                               <FormMessage />
                             </FormItem>
@@ -1820,7 +1820,7 @@ export default function RecruitmentApplicationPage() {
                             <FormItem>
                               <FormLabel>Email Address *</FormLabel>
                               <FormControl>
-                                <Input type="email" {...field} data-testid={`input-reference-email-${index}`} />
+                                <Input type="email" placeholder="email@example.com" {...field} data-testid={`input-reference-email-${index}`} />
                               </FormControl>
                               <FormMessage />
                             </FormItem>
@@ -1833,7 +1833,7 @@ export default function RecruitmentApplicationPage() {
                             <FormItem>
                               <FormLabel>Phone Number *</FormLabel>
                               <FormControl>
-                                <Input {...field} data-testid={`input-reference-phone-${index}`} />
+                                <Input placeholder="07123 456789" {...field} data-testid={`input-reference-phone-${index}`} />
                               </FormControl>
                               <FormMessage />
                             </FormItem>
