@@ -563,6 +563,24 @@
   }
 }
 
+/* PDF Export - Section Markers (used by JavaScript PDF generation) */
+.pdf-section {
+  /* Marker class for PDF generation - each section renders on a new page */
+}
+
+/* Legacy page-break CSS (not used by html2canvas but kept for reference) */
+.pdf-section-header {
+  page-break-after: avoid;
+  break-after: avoid;
+  page-break-inside: avoid;
+  break-inside: avoid;
+}
+
+.pdf-subsection {
+  page-break-inside: avoid;
+  break-inside: avoid;
+}
+
 /* Confetti animation for decorative elements */
 @keyframes gentle-drift {
   0%, 100% { transform: translate(0px, 0px); }

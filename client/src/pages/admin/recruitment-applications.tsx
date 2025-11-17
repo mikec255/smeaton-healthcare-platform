@@ -133,50 +133,89 @@ export default function RecruitmentApplicationsAdmin() {
     }
   });
 
-  // PDF generation function with proper A4 page handling and canvas slicing
+  // PDF generation function - single render with section-aware page breaks
   const handleDownloadPDF = async () => {
     if (!pdfContentRef.current || !selectedApplication) return;
 
     setIsGeneratingPDF(true);
+    
+    // Create a sandbox: off-screen container with zero padding for clean offset measurement
+    const sandbox = document.createElement('div');
+    sandbox.style.position = 'absolute';
+    sandbox.style.left = '-9999px';
+    sandbox.style.top = '0';
+    sandbox.style.padding = '0';
+    sandbox.style.margin = '0';
+    sandbox.style.width = `${pdfContentRef.current.offsetWidth}px`;
+    sandbox.style.backgroundColor = 'white';
+    document.body.appendChild(sandbox);
+    
     try {
       const content = pdfContentRef.current;
+      const scale = 1.5;
       
-      const canvas = await html2canvas(content, {
-        scale: 1.5,
-        useCORS: true,
-        logging: false,
-        windowWidth: content.scrollWidth,
-        windowHeight: content.scrollHeight,
+      // Clone the content into the sandbox
+      const contentClone = content.cloneNode(true) as HTMLElement;
+      contentClone.style.padding = '0';
+      sandbox.appendChild(contentClone);
+      
+      // Measure section offsets in the padding-free sandbox
+      const sections = Array.from(contentClone.querySelectorAll('.pdf-section')) as HTMLElement[];
+      const sandboxRect = contentClone.getBoundingClientRect();
+      const sectionOffsetsCSS = sections.map(section => {
+        const sectionRect = section.getBoundingClientRect();
+        return sectionRect.top - sandboxRect.top;
       });
 
+      // Render the sandbox content once
+      const canvas = await html2canvas(contentClone, {
+        scale,
+        useCORS: true,
+        logging: false,
+        windowWidth: contentClone.scrollWidth,
+        windowHeight: contentClone.scrollHeight,
+      });
+
+      // Convert section offsets to CANVAS pixel space (after scaling)
+      const sectionOffsetsInCanvasSpace = sectionOffsetsCSS.map(offset => offset * scale);
+
       const pdf = new jsPDF('p', 'mm', 'a4');
-      
       const pdfWidth = pdf.internal.pageSize.getWidth();
       const pdfHeight = pdf.internal.pageSize.getHeight();
-      
       const margin = 10;
       const contentWidth = pdfWidth - (2 * margin);
       const contentHeight = pdfHeight - (2 * margin);
       
       const canvasWidth = canvas.width;
       const canvasHeight = canvas.height;
-      
       const scaleFactor = (contentWidth * 3.7795) / canvasWidth;
       const pageHeightInPx = (contentHeight * 3.7795) / scaleFactor;
       
-      const totalPages = Math.ceil(canvasHeight / pageHeightInPx);
-      
-      const ctx = canvas.getContext('2d');
-      if (!ctx) throw new Error('Could not get canvas context');
-      
-      for (let i = 0; i < totalPages; i++) {
-        if (i > 0) {
-          pdf.addPage();
+      let currentY = 0;
+      let pageNumber = 0;
+
+      while (currentY < canvasHeight) {
+        // Find the next section boundary AFTER currentY
+        const nextSectionY = sectionOffsetsInCanvasSpace.find(offset => offset > currentY) || Infinity;
+        
+        // Calculate slice end: stop at page height OR next section boundary (whichever comes first)
+        const naturalEnd = currentY + pageHeightInPx;
+        let sliceEnd = Math.min(naturalEnd, canvasHeight);
+        
+        // If this slice would cross a section boundary, stop before it to start section on fresh page
+        if (nextSectionY < naturalEnd && nextSectionY > currentY) {
+          sliceEnd = nextSectionY;
         }
         
-        const sourceY = i * pageHeightInPx;
-        const sourceHeight = Math.min(pageHeightInPx, canvasHeight - sourceY);
+        const sourceHeight = sliceEnd - currentY;
         
+        // Skip tiny slices (less than 30px) that would create blank pages from padding gaps
+        if (sourceHeight < 30) {
+          currentY = sliceEnd;
+          continue;
+        }
+        
+        // Create canvas for this page
         const pageCanvas = document.createElement('canvas');
         pageCanvas.width = canvasWidth;
         pageCanvas.height = sourceHeight;
@@ -185,7 +224,7 @@ export default function RecruitmentApplicationsAdmin() {
         if (pageCtx) {
           pageCtx.drawImage(
             canvas,
-            0, sourceY,
+            0, currentY,
             canvasWidth, sourceHeight,
             0, 0,
             canvasWidth, sourceHeight
@@ -193,6 +232,11 @@ export default function RecruitmentApplicationsAdmin() {
           
           const pageImgData = pageCanvas.toDataURL('image/png');
           const imgHeight = (sourceHeight * contentWidth) / canvasWidth;
+          
+          // Add new page (except for the first one)
+          if (pageNumber > 0) {
+            pdf.addPage();
+          }
           
           pdf.addImage(
             pageImgData,
@@ -203,6 +247,9 @@ export default function RecruitmentApplicationsAdmin() {
             imgHeight
           );
         }
+
+        currentY = sliceEnd;
+        pageNumber++;
       }
 
       const fileName = `Recruitment_Application_${selectedApplication.firstName}_${selectedApplication.lastName}_${format(new Date(), 'yyyy-MM-dd')}.pdf`;
@@ -220,6 +267,10 @@ export default function RecruitmentApplicationsAdmin() {
         variant: "destructive",
       });
     } finally {
+      // Clean up sandbox even if error occurs
+      if (sandbox.parentNode) {
+        document.body.removeChild(sandbox);
+      }
       setIsGeneratingPDF(false);
     }
   };
@@ -515,7 +566,7 @@ export default function RecruitmentApplicationsAdmin() {
           {selectedApplication && (
             <div ref={pdfContentRef} className="space-y-8 p-4">
               {/* SECTION 1: Personal Information */}
-              <div className="space-y-4">
+              <div className="pdf-section space-y-4">
                 <div className="flex items-center gap-2 border-b-2 border-primary pb-2">
                   <UserCircle className="h-6 w-6 text-primary" />
                   <h2 className="text-xl font-bold">1. Personal Information</h2>
@@ -579,7 +630,7 @@ export default function RecruitmentApplicationsAdmin() {
               <Separator />
 
               {/* SECTION 2: Next of Kin */}
-              <div className="space-y-4">
+              <div className="pdf-section space-y-4">
                 <div className="flex items-center gap-2 border-b-2 border-primary pb-2">
                   <Contact className="h-6 w-6 text-primary" />
                   <h2 className="text-xl font-bold">2. Next of Kin</h2>
@@ -607,7 +658,7 @@ export default function RecruitmentApplicationsAdmin() {
               <Separator />
 
               {/* SECTION 3: Payroll & Bank Details */}
-              <div className="space-y-4">
+              <div className="pdf-section space-y-4">
                 <div className="flex items-center gap-2 border-b-2 border-primary pb-2">
                   <CreditCard className="h-6 w-6 text-primary" />
                   <h2 className="text-xl font-bold">3. Payroll & Bank Details</h2>
@@ -643,7 +694,7 @@ export default function RecruitmentApplicationsAdmin() {
               <Separator />
 
               {/* SECTION 4: Worker Profile */}
-              <div className="space-y-4">
+              <div className="pdf-section space-y-4">
                 <div className="flex items-center gap-2 border-b-2 border-primary pb-2">
                   <Briefcase className="h-6 w-6 text-primary" />
                   <h2 className="text-xl font-bold">4. Worker Profile</h2>
@@ -703,7 +754,7 @@ export default function RecruitmentApplicationsAdmin() {
               <Separator />
 
               {/* SECTION 5: Employment History */}
-              <div className="space-y-4">
+              <div className="pdf-section space-y-4">
                 <div className="flex items-center gap-2 border-b-2 border-primary pb-2">
                   <Building2 className="h-6 w-6 text-primary" />
                   <h2 className="text-xl font-bold">5. Employment History</h2>
@@ -769,7 +820,7 @@ export default function RecruitmentApplicationsAdmin() {
               <Separator />
 
               {/* SECTION 6: Education & Qualifications */}
-              <div className="space-y-4">
+              <div className="pdf-section space-y-4">
                 <div className="flex items-center gap-2 border-b-2 border-primary pb-2">
                   <GraduationCap className="h-6 w-6 text-primary" />
                   <h2 className="text-xl font-bold">6. Education & Qualifications</h2>
@@ -808,7 +859,7 @@ export default function RecruitmentApplicationsAdmin() {
               <Separator />
 
               {/* SECTION 7: Health & Compliance */}
-              <div className="space-y-4">
+              <div className="pdf-section space-y-4">
                 <div className="flex items-center gap-2 border-b-2 border-primary pb-2">
                   <Heart className="h-6 w-6 text-primary" />
                   <h2 className="text-xl font-bold">7. Health & Compliance</h2>
@@ -868,7 +919,7 @@ export default function RecruitmentApplicationsAdmin() {
               <Separator />
 
               {/* SECTION 8: Data Protection */}
-              <div className="space-y-4">
+              <div className="pdf-section space-y-4">
                 <div className="flex items-center gap-2 border-b-2 border-primary pb-2">
                   <Shield className="h-6 w-6 text-primary" />
                   <h2 className="text-xl font-bold">8. Data Protection</h2>
@@ -923,7 +974,7 @@ export default function RecruitmentApplicationsAdmin() {
               <Separator />
 
               {/* SECTION 9: References */}
-              <div className="space-y-4">
+              <div className="pdf-section space-y-4">
                 <div className="flex items-center gap-2 border-b-2 border-primary pb-2">
                   <FileText className="h-6 w-6 text-primary" />
                   <h2 className="text-xl font-bold">9. References</h2>
