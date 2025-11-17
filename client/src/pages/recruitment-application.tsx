@@ -1562,6 +1562,23 @@ export default function RecruitmentApplicationPage() {
                       Your data will be used solely for recruitment purposes and will be securely stored.
                     </p>
                   </div>
+                  
+                  <div className="space-y-3">
+                    <h4 className="font-semibold text-sm">Personal data you consent to us holding and sharing:</h4>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm text-gray-700 dark:text-gray-300">
+                      <div>• Name</div>
+                      <div>• Date of Birth</div>
+                      <div>• Phone Number</div>
+                      <div>• Email Address</div>
+                      <div>• Postal Address</div>
+                      <div>• CV</div>
+                      <div>• Experience, Training & Qualifications</div>
+                      <div>• National Insurance Number</div>
+                      <div>• Right to Work Documents</div>
+                      <div>• Criminal Conviction(s)</div>
+                    </div>
+                  </div>
+
                   <FormField
                     control={form.control}
                     name="dataProtectionConsent"
