@@ -153,7 +153,7 @@ const applicationFormSchema = z.object({
   }),
   
   // References
-  references: z.array(referenceSchema).min(2, "Please add at least 2 references").max(3, "Maximum 3 references allowed"),
+  references: z.array(referenceSchema).min(0).max(3, "Maximum 3 references allowed"),
 });
 
 type ApplicationFormData = z.infer<typeof applicationFormSchema>;
@@ -236,32 +236,7 @@ export default function RecruitmentApplicationPage() {
       workingTimeDirectiveOptOut: false,
       dataProtectionConsent: false,
       dataHoldingConsent: false,
-      references: [
-        {
-          referenceType: "Professional",
-          fullName: "",
-          company: "",
-          jobTitle: "",
-          relationship: "",
-          startDate: "",
-          endDate: "",
-          applicantJobTitle: "",
-          email: "",
-          phone: "",
-        },
-        {
-          referenceType: "Professional",
-          fullName: "",
-          company: "",
-          jobTitle: "",
-          relationship: "",
-          startDate: "",
-          endDate: "",
-          applicantJobTitle: "",
-          email: "",
-          phone: "",
-        }
-      ],
+      references: [],
     },
   });
 
@@ -1697,7 +1672,7 @@ export default function RecruitmentApplicationPage() {
                     References
                   </CardTitle>
                   <CardDescription>
-                    We need references from your last two previous employers. However, if this is not possible, please provide at least one professional reference and a character reference.
+                    Professional references from your employers will appear below when you tick "Use this employer as a reference" in the Employment History section. Here you can only add Character references.
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-6">
@@ -1731,15 +1706,20 @@ export default function RecruitmentApplicationPage() {
                                 onValueChange={field.onChange}
                                 value={field.value}
                                 className="flex gap-4"
+                                disabled={field.value === "Professional"}
                               >
-                                <div className="flex items-center space-x-2">
-                                  <RadioGroupItem value="Professional" id={`ref-prof-${index}`} data-testid={`radio-reference-professional-${index}`} />
-                                  <label htmlFor={`ref-prof-${index}`} className="cursor-pointer">Professional Reference</label>
-                                </div>
-                                <div className="flex items-center space-x-2">
-                                  <RadioGroupItem value="Character" id={`ref-char-${index}`} data-testid={`radio-reference-character-${index}`} />
-                                  <label htmlFor={`ref-char-${index}`} className="cursor-pointer">Character Reference</label>
-                                </div>
+                                {field.value === "Professional" && (
+                                  <div className="flex items-center space-x-2">
+                                    <RadioGroupItem value="Professional" id={`ref-prof-${index}`} data-testid={`radio-reference-professional-${index}`} disabled />
+                                    <label htmlFor={`ref-prof-${index}`} className="cursor-pointer text-gray-500">Professional Reference (from Employment History)</label>
+                                  </div>
+                                )}
+                                {field.value === "Character" && (
+                                  <div className="flex items-center space-x-2">
+                                    <RadioGroupItem value="Character" id={`ref-char-${index}`} data-testid={`radio-reference-character-${index}`} disabled />
+                                    <label htmlFor={`ref-char-${index}`} className="cursor-pointer">Character Reference</label>
+                                  </div>
+                                )}
                               </RadioGroup>
                             </FormControl>
                             <FormMessage />
@@ -1876,7 +1856,7 @@ export default function RecruitmentApplicationPage() {
                         form.setValue("references", [
                           ...current,
                           {
-                            referenceType: "Professional",
+                            referenceType: "Character",
                             fullName: "",
                             company: "",
                             jobTitle: "",
@@ -1893,7 +1873,7 @@ export default function RecruitmentApplicationPage() {
                       data-testid="button-add-reference"
                     >
                       <Plus className="w-4 h-4 mr-2" />
-                      Add Another Reference
+                      Add Character Reference
                     </Button>
                   )}
                 </CardContent>
