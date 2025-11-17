@@ -1,7 +1,7 @@
-import { type User, type InsertUser, type Job, type InsertJob, type Application, type InsertApplication, type ContactSubmission, type InsertContactSubmission, type Feedback, type InsertFeedback, type Newsletter, type InsertNewsletter, type NewsletterBlock, type InsertNewsletterBlock, type Template, type InsertTemplate, type Subscriber, type InsertSubscriber, type Campaign, type InsertCampaign, type Delivery, type InsertDelivery, type BlogCategory, type InsertBlogCategory, type BlogPost, type InsertBlogPost, type AuditLog, type InsertAuditLog, type CqcAudit, type InsertCqcAudit, type CqcAuditCategory, type InsertCqcAuditCategory, type CqcQualityStatement, type InsertCqcQualityStatement, type CqcEvidenceCategory, type InsertCqcEvidenceCategory, type CqcAuditEvidence, type InsertCqcAuditEvidence, type CqcQualityAssessment, type InsertCqcQualityAssessment, type CqcComplianceRecord, type InsertCqcComplianceRecord, type CqcChecklistItem, type InsertCqcChecklistItem, type CqcAuditResponse, type InsertCqcAuditResponse, type KnowledgeQuestionnaire, type InsertKnowledgeQuestionnaire, type KnowledgeQuestion, type InsertKnowledgeQuestion, type KnowledgeSession, type InsertKnowledgeSession, type KnowledgeResponse, type InsertKnowledgeResponse, type KnowledgeAction, type InsertKnowledgeAction, type RecruitmentApplication, type InsertRecruitmentApplication, type ProfessionalReference, type InsertProfessionalReference, type FinanceReport, type InsertFinanceReport, type Client, type InsertClient, type Visit, type InsertVisit, type Run, type InsertRun, type RunStop, type InsertRunStop, type Geocode, type InsertGeocode } from "@shared/schema";
+import { type User, type InsertUser, type Job, type InsertJob, type Application, type InsertApplication, type FullApplication, type InsertFullApplication, type EmploymentHistory, type InsertEmploymentHistory, type EducationRecord, type InsertEducationRecord, type ApplicationReference, type InsertApplicationReference, type ApplicationDocument, type InsertApplicationDocument, type ContactSubmission, type InsertContactSubmission, type Feedback, type InsertFeedback, type Newsletter, type InsertNewsletter, type NewsletterBlock, type InsertNewsletterBlock, type Template, type InsertTemplate, type Subscriber, type InsertSubscriber, type Campaign, type InsertCampaign, type Delivery, type InsertDelivery, type BlogCategory, type InsertBlogCategory, type BlogPost, type InsertBlogPost, type AuditLog, type InsertAuditLog, type CqcAudit, type InsertCqcAudit, type CqcAuditCategory, type InsertCqcAuditCategory, type CqcQualityStatement, type InsertCqcQualityStatement, type CqcEvidenceCategory, type InsertCqcEvidenceCategory, type CqcAuditEvidence, type InsertCqcAuditEvidence, type CqcQualityAssessment, type InsertCqcQualityAssessment, type CqcComplianceRecord, type InsertCqcComplianceRecord, type CqcChecklistItem, type InsertCqcChecklistItem, type CqcAuditResponse, type InsertCqcAuditResponse, type KnowledgeQuestionnaire, type InsertKnowledgeQuestionnaire, type KnowledgeQuestion, type InsertKnowledgeQuestion, type KnowledgeSession, type InsertKnowledgeSession, type KnowledgeResponse, type InsertKnowledgeResponse, type KnowledgeAction, type InsertKnowledgeAction, type RecruitmentApplication, type InsertRecruitmentApplication, type ProfessionalReference, type InsertProfessionalReference, type FinanceReport, type InsertFinanceReport, type Client, type InsertClient, type Visit, type InsertVisit, type Run, type InsertRun, type RunStop, type InsertRunStop, type Geocode, type InsertGeocode } from "@shared/schema";
 import { randomUUID } from "crypto";
 import { db } from "./db";
-import { users, jobs, applications, contactSubmissions, blogCategories, blogPosts, auditLogs, cqcAudits, cqcAuditCategories, cqcQualityStatements, cqcEvidenceCategories, cqcAuditEvidence, cqcQualityAssessments, cqcComplianceRecords, knowledgeQuestionnaires, knowledgeQuestions, knowledgeSessions, knowledgeResponses, knowledgeActions, recruitmentApplications, professionalReferences, financeReports, clients, visits, runs, runStops, geocodeCache } from "@shared/schema";
+import { users, jobs, applications, fullApplications, employmentHistory, educationRecords, applicationReferences, applicationDocuments, contactSubmissions, blogCategories, blogPosts, auditLogs, cqcAudits, cqcAuditCategories, cqcQualityStatements, cqcEvidenceCategories, cqcAuditEvidence, cqcQualityAssessments, cqcComplianceRecords, knowledgeQuestionnaires, knowledgeQuestions, knowledgeSessions, knowledgeResponses, knowledgeActions, recruitmentApplications, professionalReferences, financeReports, clients, visits, runs, runStops, geocodeCache } from "@shared/schema";
 import { eq, and, desc } from "drizzle-orm";
 import bcrypt from "bcryptjs";
 
@@ -33,12 +33,25 @@ export interface IStorage {
   updateApplicationStatus(id: string, status: string): Promise<Application | undefined>;
   updateApplicationNotes(id: string, notes: string): Promise<Application | undefined>;
   
-  // Recruitment Applications (Full Applications)
+  // Recruitment Applications (Pre-screen Applications)
   getAllRecruitmentApplications(): Promise<RecruitmentApplication[]>;
   getRecruitmentApplication(id: string): Promise<RecruitmentApplication | undefined>;
   createRecruitmentApplication(application: InsertRecruitmentApplication): Promise<RecruitmentApplication>;
   updateRecruitmentApplicationStatus(id: string, status: string, reviewedBy?: string): Promise<RecruitmentApplication | undefined>;
   updateRecruitmentApplicationNotes(id: string, adminNotes: string): Promise<RecruitmentApplication | undefined>;
+  
+  // Full Job Applications (Comprehensive Application Form)
+  getAllFullApplications(filters?: { status?: string; jobId?: string }): Promise<FullApplication[]>;
+  getFullApplication(id: string): Promise<FullApplication & { employmentHistory: EmploymentHistory[], education: EducationRecord[], references: ApplicationReference[], documents: ApplicationDocument[] } | undefined>;
+  createFullApplication(data: {
+    application: InsertFullApplication;
+    employmentHistory: InsertEmploymentHistory[];
+    education: InsertEducationRecord[];
+    references: InsertApplicationReference[];
+    documents: InsertApplicationDocument[];
+  }): Promise<FullApplication>;
+  updateFullApplicationStatus(id: string, status: string, reviewedBy?: string): Promise<FullApplication | undefined>;
+  updateFullApplicationNotes(id: string, adminNotes: string): Promise<FullApplication | undefined>;
   
   // Professional References
   getAllProfessionalReferences(): Promise<ProfessionalReference[]>;
