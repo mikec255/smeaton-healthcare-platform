@@ -320,7 +320,7 @@ export default function RecruitmentApplicationPage() {
     // Create references for all employment records where useAsReference is checked
     const employmentRefs = watchEmploymentHistory
       .filter(emp => emp.useAsReference)
-      .map((emp, empIndex) => ({
+      .map((emp) => ({
         referenceType: "Professional" as const,
         fullName: emp.referenceName || "",
         company: emp.companyName || "",
@@ -331,7 +331,6 @@ export default function RecruitmentApplicationPage() {
         applicantJobTitle: emp.jobTitle || "",
         email: emp.referenceEmail || "",
         phone: emp.referencePhone || "",
-        _employmentIndex: empIndex, // Track which employment record this came from
       }));
 
     // Keep only Character references (manually added)
@@ -339,6 +338,10 @@ export default function RecruitmentApplicationPage() {
 
     // Combine employment refs and manual refs
     const updatedReferences = [...employmentRefs, ...manualReferences];
+    
+    console.log("Employment refs:", employmentRefs);
+    console.log("Manual refs:", manualReferences);
+    console.log("Updated refs:", updatedReferences);
     
     // Only update if there's an actual change
     if (JSON.stringify(updatedReferences) !== JSON.stringify(currentReferences)) {
