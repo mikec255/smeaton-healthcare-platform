@@ -279,12 +279,21 @@ export default function RecruitmentApplicationPage() {
 
   const nextStep = async () => {
     const fieldsToValidate = getFieldsForStep(currentStep);
+    console.log('=== NEXT STEP DEBUG ===');
+    console.log('Current Step:', currentStep);
+    console.log('Fields to validate:', fieldsToValidate);
+    console.log('Form values before validation:', form.getValues());
+    
     const isValid = await form.trigger(fieldsToValidate as any);
+    console.log('Validation result:', isValid);
+    console.log('Form errors:', form.formState.errors);
+    console.log('Form values after validation:', form.getValues());
     
     if (isValid) {
       setCurrentStep(prev => Math.min(prev + 1, STEPS.length));
       window.scrollTo(0, 0);
     } else {
+      console.log('Validation failed, showing error');
       toast({
         title: "Validation Error",
         description: "Please fill in all required fields before continuing.",
