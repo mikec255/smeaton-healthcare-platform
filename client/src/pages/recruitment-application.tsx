@@ -147,7 +147,6 @@ const applicationFormSchema = z.object({
   dataProtectionConsent: z.boolean().refine((val) => val === true, {
     message: "You must consent to data protection to submit your application",
   }),
-  dataTypesConsented: z.array(z.string()).min(1, "Please select at least one data type"),
   dataHoldingConsent: z.boolean().refine((val) => val === true, {
     message: "You must consent to data holding to submit your application",
   }),
@@ -234,7 +233,6 @@ export default function RecruitmentApplicationPage() {
       dbsConsent: false,
       workingTimeDirectiveOptOut: false,
       dataProtectionConsent: false,
-      dataTypesConsented: [],
       dataHoldingConsent: false,
       references: [
         {
@@ -327,7 +325,7 @@ export default function RecruitmentApplicationPage() {
       case 5: return ["employmentHistory"];
       case 6: return ["education"];
       case 7: return ["medicalConditions", "dbsConsent"];
-      case 8: return ["dataProtectionConsent", "dataTypesConsented", "dataHoldingConsent"];
+      case 8: return ["dataProtectionConsent", "dataHoldingConsent"];
       case 9: return ["references"];
       default: return [];
     }
@@ -1585,53 +1583,6 @@ export default function RecruitmentApplicationPage() {
                           </FormDescription>
                           <FormMessage />
                         </div>
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name="dataTypesConsented"
-                    render={() => (
-                      <FormItem>
-                        <FormLabel>Personal data you consent to us holding and sharing *</FormLabel>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                          {[
-                            "Name",
-                            "Date of Birth",
-                            "Phone Number",
-                            "Email Address",
-                            "Postal Address",
-                            "CV",
-                            "Experience, Training & Qualifications",
-                            "National Insurance Number",
-                            "Right to Work Documents",
-                            "Criminal Conviction(s)"
-                          ].map((dataType) => (
-                            <FormField
-                              key={dataType}
-                              control={form.control}
-                              name="dataTypesConsented"
-                              render={({ field }) => (
-                                <FormItem className="flex items-center space-x-2">
-                                  <FormControl>
-                                    <Checkbox
-                                      checked={field.value?.includes(dataType)}
-                                      onCheckedChange={(checked) => {
-                                        const updated = checked
-                                          ? [...(field.value || []), dataType]
-                                          : (field.value || []).filter((value) => value !== dataType);
-                                        field.onChange(updated);
-                                      }}
-                                      data-testid={`checkbox-data-${dataType.toLowerCase().replace(/[,\s()]+/g, '-')}`}
-                                    />
-                                  </FormControl>
-                                  <FormLabel className="!mt-0 font-normal cursor-pointer">{dataType}</FormLabel>
-                                </FormItem>
-                              )}
-                            />
-                          ))}
-                        </div>
-                        <FormMessage />
                       </FormItem>
                     )}
                   />
