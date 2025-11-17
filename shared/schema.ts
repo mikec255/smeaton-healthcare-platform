@@ -127,6 +127,124 @@ export const applications = pgTable("applications", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
+// Full Job Applications (comprehensive application form - separate from pre-screens)
+export const fullApplications = pgTable("full_applications", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  jobId: varchar("job_id").references(() => jobs.id),
+  preScreenApplicationId: varchar("pre_screen_application_id").references(() => applications.id),
+  
+  // Personal Information
+  firstName: text("first_name").notNull(),
+  lastName: text("last_name").notNull(),
+  dateOfBirth: date("date_of_birth").notNull(),
+  email: text("email").notNull(),
+  phone: text("phone").notNull(),
+  address: text("address").notNull(),
+  postcode: text("postcode").notNull(),
+  nationalInsuranceNumber: text("national_insurance_number"),
+  gender: text("gender"), // Male, Female, Other, Prefer not to say
+  maritalStatus: text("marital_status"),
+  ethnicOrigin: text("ethnic_origin"),
+  nationality: text("nationality"),
+  
+  // Next of Kin
+  nextOfKinName: text("next_of_kin_name"),
+  nextOfKinPhone: text("next_of_kin_phone"),
+  nextOfKinAddress: text("next_of_kin_address"),
+  
+  // Payroll Information
+  payrollType: text("payroll_type"), // PAYE, Self-employed
+  bankName: text("bank_name"),
+  accountType: text("account_type"), // Personal, Business
+  accountName: text("account_name"),
+  accountNumber: text("account_number"),
+  sortCode: text("sort_code"),
+  
+  // Worker Profile
+  workerTypes: json("worker_types").$type<string[]>(), // ["Carer", "Support Worker", "Nurse", etc.]
+  travelMethod: text("travel_method"),
+  travelDistance: text("travel_distance"), // How far willing to travel
+  leadSkills: json("lead_skills").$type<string[]>(), // ["Elderly", "Dementia", "Learning Disabilities", etc.]
+  shiftPreferences: text("shift_preferences"), // Any, Days, Nights, etc.
+  availableDays: json("available_days").$type<string[]>(), // ["Monday", "Tuesday", etc.]
+  
+  // Health & Compliance
+  medicalConditions: json("medical_conditions").$type<string[]>(), // List of conditions or "None"
+  medicationAffectsDriving: boolean("medication_affects_driving"),
+  medicalAffectsNightWork: boolean("medical_affects_night_work"),
+  hasCriminalConvictions: boolean("has_criminal_convictions"),
+  convictionDetails: text("conviction_details"),
+  dbsConsent: boolean("dbs_consent").notNull(),
+  workingTimeDirectiveOptOut: boolean("working_time_directive_opt_out"),
+  
+  // Data Protection
+  dataProtectionConsent: boolean("data_protection_consent").notNull(),
+  dataTypesConsented: json("data_types_consented").$type<string[]>(),
+  dataHoldingConsent: boolean("data_holding_consent").notNull(),
+  
+  // Application Management
+  status: text("status").default("submitted"), // submitted, under-review, interview, offer-made, hired, rejected
+  adminNotes: text("admin_notes"),
+  submittedAt: timestamp("submitted_at").defaultNow(),
+  reviewedAt: timestamp("reviewed_at"),
+  reviewedBy: varchar("reviewed_by").references(() => users.id),
+});
+
+// Employment History (multiple entries per application)
+export const employmentHistory = pgTable("employment_history", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  applicationId: varchar("application_id").references(() => fullApplications.id, { onDelete: "cascade" }).notNull(),
+  companyName: text("company_name").notNull(),
+  jobTitle: text("job_title").notNull(),
+  startDate: date("start_date").notNull(),
+  endDate: date("end_date"),
+  currentlyEmployed: boolean("currently_employed").default(false),
+  reasonForLeaving: text("reason_for_leaving"),
+  managerName: text("manager_name"),
+  managerPhone: text("manager_phone"),
+  managerEmail: text("manager_email"),
+  orderIndex: integer("order_index").notNull().default(0),
+});
+
+// Education Records (multiple entries per application)
+export const educationRecords = pgTable("education_records", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  applicationId: varchar("application_id").references(() => fullApplications.id, { onDelete: "cascade" }).notNull(),
+  qualificationType: text("qualification_type").notNull(), // NVQ, Diploma, GCSE, Degree, etc.
+  qualificationName: text("qualification_name").notNull(),
+  institution: text("institution"),
+  yearObtained: text("year_obtained"),
+  orderIndex: integer("order_index").notNull().default(0),
+});
+
+// Application References (2-3 references per application)
+export const applicationReferences = pgTable("application_references", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  applicationId: varchar("application_id").references(() => fullApplications.id, { onDelete: "cascade" }).notNull(),
+  referenceType: text("reference_type").notNull(), // Professional, Character
+  fullName: text("full_name").notNull(),
+  company: text("company"),
+  jobTitle: text("job_title"),
+  relationship: text("relationship"), // For character references
+  startDate: date("start_date"),
+  endDate: date("end_date"),
+  applicantJobTitle: text("applicant_job_title"),
+  email: text("email").notNull(),
+  phone: text("phone").notNull(),
+  orderIndex: integer("order_index").notNull().default(0),
+});
+
+// Application Documents (multiple file uploads per application)
+export const applicationDocuments = pgTable("application_documents", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  applicationId: varchar("application_id").references(() => fullApplications.id, { onDelete: "cascade" }).notNull(),
+  documentType: text("document_type").notNull(), // proof-of-address, id, qualification, cv, dbs, other
+  fileName: text("file_name").notNull(),
+  filePath: text("file_path").notNull(),
+  fileSize: integer("file_size"),
+  uploadedAt: timestamp("uploaded_at").defaultNow(),
+});
+
 export const contactSubmissions = pgTable("contact_submissions", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   type: text("type").notNull(), // care-request, staff-booking
@@ -317,6 +435,30 @@ export const insertJobSchema = createInsertSchema(jobs).omit({
 export const insertApplicationSchema = createInsertSchema(applications).omit({
   id: true,
   createdAt: true,
+});
+
+export const insertFullApplicationSchema = createInsertSchema(fullApplications).omit({
+  id: true,
+  submittedAt: true,
+  reviewedAt: true,
+  reviewedBy: true,
+});
+
+export const insertEmploymentHistorySchema = createInsertSchema(employmentHistory).omit({
+  id: true,
+});
+
+export const insertEducationRecordSchema = createInsertSchema(educationRecords).omit({
+  id: true,
+});
+
+export const insertApplicationReferenceSchema = createInsertSchema(applicationReferences).omit({
+  id: true,
+});
+
+export const insertApplicationDocumentSchema = createInsertSchema(applicationDocuments).omit({
+  id: true,
+  uploadedAt: true,
 });
 
 export const insertContactSubmissionSchema = createInsertSchema(contactSubmissions).omit({
@@ -917,6 +1059,16 @@ export type InsertJob = z.infer<typeof insertJobSchema>;
 export type Job = typeof jobs.$inferSelect;
 export type InsertApplication = z.infer<typeof insertApplicationSchema>;
 export type Application = typeof applications.$inferSelect;
+export type InsertFullApplication = z.infer<typeof insertFullApplicationSchema>;
+export type FullApplication = typeof fullApplications.$inferSelect;
+export type InsertEmploymentHistory = z.infer<typeof insertEmploymentHistorySchema>;
+export type EmploymentHistory = typeof employmentHistory.$inferSelect;
+export type InsertEducationRecord = z.infer<typeof insertEducationRecordSchema>;
+export type EducationRecord = typeof educationRecords.$inferSelect;
+export type InsertApplicationReference = z.infer<typeof insertApplicationReferenceSchema>;
+export type ApplicationReference = typeof applicationReferences.$inferSelect;
+export type InsertApplicationDocument = z.infer<typeof insertApplicationDocumentSchema>;
+export type ApplicationDocument = typeof applicationDocuments.$inferSelect;
 export type InsertContactSubmission = z.infer<typeof insertContactSubmissionSchema>;
 export type ContactSubmission = typeof contactSubmissions.$inferSelect;
 export type InsertNewsletter = z.infer<typeof insertNewsletterSchema>;
