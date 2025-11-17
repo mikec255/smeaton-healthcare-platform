@@ -1782,19 +1782,21 @@ export default function RecruitmentApplicationPage() {
                             </FormItem>
                           )}
                         />
-                        <FormField
-                          control={form.control}
-                          name={`references.${index}.relationship`}
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Relationship (for character references)</FormLabel>
-                              <FormControl>
-                                <Input {...field} data-testid={`input-reference-relationship-${index}`} />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
+                        {form.watch(`references.${index}.referenceType`) === "Character" && (
+                          <FormField
+                            control={form.control}
+                            name={`references.${index}.relationship`}
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Relationship</FormLabel>
+                                <FormControl>
+                                  <Input {...field} data-testid={`input-reference-relationship-${index}`} />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                        )}
                         <FormField
                           control={form.control}
                           name={`references.${index}.startDate`}
