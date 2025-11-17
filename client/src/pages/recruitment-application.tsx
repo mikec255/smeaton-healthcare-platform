@@ -1021,7 +1021,7 @@ export default function RecruitmentApplicationPage() {
                     Employment History
                   </CardTitle>
                   <CardDescription>
-                    Add your previous employment details
+                    As required by law, please provide your complete employment history from when you left school to present. This must include ALL positions and any gaps in employment (e.g., parenting, health reasons, travel, education, unemployment). Please provide dates and explanations for all periods.
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-6">
