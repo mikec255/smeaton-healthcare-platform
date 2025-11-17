@@ -318,7 +318,12 @@ export default function RecruitmentApplicationPage() {
 
   // Auto-sync employment references to References tab
   useEffect(() => {
+    console.log('=== REFERENCES SYNC DEBUG ===');
+    console.log('Employment History:', watchEmploymentHistory);
+    console.log('Employment History with useAsReference:', watchEmploymentHistory.filter(emp => emp.useAsReference));
+    
     const currentReferences = form.getValues("references");
+    console.log('Current References:', currentReferences);
     
     // Create references for all employment records where useAsReference is checked
     const employmentRefs = watchEmploymentHistory
@@ -336,16 +341,24 @@ export default function RecruitmentApplicationPage() {
         phone: emp.referencePhone || "",
       }));
 
+    console.log('Created Employment Refs:', employmentRefs);
+
     // Keep only Character references (manually added)
     const manualReferences = currentReferences.filter(ref => ref.referenceType === "Character");
+    console.log('Manual Refs:', manualReferences);
 
     // Combine employment refs and manual refs
     const updatedReferences = [...employmentRefs, ...manualReferences];
+    console.log('Updated References (will set):', updatedReferences);
     
     // Only update if there's an actual change
     if (JSON.stringify(updatedReferences) !== JSON.stringify(currentReferences)) {
+      console.log('Setting references in form...');
       form.setValue("references", updatedReferences);
+    } else {
+      console.log('No change detected, skipping update');
     }
+    console.log('=== END DEBUG ===');
   }, [watchEmploymentHistory]);
 
   if (isSubmitted) {
