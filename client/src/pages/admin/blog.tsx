@@ -77,15 +77,9 @@ export default function BlogAdmin() {
     });
   };
 
-  // Helper function to convert Google Cloud Storage URL to proxy URL
+  // Helper function to pass through URLs (use full Google Cloud Storage URLs directly)
   const convertToProxyUrl = (url: string): string => {
-    if (!url.includes('storage.googleapis.com')) {
-      return url;
-    }
-    const match = url.match(/\.private\/uploads\/(.+)/);
-    if (match) {
-      return `/objects/uploads/${match[1]}`;
-    }
+    // Return URLs as-is so they work on any platform (Azure, Replit, etc)
     return url;
   };
 
