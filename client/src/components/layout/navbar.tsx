@@ -41,7 +41,7 @@ export default function Navbar() {
   return (
     <nav className="fixed top-0 left-0 right-0 bg-white border-b border-gray-200 shadow-sm z-40" style={{ padding: '0', margin: '0', display: 'flex', justifyContent: 'center' }}>
       {/* Main navbar container */}
-      <div style={{ padding: '0', margin: '0', display: 'flex', alignItems: 'center', justifyContent: 'space-between', height: '72px', width: '100%', boxSizing: 'border-box', gap: '0' }}>
+      <div style={{ padding: '0', margin: '0', display: 'flex', alignItems: 'center', justifyContent: 'flex-start', height: '72px', width: '100%', boxSizing: 'border-box', gap: '0' }}>
         
         {/* Logo - ALWAYS VISIBLE */}
         <Link href="/" data-testid="navbar-logo" className="flex-shrink-0 flex items-center justify-center" style={{ padding: '0', margin: '0', height: '100%' }}>
@@ -169,6 +169,9 @@ export default function Navbar() {
             Contact
           </Link>
         </div>
+
+        {/* Spacer to push right items to the right */}
+        <div style={{ flex: '1' }}></div>
 
         {/* Right side items - these disappear first as screen shrinks */}
         
