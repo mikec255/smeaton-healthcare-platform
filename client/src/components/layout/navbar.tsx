@@ -40,11 +40,11 @@ export default function Navbar() {
 
   return (
     <nav className="fixed top-0 left-0 right-0 bg-white border-b border-gray-200 shadow-sm z-40" style={{ padding: '0', margin: '0', display: 'flex', justifyContent: 'center' }}>
-      {/* Main navbar container */}
-      <div style={{ padding: '0 16px', margin: '0', display: 'flex', alignItems: 'center', height: '72px', maxWidth: '100%', width: '100%', boxSizing: 'border-box', gap: '12px' }}>
+      {/* Main navbar container - centered content */}
+      <div style={{ padding: '0 16px', margin: '0', display: 'flex', alignItems: 'center', justifyContent: 'space-between', height: '72px', maxWidth: '1400px', width: '100%', boxSizing: 'border-box' }}>
         
-        {/* Logo - ALWAYS VISIBLE on left */}
-        <Link href="/" data-testid="navbar-logo" className="flex-shrink-0 flex items-center justify-center" style={{ padding: '0', margin: '0 12px 0 -80px', height: '100%', minWidth: 'fit-content' }}>
+        {/* Logo Section - ALWAYS VISIBLE */}
+        <Link href="/" data-testid="navbar-logo" className="flex-shrink-0 flex items-center justify-center" style={{ padding: '0', margin: '0 12px 0 -80px', height: '100%' }}>
           <img 
             src={logoImage} 
             alt="Smeaton Healthcare" 
@@ -53,19 +53,19 @@ export default function Navbar() {
           />
         </Link>
 
-        {/* Center Navigation - items that stay longest as screen shrinks */}
-        <div className="flex items-center gap-1 h-full" style={{ flex: '1', margin: '0', padding: '0' }}>
-          {/* Home - hidden below lg */}
+        {/* Desktop Navigation - only visible on lg+ screens */}
+        <div className="hidden lg:flex items-center gap-1" style={{ flex: 'none', margin: '0', padding: '0 12px', height: '100%' }}>
+          {/* Home */}
           <Link 
             href="/" 
-            className="text-sm font-medium whitespace-nowrap hidden lg:flex items-center justify-center h-full"
-            style={{ color: isActive("/") ? '#EF2587' : '#374151', padding: '0 12px', margin: '0', minWidth: 'fit-content' }}
+            className="text-sm font-medium whitespace-nowrap flex items-center justify-center h-full"
+            style={{ color: isActive("/") ? '#EF2587' : '#374151', padding: '0 12px', margin: '0' }}
           >
             Home
           </Link>
 
-          {/* Services - hidden below md */}
-          <div className="hidden md:block relative h-full" style={{ minWidth: 'fit-content' }}>
+          {/* Services Dropdown */}
+          <div style={{ position: 'relative' }}>
             <button
               onClick={() => {
                 setServicesOpen(!servicesOpen);
@@ -93,8 +93,8 @@ export default function Navbar() {
             )}
           </div>
 
-          {/* Resources - hidden below md */}
-          <div className="hidden md:block relative h-full" style={{ minWidth: 'fit-content' }}>
+          {/* Resources Dropdown */}
+          <div style={{ position: 'relative' }}>
             <button
               onClick={() => {
                 setResourcesOpen(!resourcesOpen);
@@ -122,8 +122,8 @@ export default function Navbar() {
             )}
           </div>
 
-          {/* Working at Smeaton - hidden below lg */}
-          <div className="hidden lg:block relative h-full" style={{ minWidth: 'fit-content' }}>
+          {/* Working at Smeaton Dropdown */}
+          <div style={{ position: 'relative' }}>
             <button
               onClick={() => {
                 setWorkingOpen(!workingOpen);
@@ -151,57 +151,54 @@ export default function Navbar() {
             )}
           </div>
 
-          {/* Find Jobs - hidden below md */}
+          {/* Find Jobs */}
           <Link 
             href="/jobs" 
-            className="text-sm font-medium whitespace-nowrap hidden md:flex items-center justify-center h-full"
-            style={{ color: isActive("/jobs") ? '#EF2587' : '#374151', padding: '0 12px', margin: '0', minWidth: 'fit-content' }}
+            className="text-sm font-medium whitespace-nowrap flex items-center justify-center h-full"
+            style={{ color: isActive("/jobs") ? '#EF2587' : '#374151', padding: '0 12px', margin: '0' }}
           >
             Find Jobs
           </Link>
 
-          {/* Contact - hidden below md */}
+          {/* Contact */}
           <Link 
             href="/contact" 
-            className="text-sm font-medium whitespace-nowrap hidden md:flex items-center justify-center h-full"
-            style={{ color: isActive("/contact") ? '#EF2587' : '#374151', padding: '0 12px', margin: '0', minWidth: 'fit-content' }}
+            className="text-sm font-medium whitespace-nowrap flex items-center justify-center h-full"
+            style={{ color: isActive("/contact") ? '#EF2587' : '#374151', padding: '0 12px', margin: '0' }}
           >
             Contact
           </Link>
+
+          {/* Buttons */}
+          <div style={{ display: 'flex', gap: '8px', marginLeft: '12px', alignItems: 'center', height: '100%' }}>
+            <Button 
+              onClick={() => window.location.href = '/referral'}
+              style={{ backgroundColor: '#EC4899', color: 'white', padding: '6px 14px', fontSize: '13px', border: 'none', borderRadius: '4px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px', fontWeight: '600', margin: '0', height: '32px' }}
+            >
+              Make a Referral
+              <ArrowRight className="w-3 h-3" />
+            </Button>
+            
+            <Button 
+              variant="outline"
+              onClick={() => window.location.href = '/admin'}
+              style={{ padding: '6px 14px', fontSize: '13px', margin: '0', height: '32px', fontWeight: '600' }}
+            >
+              Admin
+            </Button>
+          </div>
+
+          {/* Phone number - desktop only */}
+          <div style={{ marginLeft: '12px', flexShrink: 0, color: '#1e40af', fontSize: '13px', fontWeight: 'bold', whiteSpace: 'nowrap', display: 'flex', alignItems: 'center', height: '100%', margin: '0' }}>
+            0330 165 8880
+          </div>
         </div>
 
-        {/* Right side items - THESE GO TO MENU FIRST as screen shrinks */}
-        
-        {/* Make a Referral - hidden below lg */}
-        <Button 
-          onClick={() => window.location.href = '/referral'}
-          className="hidden lg:flex"
-          style={{ backgroundColor: '#EC4899', color: 'white', padding: '6px 14px', fontSize: '13px', border: 'none', borderRadius: '4px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px', fontWeight: '600', margin: '0', height: '32px', minWidth: 'fit-content' }}
-        >
-          Make a Referral
-          <ArrowRight className="w-3 h-3" />
-        </Button>
-
-        {/* Admin - hidden below sm */}
-        <Button 
-          variant="outline"
-          onClick={() => window.location.href = '/admin'}
-          className="hidden sm:block"
-          style={{ padding: '6px 14px', fontSize: '13px', margin: '0', height: '32px', fontWeight: '600', minWidth: 'fit-content' }}
-        >
-          Admin
-        </Button>
-
-        {/* Phone - hidden below xl */}
-        <div className="hidden xl:flex text-sm whitespace-nowrap" style={{ color: '#1e40af', fontSize: '13px', fontWeight: 'bold', display: 'flex', alignItems: 'center', height: '100%', margin: '0', minWidth: 'fit-content' }}>
-          0330 165 8880
-        </div>
-
-        {/* Hamburger menu - visible below lg */}
+        {/* Mobile/Tablet hamburger menu - visible below lg */}
         <Button 
           variant="ghost" 
           className="lg:hidden"
-          style={{ padding: '0', margin: '0', height: '100%', width: 'auto', minWidth: 'fit-content' }}
+          style={{ padding: '0', margin: '0', height: '100%', width: 'auto' }}
           onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
           data-testid="button-mobile-menu"
         >
@@ -213,7 +210,7 @@ export default function Navbar() {
         </Button>
       </div>
 
-      {/* Mobile/Tablet Menu - shown when hamburger is clicked (lg and below) */}
+      {/* Mobile Menu */}
       {mobileMenuOpen && (
         <div className="lg:hidden fixed inset-0 top-[72px] bg-white z-50 overflow-y-auto">
           <div style={{ padding: '12px' }}>
