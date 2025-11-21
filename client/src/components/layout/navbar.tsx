@@ -39,199 +39,199 @@ export default function Navbar() {
   ];
 
   return (
-    <nav className="fixed top-0 left-0 right-0 bg-white border-b border-gray-200 shadow-sm z-40" style={{ padding: '0', margin: '0', lineHeight: '0' }}>
-      {/* Main navbar container */}
-      <div style={{ padding: '0', margin: '0', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '0' }}>
-          {/* Logo Section */}
-          <Link href="/" data-testid="navbar-logo" className="flex-shrink-0 mr-4 overflow-hidden flex items-center" style={{ marginLeft: '-8px', padding: '0' }}>
-            <img 
-              src={logoImage} 
-              alt="Smeaton Healthcare" 
-              className="h-24 sm:h-28 md:h-32 w-auto"
-            />
+    <nav className="fixed top-0 left-0 right-0 bg-white border-b border-gray-200 shadow-sm z-40" style={{ padding: '0', margin: '0', lineHeight: '1' }}>
+      {/* Main navbar container - ultra tight */}
+      <div style={{ padding: '0', margin: '0', display: 'flex', alignItems: 'center', justifyContent: 'space-between', height: 'auto', gap: '0' }}>
+        {/* Logo Section */}
+        <Link href="/" data-testid="navbar-logo" className="flex-shrink-0 overflow-hidden flex items-center" style={{ padding: '0', margin: '0 8px 0 0' }}>
+          <img 
+            src={logoImage} 
+            alt="Smeaton Healthcare" 
+            className="h-24 sm:h-28 md:h-32 w-auto"
+            style={{ display: 'block' }}
+          />
+        </Link>
+
+        {/* Desktop Navigation - only visible on xl+ screens */}
+        <div className="hidden xl:flex items-center gap-1" style={{ flex: '1', margin: '0', padding: '0' }}>
+          {/* Home */}
+          <Link 
+            href="/" 
+            className="px-3 text-sm font-medium whitespace-nowrap"
+            style={{ color: isActive("/") ? '#EF2587' : '#374151', padding: '8px 12px' }}
+          >
+            Home
           </Link>
 
-          {/* Desktop Navigation - only visible on xl+ screens */}
-          <div className="hidden xl:flex items-center gap-1">
-            {/* Home */}
-            <Link 
-              href="/" 
-              className="px-3 text-sm font-medium whitespace-nowrap"
-              style={{ color: isActive("/") ? '#EF2587' : '#374151' }}
+          {/* Services Dropdown */}
+          <div style={{ position: 'relative' }}>
+            <button
+              onClick={() => {
+                setServicesOpen(!servicesOpen);
+                setResourcesOpen(false);
+                setWorkingOpen(false);
+              }}
+              style={{ padding: '8px 12px', fontSize: '14px', fontWeight: '500', background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px', color: '#374151' }}
             >
-              Home
-            </Link>
-
-            {/* Services Dropdown */}
-            <div className="relative group">
-              <button
-                onClick={() => {
-                  setServicesOpen(!servicesOpen);
-                  setResourcesOpen(false);
-                  setWorkingOpen(false);
-                }}
-                className="px-3 text-sm font-medium whitespace-nowrap flex items-center gap-1 text-gray-700 hover:text-pink-600"
-              >
-                Services
-                <ChevronDown className="w-4 h-4" />
-              </button>
-              {servicesOpen && (
-                <div className="absolute top-full left-0 mt-1 w-56 bg-white border border-gray-200 rounded-lg shadow-lg z-50">
-                  {serviceLinks.map(link => (
-                    <Link 
-                      key={link.href} 
-                      href={link.href}
-                      onClick={() => setServicesOpen(false)}
-                      className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 first:rounded-t-lg last:rounded-b-lg"
-                    >
-                      {link.label}
-                    </Link>
-                  ))}
-                </div>
-              )}
-            </div>
-
-            {/* Resources Dropdown */}
-            <div className="relative group">
-              <button
-                onClick={() => {
-                  setResourcesOpen(!resourcesOpen);
-                  setServicesOpen(false);
-                  setWorkingOpen(false);
-                }}
-                className="px-3 text-sm font-medium whitespace-nowrap flex items-center gap-1 text-gray-700 hover:text-pink-600"
-              >
-                Resources
-                <ChevronDown className="w-4 h-4" />
-              </button>
-              {resourcesOpen && (
-                <div className="absolute top-full left-0 mt-1 w-56 bg-white border border-gray-200 rounded-lg shadow-lg z-50">
-                  {resourceLinks.map(link => (
-                    <Link 
-                      key={link.href} 
-                      href={link.href}
-                      onClick={() => setResourcesOpen(false)}
-                      className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 first:rounded-t-lg last:rounded-b-lg"
-                    >
-                      {link.label}
-                    </Link>
-                  ))}
-                </div>
-              )}
-            </div>
-
-            {/* Working at Smeaton Dropdown */}
-            <div className="relative group">
-              <button
-                onClick={() => {
-                  setWorkingOpen(!workingOpen);
-                  setServicesOpen(false);
-                  setResourcesOpen(false);
-                }}
-                className="px-3 text-sm font-medium whitespace-nowrap flex items-center gap-1 text-gray-700 hover:text-pink-600"
-              >
-                Working at Smeaton
-                <ChevronDown className="w-4 h-4" />
-              </button>
-              {workingOpen && (
-                <div className="absolute top-full left-0 mt-1 w-56 bg-white border border-gray-200 rounded-lg shadow-lg z-50">
-                  {workingLinks.map(link => (
-                    <Link 
-                      key={link.href} 
-                      href={link.href}
-                      onClick={() => setWorkingOpen(false)}
-                      className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 first:rounded-t-lg last:rounded-b-lg"
-                    >
-                      {link.label}
-                    </Link>
-                  ))}
-                </div>
-              )}
-            </div>
-
-            {/* Find Jobs */}
-            <Link 
-              href="/jobs" 
-              className="px-3 text-sm font-medium whitespace-nowrap"
-              style={{ color: isActive("/jobs") ? '#EF2587' : '#374151' }}
-            >
-              Find Jobs
-            </Link>
-
-            {/* Contact */}
-            <Link 
-              href="/contact" 
-              className="px-3 text-sm font-medium whitespace-nowrap"
-              style={{ color: isActive("/contact") ? '#EF2587' : '#374151' }}
-            >
-              Contact
-            </Link>
-
-            {/* Buttons */}
-            <div className="flex gap-2 ml-4 flex-shrink-0">
-              <Button 
-                onClick={() => window.location.href = '/referral'}
-                className="bg-pink-600 hover:bg-pink-700 text-white text-sm px-3 py-0 flex items-center gap-2 whitespace-nowrap h-auto"
-              >
-                Make a Referral
-                <ArrowRight className="w-4 h-4" />
-              </Button>
-              
-              <Button 
-                variant="outline"
-                onClick={() => window.location.href = '/admin'}
-                className="text-sm px-3 py-0 whitespace-nowrap h-auto"
-              >
-                Admin
-              </Button>
-            </div>
-
-            {/* Phone number - desktop only */}
-            <div className="ml-6 flex-shrink-0 text-blue-700 text-sm font-bold whitespace-nowrap border-l border-gray-300 pl-6">
-              0330 165 8880
-            </div>
+              Services
+              <ChevronDown className="w-4 h-4" />
+            </button>
+            {servicesOpen && (
+              <div style={{ position: 'absolute', top: '100%', left: 0, marginTop: '4px', background: 'white', border: '1px solid #e5e7eb', borderRadius: '6px', boxShadow: '0 10px 15px rgba(0,0,0,0.1)', minWidth: '220px', padding: '6px', zIndex: 1000 }}>
+                {serviceLinks.map(link => (
+                  <Link 
+                    key={link.href} 
+                    href={link.href}
+                    onClick={() => setServicesOpen(false)}
+                    style={{ display: 'block', padding: '8px 12px', fontSize: '14px', color: '#374151', textDecoration: 'none', borderRadius: '4px' }}
+                  >
+                    {link.label}
+                  </Link>
+                ))}
+              </div>
+            )}
           </div>
 
-          {/* Mobile/Tablet hamburger menu - visible on screens smaller than xl */}
-          <Button 
-            variant="ghost" 
-            size="sm"
-            className="xl:hidden p-2"
-            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            data-testid="button-mobile-menu"
-          >
-            {mobileMenuOpen ? (
-              <X className="h-6 w-6 text-gray-600" />
-            ) : (
-              <Menu className="h-6 w-6 text-gray-600" />
+          {/* Resources Dropdown */}
+          <div style={{ position: 'relative' }}>
+            <button
+              onClick={() => {
+                setResourcesOpen(!resourcesOpen);
+                setServicesOpen(false);
+                setWorkingOpen(false);
+              }}
+              style={{ padding: '8px 12px', fontSize: '14px', fontWeight: '500', background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px', color: '#374151' }}
+            >
+              Resources
+              <ChevronDown className="w-4 h-4" />
+            </button>
+            {resourcesOpen && (
+              <div style={{ position: 'absolute', top: '100%', left: 0, marginTop: '4px', background: 'white', border: '1px solid #e5e7eb', borderRadius: '6px', boxShadow: '0 10px 15px rgba(0,0,0,0.1)', minWidth: '220px', padding: '6px', zIndex: 1000 }}>
+                {resourceLinks.map(link => (
+                  <Link 
+                    key={link.href} 
+                    href={link.href}
+                    onClick={() => setResourcesOpen(false)}
+                    style={{ display: 'block', padding: '8px 12px', fontSize: '14px', color: '#374151', textDecoration: 'none', borderRadius: '4px' }}
+                  >
+                    {link.label}
+                  </Link>
+                ))}
+              </div>
             )}
-          </Button>
+          </div>
+
+          {/* Working at Smeaton Dropdown */}
+          <div style={{ position: 'relative' }}>
+            <button
+              onClick={() => {
+                setWorkingOpen(!workingOpen);
+                setServicesOpen(false);
+                setResourcesOpen(false);
+              }}
+              style={{ padding: '8px 12px', fontSize: '14px', fontWeight: '500', background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px', color: '#374151' }}
+            >
+              Working at Smeaton
+              <ChevronDown className="w-4 h-4" />
+            </button>
+            {workingOpen && (
+              <div style={{ position: 'absolute', top: '100%', left: 0, marginTop: '4px', background: 'white', border: '1px solid #e5e7eb', borderRadius: '6px', boxShadow: '0 10px 15px rgba(0,0,0,0.1)', minWidth: '220px', padding: '6px', zIndex: 1000 }}>
+                {workingLinks.map(link => (
+                  <Link 
+                    key={link.href} 
+                    href={link.href}
+                    onClick={() => setWorkingOpen(false)}
+                    style={{ display: 'block', padding: '8px 12px', fontSize: '14px', color: '#374151', textDecoration: 'none', borderRadius: '4px' }}
+                  >
+                    {link.label}
+                  </Link>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Find Jobs */}
+          <Link 
+            href="/jobs" 
+            className="px-3 text-sm font-medium whitespace-nowrap"
+            style={{ color: isActive("/jobs") ? '#EF2587' : '#374151', padding: '8px 12px' }}
+          >
+            Find Jobs
+          </Link>
+
+          {/* Contact */}
+          <Link 
+            href="/contact" 
+            className="px-3 text-sm font-medium whitespace-nowrap"
+            style={{ color: isActive("/contact") ? '#EF2587' : '#374151', padding: '8px 12px' }}
+          >
+            Contact
+          </Link>
+
+          {/* Buttons */}
+          <div style={{ display: 'flex', gap: '8px', marginLeft: '12px' }}>
+            <Button 
+              onClick={() => window.location.href = '/referral'}
+              style={{ backgroundColor: '#EC4899', color: 'white', padding: '6px 12px', fontSize: '14px', border: 'none', borderRadius: '6px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px', height: 'auto', fontWeight: '500' }}
+            >
+              Make a Referral
+              <ArrowRight className="w-4 h-4" />
+            </Button>
+            
+            <Button 
+              variant="outline"
+              onClick={() => window.location.href = '/admin'}
+              style={{ padding: '6px 12px', fontSize: '14px', height: 'auto' }}
+            >
+              Admin
+            </Button>
+          </div>
+
+          {/* Phone number - desktop only */}
+          <div style={{ marginLeft: '12px', flexShrink: 0, color: '#1e40af', fontSize: '13px', fontWeight: 'bold', whiteSpace: 'nowrap', borderLeft: '1px solid #d1d5db', paddingLeft: '12px', padding: '0 0 0 12px' }}>
+            0330 165 8880
+          </div>
         </div>
+
+        {/* Mobile/Tablet hamburger menu - visible on screens smaller than xl */}
+        <Button 
+          variant="ghost" 
+          size="sm"
+          className="xl:hidden"
+          style={{ padding: '6px', margin: '0 4px 0 0' }}
+          onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+          data-testid="button-mobile-menu"
+        >
+          {mobileMenuOpen ? (
+            <X className="h-6 w-6 text-gray-600" />
+          ) : (
+            <Menu className="h-6 w-6 text-gray-600" />
+          )}
+        </Button>
       </div>
 
       {/* Mobile Menu */}
       {mobileMenuOpen && (
         <div className="xl:hidden border-t border-gray-200 bg-white">
-          <div className="container mx-auto px-3 sm:px-4 py-4 space-y-3">
+          <div style={{ padding: '12px' }}>
             {/* Home Link */}
             <Link 
               href="/"
               onClick={() => setMobileMenuOpen(false)}
-              className="block py-3 px-3 text-base font-medium border-b border-gray-100"
-              style={{ color: isActive("/") ? '#EF2587' : '#374151' }}
+              style={{ display: 'block', padding: '12px 8px', fontSize: '16px', fontWeight: '500', borderBottom: '1px solid #f3f4f6', color: isActive("/") ? '#EF2587' : '#374151', textDecoration: 'none' }}
             >
               Home
             </Link>
 
             {/* Services Section */}
-            <div>
-              <div className="text-sm font-bold px-3 py-2 text-gray-900">Services</div>
+            <div style={{ marginTop: '12px' }}>
+              <div style={{ fontSize: '15px', fontWeight: '600', padding: '8px', color: '#1f2937', borderBottom: '1px solid #e5e7eb' }}>Services</div>
               {serviceLinks.map(link => (
                 <Link 
                   key={link.href} 
                   href={link.href}
                   onClick={() => setMobileMenuOpen(false)}
-                  className="block py-2 px-6 text-sm text-gray-700 hover:bg-gray-50"
+                  style={{ display: 'block', padding: '8px 16px', fontSize: '14px', color: '#6b7280', textDecoration: 'none', borderBottom: '1px solid #f9fafb' }}
                 >
                   {link.label}
                 </Link>
@@ -239,14 +239,14 @@ export default function Navbar() {
             </div>
 
             {/* Resources Section */}
-            <div>
-              <div className="text-sm font-bold px-3 py-2 text-gray-900">Resources</div>
+            <div style={{ marginTop: '12px' }}>
+              <div style={{ fontSize: '15px', fontWeight: '600', padding: '8px', color: '#1f2937', borderBottom: '1px solid #e5e7eb' }}>Resources</div>
               {resourceLinks.map(link => (
                 <Link 
                   key={link.href} 
                   href={link.href}
                   onClick={() => setMobileMenuOpen(false)}
-                  className="block py-2 px-6 text-sm text-gray-700 hover:bg-gray-50"
+                  style={{ display: 'block', padding: '8px 16px', fontSize: '14px', color: '#6b7280', textDecoration: 'none', borderBottom: '1px solid #f9fafb' }}
                 >
                   {link.label}
                 </Link>
@@ -254,14 +254,14 @@ export default function Navbar() {
             </div>
 
             {/* Working at Smeaton Section */}
-            <div>
-              <div className="text-sm font-bold px-3 py-2 text-gray-900">Working at Smeaton</div>
+            <div style={{ marginTop: '12px' }}>
+              <div style={{ fontSize: '15px', fontWeight: '600', padding: '8px', color: '#1f2937', borderBottom: '1px solid #e5e7eb' }}>Working at Smeaton</div>
               {workingLinks.map(link => (
                 <Link 
                   key={link.href} 
                   href={link.href}
                   onClick={() => setMobileMenuOpen(false)}
-                  className="block py-2 px-6 text-sm text-gray-700 hover:bg-gray-50"
+                  style={{ display: 'block', padding: '8px 16px', fontSize: '14px', color: '#6b7280', textDecoration: 'none', borderBottom: '1px solid #f9fafb' }}
                 >
                   {link.label}
                 </Link>
@@ -272,8 +272,7 @@ export default function Navbar() {
             <Link 
               href="/jobs"
               onClick={() => setMobileMenuOpen(false)}
-              className="block py-3 px-3 text-base font-medium border-t border-b border-gray-100"
-              style={{ color: isActive("/jobs") ? '#EF2587' : '#374151' }}
+              style={{ display: 'block', padding: '12px 8px', fontSize: '16px', fontWeight: '500', borderTop: '1px solid #e5e7eb', borderBottom: '1px solid #e5e7eb', color: isActive("/jobs") ? '#EF2587' : '#374151', textDecoration: 'none', marginTop: '12px' }}
             >
               Find Jobs
             </Link>
@@ -282,20 +281,19 @@ export default function Navbar() {
             <Link 
               href="/contact"
               onClick={() => setMobileMenuOpen(false)}
-              className="block py-3 px-3 text-base font-medium border-b border-gray-100"
-              style={{ color: isActive("/contact") ? '#EF2587' : '#374151' }}
+              style={{ display: 'block', padding: '12px 8px', fontSize: '16px', fontWeight: '500', borderBottom: '1px solid #e5e7eb', color: isActive("/contact") ? '#EF2587' : '#374151', textDecoration: 'none' }}
             >
               Contact
             </Link>
 
             {/* Action Buttons and Phone */}
-            <div className="pt-4 space-y-3 border-t border-gray-200">
+            <div style={{ paddingTop: '12px', marginTop: '12px', borderTop: '1px solid #e5e7eb', display: 'flex', flexDirection: 'column', gap: '8px' }}>
               <Button 
                 onClick={() => {
                   setMobileMenuOpen(false);
                   window.location.href = '/referral';
                 }}
-                className="w-full bg-pink-600 hover:bg-pink-700 text-white font-medium"
+                style={{ width: '100%', backgroundColor: '#EC4899', color: 'white', padding: '12px', fontSize: '15px', fontWeight: '600', borderRadius: '6px', border: 'none', cursor: 'pointer' }}
               >
                 Make a Referral
               </Button>
@@ -306,15 +304,13 @@ export default function Navbar() {
                   setMobileMenuOpen(false);
                   window.location.href = '/admin';
                 }}
-                className="w-full"
+                style={{ width: '100%', padding: '12px', fontSize: '15px', fontWeight: '600', borderRadius: '6px' }}
               >
                 Admin
               </Button>
 
-              <div className="text-center py-3 border-t border-gray-100">
-                <div className="text-lg font-bold text-blue-700">
-                  📞 0330 165 8880
-                </div>
+              <div style={{ textAlign: 'center', paddingTop: '12px', borderTop: '1px solid #e5e7eb', fontSize: '18px', fontWeight: 'bold', color: '#1e40af' }}>
+                📞 0330 165 8880
               </div>
             </div>
           </div>
