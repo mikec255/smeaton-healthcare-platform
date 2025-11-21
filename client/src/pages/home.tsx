@@ -347,7 +347,7 @@ export default function Home({ heroTab = "find-care", onHeroTabChange }: { heroT
   return (
     <div data-testid="home-page">
       {/* Hero Section with Tabs */}
-      <section className="relative min-h-[70vh] md:min-h-[90vh] overflow-hidden pt-3">
+      <section className="relative min-h-[70vh] md:min-h-[90vh] overflow-hidden pt-0">
         <Tabs value={heroTab} onValueChange={onHeroTabChange} className="w-full h-full">
           {/* Find Care Hero */}
           <TabsContent value="find-care" className="m-0 h-full">
