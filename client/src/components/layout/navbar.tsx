@@ -235,8 +235,8 @@ export default function Navbar() {
           <img src={logoImage} alt="Smeaton Healthcare" className="h-40 sm:h-32 md:h-28 w-auto" />
         </Link>
 
-        {/* All Navigation Items - single container with zero gaps */}
-        <div className="hidden md:flex items-center gap-0">
+        {/* All Navigation Items - single container with consistent gaps */}
+        <div className="hidden md:flex items-center gap-1">
           {visibleLeftItems.map(item => renderNavItem(item))}
           {visibleRightItems.map(item => renderNavItem(item))}
         </div>
