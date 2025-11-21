@@ -21,6 +21,7 @@ export default function Navbar() {
   const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
   const [hiddenItems, setHiddenItems] = useState<Set<string>>(new Set());
   const navRef = useRef<HTMLDivElement>(null);
+  const logoRef = useRef<HTMLDivElement>(null);
   const itemsRef = useRef<Map<string, HTMLElement>>(new Map());
 
   const isActive = (path: string) => {
@@ -85,9 +86,9 @@ export default function Navbar() {
       if (!navRef.current) return;
 
       const containerWidth = navRef.current.offsetWidth;
-      const logoWidth = 120;
+      const logoWidth = logoRef.current?.offsetWidth ?? 120;
       const hamburgerWidth = 60;
-      let availableWidth = containerWidth - logoWidth - hamburgerWidth - 40;
+      let availableWidth = containerWidth - logoWidth - hamburgerWidth - 20;
 
       // Sort items by priority (lowest priority stays visible longest)
       const sortedItems = [...allItems].sort((a, b) => a.priority - b.priority);
@@ -230,8 +231,8 @@ export default function Navbar() {
     <nav className="fixed top-0 left-0 right-0 bg-white border-b border-gray-200 shadow-sm z-40">
       <div ref={navRef} className="flex items-center h-[72px] px-4">
         {/* Logo */}
-        <Link href="/" className="flex-shrink-0 flex items-center mr-2" data-testid="navbar-logo">
-          <img src={logoImage} alt="Smeaton Healthcare" className="h-14 w-auto" />
+        <Link href="/" ref={logoRef} className="flex-shrink-0 flex items-center" data-testid="navbar-logo">
+          <img src={logoImage} alt="Smeaton Healthcare" className="h-40 sm:h-32 md:h-28 w-auto" />
         </Link>
 
         {/* LEFT Navigation Rail - zero gap flex */}
@@ -239,11 +240,8 @@ export default function Navbar() {
           {visibleLeftItems.map(item => renderNavItem(item))}
         </div>
 
-        {/* Spacer to push right items to the right */}
-        <div className="hidden md:block flex-1"></div>
-
-        {/* RIGHT Action Items - zero gap flex */}
-        <div className="hidden md:flex items-center gap-1">
+        {/* RIGHT Action Items - zero gap flex, ml-auto pushes to right */}
+        <div className="hidden md:flex items-center gap-1 ml-auto">
           {visibleRightItems.map(item => renderNavItem(item))}
         </div>
 
