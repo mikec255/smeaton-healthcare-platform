@@ -85,11 +85,11 @@ export default function Services() {
           
           {/* Hero Content */}
           <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full z-10">
-            <div className="text-center">
+            <div className="text-left">
               <h1 className="text-4xl lg:text-5xl font-bold text-foreground mb-4" data-testid="services-hero-title">
                 Our Services
               </h1>
-              <p className="text-xl text-muted-foreground max-w-3xl mx-auto" data-testid="services-hero-subtitle">
+              <p className="text-xl text-muted-foreground max-w-3xl" data-testid="services-hero-subtitle">
                 Comprehensive healthcare solutions tailored to your needs across Devon and Cornwall
               </p>
             </div>

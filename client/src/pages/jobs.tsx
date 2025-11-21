@@ -98,8 +98,8 @@ export default function Jobs() {
   if (isLoading) {
     return (
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-        <div className="text-center" data-testid="jobs-loading">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
+        <div className="text-left" data-testid="jobs-loading">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
           <p className="mt-2 text-muted-foreground">Loading job opportunities...</p>
         </div>
       </div>
@@ -109,8 +109,8 @@ export default function Jobs() {
   if (error) {
     return (
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-        <div className="text-center" data-testid="jobs-error">
-          <div className="bg-destructive/10 border border-destructive/20 rounded-lg p-6 max-w-md mx-auto">
+        <div className="text-left" data-testid="jobs-error">
+          <div className="bg-destructive/10 border border-destructive/20 rounded-lg p-6 max-w-md">
             <h3 className="text-lg font-semibold text-destructive mb-2">Failed to load jobs</h3>
             <p className="text-muted-foreground mb-4">
               {error instanceof Error ? error.message : 'An unexpected error occurred'}
