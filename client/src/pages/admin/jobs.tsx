@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Plus, Search, Briefcase } from "lucide-react";
@@ -9,6 +8,13 @@ import JobsTable from "@/components/admin/jobs-table";
 import JobFormModal from "@/components/admin/job-form-modal";
 import { useLocation } from "wouter";
 import { type Job } from "@shared/schema";
+import { 
+  AdminPageLayout, 
+  AdminPageHeader, 
+  AdminStatGrid, 
+  AdminFilterBar,
+  AdminTableContainer 
+} from "@/components/layout/admin";
 
 export default function JobsAdmin() {
   const [location] = useLocation();
@@ -55,118 +61,83 @@ export default function JobsAdmin() {
 
   if (error) {
     return (
-      <div className="container mx-auto py-8 space-y-6">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Jobs</h1>
-            <p className="text-gray-600 dark:text-gray-400 mt-2">
-              Manage job listings and recruitment
-            </p>
-          </div>
-          <div className="flex items-center gap-2">
-            <Briefcase className="h-8 w-8 text-pink-600" />
-            <span className="text-sm text-gray-500">Jobs Dashboard</span>
-          </div>
-        </div>
+      <AdminPageLayout>
+        <AdminPageHeader
+          title="Jobs"
+          description="Manage job listings and recruitment"
+          icon={Briefcase}
+        />
         <div className="text-center py-12">
           <Briefcase className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
           <h3 className="text-lg font-medium mb-2">Failed to load jobs</h3>
           <p className="text-muted-foreground">Please try refreshing the page.</p>
         </div>
-      </div>
+      </AdminPageLayout>
     );
   }
 
   return (
-    <div className="container mx-auto py-8 space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Jobs</h1>
-          <p className="text-gray-600 dark:text-gray-400 mt-2">
-            Manage job listings and recruitment
-          </p>
-        </div>
-        <div className="flex items-center gap-4">
-          <div className="flex items-center gap-2">
-            <Briefcase className="h-8 w-8 text-pink-600" />
-            <span className="text-sm text-gray-500">Jobs Dashboard</span>
-          </div>
-          <Button onClick={handleAddJob} className="gap-2" data-testid="button-add-job">
+    <AdminPageLayout>
+      <AdminPageHeader
+        title="Jobs"
+        description="Manage job listings and recruitment"
+        icon={Briefcase}
+        actions={
+          <Button onClick={handleAddJob} className="gap-2 w-full sm:w-auto" data-testid="button-add-job">
             <Plus className="h-4 w-4" />
-            Create Job
+            <span className="hidden sm:inline">Create Job</span>
+            <span className="sm:hidden">Create</span>
           </Button>
-        </div>
-      </div>
+        }
+      />
 
-      {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <Card>
-          <CardHeader className="pb-2">
-            <CardDescription>Total Jobs</CardDescription>
-            <CardTitle className="text-2xl">{jobs.length}</CardTitle>
-          </CardHeader>
-        </Card>
-        <Card>
-          <CardHeader className="pb-2">
-            <CardDescription>Active Jobs</CardDescription>
-            <CardTitle className="text-2xl text-green-600">
-              {jobs.filter(job => job.isActive).length}
-            </CardTitle>
-          </CardHeader>
-        </Card>
-        <Card>
-          <CardHeader className="pb-2">
-            <CardDescription>Inactive Jobs</CardDescription>
-            <CardTitle className="text-2xl text-orange-600">
-              {jobs.filter(job => !job.isActive).length}
-            </CardTitle>
-          </CardHeader>
-        </Card>
-      </div>
+      <div className="space-y-4 sm:space-y-6">
+        <AdminStatGrid
+          stats={[
+            { label: "Total Jobs", value: jobs.length },
+            { label: "Active Jobs", value: jobs.filter(job => job.isActive).length, valueColor: "text-green-600" },
+            { label: "Inactive Jobs", value: jobs.filter(job => !job.isActive).length, valueColor: "text-orange-600" },
+          ]}
+        />
 
-      {/* Filters */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Job Listings</CardTitle>
-          <CardDescription>
-            Manage all job postings and their publication status
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="flex flex-col sm:flex-row gap-4">
-            <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
-              <Input
-                placeholder="Search jobs by title, location, or department..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10"
-                data-testid="input-search"
-              />
-            </div>
-            <Select value={branchFilter} onValueChange={setBranchFilter}>
-              <SelectTrigger className="w-full sm:w-48" data-testid="select-branch-filter">
-                <SelectValue placeholder="Filter by branch" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Branches</SelectItem>
-                <SelectItem value="Plymouth">Plymouth</SelectItem>
-                <SelectItem value="Truro">Truro</SelectItem>
-              </SelectContent>
-            </Select>
-            <Select value={statusFilter} onValueChange={setStatusFilter}>
-              <SelectTrigger className="w-full sm:w-48" data-testid="select-status-filter">
-                <SelectValue placeholder="Filter by status" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Jobs</SelectItem>
-                <SelectItem value="active">Active Only</SelectItem>
-                <SelectItem value="inactive">Inactive Only</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-
-          {/* Jobs Table */}
+        <AdminTableContainer
+          title="Job Listings"
+          description="Manage all job postings and their publication status"
+          filters={
+            <AdminFilterBar>
+              <div className="relative flex-1">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
+                <Input
+                  placeholder="Search jobs by title, location, or department..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="pl-10"
+                  data-testid="input-search"
+                />
+              </div>
+              <Select value={branchFilter} onValueChange={setBranchFilter}>
+                <SelectTrigger className="w-full sm:w-48" data-testid="select-branch-filter">
+                  <SelectValue placeholder="Filter by branch" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Branches</SelectItem>
+                  <SelectItem value="Plymouth">Plymouth</SelectItem>
+                  <SelectItem value="Truro">Truro</SelectItem>
+                </SelectContent>
+              </Select>
+              <Select value={statusFilter} onValueChange={setStatusFilter}>
+                <SelectTrigger className="w-full sm:w-48" data-testid="select-status-filter">
+                  <SelectValue placeholder="Filter by status" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Jobs</SelectItem>
+                  <SelectItem value="active">Active Only</SelectItem>
+                  <SelectItem value="inactive">Inactive Only</SelectItem>
+                </SelectContent>
+              </Select>
+            </AdminFilterBar>
+          }
+        >
           {isLoading ? (
             <div className="text-center py-12">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
@@ -175,8 +146,8 @@ export default function JobsAdmin() {
           ) : (
             <JobsTable jobs={filteredJobs} onEdit={handleEditJob} />
           )}
-        </CardContent>
-      </Card>
+        </AdminTableContainer>
+      </div>
 
       {/* Job Form Modal */}
       <JobFormModal
@@ -184,6 +155,6 @@ export default function JobsAdmin() {
         isOpen={isJobModalOpen}
         onClose={closeModal}
       />
-    </div>
+    </AdminPageLayout>
   );
 }

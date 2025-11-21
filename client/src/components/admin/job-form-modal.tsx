@@ -178,9 +178,9 @@ export default function JobFormModal({ job, isOpen, onClose }: JobFormModalProps
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto" data-testid="job-form-modal">
-        <DialogHeader>
-          <DialogTitle className="text-2xl font-bold" data-testid="job-form-title">
+      <DialogContent className="w-[95vw] max-w-4xl h-[90vh] p-4 sm:p-6" data-testid="job-form-modal">
+        <DialogHeader className="pb-4">
+          <DialogTitle className="text-xl sm:text-2xl font-bold" data-testid="job-form-title">
             {isEditing ? "Edit Job Listing" : "Create New Job Listing"}
           </DialogTitle>
           <DialogDescription className="sr-only">
@@ -188,8 +188,9 @@ export default function JobFormModal({ job, isOpen, onClose }: JobFormModalProps
           </DialogDescription>
         </DialogHeader>
         
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+        <div className="flex-1 overflow-y-auto pr-2">
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 sm:space-y-6" id="job-form">
             <div className="grid md:grid-cols-2 gap-6">
               <FormField
                 control={form.control}
@@ -489,29 +490,33 @@ export default function JobFormModal({ job, isOpen, onClose }: JobFormModalProps
               )}
             />
             
-            <div className="flex gap-4 pt-4 border-t border-border">
-              <Button 
-                type="submit" 
-                className="flex-1 bg-primary text-primary-foreground hover:bg-primary/90"
-                disabled={createJobMutation.isPending || updateJobMutation.isPending}
-                data-testid="button-save-job"
-              >
-                {isEditing ? <Save className="mr-2 h-5 w-5" /> : <Plus className="mr-2 h-5 w-5" />}
-                {createJobMutation.isPending || updateJobMutation.isPending 
-                  ? "Saving..." 
-                  : isEditing ? "Update Job Listing" : "Create Job Listing"}
-              </Button>
-              <Button 
-                type="button" 
-                variant="outline"
-                onClick={onClose}
-                data-testid="button-cancel"
-              >
-                Cancel
-              </Button>
-            </div>
-          </form>
-        </Form>
+            </form>
+          </Form>
+        </div>
+
+        <div className="flex flex-col sm:flex-row gap-3 pt-4 border-t border-border sticky bottom-0 bg-background">
+          <Button 
+            type="submit"
+            form="job-form"
+            className="w-full sm:flex-1 bg-primary text-primary-foreground hover:bg-primary/90"
+            disabled={createJobMutation.isPending || updateJobMutation.isPending}
+            data-testid="button-save-job"
+          >
+            {isEditing ? <Save className="mr-2 h-4 w-4 sm:h-5 sm:w-5" /> : <Plus className="mr-2 h-4 w-4 sm:h-5 sm:w-5" />}
+            {createJobMutation.isPending || updateJobMutation.isPending 
+              ? "Saving..." 
+              : isEditing ? "Update Job" : "Create Job"}
+          </Button>
+          <Button 
+            type="button" 
+            variant="outline"
+            onClick={onClose}
+            className="w-full sm:w-auto"
+            data-testid="button-cancel"
+          >
+            Cancel
+          </Button>
+        </div>
       </DialogContent>
     </Dialog>
   );
