@@ -235,13 +235,9 @@ export default function Navbar() {
           <img src={logoImage} alt="Smeaton Healthcare" className="h-40 sm:h-32 md:h-28 w-auto" />
         </Link>
 
-        {/* LEFT Navigation Rail - zero gap flex */}
+        {/* All Navigation Items - single container with zero gaps */}
         <div className="hidden md:flex items-center gap-0">
           {visibleLeftItems.map(item => renderNavItem(item))}
-        </div>
-
-        {/* RIGHT Action Items - zero gap flex, ml-auto pushes to right */}
-        <div className="hidden md:flex items-center gap-1 ml-auto">
           {visibleRightItems.map(item => renderNavItem(item))}
         </div>
 
