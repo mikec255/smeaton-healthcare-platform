@@ -99,7 +99,7 @@ export default function TemplatesAdmin() {
   const [selectedTemplate, setSelectedTemplate] = useState<TemplateFormData | null>(null);
   const { toast } = useToast();
 
-  const { data: templates = [], isLoading } = useQuery({
+  const { data: templates = [], isLoading } = useQuery<any[]>({
     queryKey: ["/api/templates"],
   });
 
@@ -151,7 +151,7 @@ export default function TemplatesAdmin() {
   const handleCreatePost = (data: TemplateFormData) => {
     createMutation.mutate({
       ...data,
-      blocks: templateBlocks,
+      blocks: templateBlocks as any,
     });
   };
 
