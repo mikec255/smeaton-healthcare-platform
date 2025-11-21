@@ -369,7 +369,7 @@ export default function Home({ heroTab = "find-care", onHeroTabChange }: { heroT
               <div className="relative container mx-auto w-full z-10">
                 <div className="grid lg:grid-cols-2 gap-16 items-center w-full">
                   <div className="space-y-8">
-                    <div className="max-w-xl w-full mx-auto lg:mx-0">
+                    <div className="max-w-xl w-full mx-0">
                       <div className="relative" data-search-container>
                         <Search className="absolute left-4 sm:left-6 top-1/2 transform -translate-y-1/2 h-5 w-5 sm:h-6 sm:w-6 text-slate-400 z-10" />
                         <input
@@ -444,7 +444,7 @@ export default function Home({ heroTab = "find-care", onHeroTabChange }: { heroT
                     </div>
                     
                     <Link href="/services" className="block">
-                      <h1 className={`text-sm sm:text-base lg:text-xl font-bold text-white bg-gradient-to-r from-secondary to-primary px-3 sm:px-4 py-2 sm:py-3 rounded-lg w-fit mx-auto lg:mx-0 cursor-pointer hover:scale-105 transition-transform text-center lg:text-left ${shouldPulsate ? 'animate-pulse' : ''}`} data-testid="hero-title-care">
+                      <h1 className={`text-sm sm:text-base lg:text-xl font-bold text-white bg-gradient-to-r from-secondary to-primary px-3 sm:px-4 py-2 sm:py-3 rounded-lg w-fit cursor-pointer hover:scale-105 transition-transform text-left ${shouldPulsate ? 'animate-pulse' : ''}`} data-testid="hero-title-care">
                         <span className="block sm:hidden">Comprehensive Care Services</span>
                         <span className="hidden sm:block lg:hidden">Elderly Care | Learning Disabilities | Condition Led Care</span>
                         <span className="hidden lg:block whitespace-nowrap lg:text-sm xl:text-base 2xl:text-lg leading-tight">Elderly Care | Learning Disabilities | Condition Led Care | Supported Living | Short Visits</span>
