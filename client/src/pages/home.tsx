@@ -4,6 +4,13 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import heroBackground from "@/assets/hero-background.png";
 import aboutUsBackground from "@assets/Green Modern Marketing Logo-3_1757678769218.png";
 import joinTeamBackground from "@assets/Red Professional Art Director Recruitment Instagram Post-2_1757676921358.png";
@@ -46,6 +53,7 @@ export default function Home({ heroTab = "find-care", onHeroTabChange }: { heroT
   const [shouldPulsate, setShouldPulsate] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [showSearchResults, setShowSearchResults] = useState(false);
+  const [selectedService, setSelectedService] = useState("short-visits");
 
   // Searchable content data structure
   const searchableContent = useMemo(() => [
@@ -654,9 +662,10 @@ export default function Home({ heroTab = "find-care", onHeroTabChange }: { heroT
           </div>
           
           {/* Services Tabs */}
-          <Tabs defaultValue={services[0].title.toLowerCase().replace(/[^a-z0-9]/g, '-')} className="mb-12">
+          <Tabs value={selectedService} onValueChange={setSelectedService} className="mb-12">
             <div className="max-w-7xl mx-auto">
-              <TabsList className="flex w-full flex-wrap justify-center gap-1 sm:grid sm:grid-cols-3 lg:grid-cols-5 mb-6 sm:mb-8 bg-slate-100 p-2">
+              {/* Desktop: Show tabs when all fit in one line */}
+              <TabsList className="hidden lg:flex w-full justify-center gap-1 mb-6 sm:mb-8 bg-slate-100 p-2">
                 {services.map((service) => {
                   const IconComponent = service.icon;
                   const slug = service.title.toLowerCase().replace(/[^a-z0-9]/g, '-');
@@ -664,16 +673,42 @@ export default function Home({ heroTab = "find-care", onHeroTabChange }: { heroT
                     <TabsTrigger 
                       key={service.title}
                       value={slug}
-                      className="w-full justify-center gap-1 sm:gap-2 data-[state=active]:bg-primary data-[state=active]:text-white text-xs sm:text-sm px-2 sm:px-4 lg:px-6 py-2 sm:py-3 whitespace-nowrap"
+                      className="justify-center gap-2 data-[state=active]:bg-primary data-[state=active]:text-white text-sm px-4 lg:px-6 py-2 sm:py-3 whitespace-nowrap"
                       data-testid={`tab-trigger-${slug}`}
                     >
-                      <IconComponent className="h-3 w-3 sm:h-4 sm:w-4" />
-                      <span className="hidden lg:inline">{service.title}</span>
-                      <span className="lg:hidden">{service.title.split(' ')[0]}</span>
+                      <IconComponent className="h-4 w-4" />
+                      <span>{service.title}</span>
                     </TabsTrigger>
                   );
                 })}
               </TabsList>
+
+              {/* Mobile/Tablet: Show dropdown when tabs don't fit */}
+              <div className="lg:hidden mb-6 sm:mb-8">
+                <Select value={selectedService} onValueChange={setSelectedService}>
+                  <SelectTrigger className="w-full max-w-md mx-auto h-12 text-base bg-white border-2 border-slate-200">
+                    <SelectValue placeholder="Select a service" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {services.map((service) => {
+                      const IconComponent = service.icon;
+                      const slug = service.title.toLowerCase().replace(/[^a-z0-9]/g, '-');
+                      return (
+                        <SelectItem 
+                          key={service.title} 
+                          value={slug}
+                          className="text-base py-3"
+                        >
+                          <div className="flex items-center gap-2">
+                            <IconComponent className="h-4 w-4" />
+                            <span>{service.title}</span>
+                          </div>
+                        </SelectItem>
+                      );
+                    })}
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
             
             {services.map((service) => {
