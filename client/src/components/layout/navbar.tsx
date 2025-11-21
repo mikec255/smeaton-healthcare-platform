@@ -39,12 +39,11 @@ export default function Navbar() {
   ];
 
   return (
-    <nav className="fixed top-0 left-0 right-0 bg-white border-b border-gray-200 shadow-sm z-40" style={{ padding: '0', margin: '0' }}>
+    <nav className="fixed top-0 left-0 right-0 bg-white border-b border-gray-200 shadow-sm z-40" style={{ padding: '0', margin: '0', lineHeight: '0' }}>
       {/* Main navbar container */}
-      <div className="container mx-auto px-3 sm:px-4" style={{ padding: '0', margin: '0' }}>
-        <div className="flex items-center justify-between" style={{ height: '100%', gap: '0' }}>
+      <div style={{ padding: '0', margin: '0', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '0' }}>
           {/* Logo Section */}
-          <Link href="/" data-testid="navbar-logo" className="flex-shrink-0 mr-2 overflow-hidden flex items-center" style={{ marginLeft: '-20px' }}>
+          <Link href="/" data-testid="navbar-logo" className="flex-shrink-0 mr-4 overflow-hidden flex items-center" style={{ marginLeft: '-8px', padding: '0' }}>
             <img 
               src={logoImage} 
               alt="Smeaton Healthcare" 
