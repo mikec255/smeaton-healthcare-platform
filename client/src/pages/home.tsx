@@ -347,10 +347,10 @@ export default function Home({ heroTab = "find-care", onHeroTabChange }: { heroT
   return (
     <div data-testid="home-page">
       {/* Hero Section with Tabs */}
-      <section className="relative min-h-[70vh] md:min-h-[90vh] overflow-hidden pt-0">
-        <Tabs value={heroTab} onValueChange={onHeroTabChange} className="w-full h-full">
+      <section className="relative min-h-[70vh] md:min-h-[90vh] overflow-hidden p-0 m-0 mt-0">
+        <Tabs value={heroTab} onValueChange={onHeroTabChange} className="w-full h-full m-0">
           {/* Find Care Hero */}
-          <TabsContent value="find-care" className="m-0 h-full">
+          <TabsContent value="find-care" className="m-0 p-0 h-full">
             <div className="relative min-h-[70vh] md:min-h-[90vh] flex items-end pb-20" 
                  style={{ 
                    backgroundImage: `url(${heroBackground})`,
