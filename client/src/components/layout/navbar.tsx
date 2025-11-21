@@ -29,32 +29,9 @@ export default function Navbar() {
     return false;
   };
 
-  // Navigation items ordered by priority (highest = disappears first)
-  const navItems: NavItem[] = [
-    { id: "phone", label: "0330 165 8880", priority: 10, isPhone: true },
-    { id: "referral", label: "Make a Referral", priority: 9, isButton: true, isPrimary: true, href: "/referral" },
-    { id: "admin", label: "Admin", priority: 8, isButton: true, href: "/admin" },
-    { id: "contact", label: "Contact", href: "/contact", priority: 7 },
-    { id: "jobs", label: "Find Jobs", href: "/jobs", priority: 6 },
-    {
-      id: "working",
-      label: "Working at Smeaton",
-      priority: 5,
-      dropdown: [
-        { href: "/resources/working-at-smeaton", label: "Working at Smeaton" },
-        { href: "/resources/sponsorship", label: "Sponsorship" },
-      ],
-    },
-    {
-      id: "resources",
-      label: "Resources",
-      priority: 4,
-      dropdown: [
-        { href: "/resources/blog", label: "Blog" },
-        { href: "/resources/newsletter", label: "Newsletter" },
-        { href: "/resources/costings", label: "Understanding Care Funding" },
-      ],
-    },
+  // LEFT navigation rail items in visual order
+  const leftNavItems: NavItem[] = [
+    { id: "home", label: "Home", href: "/", priority: 2 },
     {
       id: "services",
       label: "Services",
@@ -69,8 +46,38 @@ export default function Navbar() {
         { href: "/services/condition-led-care", label: "Condition-Led Care" },
       ],
     },
-    { id: "home", label: "Home", href: "/", priority: 2 },
+    {
+      id: "resources",
+      label: "Resources",
+      priority: 4,
+      dropdown: [
+        { href: "/resources/blog", label: "Blog" },
+        { href: "/resources/newsletter", label: "Newsletter" },
+        { href: "/resources/costings", label: "Understanding Care Funding" },
+      ],
+    },
+    {
+      id: "working",
+      label: "Working at Smeaton",
+      priority: 5,
+      dropdown: [
+        { href: "/resources/working-at-smeaton", label: "Working at Smeaton" },
+        { href: "/resources/sponsorship", label: "Sponsorship" },
+      ],
+    },
+    { id: "jobs", label: "Find Jobs", href: "/jobs", priority: 6 },
+    { id: "contact", label: "Contact", href: "/contact", priority: 7 },
   ];
+
+  // RIGHT action items in visual order
+  const rightActionItems: NavItem[] = [
+    { id: "referral", label: "Make a Referral", priority: 8, isButton: true, isPrimary: true, href: "/referral" },
+    { id: "admin", label: "Admin", priority: 9, isButton: true, href: "/admin" },
+    { id: "phone", label: "0330 165 8880", priority: 10, isPhone: true },
+  ];
+
+  // All items combined for overflow management
+  const allItems = [...leftNavItems, ...rightActionItems];
 
   // Measure and manage overflow
   useEffect(() => {
@@ -78,12 +85,12 @@ export default function Navbar() {
       if (!navRef.current) return;
 
       const containerWidth = navRef.current.offsetWidth;
-      const logoWidth = 120; // approximate logo width
-      const hamburgerWidth = 60; // approximate hamburger button width
-      let availableWidth = containerWidth - logoWidth - hamburgerWidth - 40; // 40px buffer
+      const logoWidth = 120;
+      const hamburgerWidth = 60;
+      let availableWidth = containerWidth - logoWidth - hamburgerWidth - 40;
 
       // Sort items by priority (lowest priority stays visible longest)
-      const sortedItems = [...navItems].sort((a, b) => a.priority - b.priority);
+      const sortedItems = [...allItems].sort((a, b) => a.priority - b.priority);
       
       const newHiddenItems = new Set<string>();
       let usedWidth = 0;
@@ -97,7 +104,7 @@ export default function Navbar() {
         
         if (usedWidth + itemWidth > availableWidth) {
           // This item and all higher priority items must be hidden
-          const itemsToHide = navItems.filter(i => i.priority >= item.priority);
+          const itemsToHide = allItems.filter(i => i.priority >= item.priority);
           itemsToHide.forEach(i => newHiddenItems.add(i.id));
           break;
         }
@@ -126,8 +133,9 @@ export default function Navbar() {
     };
   }, []);
 
-  const visibleItems = navItems.filter(item => !hiddenItems.has(item.id));
-  const overflowItems = navItems.filter(item => hiddenItems.has(item.id));
+  const visibleLeftItems = leftNavItems.filter(item => !hiddenItems.has(item.id));
+  const visibleRightItems = rightActionItems.filter(item => !hiddenItems.has(item.id));
+  const overflowItems = allItems.filter(item => hiddenItems.has(item.id));
 
   const renderNavItem = (item: NavItem, isMobile = false) => {
     // Phone number
@@ -136,7 +144,7 @@ export default function Navbar() {
         <div 
           key={item.id}
           ref={el => el && itemsRef.current.set(item.id, el)}
-          className={`text-blue-800 font-bold text-sm whitespace-nowrap flex items-center ${isMobile ? 'justify-center py-3' : 'px-3'}`}
+          className={`text-blue-800 font-bold whitespace-nowrap flex items-center ${isMobile ? 'justify-center py-3 text-lg' : 'px-2 text-sm'}`}
         >
           {isMobile && "📞 "}{item.label}
         </div>
@@ -151,7 +159,7 @@ export default function Navbar() {
             key={item.id}
             ref={el => el && itemsRef.current.set(item.id, el)}
             onClick={() => window.location.href = item.href!}
-            className={`bg-pink-500 hover:bg-pink-600 text-white font-semibold flex items-center gap-1 ${isMobile ? 'w-full py-6 text-base' : 'px-3 py-1.5 text-xs h-7'}`}
+            className={`bg-pink-500 hover:bg-pink-600 text-white font-semibold flex items-center whitespace-nowrap ${isMobile ? 'w-full py-6 text-base' : 'px-3 py-2 text-sm gap-1'}`}
           >
             {item.label}
             {!isMobile && <ArrowRight className="w-3 h-3" />}
@@ -164,7 +172,7 @@ export default function Navbar() {
           ref={el => el && itemsRef.current.set(item.id, el)}
           onClick={() => window.location.href = item.href!}
           variant="outline"
-          className={`font-semibold ${isMobile ? 'w-full py-6 text-base' : 'px-3 py-1.5 text-xs h-7'}`}
+          className={`font-semibold whitespace-nowrap ${isMobile ? 'w-full py-6 text-base' : 'px-3 py-2 text-sm'}`}
         >
           {item.label}
         </Button>
@@ -177,7 +185,7 @@ export default function Navbar() {
         <div key={item.id} ref={el => el && itemsRef.current.set(item.id, el)} className="relative">
           <button
             onClick={() => setActiveDropdown(activeDropdown === item.id ? null : item.id)}
-            className={`text-gray-700 hover:text-pink-600 font-medium text-sm flex items-center gap-1 ${isMobile ? 'w-full text-left py-3 px-4 border-b' : 'px-3 py-2'}`}
+            className={`text-gray-700 hover:text-pink-600 font-medium flex items-center gap-1 whitespace-nowrap ${isMobile ? 'w-full text-left py-3 px-4 border-b text-base' : 'px-2 py-2 text-sm'}`}
           >
             {item.label}
             <ChevronDown className="w-4 h-4" />
@@ -209,7 +217,7 @@ export default function Navbar() {
         key={item.id}
         ref={el => el && itemsRef.current.set(item.id, el)}
         href={item.href!}
-        className={`font-medium text-sm whitespace-nowrap ${isMobile ? 'block py-3 px-4 border-b' : 'px-3 py-2'}`}
+        className={`font-medium whitespace-nowrap ${isMobile ? 'block py-3 px-4 border-b text-base' : 'px-2 py-2 text-sm'}`}
         style={{ color: isActive(item.href!) ? '#EF2587' : '#374151' }}
         onClick={() => setMobileMenuOpen(false)}
       >
@@ -220,21 +228,29 @@ export default function Navbar() {
 
   return (
     <nav className="fixed top-0 left-0 right-0 bg-white border-b border-gray-200 shadow-sm z-40">
-      <div ref={navRef} className="flex items-center justify-between h-[72px] px-2 gap-0">
+      <div ref={navRef} className="flex items-center h-[72px] px-4">
         {/* Logo */}
-        <Link href="/" className="flex-shrink-0 flex items-center" data-testid="navbar-logo">
-          <img src={logoImage} alt="Smeaton Healthcare" className="h-12 w-auto" />
+        <Link href="/" className="flex-shrink-0 flex items-center mr-2" data-testid="navbar-logo">
+          <img src={logoImage} alt="Smeaton Healthcare" className="h-14 w-auto" />
         </Link>
 
-        {/* Desktop Navigation - zero gap flex */}
+        {/* LEFT Navigation Rail - zero gap flex */}
         <div className="hidden md:flex items-center gap-0">
-          {visibleItems.map(item => renderNavItem(item))}
+          {visibleLeftItems.map(item => renderNavItem(item))}
+        </div>
+
+        {/* Spacer to push right items to the right */}
+        <div className="hidden md:block flex-1"></div>
+
+        {/* RIGHT Action Items - zero gap flex */}
+        <div className="hidden md:flex items-center gap-1">
+          {visibleRightItems.map(item => renderNavItem(item))}
         </div>
 
         {/* Hamburger Menu Button */}
         <Button
           variant="ghost"
-          className="md:hidden p-2"
+          className="md:hidden ml-auto p-2"
           onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
           data-testid="button-mobile-menu"
         >
@@ -243,7 +259,7 @@ export default function Navbar() {
 
         {/* Desktop overflow menu (if any items are hidden) */}
         {overflowItems.length > 0 && (
-          <div className="hidden md:block relative">
+          <div className="hidden md:block relative ml-1">
             <Button
               variant="ghost"
               onClick={() => setActiveDropdown(activeDropdown === "overflow" ? null : "overflow")}
@@ -268,9 +284,9 @@ export default function Navbar() {
       {mobileMenuOpen && (
         <div className="md:hidden fixed inset-0 top-[72px] bg-white z-50 overflow-y-auto">
           <div className="p-4">
-            {navItems.filter(item => !item.isButton && !item.isPhone).map(item => renderNavItem(item, true))}
-            <div className="mt-4 space-y-2">
-              {navItems.filter(item => item.isButton || item.isPhone).map(item => renderNavItem(item, true))}
+            {leftNavItems.map(item => renderNavItem(item, true))}
+            <div className="mt-4 space-y-2 border-t pt-4">
+              {rightActionItems.map(item => renderNavItem(item, true))}
             </div>
           </div>
         </div>
