@@ -43,7 +43,7 @@ export default function Navbar() {
       {/* Main navbar container - centered content */}
       <div style={{ padding: '0 16px', margin: '0', display: 'flex', alignItems: 'center', justifyContent: 'center', height: '72px', gap: '24px', maxWidth: '1400px', width: '100%', boxSizing: 'border-box' }}>
         {/* Logo Section */}
-        <Link href="/" data-testid="navbar-logo" className="flex-shrink-0 flex items-center justify-center" style={{ padding: '0', margin: '0 12px 0 0', height: '100%' }}>
+        <Link href="/" data-testid="navbar-logo" className="flex-shrink-0 flex items-center justify-center" style={{ padding: '0', margin: '0 12px 0 -40px', height: '100%' }}>
           <img 
             src={logoImage} 
             alt="Smeaton Healthcare" 
@@ -203,9 +203,9 @@ export default function Navbar() {
           data-testid="button-mobile-menu"
         >
           {mobileMenuOpen ? (
-            <X className="h-10 sm:h-8 md:h-6 w-10 sm:w-8 md:w-6 text-gray-600" />
+            <X className="h-20 sm:h-16 md:h-12 w-20 sm:w-16 md:w-12 text-gray-600" />
           ) : (
-            <Menu className="h-10 sm:h-8 md:h-6 w-10 sm:w-8 md:w-6 text-gray-600" />
+            <Menu className="h-20 sm:h-16 md:h-12 w-20 sm:w-16 md:w-12 text-gray-600" />
           )}
         </Button>
       </div>
