@@ -41,7 +41,7 @@ export default function Navbar() {
   return (
     <nav className="fixed top-0 left-0 right-0 bg-white border-b border-gray-200 shadow-sm z-40" style={{ padding: '0', margin: '0', display: 'flex', justifyContent: 'center' }}>
       {/* Main navbar container - centered content */}
-      <div style={{ padding: '0 16px', margin: '0', display: 'flex', alignItems: 'center', justifyContent: 'space-between', height: '72px', gap: '0', maxWidth: '1400px', width: '100%', boxSizing: 'border-box' }}>
+      <div style={{ padding: '0 16px', margin: '0', display: 'flex', alignItems: 'center', justifyContent: 'center', height: '72px', gap: '24px', maxWidth: '1400px', width: '100%', boxSizing: 'border-box' }}>
         {/* Logo Section */}
         <Link href="/" data-testid="navbar-logo" className="flex-shrink-0 flex items-center justify-center" style={{ padding: '0', margin: '0 12px 0 0', height: '100%' }}>
           <img 
@@ -53,7 +53,7 @@ export default function Navbar() {
         </Link>
 
         {/* Desktop Navigation - only visible on xl+ screens */}
-        <div className="hidden xl:flex items-center gap-1" style={{ flex: '1', margin: '0', padding: '0 12px', height: '100%' }}>
+        <div className="hidden xl:flex items-center gap-1" style={{ flex: 'none', margin: '0', padding: '0 12px', height: '100%' }}>
           {/* Home */}
           <Link 
             href="/" 
