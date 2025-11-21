@@ -1,8 +1,38 @@
 import { useState, useEffect, useRef } from "react";
 import { Link, useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
-import { Menu, X, ArrowRight, ChevronDown } from "lucide-react";
+import { Menu, X, ArrowRight, ChevronDown, Phone } from "lucide-react";
 import logoImage from "@/assets/logo.png";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+import { useToast } from "@/hooks/use-toast";
+import { useMutation } from "@tanstack/react-query";
+import { apiRequest } from "@/lib/queryClient";
 
 type NavItem = {
   id: string;
@@ -15,14 +45,71 @@ type NavItem = {
   isPhone?: boolean;
 };
 
+const callbackRequestSchema = z.object({
+  name: z.string().min(2, "Name must be at least 2 characters"),
+  phone: z.string().min(10, "Please enter a valid phone number"),
+  service: z.string().min(1, "Please select a service"),
+  preferredTime: z.string().optional(),
+});
+
+type CallbackRequest = z.infer<typeof callbackRequestSchema>;
+
 export default function Navbar() {
   const [location] = useLocation();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
   const [hiddenItems, setHiddenItems] = useState<Set<string>>(new Set());
+  const [callbackDialogOpen, setCallbackDialogOpen] = useState(false);
   const navRef = useRef<HTMLDivElement>(null);
-  const logoRef = useRef<HTMLDivElement>(null);
+  const logoRef = useRef<HTMLAnchorElement>(null);
   const itemsRef = useRef<Map<string, HTMLElement>>(new Map());
+  const { toast } = useToast();
+
+  const form = useForm<CallbackRequest>({
+    resolver: zodResolver(callbackRequestSchema),
+    defaultValues: {
+      name: "",
+      phone: "",
+      service: "",
+      preferredTime: "",
+    },
+  });
+
+  const callbackMutation = useMutation({
+    mutationFn: async (data: CallbackRequest) => {
+      const response = await fetch("/api/contact", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: data.name,
+          email: "",
+          phone: data.phone,
+          message: `Service enquiry: ${data.service}. Preferred time: ${data.preferredTime || "Not specified"}`,
+        }),
+      });
+      if (!response.ok) throw new Error("Failed to submit");
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: "Request received!",
+        description: "We'll call you back shortly.",
+      });
+      form.reset();
+      setCallbackDialogOpen(false);
+    },
+    onError: () => {
+      toast({
+        title: "Error",
+        description: "Failed to submit request. Please try again.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const onSubmit = (data: CallbackRequest) => {
+    callbackMutation.mutate(data);
+  };
 
   const isActive = (path: string) => {
     if (path === "/" && location === "/") return true;
@@ -241,10 +328,106 @@ export default function Navbar() {
           {visibleRightItems.map(item => renderNavItem(item))}
         </div>
 
+        {/* Request a Call Button - Mobile Only */}
+        <Dialog open={callbackDialogOpen} onOpenChange={setCallbackDialogOpen}>
+          <DialogTrigger asChild>
+            <Button className="md:hidden ml-auto mr-2 bg-pink-500 hover:bg-pink-600 text-white font-semibold h-9 px-4 text-sm flex items-center gap-2">
+              <Phone className="h-4 w-4" />
+              Request a Call
+            </Button>
+          </DialogTrigger>
+          <DialogContent className="sm:max-w-[425px]">
+            <DialogHeader>
+              <DialogTitle>Request a Call Back</DialogTitle>
+              <DialogDescription>
+                Fill in your details and we'll call you back as soon as possible.
+              </DialogDescription>
+            </DialogHeader>
+            <Form {...form}>
+              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                <FormField
+                  control={form.control}
+                  name="name"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Name</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Your name" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="phone"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Phone Number</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Your phone number" type="tel" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="service"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Service Enquiry</FormLabel>
+                      <Select onValueChange={field.onChange} defaultValue={field.value}>
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select a service" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="short-visits">Short Visits</SelectItem>
+                          <SelectItem value="supported-living">Supported Living</SelectItem>
+                          <SelectItem value="care-24-7">24/7 Care</SelectItem>
+                          <SelectItem value="enablements">Enabling</SelectItem>
+                          <SelectItem value="respite">Respite Care</SelectItem>
+                          <SelectItem value="live-in-care">Live-In Care</SelectItem>
+                          <SelectItem value="condition-led-care">Condition-Led Care</SelectItem>
+                          <SelectItem value="recruitment">Recruitment/Jobs</SelectItem>
+                          <SelectItem value="other">Other</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="preferredTime"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Preferred Call Time (Optional)</FormLabel>
+                      <FormControl>
+                        <Input placeholder="e.g., Morning, Afternoon, Evening" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <Button
+                  type="submit"
+                  className="w-full bg-pink-500 hover:bg-pink-600 text-white font-semibold"
+                  disabled={callbackMutation.isPending}
+                >
+                  {callbackMutation.isPending ? "Submitting..." : "Request Call Back"}
+                </Button>
+              </form>
+            </Form>
+          </DialogContent>
+        </Dialog>
+
         {/* Hamburger Menu Button */}
         <Button
           variant="ghost"
-          className="md:hidden ml-auto p-2"
+          className="md:hidden p-2"
           onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
           data-testid="button-mobile-menu"
         >
