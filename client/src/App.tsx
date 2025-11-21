@@ -46,6 +46,7 @@ const NewslettersAdmin = lazy(() => import("@/pages/admin/newsletters"));
 const NewsletterEditor = lazy(() => import("@/pages/admin/newsletter-editor"));
 const FeedbackAdmin = lazy(() => import("@/pages/admin/feedback"));
 const BlogAdmin = lazy(() => import("@/pages/admin/blog"));
+const TemplatesAdmin = lazy(() => import("@/pages/admin/templates"));
 const ReferralsAdmin = lazy(() => import("@/pages/admin/referrals"));
 const ContactEnquiriesAdmin = lazy(() => import("@/pages/admin/contact-enquiries"));
 const JobsAdmin = lazy(() => import("@/pages/admin/jobs"));
@@ -127,6 +128,7 @@ function Router() {
             <Route path="/admin/newsletters" component={NewslettersAdmin} />
             <Route path="/admin/feedback" component={FeedbackAdmin} />
             <Route path="/admin/blog" component={BlogAdmin} />
+            <Route path="/admin/templates" component={TemplatesAdmin} />
             <Route path="/admin/referrals" component={ReferralsAdmin} />
             <Route path="/admin/contact-enquiries" component={ContactEnquiriesAdmin} />
             <Route path="/admin/jobs" component={JobsAdmin} />
