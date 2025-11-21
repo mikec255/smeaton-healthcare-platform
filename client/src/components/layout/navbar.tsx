@@ -40,8 +40,8 @@ export default function Navbar() {
 
   return (
     <nav className="fixed top-0 left-0 right-0 bg-white border-b border-gray-200 shadow-sm z-40" style={{ padding: '0', margin: '0', display: 'flex', justifyContent: 'center' }}>
-      {/* Main navbar container - centered content */}
-      <div style={{ padding: '0 16px', margin: '0', display: 'flex', alignItems: 'center', justifyContent: 'center', height: '72px', gap: '24px', maxWidth: '1400px', width: '100%', boxSizing: 'border-box' }}>
+      {/* Main navbar container */}
+      <div style={{ padding: '0 16px', margin: '0', display: 'flex', alignItems: 'center', justifyContent: 'space-between', height: '72px', maxWidth: '100%', width: '100%', boxSizing: 'border-box', gap: '12px', minWidth: 0 }}>
         {/* Logo Section */}
         <Link href="/" data-testid="navbar-logo" className="flex-shrink-0 flex items-center justify-center" style={{ padding: '0', margin: '0 12px 0 -80px', height: '100%' }}>
           <img 
@@ -52,26 +52,26 @@ export default function Navbar() {
           />
         </Link>
 
-        {/* Desktop Navigation - only visible on xl+ screens */}
-        <div className="hidden xl:flex items-center gap-1" style={{ flex: 'none', margin: '0', padding: '0 12px', height: '100%' }}>
-          {/* Home */}
+        {/* Flexible Navigation - shows/hides based on screen size */}
+        <div className="flex items-center gap-1 flex-1 min-w-0 h-full overflow-hidden" style={{ flex: '1', margin: '0', padding: '0', height: '100%' }}>
+          {/* Home - always shown on lg+ */}
           <Link 
             href="/" 
-            className="text-sm font-medium whitespace-nowrap flex items-center justify-center h-full"
-            style={{ color: isActive("/") ? '#EF2587' : '#374151', padding: '0 12px', margin: '0' }}
+            className="text-xs sm:text-sm md:text-sm lg:text-sm font-medium whitespace-nowrap hidden lg:flex items-center justify-center h-full"
+            style={{ color: isActive("/") ? '#EF2587' : '#374151', padding: '0 8px 0 8px', margin: '0', minWidth: 'fit-content' }}
           >
             Home
           </Link>
 
-          {/* Services Dropdown */}
-          <div style={{ position: 'relative' }}>
+          {/* Services - shown on lg+ */}
+          <div className="hidden lg:block relative h-full" style={{ minWidth: 'fit-content' }}>
             <button
               onClick={() => {
                 setServicesOpen(!servicesOpen);
                 setResourcesOpen(false);
                 setWorkingOpen(false);
               }}
-              style={{ padding: '0 12px', fontSize: '14px', fontWeight: '500', background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px', color: '#374151', margin: '0', height: '100%' }}
+              style={{ padding: '0 8px', fontSize: '14px', fontWeight: '500', background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px', color: '#374151', margin: '0', height: '100%' }}
             >
               Services
               <ChevronDown className="w-4 h-4" />
@@ -92,15 +92,15 @@ export default function Navbar() {
             )}
           </div>
 
-          {/* Resources Dropdown */}
-          <div style={{ position: 'relative' }}>
+          {/* Resources - shown on lg+ */}
+          <div className="hidden lg:block relative h-full" style={{ minWidth: 'fit-content' }}>
             <button
               onClick={() => {
                 setResourcesOpen(!resourcesOpen);
                 setServicesOpen(false);
                 setWorkingOpen(false);
               }}
-              style={{ padding: '0 12px', fontSize: '14px', fontWeight: '500', background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px', color: '#374151', margin: '0', height: '100%' }}
+              style={{ padding: '0 8px', fontSize: '14px', fontWeight: '500', background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px', color: '#374151', margin: '0', height: '100%' }}
             >
               Resources
               <ChevronDown className="w-4 h-4" />
@@ -121,15 +121,15 @@ export default function Navbar() {
             )}
           </div>
 
-          {/* Working at Smeaton Dropdown */}
-          <div style={{ position: 'relative' }}>
+          {/* Working at Smeaton - shown on xl+ */}
+          <div className="hidden xl:block relative h-full" style={{ minWidth: 'fit-content' }}>
             <button
               onClick={() => {
                 setWorkingOpen(!workingOpen);
                 setServicesOpen(false);
                 setResourcesOpen(false);
               }}
-              style={{ padding: '0 12px', fontSize: '14px', fontWeight: '500', background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px', color: '#374151', margin: '0', height: '100%' }}
+              style={{ padding: '0 8px', fontSize: '14px', fontWeight: '500', background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px', color: '#374151', margin: '0', height: '100%' }}
             >
               Working at Smeaton
               <ChevronDown className="w-4 h-4" />
@@ -150,54 +150,55 @@ export default function Navbar() {
             )}
           </div>
 
-          {/* Find Jobs */}
+          {/* Find Jobs - shown on md+ */}
           <Link 
             href="/jobs" 
-            className="text-sm font-medium whitespace-nowrap flex items-center justify-center h-full"
-            style={{ color: isActive("/jobs") ? '#EF2587' : '#374151', padding: '0 12px', margin: '0' }}
+            className="text-xs sm:text-sm md:text-sm font-medium whitespace-nowrap hidden md:flex items-center justify-center h-full"
+            style={{ color: isActive("/jobs") ? '#EF2587' : '#374151', padding: '0 8px', margin: '0', minWidth: 'fit-content' }}
           >
             Find Jobs
           </Link>
 
-          {/* Contact */}
+          {/* Contact - shown on md+ */}
           <Link 
             href="/contact" 
-            className="text-sm font-medium whitespace-nowrap flex items-center justify-center h-full"
-            style={{ color: isActive("/contact") ? '#EF2587' : '#374151', padding: '0 12px', margin: '0' }}
+            className="text-xs sm:text-sm md:text-sm font-medium whitespace-nowrap hidden md:flex items-center justify-center h-full"
+            style={{ color: isActive("/contact") ? '#EF2587' : '#374151', padding: '0 8px', margin: '0', minWidth: 'fit-content' }}
           >
             Contact
           </Link>
 
-          {/* Buttons */}
-          <div style={{ display: 'flex', gap: '8px', marginLeft: '12px', alignItems: 'center', height: '100%' }}>
-            <Button 
-              onClick={() => window.location.href = '/referral'}
-              style={{ backgroundColor: '#EC4899', color: 'white', padding: '6px 14px', fontSize: '13px', border: 'none', borderRadius: '4px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px', fontWeight: '600', margin: '0', height: '32px' }}
-            >
-              Make a Referral
-              <ArrowRight className="w-3 h-3" />
-            </Button>
-            
-            <Button 
-              variant="outline"
-              onClick={() => window.location.href = '/admin'}
-              style={{ padding: '6px 14px', fontSize: '13px', margin: '0', height: '32px', fontWeight: '600' }}
-            >
-              Admin
-            </Button>
-          </div>
-
-          {/* Phone number - desktop only */}
-          <div style={{ marginLeft: '12px', flexShrink: 0, color: '#1e40af', fontSize: '13px', fontWeight: 'bold', whiteSpace: 'nowrap', display: 'flex', alignItems: 'center', height: '100%' }}>
-            0330 165 8880
-          </div>
+          {/* Make a Referral Button - shown on lg+ */}
+          <Button 
+            onClick={() => window.location.href = '/referral'}
+            className="hidden lg:flex"
+            style={{ backgroundColor: '#EC4899', color: 'white', padding: '6px 12px', fontSize: '12px', border: 'none', borderRadius: '4px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px', fontWeight: '600', margin: '0 4px', height: '32px', minWidth: 'fit-content' }}
+          >
+            Make a Referral
+            <ArrowRight className="w-3 h-3" />
+          </Button>
         </div>
 
-        {/* Mobile/Tablet hamburger menu - visible on screens smaller than xl */}
+        {/* Admin Button - always shown */}
+        <Button 
+          variant="outline"
+          onClick={() => window.location.href = '/admin'}
+          className="hidden sm:block"
+          style={{ padding: '6px 12px', fontSize: '12px', margin: '0 4px', height: '32px', fontWeight: '600', minWidth: 'fit-content' }}
+        >
+          Admin
+        </Button>
+
+        {/* Phone - shown on xl+ */}
+        <div className="hidden xl:flex text-xs lg:text-sm whitespace-nowrap" style={{ color: '#1e40af', fontSize: '12px', fontWeight: 'bold', display: 'flex', alignItems: 'center', height: '100%', margin: '0', minWidth: 'fit-content' }}>
+          0330 165 8880
+        </div>
+
+        {/* Hamburger menu - visible below lg */}
         <Button 
           variant="ghost" 
-          className="xl:hidden"
-          style={{ padding: '0', margin: '0', height: '100%', width: 'auto' }}
+          className="lg:hidden"
+          style={{ padding: '0', margin: '0', height: '100%', width: 'auto', minWidth: 'fit-content' }}
           onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
           data-testid="button-mobile-menu"
         >
@@ -209,9 +210,9 @@ export default function Navbar() {
         </Button>
       </div>
 
-      {/* Mobile Menu */}
+      {/* Mobile Menu - shown when hamburger clicked (lg and below) */}
       {mobileMenuOpen && (
-        <div className="xl:hidden fixed inset-0 top-[72px] bg-white z-50 overflow-y-auto">
+        <div className="lg:hidden fixed inset-0 top-[72px] bg-white z-50 overflow-y-auto">
           <div style={{ padding: '12px' }}>
             {/* Home Link */}
             <Link 
