@@ -131,10 +131,10 @@ export default function Jobs() {
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16" data-testid="jobs-page">
       {/* Jobs Header */}
-      <div className="text-center mb-12">
+      <div className="text-left mb-12">
         <div className="flex items-center justify-between mb-8">
           <div></div> {/* Left spacer */}
-          <div className="text-center">
+          <div className="text-left">
             <h1 className="text-4xl font-bold text-foreground mb-4" data-testid="jobs-title">
               Career Opportunities
             </h1>
@@ -174,7 +174,7 @@ export default function Jobs() {
             />
           ))
         ) : (
-          <div className="text-center py-12" data-testid="no-jobs-message">
+          <div className="text-left py-12" data-testid="no-jobs-message">
             <p className="text-muted-foreground">
               {filters.location || filters.type || filters.salaryRange
                 ? "No jobs found matching your criteria. Try adjusting your filters."
