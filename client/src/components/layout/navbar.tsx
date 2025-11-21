@@ -170,9 +170,6 @@ export default function Navbar() {
           </Link>
         </div>
 
-        {/* Spacer to push right items to the right */}
-        <div style={{ flex: '1' }}></div>
-
         {/* Right side items - these disappear first as screen shrinks */}
         
         {/* Make a Referral - hidden below xl */}
