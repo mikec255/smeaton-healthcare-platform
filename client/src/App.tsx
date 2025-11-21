@@ -4,7 +4,7 @@ import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import Navbar from "@/components/layout/navbar";
-import { useState, Suspense, lazy } from "react";
+import { useState, Suspense, lazy, useEffect } from "react";
 import Footer from "@/components/layout/footer";
 import ErrorBoundary from "@/components/error-boundary";
 
@@ -76,6 +76,11 @@ const Costings = lazy(() => import("@/pages/resources/costings"));
 function Router() {
   const [location] = useLocation();
   const [heroTab, setHeroTab] = useState("find-care");
+
+  // Scroll to top on route change
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [location]);
 
   return (
     <div className="min-h-screen flex flex-col">
