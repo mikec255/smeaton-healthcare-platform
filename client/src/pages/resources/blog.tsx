@@ -162,7 +162,7 @@ export default function Blog() {
             const imgContainerStyle = isInline ? ` style="width: ${width}"` : '';
             html = `
               <div class="image-block${isInline ? ' inline-block' : ''}"${styleAttr}${imgContainerStyle}>
-                <img src="${proxyUrl}" alt="${alt}" class="${imgWidthClass} h-auto rounded-lg" />
+                <img src="${proxyUrl}" alt="${alt}" class="${imgWidthClass} h-auto rounded-lg" style="object-fit: contain; max-height: 100%;" />
                 ${caption ? `<p class="text-sm text-gray-600 mt-2 italic text-center">${caption}</p>` : ''}
               </div>
             `;

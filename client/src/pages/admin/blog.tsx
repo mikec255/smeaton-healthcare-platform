@@ -158,6 +158,7 @@ export default function BlogAdmin() {
               src={convertToProxyUrl(imageUrl)} 
               alt={block.content?.alt || 'Blog image'} 
               className={`${imgWidthClass} h-auto rounded-lg`}
+              style={{ objectFit: 'contain', maxHeight: '100%' }}
             />
             {block.content?.caption && (
               <p className="text-sm text-gray-600 mt-2 text-center">{block.content.caption}</p>

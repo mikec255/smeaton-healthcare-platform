@@ -250,8 +250,13 @@ export function ImageBlock({
           <img 
             src={content.src} 
             alt={content.alt || "Image"} 
-            className="max-w-full h-auto rounded"
-            style={{ width: getImageWidth() }}
+            className="rounded"
+            style={{ 
+              width: getImageWidth(), 
+              height: 'auto',
+              maxHeight: '100%',
+              objectFit: 'contain'
+            }}
           />
         ) : (
           <div 
