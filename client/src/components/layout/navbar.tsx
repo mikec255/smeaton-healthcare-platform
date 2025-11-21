@@ -188,7 +188,7 @@ export default function Navbar() {
           </div>
 
           {/* Phone number - desktop only */}
-          <div style={{ marginLeft: '12px', flexShrink: 0, color: '#1e40af', fontSize: '13px', fontWeight: 'bold', whiteSpace: 'nowrap', borderLeft: '1px solid #d1d5db', paddingLeft: '12px', display: 'flex', alignItems: 'center', height: '100%', margin: '0' }}>
+          <div style={{ marginLeft: '12px', flexShrink: 0, color: '#1e40af', fontSize: '13px', fontWeight: 'bold', whiteSpace: 'nowrap', display: 'flex', alignItems: 'center', height: '100%' }}>
             0330 165 8880
           </div>
         </div>
