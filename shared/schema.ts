@@ -381,6 +381,13 @@ export const blogCategories = pgTable("blog_categories", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
+export interface BlogImage {
+  id: string;
+  url: string;
+  isFeatured: boolean;
+  uploadedAt?: string;
+}
+
 export const blogPosts = pgTable("blog_posts", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   title: text("title").notNull(),
@@ -389,7 +396,7 @@ export const blogPosts = pgTable("blog_posts", {
   content: text("content"), // Legacy content field for backwards compatibility
   blocks: json("blocks").$type<BlogBlock[]>(), // New structured content blocks
   categoryId: varchar("category_id").references(() => blogCategories.id).notNull(),
-  imagePath: text("image_path"), // path to uploaded image in object storage
+  images: json("images").$type<BlogImage[]>(), // Array of images with featured status
   readTime: text("read_time"), // e.g., "5 min read"
   author: text("author").notNull(),
   isPublished: boolean("is_published").default(false),
