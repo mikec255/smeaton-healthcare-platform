@@ -82,10 +82,10 @@ export function ImageBlock({
       });
 
       if (uploadResponse.ok) {
-        // Extract the public URL from the upload URL
+        // Extract the base URL (remove query params which expire)
         const imageUrl = uploadURL.split('?')[0];
         
-        // Make the image public so it works on Azure and other deployments
+        // Make the image publicly readable in Google Cloud Storage
         try {
           await fetch('/api/blog-images/make-public', {
             method: 'POST',
@@ -97,7 +97,7 @@ export function ImageBlock({
             body: JSON.stringify({ fileUrl: imageUrl })
           });
         } catch (e) {
-          console.error('Warning: Could not set image as public', e);
+          console.warn('Could not make image public', e);
         }
         
         handleContentUpdate({ src: imageUrl });

@@ -238,11 +238,17 @@ export class ObjectStorageService {
     });
   }
 
-  // Makes a blog image publicly accessible
+  // Makes a blog image publicly accessible in Google Cloud Storage
   async makeBlogImagePublic(fileUrl: string): Promise<string> {
     const normalizedPath = this.normalizeObjectEntityPath(fileUrl);
     const objectFile = await this.getObjectEntityFile(normalizedPath);
+    
+    // Make the file publicly readable in Google Cloud Storage
+    await objectFile.makePublic();
+    
+    // Also set ACL metadata for internal tracking
     await setObjectAclPolicy(objectFile, { visibility: "public", owner: "system" });
+    
     return fileUrl;
   }
 

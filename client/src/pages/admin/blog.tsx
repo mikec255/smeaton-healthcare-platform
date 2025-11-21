@@ -77,8 +77,15 @@ export default function BlogAdmin() {
     });
   };
 
-  // Helper function - return URLs as-is (images are now public on Google Cloud Storage)
+  // Helper function to convert Google Cloud Storage URL to proxy URL
   const convertToProxyUrl = (url: string): string => {
+    if (!url.includes('storage.googleapis.com')) {
+      return url;
+    }
+    const match = url.match(/\.private\/uploads\/(.+)/);
+    if (match) {
+      return `/objects/uploads/${match[1]}`;
+    }
     return url;
   };
 
