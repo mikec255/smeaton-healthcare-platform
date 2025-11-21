@@ -497,11 +497,17 @@ export default function BlogAdmin() {
   });
 
   const onCreatePost = (data: CreateBlogPostData) => {
+    console.log("Form data submitted:", data);
+    console.log("Visual editor enabled:", useVisualEditorForCreate);
+    console.log("New post blocks:", newPostBlocks);
+    console.log("New post images:", newPostImages);
+    
     // Add blocks to the post data if using visual editor
     const postData = useVisualEditorForCreate 
       ? { ...data, blocks: newPostBlocks, images: newPostImages }
       : { ...data, images: newPostImages };
     
+    console.log("Final post data:", postData);
     createPostMutation.mutate(postData);
   };
 
@@ -656,14 +662,21 @@ export default function BlogAdmin() {
                 Create Post
               </Button>
             </DialogTrigger>
-            <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto mt-20">
-              <DialogHeader>
-                <DialogTitle>Create New Blog Post</DialogTitle>
+            <DialogContent className="w-[95vw] max-w-4xl h-[90vh] p-4 sm:p-6">
+              <DialogHeader className="pb-4">
+                <DialogTitle className="text-xl sm:text-2xl">Create New Blog Post</DialogTitle>
               </DialogHeader>
               
-
-              <Form {...form}>
-                <form onSubmit={form.handleSubmit(onCreatePost)} className="space-y-6">
+              <div className="flex-1 overflow-y-auto pr-2">
+                <Form {...form}>
+                  <form onSubmit={form.handleSubmit(onCreatePost, (errors) => {
+                    console.error("Form validation errors:", errors);
+                    toast({
+                      title: "Form Validation Error",
+                      description: "Please fill in all required fields correctly",
+                      variant: "destructive",
+                    });
+                  })} className="space-y-4 sm:space-y-6" id="create-post-form">
                   <div className="grid grid-cols-2 gap-4">
                     <FormField
                       control={form.control}
@@ -816,32 +829,47 @@ export default function BlogAdmin() {
                     />
                   </div>
 
-                  <div className="flex justify-between">
-                    <FormField
-                      control={form.control}
-                      name="isPublished"
-                      render={({ field }) => (
-                        <FormItem className="flex items-center space-x-2">
-                          <FormControl>
-                            <input
-                              type="checkbox"
-                              checked={field.value || false}
-                              onChange={field.onChange}
-                              data-testid="checkbox-post-published"
-                            />
-                          </FormControl>
-                          <FormLabel>Publish immediately</FormLabel>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    
-                    <Button type="submit" disabled={createPostMutation.isPending} data-testid="button-save-post">
-                      {createPostMutation.isPending ? "Creating..." : "Create Post"}
-                    </Button>
-                  </div>
-                </form>
-              </Form>
+                  <FormField
+                    control={form.control}
+                    name="isPublished"
+                    render={({ field }) => (
+                      <FormItem className="flex items-center space-x-2">
+                        <FormControl>
+                          <input
+                            type="checkbox"
+                            checked={field.value || false}
+                            onChange={field.onChange}
+                            data-testid="checkbox-post-published"
+                          />
+                        </FormControl>
+                        <FormLabel>Publish immediately</FormLabel>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  </form>
+                </Form>
+              </div>
+
+              <div className="flex flex-col sm:flex-row gap-3 pt-4 border-t border-border sticky bottom-0 bg-background">
+                <Button 
+                  type="submit"
+                  form="create-post-form"
+                  disabled={createPostMutation.isPending} 
+                  className="w-full sm:flex-1"
+                  data-testid="button-save-post"
+                >
+                  {createPostMutation.isPending ? "Creating..." : "Create Post"}
+                </Button>
+                <Button 
+                  type="button"
+                  variant="outline"
+                  onClick={() => setIsCreateModalOpen(false)}
+                  className="w-full sm:w-auto"
+                >
+                  Cancel
+                </Button>
+              </div>
             </DialogContent>
           </Dialog>
 
