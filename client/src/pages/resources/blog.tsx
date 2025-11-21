@@ -77,16 +77,31 @@ export default function Blog() {
     return url;
   };
 
-  // Helper function to extract first image from visual editor blocks
-  const extractImageFromBlocks = (blocks: any[]): string | null => {
-    if (!blocks || !Array.isArray(blocks)) return null;
-    
-    for (const block of blocks) {
-      if (block.type === 'image' && (block.content?.url || block.content?.src)) {
-        const imageUrl = block.content.url || block.content.src;
-        return convertToProxyUrl(imageUrl);
+  // Helper function to get featured image from post
+  const getFeaturedImage = (post: any): string | null => {
+    // First check if post has images array with featured image
+    if (post.images && Array.isArray(post.images)) {
+      const featured = post.images.find((img: any) => img.isFeatured);
+      if (featured) {
+        return convertToProxyUrl(featured.url);
       }
     }
+    
+    // Fallback to legacy imagePath
+    if (post.imagePath) {
+      return convertToProxyUrl(post.imagePath);
+    }
+    
+    // Fallback to first image in blocks
+    if (post.blocks && Array.isArray(post.blocks)) {
+      for (const block of post.blocks) {
+        if (block.type === 'image' && (block.content?.url || block.content?.src)) {
+          const imageUrl = block.content.url || block.content.src;
+          return convertToProxyUrl(imageUrl);
+        }
+      }
+    }
+    
     return null;
   };
 
@@ -231,9 +246,8 @@ export default function Blog() {
     if (!blogPosts.length || !categories.length) return [];
     
     return blogPosts.map(post => {
-      // Extract image from visual editor blocks or use imagePath
-      const blockImage = extractImageFromBlocks(post.blocks || []);
-      const displayImage = blockImage || post.imagePath || '';
+      // Get featured image from multiple sources
+      const displayImage = getFeaturedImage(post) || '';
       
       // Render content from visual editor blocks or use regular content
       const hasBlocks = post.blocks && Array.isArray(post.blocks) && post.blocks.length > 0;

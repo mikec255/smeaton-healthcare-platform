@@ -521,6 +521,12 @@ export const insertBlogPostSchema = createInsertSchema(blogPosts).omit({
   updatedAt: true,
   publishedAt: true,
 }).extend({
+  images: z.array(z.object({
+    id: z.string(),
+    url: z.string(),
+    isFeatured: z.boolean(),
+    uploadedAt: z.string().optional(),
+  })).optional(),
   blocks: z.array(z.object({
     id: z.string(),
     type: z.enum(["header", "text", "image", "quote", "list", "divider", "spacer", "button"]),

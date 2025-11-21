@@ -17,6 +17,7 @@ import { Plus, Edit, Trash2, ArrowLeft, Eye, EyeOff, Upload, Calendar, User, Boo
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { type BlogPost, insertBlogPostSchema, insertBlogCategorySchema, blogCategories, type BlogBlock } from "@shared/schema";
 import BlogVisualEditor from "@/components/blog/BlogVisualEditor";
+import BlogImageManager from "@/components/blog/BlogImageManager";
 
 type BlogCategory = typeof blogCategories.$inferSelect;
 import { z } from "zod";
@@ -47,6 +48,7 @@ export default function BlogAdmin() {
   const [editingBlocks, setEditingBlocks] = useState<BlogBlock[]>([]);
   const [useVisualEditorForCreate, setUseVisualEditorForCreate] = useState(true);
   const [newPostBlocks, setNewPostBlocks] = useState<BlogBlock[]>([]);
+  const [newPostImages, setNewPostImages] = useState<Array<{ id: string; url: string; isFeatured: boolean; uploadedAt?: string }>>([]);
   const { toast } = useToast();
 
   // Fetch blog posts
@@ -87,6 +89,33 @@ export default function BlogAdmin() {
       return `/objects/uploads/${match[1]}`;
     }
     return url;
+  };
+
+  const getFeaturedImage = (post: BlogPost): string | null => {
+    // First check if post has images array with featured image
+    if (post.images && Array.isArray(post.images)) {
+      const featured = post.images.find((img: any) => img.isFeatured);
+      if (featured) {
+        return convertToProxyUrl(featured.url);
+      }
+    }
+    
+    // Fallback to legacy imagePath
+    if (post.imagePath) {
+      return convertToProxyUrl(post.imagePath);
+    }
+    
+    // Fallback to first image in blocks
+    if (post.blocks && Array.isArray(post.blocks)) {
+      for (const block of post.blocks) {
+        if (block.type === 'image' && (block.content?.url || block.content?.src)) {
+          const imageUrl = block.content.url || block.content.src;
+          return convertToProxyUrl(imageUrl);
+        }
+      }
+    }
+    
+    return null;
   };
 
   // Helper function to convert block style object to inline CSS
@@ -471,8 +500,8 @@ export default function BlogAdmin() {
   const onCreatePost = (data: CreateBlogPostData) => {
     // Add blocks to the post data if using visual editor
     const postData = useVisualEditorForCreate 
-      ? { ...data, blocks: newPostBlocks }
-      : data;
+      ? { ...data, blocks: newPostBlocks, images: newPostImages }
+      : { ...data, images: newPostImages };
     
     createPostMutation.mutate(postData);
   };
@@ -767,32 +796,24 @@ export default function BlogAdmin() {
                     />
                   </div>
 
-                  <div className="grid grid-cols-2 gap-4">
-                    <FormField
-                      control={form.control}
-                      name="author"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Author Name</FormLabel>
-                          <FormControl>
-                            <Input {...field} data-testid="input-post-author" />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={form.control}
-                      name="imagePath"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Image Path</FormLabel>
-                          <FormControl>
-                            <Input {...field} value={field.value || ""} placeholder="/path/to/image.jpg" data-testid="input-post-image" />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
+                  <FormField
+                    control={form.control}
+                    name="author"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Author Name</FormLabel>
+                        <FormControl>
+                          <Input {...field} data-testid="input-post-author" />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <div className="space-y-4 border border-border rounded-lg p-4 bg-muted/30">
+                    <BlogImageManager
+                      images={newPostImages}
+                      onImagesChange={setNewPostImages}
                     />
                   </div>
 
