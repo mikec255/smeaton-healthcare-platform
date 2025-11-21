@@ -44,11 +44,11 @@ export default function Navbar() {
       <div className="container mx-auto px-3 sm:px-4 py-3 sm:py-4">
         <div className="flex items-center justify-between">
           {/* Logo Section */}
-          <Link href="/" data-testid="navbar-logo" className="flex-shrink-0 mr-4">
+          <Link href="/" data-testid="navbar-logo" className="flex-shrink-0 mr-4 overflow-hidden">
             <img 
               src={logoImage} 
               alt="Smeaton Healthcare" 
-              className="h-14 sm:h-16 md:h-20 w-auto"
+              className="h-24 sm:h-28 md:h-32 w-auto"
             />
           </Link>
 
