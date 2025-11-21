@@ -238,6 +238,14 @@ export class ObjectStorageService {
     });
   }
 
+  // Makes a blog image publicly accessible
+  async makeBlogImagePublic(fileUrl: string): Promise<string> {
+    const normalizedPath = this.normalizeObjectEntityPath(fileUrl);
+    const objectFile = await this.getObjectEntityFile(normalizedPath);
+    await setObjectAclPolicy(objectFile, { visibility: "public" });
+    return fileUrl;
+  }
+
 }
 
 function parseObjectPath(path: string): {

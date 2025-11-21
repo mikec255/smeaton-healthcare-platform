@@ -84,6 +84,22 @@ export function ImageBlock({
       if (uploadResponse.ok) {
         // Extract the public URL from the upload URL
         const imageUrl = uploadURL.split('?')[0];
+        
+        // Make the image public so it works on Azure and other deployments
+        try {
+          await fetch('/api/blog-images/make-public', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${token}`
+            },
+            credentials: 'include',
+            body: JSON.stringify({ fileUrl: imageUrl })
+          });
+        } catch (e) {
+          console.error('Warning: Could not set image as public', e);
+        }
+        
         handleContentUpdate({ src: imageUrl });
       }
     } catch (error) {

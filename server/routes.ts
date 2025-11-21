@@ -1427,6 +1427,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Make blog image public (callable after upload)
+  app.post("/api/blog-images/make-public", requireAdmin, async (req, res) => {
+    try {
+      const { fileUrl } = req.body;
+      if (!fileUrl) {
+        return res.status(400).json({ error: "fileUrl is required" });
+      }
+      const objectStorageService = new ObjectStorageService();
+      await objectStorageService.makeBlogImagePublic(fileUrl);
+      res.json({ success: true, url: fileUrl });
+    } catch (error) {
+      console.error("Error making blog image public:", error);
+      res.status(500).json({ error: "Failed to make image public" });
+    }
+  });
+
   app.put("/api/cv-uploads", async (req, res) => {
     try {
       if (!req.body.cvURL) {
