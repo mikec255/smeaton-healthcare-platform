@@ -41,7 +41,7 @@ export default function Navbar() {
   return (
     <nav className="fixed top-0 left-0 right-0 bg-white border-b border-gray-200 shadow-sm z-40">
       {/* Main navbar container */}
-      <div className="container mx-auto px-3 sm:px-4 py-3 sm:py-4">
+      <div className="container mx-auto px-3 sm:px-4 py-1 sm:py-1.5">
         <div className="flex items-center justify-between">
           {/* Logo Section */}
           <Link href="/" data-testid="navbar-logo" className="flex-shrink-0 mr-4 overflow-hidden">
