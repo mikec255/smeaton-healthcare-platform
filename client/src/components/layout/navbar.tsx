@@ -40,14 +40,14 @@ export default function Navbar() {
 
   return (
     <nav className="fixed top-0 left-0 right-0 bg-white border-b border-gray-200 shadow-sm z-40" style={{ padding: '0', margin: '0' }}>
-      {/* Main navbar container - tight and compact */}
-      <div style={{ padding: '0', margin: '0', display: 'flex', alignItems: 'center', justifyContent: 'space-between', height: '56px', gap: '0' }}>
+      {/* Main navbar container - centered content */}
+      <div style={{ padding: '0', margin: '0 auto', display: 'flex', alignItems: 'center', justifyContent: 'space-between', height: '72px', gap: '0', maxWidth: '1400px', width: '100%', paddingRight: '16px', paddingLeft: '16px', boxSizing: 'border-box' }}>
         {/* Logo Section */}
-        <Link href="/" data-testid="navbar-logo" className="flex-shrink-0 flex items-center justify-center" style={{ padding: '0', margin: '0 8px 0 0', height: '100%' }}>
+        <Link href="/" data-testid="navbar-logo" className="flex-shrink-0 flex items-center justify-center" style={{ padding: '0', margin: '0 12px 0 0', height: '100%' }}>
           <img 
             src={logoImage} 
             alt="Smeaton Healthcare" 
-            className="h-16 sm:h-18 md:h-20 w-auto"
+            className="h-20 sm:h-24 md:h-28 w-auto"
             style={{ display: 'block', objectFit: 'contain' }}
           />
         </Link>
