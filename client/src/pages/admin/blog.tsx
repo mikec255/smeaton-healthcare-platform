@@ -485,7 +485,6 @@ export default function BlogAdmin() {
       categoryName: "",
       author: "",
       isPublished: false,
-      imagePath: "",
     },
   });
 

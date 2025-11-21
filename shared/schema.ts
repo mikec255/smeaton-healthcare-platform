@@ -397,6 +397,7 @@ export const blogPosts = pgTable("blog_posts", {
   blocks: json("blocks").$type<BlogBlock[]>(), // New structured content blocks
   categoryId: varchar("category_id").references(() => blogCategories.id).notNull(),
   images: json("images").$type<BlogImage[]>(), // Array of images with featured status
+  imagePath: text("image_path"), // Legacy: path to single featured image (deprecated in favor of images array)
   readTime: text("read_time"), // e.g., "5 min read"
   author: text("author").notNull(),
   isPublished: boolean("is_published").default(false),
