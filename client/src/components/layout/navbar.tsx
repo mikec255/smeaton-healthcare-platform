@@ -1,15 +1,27 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Link, useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Menu, X, ArrowRight, ChevronDown } from "lucide-react";
 import logoImage from "@/assets/logo.png";
 
+type NavItem = {
+  id: string;
+  label: string;
+  href?: string;
+  dropdown?: { href: string; label: string }[];
+  priority: number;
+  isButton?: boolean;
+  isPrimary?: boolean;
+  isPhone?: boolean;
+};
+
 export default function Navbar() {
   const [location] = useLocation();
-  const [servicesOpen, setServicesOpen] = useState(false);
-  const [resourcesOpen, setResourcesOpen] = useState(false);
-  const [workingOpen, setWorkingOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
+  const [hiddenItems, setHiddenItems] = useState<Set<string>>(new Set());
+  const navRef = useRef<HTMLDivElement>(null);
+  const itemsRef = useRef<Map<string, HTMLElement>>(new Map());
 
   const isActive = (path: string) => {
     if (path === "/" && location === "/") return true;
@@ -17,304 +29,248 @@ export default function Navbar() {
     return false;
   };
 
-  const serviceLinks = [
-    { href: "/services/short-visits", label: "Short Visits" },
-    { href: "/services/supported-living", label: "Supported Living" },
-    { href: "/services/care-24-7", label: "24/7 Care" },
-    { href: "/services/enablements", label: "Enabling" },
-    { href: "/services/respite", label: "Respite Care" },
-    { href: "/services/live-in-care", label: "Live-In Care" },
-    { href: "/services/condition-led-care", label: "Condition-Led Care" },
+  // Navigation items ordered by priority (highest = disappears first)
+  const navItems: NavItem[] = [
+    { id: "phone", label: "0330 165 8880", priority: 10, isPhone: true },
+    { id: "referral", label: "Make a Referral", priority: 9, isButton: true, isPrimary: true, href: "/referral" },
+    { id: "admin", label: "Admin", priority: 8, isButton: true, href: "/admin" },
+    { id: "contact", label: "Contact", href: "/contact", priority: 7 },
+    { id: "jobs", label: "Find Jobs", href: "/jobs", priority: 6 },
+    {
+      id: "working",
+      label: "Working at Smeaton",
+      priority: 5,
+      dropdown: [
+        { href: "/resources/working-at-smeaton", label: "Working at Smeaton" },
+        { href: "/resources/sponsorship", label: "Sponsorship" },
+      ],
+    },
+    {
+      id: "resources",
+      label: "Resources",
+      priority: 4,
+      dropdown: [
+        { href: "/resources/blog", label: "Blog" },
+        { href: "/resources/newsletter", label: "Newsletter" },
+        { href: "/resources/costings", label: "Understanding Care Funding" },
+      ],
+    },
+    {
+      id: "services",
+      label: "Services",
+      priority: 3,
+      dropdown: [
+        { href: "/services/short-visits", label: "Short Visits" },
+        { href: "/services/supported-living", label: "Supported Living" },
+        { href: "/services/care-24-7", label: "24/7 Care" },
+        { href: "/services/enablements", label: "Enabling" },
+        { href: "/services/respite", label: "Respite Care" },
+        { href: "/services/live-in-care", label: "Live-In Care" },
+        { href: "/services/condition-led-care", label: "Condition-Led Care" },
+      ],
+    },
+    { id: "home", label: "Home", href: "/", priority: 2 },
   ];
 
-  const resourceLinks = [
-    { href: "/resources/blog", label: "Blog" },
-    { href: "/resources/newsletter", label: "Newsletter" },
-    { href: "/resources/costings", label: "Understanding Care Funding" },
-  ];
+  // Measure and manage overflow
+  useEffect(() => {
+    const handleResize = () => {
+      if (!navRef.current) return;
 
-  const workingLinks = [
-    { href: "/resources/working-at-smeaton", label: "Working at Smeaton" },
-    { href: "/resources/sponsorship", label: "Sponsorship" },
-  ];
+      const containerWidth = navRef.current.offsetWidth;
+      const logoWidth = 120; // approximate logo width
+      const hamburgerWidth = 60; // approximate hamburger button width
+      let availableWidth = containerWidth - logoWidth - hamburgerWidth - 40; // 40px buffer
+
+      // Sort items by priority (lowest priority stays visible longest)
+      const sortedItems = [...navItems].sort((a, b) => a.priority - b.priority);
+      
+      const newHiddenItems = new Set<string>();
+      let usedWidth = 0;
+
+      // Calculate which items fit
+      for (const item of sortedItems) {
+        const element = itemsRef.current.get(item.id);
+        if (!element) continue;
+
+        const itemWidth = element.offsetWidth;
+        
+        if (usedWidth + itemWidth > availableWidth) {
+          // This item and all higher priority items must be hidden
+          const itemsToHide = navItems.filter(i => i.priority >= item.priority);
+          itemsToHide.forEach(i => newHiddenItems.add(i.id));
+          break;
+        }
+        
+        usedWidth += itemWidth;
+      }
+
+      setHiddenItems(newHiddenItems);
+    };
+
+    // Initial measurement
+    setTimeout(handleResize, 100);
+
+    // Set up ResizeObserver
+    const resizeObserver = new ResizeObserver(handleResize);
+    if (navRef.current) {
+      resizeObserver.observe(navRef.current);
+    }
+
+    // Fallback to window resize
+    window.addEventListener('resize', handleResize);
+
+    return () => {
+      resizeObserver.disconnect();
+      window.removeEventListener('resize', handleResize);
+    };
+  }, []);
+
+  const visibleItems = navItems.filter(item => !hiddenItems.has(item.id));
+  const overflowItems = navItems.filter(item => hiddenItems.has(item.id));
+
+  const renderNavItem = (item: NavItem, isMobile = false) => {
+    // Phone number
+    if (item.isPhone) {
+      return (
+        <div 
+          key={item.id}
+          ref={el => el && itemsRef.current.set(item.id, el)}
+          className={`text-blue-800 font-bold text-sm whitespace-nowrap flex items-center ${isMobile ? 'justify-center py-3' : 'px-3'}`}
+        >
+          {isMobile && "📞 "}{item.label}
+        </div>
+      );
+    }
+
+    // Button items
+    if (item.isButton) {
+      if (item.isPrimary) {
+        return (
+          <Button
+            key={item.id}
+            ref={el => el && itemsRef.current.set(item.id, el)}
+            onClick={() => window.location.href = item.href!}
+            className={`bg-pink-500 hover:bg-pink-600 text-white font-semibold flex items-center gap-1 ${isMobile ? 'w-full py-6 text-base' : 'px-3 py-1.5 text-xs h-7'}`}
+          >
+            {item.label}
+            {!isMobile && <ArrowRight className="w-3 h-3" />}
+          </Button>
+        );
+      }
+      return (
+        <Button
+          key={item.id}
+          ref={el => el && itemsRef.current.set(item.id, el)}
+          onClick={() => window.location.href = item.href!}
+          variant="outline"
+          className={`font-semibold ${isMobile ? 'w-full py-6 text-base' : 'px-3 py-1.5 text-xs h-7'}`}
+        >
+          {item.label}
+        </Button>
+      );
+    }
+
+    // Dropdown items
+    if (item.dropdown) {
+      return (
+        <div key={item.id} ref={el => el && itemsRef.current.set(item.id, el)} className="relative">
+          <button
+            onClick={() => setActiveDropdown(activeDropdown === item.id ? null : item.id)}
+            className={`text-gray-700 hover:text-pink-600 font-medium text-sm flex items-center gap-1 ${isMobile ? 'w-full text-left py-3 px-4 border-b' : 'px-3 py-2'}`}
+          >
+            {item.label}
+            <ChevronDown className="w-4 h-4" />
+          </button>
+          {activeDropdown === item.id && (
+            <div className={isMobile ? "pl-8" : "absolute top-full left-0 mt-1 bg-white border rounded-md shadow-lg min-w-[220px] py-1 z-50"}>
+              {item.dropdown.map(link => (
+                <Link
+                  key={link.href}
+                  href={link.href}
+                  onClick={() => {
+                    setActiveDropdown(null);
+                    setMobileMenuOpen(false);
+                  }}
+                  className={`block hover:bg-gray-100 text-gray-700 hover:text-pink-600 ${isMobile ? 'py-2 px-4 text-sm' : 'px-4 py-2 text-sm'}`}
+                >
+                  {link.label}
+                </Link>
+              ))}
+            </div>
+          )}
+        </div>
+      );
+    }
+
+    // Regular link items
+    return (
+      <Link
+        key={item.id}
+        ref={el => el && itemsRef.current.set(item.id, el)}
+        href={item.href!}
+        className={`font-medium text-sm whitespace-nowrap ${isMobile ? 'block py-3 px-4 border-b' : 'px-3 py-2'}`}
+        style={{ color: isActive(item.href!) ? '#EF2587' : '#374151' }}
+        onClick={() => setMobileMenuOpen(false)}
+      >
+        {item.label}
+      </Link>
+    );
+  };
 
   return (
-    <nav className="fixed top-0 left-0 right-0 bg-white border-b border-gray-200 shadow-sm z-40" style={{ padding: '0', margin: '0', display: 'flex', justifyContent: 'center' }}>
-      {/* Main navbar container */}
-      <div style={{ padding: '0', margin: '0', display: 'flex', alignItems: 'center', justifyContent: 'flex-start', height: '72px', width: '100%', boxSizing: 'border-box', gap: '0' }}>
-        
-        {/* Logo - ALWAYS VISIBLE */}
-        <Link href="/" data-testid="navbar-logo" className="flex-shrink-0 flex items-center justify-center" style={{ padding: '0', margin: '0', height: '100%' }}>
-          <img 
-            src={logoImage} 
-            alt="Smeaton Healthcare" 
-            className="h-40 sm:h-32 md:h-28 w-auto"
-            style={{ display: 'block', objectFit: 'contain' }}
-          />
+    <nav className="fixed top-0 left-0 right-0 bg-white border-b border-gray-200 shadow-sm z-40">
+      <div ref={navRef} className="flex items-center justify-between h-[72px] px-2 gap-0">
+        {/* Logo */}
+        <Link href="/" className="flex-shrink-0 flex items-center" data-testid="navbar-logo">
+          <img src={logoImage} alt="Smeaton Healthcare" className="h-12 w-auto" />
         </Link>
 
-        {/* Desktop Navigation - visible on md+ screens */}
-        <div className="hidden md:flex items-center gap-0" style={{ flex: '1', margin: '0', padding: '0', height: '100%' }}>
-          {/* Home - visible on lg+ */}
-          <Link 
-            href="/" 
-            className="hidden lg:flex text-sm font-medium whitespace-nowrap items-center justify-center h-full"
-            style={{ color: isActive("/") ? '#EF2587' : '#374151', padding: '0 6px', margin: '0' }}
-          >
-            Home
-          </Link>
-
-          {/* Services Dropdown - visible on md+ */}
-          <div className="relative" style={{ position: 'relative', height: '100%' }}>
-            <button
-              onClick={() => {
-                setServicesOpen(!servicesOpen);
-                setResourcesOpen(false);
-                setWorkingOpen(false);
-              }}
-              style={{ padding: '0 6px', fontSize: '14px', fontWeight: '500', background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '2px', color: '#374151', margin: '0', height: '100%' }}
-            >
-              Services
-              <ChevronDown className="w-4 h-4" />
-            </button>
-            {servicesOpen && (
-              <div style={{ position: 'absolute', top: '100%', left: 0, marginTop: '4px', background: 'white', border: '1px solid #e5e7eb', borderRadius: '6px', boxShadow: '0 10px 15px rgba(0,0,0,0.1)', minWidth: '220px', padding: '6px', zIndex: 1000 }}>
-                {serviceLinks.map(link => (
-                  <Link 
-                    key={link.href} 
-                    href={link.href}
-                    onClick={() => setServicesOpen(false)}
-                    style={{ display: 'block', padding: '8px 12px', fontSize: '14px', color: '#374151', textDecoration: 'none', borderRadius: '4px' }}
-                  >
-                    {link.label}
-                  </Link>
-                ))}
-              </div>
-            )}
-          </div>
-
-          {/* Resources Dropdown - visible on lg+ */}
-          <div className="hidden lg:block relative" style={{ position: 'relative', height: '100%' }}>
-            <button
-              onClick={() => {
-                setResourcesOpen(!resourcesOpen);
-                setServicesOpen(false);
-                setWorkingOpen(false);
-              }}
-              style={{ padding: '0 6px', fontSize: '14px', fontWeight: '500', background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '2px', color: '#374151', margin: '0', height: '100%' }}
-            >
-              Resources
-              <ChevronDown className="w-4 h-4" />
-            </button>
-            {resourcesOpen && (
-              <div style={{ position: 'absolute', top: '100%', left: 0, marginTop: '4px', background: 'white', border: '1px solid #e5e7eb', borderRadius: '6px', boxShadow: '0 10px 15px rgba(0,0,0,0.1)', minWidth: '220px', padding: '6px', zIndex: 1000 }}>
-                {resourceLinks.map(link => (
-                  <Link 
-                    key={link.href} 
-                    href={link.href}
-                    onClick={() => setResourcesOpen(false)}
-                    style={{ display: 'block', padding: '8px 12px', fontSize: '14px', color: '#374151', textDecoration: 'none', borderRadius: '4px' }}
-                  >
-                    {link.label}
-                  </Link>
-                ))}
-              </div>
-            )}
-          </div>
-
-          {/* Working at Smeaton - visible on xl+ */}
-          <div className="hidden xl:block relative" style={{ position: 'relative', height: '100%' }}>
-            <button
-              onClick={() => {
-                setWorkingOpen(!workingOpen);
-                setServicesOpen(false);
-                setResourcesOpen(false);
-              }}
-              style={{ padding: '0 6px', fontSize: '14px', fontWeight: '500', background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '2px', color: '#374151', margin: '0', height: '100%' }}
-            >
-              Working at Smeaton
-              <ChevronDown className="w-4 h-4" />
-            </button>
-            {workingOpen && (
-              <div style={{ position: 'absolute', top: '100%', left: 0, marginTop: '4px', background: 'white', border: '1px solid #e5e7eb', borderRadius: '6px', boxShadow: '0 10px 15px rgba(0,0,0,0.1)', minWidth: '220px', padding: '6px', zIndex: 1000 }}>
-                {workingLinks.map(link => (
-                  <Link 
-                    key={link.href} 
-                    href={link.href}
-                    onClick={() => setWorkingOpen(false)}
-                    style={{ display: 'block', padding: '8px 12px', fontSize: '14px', color: '#374151', textDecoration: 'none', borderRadius: '4px' }}
-                  >
-                    {link.label}
-                  </Link>
-                ))}
-              </div>
-            )}
-          </div>
-
-          {/* Find Jobs - visible on lg+ */}
-          <Link 
-            href="/jobs" 
-            className="hidden lg:flex text-sm font-medium whitespace-nowrap items-center justify-center h-full"
-            style={{ color: isActive("/jobs") ? '#EF2587' : '#374151', padding: '0 12px', margin: '0' }}
-          >
-            Find Jobs
-          </Link>
-
-          {/* Contact - visible on lg+ */}
-          <Link 
-            href="/contact" 
-            className="hidden lg:flex text-sm font-medium whitespace-nowrap items-center justify-center h-full"
-            style={{ color: isActive("/contact") ? '#EF2587' : '#374151', padding: '0 12px', margin: '0' }}
-          >
-            Contact
-          </Link>
+        {/* Desktop Navigation - zero gap flex */}
+        <div className="hidden md:flex items-center gap-0">
+          {visibleItems.map(item => renderNavItem(item))}
         </div>
 
-        {/* Right side items - these disappear first as screen shrinks */}
-        
-        {/* Make a Referral - hidden below xl */}
-        <Button 
-          onClick={() => window.location.href = '/referral'}
-          className="hidden xl:flex"
-          style={{ backgroundColor: '#EC4899', color: 'white', padding: '4px 8px', fontSize: '11px', border: 'none', borderRadius: '3px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '3px', fontWeight: '600', margin: '0', height: '28px' }}
-        >
-          Make a Referral
-          <ArrowRight className="w-3 h-3" />
-        </Button>
-
-        {/* Admin - hidden below md */}
-        <Button 
-          variant="outline"
-          onClick={() => window.location.href = '/admin'}
-          className="hidden md:block"
-          style={{ padding: '4px 8px', fontSize: '11px', margin: '0', height: '28px', fontWeight: '600' }}
-        >
-          Admin
-        </Button>
-
-        {/* Phone - hidden below xl */}
-        <div className="hidden xl:flex text-sm whitespace-nowrap" style={{ color: '#1e40af', fontSize: '13px', fontWeight: 'bold', display: 'flex', alignItems: 'center', height: '100%', margin: '0' }}>
-          0330 165 8880
-        </div>
-
-        {/* Hamburger menu - visible below md */}
-        <Button 
-          variant="ghost" 
-          className="md:hidden"
-          style={{ padding: '0', margin: '0', height: '100%', width: 'auto' }}
+        {/* Hamburger Menu Button */}
+        <Button
+          variant="ghost"
+          className="md:hidden p-2"
           onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
           data-testid="button-mobile-menu"
         >
-          {mobileMenuOpen ? (
-            <X className="h-20 sm:h-16 w-20 sm:w-16 text-gray-600" />
-          ) : (
-            <Menu className="h-20 sm:h-16 w-20 sm:w-16 text-gray-600" />
-          )}
+          {mobileMenuOpen ? <X className="h-8 w-8" /> : <Menu className="h-8 w-8" />}
         </Button>
+
+        {/* Desktop overflow menu (if any items are hidden) */}
+        {overflowItems.length > 0 && (
+          <div className="hidden md:block relative">
+            <Button
+              variant="ghost"
+              onClick={() => setActiveDropdown(activeDropdown === "overflow" ? null : "overflow")}
+              className="p-2"
+            >
+              <Menu className="h-5 w-5" />
+            </Button>
+            {activeDropdown === "overflow" && (
+              <div className="absolute top-full right-0 mt-1 bg-white border rounded-md shadow-lg min-w-[220px] py-1 z-50">
+                {overflowItems.map(item => (
+                  <div key={item.id} className="px-2 py-1">
+                    {renderNavItem(item, true)}
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
       </div>
 
       {/* Mobile Menu */}
       {mobileMenuOpen && (
         <div className="md:hidden fixed inset-0 top-[72px] bg-white z-50 overflow-y-auto">
-          <div style={{ padding: '12px' }}>
-            {/* Home Link */}
-            <Link 
-              href="/"
-              onClick={() => setMobileMenuOpen(false)}
-              style={{ display: 'block', padding: '12px 8px', fontSize: '16px', fontWeight: '500', borderBottom: '1px solid #f3f4f6', color: isActive("/") ? '#EF2587' : '#374151', textDecoration: 'none' }}
-            >
-              Home
-            </Link>
-
-            {/* Services Section */}
-            <div style={{ marginTop: '12px' }}>
-              <div style={{ fontSize: '15px', fontWeight: '600', padding: '8px', color: '#1f2937', borderBottom: '1px solid #e5e7eb' }}>Services</div>
-              {serviceLinks.map(link => (
-                <Link 
-                  key={link.href} 
-                  href={link.href}
-                  onClick={() => setMobileMenuOpen(false)}
-                  style={{ display: 'block', padding: '8px 16px', fontSize: '14px', color: '#6b7280', textDecoration: 'none', borderBottom: '1px solid #f9fafb' }}
-                >
-                  {link.label}
-                </Link>
-              ))}
-            </div>
-
-            {/* Resources Section */}
-            <div style={{ marginTop: '12px' }}>
-              <div style={{ fontSize: '15px', fontWeight: '600', padding: '8px', color: '#1f2937', borderBottom: '1px solid #e5e7eb' }}>Resources</div>
-              {resourceLinks.map(link => (
-                <Link 
-                  key={link.href} 
-                  href={link.href}
-                  onClick={() => setMobileMenuOpen(false)}
-                  style={{ display: 'block', padding: '8px 16px', fontSize: '14px', color: '#6b7280', textDecoration: 'none', borderBottom: '1px solid #f9fafb' }}
-                >
-                  {link.label}
-                </Link>
-              ))}
-            </div>
-
-            {/* Working at Smeaton Section */}
-            <div style={{ marginTop: '12px' }}>
-              <div style={{ fontSize: '15px', fontWeight: '600', padding: '8px', color: '#1f2937', borderBottom: '1px solid #e5e7eb' }}>Working at Smeaton</div>
-              {workingLinks.map(link => (
-                <Link 
-                  key={link.href} 
-                  href={link.href}
-                  onClick={() => setMobileMenuOpen(false)}
-                  style={{ display: 'block', padding: '8px 16px', fontSize: '14px', color: '#6b7280', textDecoration: 'none', borderBottom: '1px solid #f9fafb' }}
-                >
-                  {link.label}
-                </Link>
-              ))}
-            </div>
-
-            {/* Find Jobs */}
-            <Link 
-              href="/jobs"
-              onClick={() => setMobileMenuOpen(false)}
-              style={{ display: 'block', padding: '12px 8px', fontSize: '16px', fontWeight: '500', borderTop: '1px solid #e5e7eb', borderBottom: '1px solid #e5e7eb', color: isActive("/jobs") ? '#EF2587' : '#374151', textDecoration: 'none', marginTop: '12px' }}
-            >
-              Find Jobs
-            </Link>
-
-            {/* Contact */}
-            <Link 
-              href="/contact"
-              onClick={() => setMobileMenuOpen(false)}
-              style={{ display: 'block', padding: '12px 8px', fontSize: '16px', fontWeight: '500', borderBottom: '1px solid #e5e7eb', color: isActive("/contact") ? '#EF2587' : '#374151', textDecoration: 'none' }}
-            >
-              Contact
-            </Link>
-
-            {/* Action Buttons and Phone */}
-            <div style={{ paddingTop: '12px', marginTop: '12px', borderTop: '1px solid #e5e7eb', display: 'flex', flexDirection: 'column', gap: '8px' }}>
-              <Button 
-                onClick={() => {
-                  setMobileMenuOpen(false);
-                  window.location.href = '/referral';
-                }}
-                style={{ width: '100%', backgroundColor: '#EC4899', color: 'white', padding: '12px', fontSize: '15px', fontWeight: '600', borderRadius: '6px', border: 'none', cursor: 'pointer' }}
-              >
-                Make a Referral
-              </Button>
-              
-              <Button 
-                variant="outline"
-                onClick={() => {
-                  setMobileMenuOpen(false);
-                  window.location.href = '/admin';
-                }}
-                style={{ width: '100%', padding: '12px', fontSize: '15px', fontWeight: '600', borderRadius: '6px' }}
-              >
-                Admin
-              </Button>
-
-              <div style={{ textAlign: 'center', paddingTop: '12px', borderTop: '1px solid #e5e7eb', fontSize: '18px', fontWeight: 'bold', color: '#1e40af' }}>
-                📞 0330 165 8880
-              </div>
+          <div className="p-4">
+            {navItems.filter(item => !item.isButton && !item.isPhone).map(item => renderNavItem(item, true))}
+            <div className="mt-4 space-y-2">
+              {navItems.filter(item => item.isButton || item.isPhone).map(item => renderNavItem(item, true))}
             </div>
           </div>
         </div>
