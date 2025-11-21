@@ -242,7 +242,7 @@ export class ObjectStorageService {
   async makeBlogImagePublic(fileUrl: string): Promise<string> {
     const normalizedPath = this.normalizeObjectEntityPath(fileUrl);
     const objectFile = await this.getObjectEntityFile(normalizedPath);
-    await setObjectAclPolicy(objectFile, { visibility: "public" });
+    await setObjectAclPolicy(objectFile, { visibility: "public", owner: "system" });
     return fileUrl;
   }
 
