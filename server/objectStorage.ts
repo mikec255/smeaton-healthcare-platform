@@ -171,19 +171,11 @@ export class ObjectStorageService {
       entityDir = `${entityDir}/`;
     }
     const objectEntityPath = `${entityDir}${entityId}`;
-    console.log('[ObjectStorage] Looking for file:', {
-      requestPath: objectPath,
-      entityId,
-      privateObjectDir: entityDir,
-      fullObjectPath: objectEntityPath
-    });
     const { bucketName, objectName } = parseObjectPath(objectEntityPath);
-    console.log('[ObjectStorage] Parsed path:', { bucketName, objectName });
     const bucket = objectStorageClient.bucket(bucketName);
     const objectFile = bucket.file(objectName);
     const [exists] = await objectFile.exists();
     if (!exists) {
-      console.log('[ObjectStorage] File not found in storage');
       throw new ObjectNotFoundError();
     }
     return objectFile;
