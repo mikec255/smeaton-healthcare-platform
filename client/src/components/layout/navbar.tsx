@@ -47,7 +47,7 @@ export default function Navbar() {
           <img 
             src={logoImage} 
             alt="Smeaton Healthcare" 
-            className="h-24 sm:h-24 md:h-28 w-auto"
+            className="h-40 sm:h-32 md:h-28 w-auto"
             style={{ display: 'block', objectFit: 'contain' }}
           />
         </Link>
@@ -203,9 +203,9 @@ export default function Navbar() {
           data-testid="button-mobile-menu"
         >
           {mobileMenuOpen ? (
-            <X className="h-8 sm:h-7 md:h-6 w-8 sm:w-7 md:w-6 text-gray-600" />
+            <X className="h-10 sm:h-8 md:h-6 w-10 sm:w-8 md:w-6 text-gray-600" />
           ) : (
-            <Menu className="h-8 sm:h-7 md:h-6 w-8 sm:w-7 md:w-6 text-gray-600" />
+            <Menu className="h-10 sm:h-8 md:h-6 w-10 sm:w-8 md:w-6 text-gray-600" />
           )}
         </Button>
       </div>
