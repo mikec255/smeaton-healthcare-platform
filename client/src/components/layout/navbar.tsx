@@ -160,7 +160,7 @@ export default function Navbar() {
             key={item.id}
             ref={el => el && itemsRef.current.set(item.id, el)}
             onClick={() => window.location.href = item.href!}
-            className={`bg-pink-500 hover:bg-pink-600 text-white font-semibold flex items-center whitespace-nowrap ${isMobile ? 'w-full py-6 text-base' : 'px-3 py-2 text-sm gap-1'}`}
+            className={`bg-pink-500 hover:bg-pink-600 text-white font-semibold flex items-center whitespace-nowrap ${isMobile ? 'w-full py-6 text-base' : 'h-7 px-2 py-1 text-xs gap-1'}`}
           >
             {item.label}
             {!isMobile && <ArrowRight className="w-3 h-3" />}
@@ -173,7 +173,7 @@ export default function Navbar() {
           ref={el => el && itemsRef.current.set(item.id, el)}
           onClick={() => window.location.href = item.href!}
           variant="outline"
-          className={`font-semibold whitespace-nowrap ${isMobile ? 'w-full py-6 text-base' : 'px-3 py-2 text-sm'}`}
+          className={`font-semibold whitespace-nowrap ${isMobile ? 'w-full py-6 text-base' : 'h-7 px-2 py-1 text-xs'}`}
         >
           {item.label}
         </Button>
