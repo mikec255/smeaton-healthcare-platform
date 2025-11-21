@@ -300,6 +300,18 @@ export default function Admin() {
               inactive: newsletters.filter(n => n.status === 'draft').length
             },
             color: "bg-blue-600 text-white hover:bg-blue-700"
+          },
+          {
+            title: "Templates",
+            description: "Create and manage reusable blog post templates",
+            icon: BookOpen,
+            link: "/admin/templates",
+            stats: {
+              total: 0,
+              active: 0,
+              inactive: 0
+            },
+            color: "bg-blue-600 text-white hover:bg-blue-700"
           }
         ]
       },
@@ -325,7 +337,6 @@ export default function Admin() {
             description: `Email service ${emailConfig.configured ? 'configured' : 'requires environment setup'}`,
             icon: Mail,
             link: "#",
-            isEmailSettings: true,
             stats: {
               total: 1,
               active: emailConfig.configured ? 1 : 0,
