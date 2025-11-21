@@ -39,9 +39,9 @@ export default function Navbar() {
   ];
 
   return (
-    <nav className="fixed top-0 left-0 right-0 bg-white border-b border-gray-200 shadow-sm z-40" style={{ padding: '0', margin: '0' }}>
+    <nav className="fixed top-0 left-0 right-0 bg-white border-b border-gray-200 shadow-sm z-40" style={{ padding: '0', margin: '0', display: 'flex', justifyContent: 'center' }}>
       {/* Main navbar container - centered content */}
-      <div style={{ padding: '0', margin: '0 auto', display: 'flex', alignItems: 'center', justifyContent: 'space-between', height: '72px', gap: '0', maxWidth: '1400px', width: '100%', paddingRight: '16px', paddingLeft: '16px', boxSizing: 'border-box' }}>
+      <div style={{ padding: '0 16px', margin: '0', display: 'flex', alignItems: 'center', justifyContent: 'space-between', height: '72px', gap: '0', maxWidth: '1400px', width: '100%', boxSizing: 'border-box' }}>
         {/* Logo Section */}
         <Link href="/" data-testid="navbar-logo" className="flex-shrink-0 flex items-center justify-center" style={{ padding: '0', margin: '0 12px 0 0', height: '100%' }}>
           <img 
