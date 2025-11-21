@@ -39,26 +39,26 @@ export default function Navbar() {
   ];
 
   return (
-    <nav className="fixed top-0 left-0 right-0 bg-white border-b border-gray-200 shadow-sm z-40" style={{ padding: '0', margin: '0', lineHeight: '1.2' }}>
+    <nav className="fixed top-0 left-0 right-0 bg-white border-b border-gray-200 shadow-sm z-40" style={{ padding: '0', margin: '0', lineHeight: '0', overflow: 'hidden' }}>
       {/* Main navbar container - ultra tight */}
-      <div style={{ padding: '0', margin: '0', display: 'flex', alignItems: 'center', justifyContent: 'space-between', height: 'auto', gap: '0', minHeight: 'auto' }}>
+      <div style={{ padding: '0 4px', margin: '0', display: 'flex', alignItems: 'center', justifyContent: 'space-between', height: 'auto', gap: '0', lineHeight: '0' }}>
         {/* Logo Section */}
-        <Link href="/" data-testid="navbar-logo" className="flex-shrink-0 overflow-hidden flex items-center" style={{ padding: '0', margin: '0 8px 0 0', lineHeight: '0' }}>
+        <Link href="/" data-testid="navbar-logo" className="flex-shrink-0 overflow-visible flex items-center justify-center" style={{ padding: '0', margin: '0 4px 0 0', lineHeight: '0', flexBasis: 'auto' }}>
           <img 
             src={logoImage} 
             alt="Smeaton Healthcare" 
-            className="h-24 sm:h-28 md:h-32 w-auto"
-            style={{ display: 'block', lineHeight: '0' }}
+            className="h-20 sm:h-24 md:h-28 w-auto"
+            style={{ display: 'block', lineHeight: '0', margin: '0', padding: '0' }}
           />
         </Link>
 
         {/* Desktop Navigation - only visible on xl+ screens */}
-        <div className="hidden xl:flex items-center gap-1" style={{ flex: '1', margin: '0', padding: '0', height: '100%' }}>
+        <div className="hidden xl:flex items-center gap-0" style={{ flex: '1', margin: '0', padding: '0 4px', lineHeight: '0' }}>
           {/* Home */}
           <Link 
             href="/" 
-            className="px-3 text-sm font-medium whitespace-nowrap flex items-center"
-            style={{ color: isActive("/") ? '#EF2587' : '#374151', padding: '4px 12px', height: '100%', margin: '0' }}
+            className="text-sm font-medium whitespace-nowrap flex items-center justify-center"
+            style={{ color: isActive("/") ? '#EF2587' : '#374151', padding: '0 10px', margin: '0', lineHeight: '0' }}
           >
             Home
           </Link>
@@ -71,7 +71,7 @@ export default function Navbar() {
                 setResourcesOpen(false);
                 setWorkingOpen(false);
               }}
-              style={{ padding: '4px 12px', fontSize: '14px', fontWeight: '500', background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px', color: '#374151', height: '100%', margin: '0' }}
+              style={{ padding: '0 10px', fontSize: '14px', fontWeight: '500', background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px', color: '#374151', margin: '0', lineHeight: '0' }}
             >
               Services
               <ChevronDown className="w-4 h-4" />
@@ -100,7 +100,7 @@ export default function Navbar() {
                 setServicesOpen(false);
                 setWorkingOpen(false);
               }}
-              style={{ padding: '4px 12px', fontSize: '14px', fontWeight: '500', background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px', color: '#374151', height: '100%', margin: '0' }}
+              style={{ padding: '0 10px', fontSize: '14px', fontWeight: '500', background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px', color: '#374151', margin: '0', lineHeight: '0' }}
             >
               Resources
               <ChevronDown className="w-4 h-4" />
@@ -129,7 +129,7 @@ export default function Navbar() {
                 setServicesOpen(false);
                 setResourcesOpen(false);
               }}
-              style={{ padding: '4px 12px', fontSize: '14px', fontWeight: '500', background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px', color: '#374151', height: '100%', margin: '0' }}
+              style={{ padding: '0 10px', fontSize: '14px', fontWeight: '500', background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px', color: '#374151', margin: '0', lineHeight: '0' }}
             >
               Working at Smeaton
               <ChevronDown className="w-4 h-4" />
@@ -153,8 +153,8 @@ export default function Navbar() {
           {/* Find Jobs */}
           <Link 
             href="/jobs" 
-            className="px-3 text-sm font-medium whitespace-nowrap flex items-center"
-            style={{ color: isActive("/jobs") ? '#EF2587' : '#374151', padding: '4px 12px', height: '100%', margin: '0' }}
+            className="text-sm font-medium whitespace-nowrap flex items-center justify-center"
+            style={{ color: isActive("/jobs") ? '#EF2587' : '#374151', padding: '0 10px', margin: '0', lineHeight: '0' }}
           >
             Find Jobs
           </Link>
@@ -162,33 +162,33 @@ export default function Navbar() {
           {/* Contact */}
           <Link 
             href="/contact" 
-            className="px-3 text-sm font-medium whitespace-nowrap flex items-center"
-            style={{ color: isActive("/contact") ? '#EF2587' : '#374151', padding: '4px 12px', height: '100%', margin: '0' }}
+            className="text-sm font-medium whitespace-nowrap flex items-center justify-center"
+            style={{ color: isActive("/contact") ? '#EF2587' : '#374151', padding: '0 10px', margin: '0', lineHeight: '0' }}
           >
             Contact
           </Link>
 
           {/* Buttons */}
-          <div style={{ display: 'flex', gap: '8px', marginLeft: '12px', alignItems: 'center', height: '100%' }}>
+          <div style={{ display: 'flex', gap: '6px', marginLeft: '8px', alignItems: 'center', lineHeight: '0' }}>
             <Button 
               onClick={() => window.location.href = '/referral'}
-              style={{ backgroundColor: '#EC4899', color: 'white', padding: '4px 12px', fontSize: '14px', border: 'none', borderRadius: '4px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px', height: 'auto', fontWeight: '500', margin: '0' }}
+              style={{ backgroundColor: '#EC4899', color: 'white', padding: '2px 10px', fontSize: '13px', border: 'none', borderRadius: '3px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px', fontWeight: '500', margin: '0', lineHeight: '0', height: 'auto' }}
             >
               Make a Referral
-              <ArrowRight className="w-4 h-4" />
+              <ArrowRight className="w-3 h-3" />
             </Button>
             
             <Button 
               variant="outline"
               onClick={() => window.location.href = '/admin'}
-              style={{ padding: '4px 12px', fontSize: '14px', height: 'auto', margin: '0' }}
+              style={{ padding: '2px 10px', fontSize: '13px', margin: '0', lineHeight: '0', height: 'auto' }}
             >
               Admin
             </Button>
           </div>
 
           {/* Phone number - desktop only */}
-          <div style={{ marginLeft: '12px', flexShrink: 0, color: '#1e40af', fontSize: '13px', fontWeight: 'bold', whiteSpace: 'nowrap', borderLeft: '1px solid #d1d5db', paddingLeft: '12px', display: 'flex', alignItems: 'center', height: '100%', margin: '0' }}>
+          <div style={{ marginLeft: '8px', flexShrink: 0, color: '#1e40af', fontSize: '12px', fontWeight: 'bold', whiteSpace: 'nowrap', borderLeft: '1px solid #d1d5db', paddingLeft: '8px', display: 'flex', alignItems: 'center', margin: '0', lineHeight: '0' }}>
             0330 165 8880
           </div>
         </div>
@@ -198,7 +198,7 @@ export default function Navbar() {
           variant="ghost" 
           size="sm"
           className="xl:hidden"
-          style={{ padding: '6px', margin: '0 4px 0 0' }}
+          style={{ padding: '2px 4px', margin: '0 0 0 auto', lineHeight: '0' }}
           onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
           data-testid="button-mobile-menu"
         >
