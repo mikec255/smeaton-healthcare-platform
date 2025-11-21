@@ -39,12 +39,12 @@ export default function Navbar() {
   ];
 
   return (
-    <nav className="fixed top-0 left-0 right-0 bg-white border-b border-gray-200 shadow-sm z-40">
+    <nav className="fixed top-0 left-0 right-0 bg-white border-b border-gray-200 shadow-sm z-40" style={{ padding: '0', margin: '0' }}>
       {/* Main navbar container */}
-      <div className="container mx-auto px-3 sm:px-4" style={{ padding: '0' }}>
-        <div className="flex items-center justify-between">
+      <div className="container mx-auto px-3 sm:px-4" style={{ padding: '0', margin: '0' }}>
+        <div className="flex items-center justify-between" style={{ height: '100%', gap: '0' }}>
           {/* Logo Section */}
-          <Link href="/" data-testid="navbar-logo" className="flex-shrink-0 mr-4 overflow-hidden" style={{ marginLeft: '-20px' }}>
+          <Link href="/" data-testid="navbar-logo" className="flex-shrink-0 mr-2 overflow-hidden flex items-center" style={{ marginLeft: '-20px' }}>
             <img 
               src={logoImage} 
               alt="Smeaton Healthcare" 
@@ -57,7 +57,7 @@ export default function Navbar() {
             {/* Home */}
             <Link 
               href="/" 
-              className="px-3 py-2 text-sm font-medium whitespace-nowrap"
+              className="px-3 text-sm font-medium whitespace-nowrap"
               style={{ color: isActive("/") ? '#EF2587' : '#374151' }}
             >
               Home
@@ -71,7 +71,7 @@ export default function Navbar() {
                   setResourcesOpen(false);
                   setWorkingOpen(false);
                 }}
-                className="px-3 py-2 text-sm font-medium whitespace-nowrap flex items-center gap-1 text-gray-700 hover:text-pink-600"
+                className="px-3 text-sm font-medium whitespace-nowrap flex items-center gap-1 text-gray-700 hover:text-pink-600"
               >
                 Services
                 <ChevronDown className="w-4 h-4" />
@@ -100,7 +100,7 @@ export default function Navbar() {
                   setServicesOpen(false);
                   setWorkingOpen(false);
                 }}
-                className="px-3 py-2 text-sm font-medium whitespace-nowrap flex items-center gap-1 text-gray-700 hover:text-pink-600"
+                className="px-3 text-sm font-medium whitespace-nowrap flex items-center gap-1 text-gray-700 hover:text-pink-600"
               >
                 Resources
                 <ChevronDown className="w-4 h-4" />
@@ -129,7 +129,7 @@ export default function Navbar() {
                   setServicesOpen(false);
                   setResourcesOpen(false);
                 }}
-                className="px-3 py-2 text-sm font-medium whitespace-nowrap flex items-center gap-1 text-gray-700 hover:text-pink-600"
+                className="px-3 text-sm font-medium whitespace-nowrap flex items-center gap-1 text-gray-700 hover:text-pink-600"
               >
                 Working at Smeaton
                 <ChevronDown className="w-4 h-4" />
@@ -153,7 +153,7 @@ export default function Navbar() {
             {/* Find Jobs */}
             <Link 
               href="/jobs" 
-              className="px-3 py-2 text-sm font-medium whitespace-nowrap"
+              className="px-3 text-sm font-medium whitespace-nowrap"
               style={{ color: isActive("/jobs") ? '#EF2587' : '#374151' }}
             >
               Find Jobs
@@ -162,7 +162,7 @@ export default function Navbar() {
             {/* Contact */}
             <Link 
               href="/contact" 
-              className="px-3 py-2 text-sm font-medium whitespace-nowrap"
+              className="px-3 text-sm font-medium whitespace-nowrap"
               style={{ color: isActive("/contact") ? '#EF2587' : '#374151' }}
             >
               Contact
@@ -172,7 +172,7 @@ export default function Navbar() {
             <div className="flex gap-2 ml-4 flex-shrink-0">
               <Button 
                 onClick={() => window.location.href = '/referral'}
-                className="bg-pink-600 hover:bg-pink-700 text-white text-sm px-3 py-2 flex items-center gap-2 whitespace-nowrap"
+                className="bg-pink-600 hover:bg-pink-700 text-white text-sm px-3 py-0 flex items-center gap-2 whitespace-nowrap h-auto"
               >
                 Make a Referral
                 <ArrowRight className="w-4 h-4" />
@@ -181,7 +181,7 @@ export default function Navbar() {
               <Button 
                 variant="outline"
                 onClick={() => window.location.href = '/admin'}
-                className="text-sm px-3 py-2 whitespace-nowrap"
+                className="text-sm px-3 py-0 whitespace-nowrap h-auto"
               >
                 Admin
               </Button>
