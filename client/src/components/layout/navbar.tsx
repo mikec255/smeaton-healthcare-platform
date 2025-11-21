@@ -41,7 +41,7 @@ export default function Navbar() {
   return (
     <nav className="fixed top-0 left-0 right-0 bg-white border-b border-gray-200 shadow-sm z-40" style={{ padding: '0', margin: '0', display: 'flex', justifyContent: 'center' }}>
       {/* Main navbar container */}
-      <div style={{ padding: '0 8px', margin: '0', display: 'flex', alignItems: 'center', justifyContent: 'space-between', height: '72px', width: '100%', boxSizing: 'border-box', gap: '4px' }}>
+      <div style={{ padding: '0', margin: '0', display: 'flex', alignItems: 'center', justifyContent: 'space-between', height: '72px', width: '100%', boxSizing: 'border-box', gap: '0' }}>
         
         {/* Logo - ALWAYS VISIBLE */}
         <Link href="/" data-testid="navbar-logo" className="flex-shrink-0 flex items-center justify-center" style={{ padding: '0', margin: '0', height: '100%' }}>
@@ -54,12 +54,12 @@ export default function Navbar() {
         </Link>
 
         {/* Desktop Navigation - visible on md+ screens */}
-        <div className="hidden md:flex items-center gap-0" style={{ flex: '1', margin: '0', padding: '0 4px', height: '100%' }}>
+        <div className="hidden md:flex items-center gap-0" style={{ flex: '1', margin: '0', padding: '0', height: '100%' }}>
           {/* Home - visible on lg+ */}
           <Link 
             href="/" 
             className="hidden lg:flex text-sm font-medium whitespace-nowrap items-center justify-center h-full"
-            style={{ color: isActive("/") ? '#EF2587' : '#374151', padding: '0 8px', margin: '0' }}
+            style={{ color: isActive("/") ? '#EF2587' : '#374151', padding: '0 6px', margin: '0' }}
           >
             Home
           </Link>
@@ -72,7 +72,7 @@ export default function Navbar() {
                 setResourcesOpen(false);
                 setWorkingOpen(false);
               }}
-              style={{ padding: '0 8px', fontSize: '14px', fontWeight: '500', background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px', color: '#374151', margin: '0', height: '100%' }}
+              style={{ padding: '0 6px', fontSize: '14px', fontWeight: '500', background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '2px', color: '#374151', margin: '0', height: '100%' }}
             >
               Services
               <ChevronDown className="w-4 h-4" />
@@ -101,7 +101,7 @@ export default function Navbar() {
                 setServicesOpen(false);
                 setWorkingOpen(false);
               }}
-              style={{ padding: '0 8px', fontSize: '14px', fontWeight: '500', background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px', color: '#374151', margin: '0', height: '100%' }}
+              style={{ padding: '0 6px', fontSize: '14px', fontWeight: '500', background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '2px', color: '#374151', margin: '0', height: '100%' }}
             >
               Resources
               <ChevronDown className="w-4 h-4" />
@@ -130,7 +130,7 @@ export default function Navbar() {
                 setServicesOpen(false);
                 setResourcesOpen(false);
               }}
-              style={{ padding: '0 8px', fontSize: '14px', fontWeight: '500', background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px', color: '#374151', margin: '0', height: '100%' }}
+              style={{ padding: '0 6px', fontSize: '14px', fontWeight: '500', background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '2px', color: '#374151', margin: '0', height: '100%' }}
             >
               Working at Smeaton
               <ChevronDown className="w-4 h-4" />
@@ -176,7 +176,7 @@ export default function Navbar() {
         <Button 
           onClick={() => window.location.href = '/referral'}
           className="hidden xl:flex"
-          style={{ backgroundColor: '#EC4899', color: 'white', padding: '6px 12px', fontSize: '12px', border: 'none', borderRadius: '4px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px', fontWeight: '600', margin: '0', height: '32px' }}
+          style={{ backgroundColor: '#EC4899', color: 'white', padding: '4px 8px', fontSize: '11px', border: 'none', borderRadius: '3px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '3px', fontWeight: '600', margin: '0', height: '28px' }}
         >
           Make a Referral
           <ArrowRight className="w-3 h-3" />
@@ -187,7 +187,7 @@ export default function Navbar() {
           variant="outline"
           onClick={() => window.location.href = '/admin'}
           className="hidden md:block"
-          style={{ padding: '6px 12px', fontSize: '12px', margin: '0', height: '32px', fontWeight: '600' }}
+          style={{ padding: '4px 8px', fontSize: '11px', margin: '0', height: '28px', fontWeight: '600' }}
         >
           Admin
         </Button>
