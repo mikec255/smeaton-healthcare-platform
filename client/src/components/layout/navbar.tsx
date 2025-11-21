@@ -229,7 +229,7 @@ export default function Navbar() {
 
   return (
     <nav className="fixed top-0 left-0 right-0 bg-white border-b border-gray-200 shadow-sm z-40">
-      <div ref={navRef} className="flex items-center h-[72px] px-4">
+      <div ref={navRef} className="flex items-center justify-center h-[72px] px-4">
         {/* Logo */}
         <Link href="/" ref={logoRef} className="flex-shrink-0 flex items-center" data-testid="navbar-logo">
           <img src={logoImage} alt="Smeaton Healthcare" className="h-40 sm:h-32 md:h-28 w-auto" />
