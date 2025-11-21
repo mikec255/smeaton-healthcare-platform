@@ -451,7 +451,7 @@ export default function Home({ heroTab = "find-care", onHeroTabChange }: { heroT
                       </h1>
                     </Link>
                     
-                    <div className="flex flex-col sm:flex-row gap-4 sm:gap-6 justify-center lg:justify-start">
+                    <div className="flex flex-col sm:flex-row gap-4 sm:gap-6 justify-start">
                       <Link href="/referral">
                         <Button 
                           size="lg" 
