@@ -662,12 +662,12 @@ export default function BlogAdmin() {
                 Create Post
               </Button>
             </DialogTrigger>
-            <DialogContent className="w-[95vw] max-w-4xl h-[90vh] p-4 sm:p-6">
-              <DialogHeader className="pb-4">
+            <DialogContent className="w-[95vw] max-w-4xl h-[90vh] p-0 flex flex-col">
+              <DialogHeader className="p-4 sm:p-6 pb-4 border-b border-border">
                 <DialogTitle className="text-xl sm:text-2xl">Create New Blog Post</DialogTitle>
               </DialogHeader>
               
-              <div className="flex-1 overflow-y-auto pr-2">
+              <div className="flex-1 overflow-y-auto px-4 sm:px-6 py-4">
                 <Form {...form}>
                   <form onSubmit={form.handleSubmit(onCreatePost, (errors) => {
                     console.error("Form validation errors:", errors);
@@ -851,7 +851,7 @@ export default function BlogAdmin() {
                 </Form>
               </div>
 
-              <div className="flex flex-col sm:flex-row gap-3 pt-4 border-t border-border sticky bottom-0 bg-background">
+              <div className="flex flex-col sm:flex-row gap-3 p-4 sm:p-6 pt-4 border-t border-border bg-background">
                 <Button 
                   type="submit"
                   form="create-post-form"
