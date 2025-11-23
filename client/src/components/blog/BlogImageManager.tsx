@@ -95,7 +95,10 @@ export default function BlogImageManager({ images, onImagesChange }: BlogImageMa
       {/* Upload Area */}
       <Card>
         <CardContent className="p-4">
-          <label className="flex items-center justify-center gap-2 border-2 border-dashed border-border rounded-lg p-6 cursor-pointer hover:border-primary/50 hover:bg-muted/20 transition-colors">
+          <label 
+            className="flex items-center justify-center gap-2 border-2 border-dashed border-border rounded-lg p-6 cursor-pointer hover:border-primary/50 hover:bg-muted/20 transition-colors"
+            onClick={(e) => e.stopPropagation()}
+          >
             <Upload className="h-4 w-4 text-muted-foreground" />
             <span className="text-sm text-muted-foreground">
               {isUploading ? "Uploading..." : "Click to upload images"}
@@ -107,6 +110,7 @@ export default function BlogImageManager({ images, onImagesChange }: BlogImageMa
               disabled={isUploading}
               className="hidden"
               data-testid="image-upload-input"
+              onClick={(e) => e.stopPropagation()}
             />
           </label>
         </CardContent>
@@ -134,9 +138,14 @@ export default function BlogImageManager({ images, onImagesChange }: BlogImageMa
                 {/* Overlay Actions */}
                 <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
                   <Button
+                    type="button"
                     size="sm"
                     variant={image.isFeatured ? "default" : "outline"}
-                    onClick={() => toggleFeatured(image.id)}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      toggleFeatured(image.id);
+                    }}
                     className="bg-white text-black hover:bg-gray-100"
                     data-testid={`toggle-featured-${image.id}`}
                   >
@@ -147,9 +156,14 @@ export default function BlogImageManager({ images, onImagesChange }: BlogImageMa
                     />
                   </Button>
                   <Button
+                    type="button"
                     size="sm"
                     variant="destructive"
-                    onClick={() => removeImage(image.id)}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      removeImage(image.id);
+                    }}
                     data-testid={`remove-image-${image.id}`}
                   >
                     <Trash2 className="h-4 w-4" />

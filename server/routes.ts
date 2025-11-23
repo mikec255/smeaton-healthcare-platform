@@ -271,6 +271,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   const { registerBlogImageRoutes } = await import("./routes-blog-images");
   registerBlogImageRoutes(app);
   
+  // Import and register blog sharing routes (for social media)
+  const { registerBlogSharingRoutes } = await import("./routes-blog-sharing");
+  registerBlogSharingRoutes(app);
+  
   // Trust proxy for Azure deployment
   if (process.env.NODE_ENV === 'production') {
     app.set('trust proxy', 1);

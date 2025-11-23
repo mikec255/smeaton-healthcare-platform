@@ -575,7 +575,7 @@ export default function Blog() {
                           
                           {/* Social Share Bar */}
                           <SocialShareBar 
-                            url={`${window.location.origin}/resources/blog#${post.id}`}
+                            url={`${window.location.origin}/blog/${post.id}`}
                             title={post.title}
                           />
                           
