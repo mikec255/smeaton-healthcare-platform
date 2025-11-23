@@ -25,6 +25,7 @@ import { z } from "zod";
 // Extended schemas for form validation
 const createBlogPostSchema = insertBlogPostSchema.extend({
   categoryName: z.string().optional(), // For creating new categories
+  categoryId: z.string().optional(), // Make categoryId optional in form
 }).refine(
   (data) => data.categoryId || data.categoryName,
   {
@@ -481,12 +482,21 @@ export default function BlogAdmin() {
       excerpt: "",
       content: "",
       slug: "",
-      categoryId: undefined,
+      categoryId: "",
       categoryName: "",
       author: "",
       isPublished: false,
+      blocks: [],
+      images: [],
     },
   });
+
+  // Update form's categoryId when categories load
+  useEffect(() => {
+    if (categories.length > 0 && !form.getValues('categoryId')) {
+      form.setValue('categoryId', categories[0].id);
+    }
+  }, [categories, form]);
 
   const categoryForm = useForm<CreateCategoryData>({
     resolver: zodResolver(createCategorySchema),
