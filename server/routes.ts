@@ -267,6 +267,10 @@ const requireResources = requirePermission('resources');
 const requireSystem = requirePermission('system');
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  // Import and register blog image routes
+  const { registerBlogImageRoutes } = await import("./routes-blog-images");
+  registerBlogImageRoutes(app);
+  
   // Trust proxy for Azure deployment
   if (process.env.NODE_ENV === 'production') {
     app.set('trust proxy', 1);

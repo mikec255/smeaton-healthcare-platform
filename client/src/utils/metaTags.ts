@@ -46,16 +46,12 @@ export function updateMetaTags(data: {
     setMetaTag('twitter:title', data.title);
   }
   
-  // Update image - handle base64 images
+  // Update image
   if (data.image) {
-    // For base64 images, we can't use them directly in OG tags (social media won't load them)
-    // We need to use a fallback image URL
-    const imageUrl = data.image.startsWith('data:') 
-      ? `${baseUrl}/og-image.jpg` // Fallback for base64 images
-      : data.image;
-    
-    setMetaTag('og:image', imageUrl);
-    setMetaTag('twitter:image', imageUrl);
+    setMetaTag('og:image', data.image);
+    setMetaTag('twitter:image', data.image);
+    setMetaTag('og:image:width', '1200');
+    setMetaTag('og:image:height', '630');
   }
   
   // Update URL

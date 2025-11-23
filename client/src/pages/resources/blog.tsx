@@ -286,10 +286,13 @@ export default function Blog() {
     if (openDialogPostId) {
       const post = transformedBlogPosts.find(p => p.id === openDialogPostId);
       if (post) {
+        // Use the server endpoint to serve the featured image for social media
+        const featuredImageUrl = `${window.location.origin}/api/blog-images/${openDialogPostId}/featured`;
+        
         updateMetaTags({
           title: `${post.title} | Smeaton Healthcare Blog`,
           description: post.excerpt || `Read our blog post: ${post.title}`,
-          image: post.image || undefined,
+          image: featuredImageUrl,
           url: `/resources/blog#${post.id}`,
         });
       }
