@@ -123,29 +123,57 @@ export class ReplitStorageProvider implements StorageProvider {
 export class AzureBlobStorageProvider implements StorageProvider {
   private blobServiceClient: BlobServiceClient;
   private containerName: string;
-  private accountName: string;
-  private accountKey: string;
+  private sharedKeyCredential: StorageSharedKeyCredential;
 
   constructor() {
     const connectionString = process.env.AZURE_STORAGE_CONNECTION_STRING;
     const containerName = process.env.AZURE_STORAGE_CONTAINER_NAME || "blog-images";
 
     if (!connectionString) {
-      throw new Error("AZURE_STORAGE_CONNECTION_STRING not set");
+      throw new Error("AZURE_STORAGE_CONNECTION_STRING not set. Please configure Azure Blob Storage credentials.");
     }
 
-    // Extract account name and key from connection string
+    // Extract account name and key from connection string (SECURITY: Consider using managed identity instead)
     const accountNameMatch = connectionString.match(/AccountName=([^;]+)/);
     const accountKeyMatch = connectionString.match(/AccountKey=([^;]+)/);
 
     if (!accountNameMatch || !accountKeyMatch) {
-      throw new Error("Invalid AZURE_STORAGE_CONNECTION_STRING format");
+      throw new Error("Invalid AZURE_STORAGE_CONNECTION_STRING format. Expected format: DefaultEndpointsProtocol=https;AccountName=...;AccountKey=...;EndpointSuffix=core.windows.net");
     }
 
-    this.accountName = accountNameMatch[1];
-    this.accountKey = accountKeyMatch[1];
+    const accountName = accountNameMatch[1];
+    const accountKey = accountKeyMatch[1];
+
     this.containerName = containerName;
     this.blobServiceClient = BlobServiceClient.fromConnectionString(connectionString);
+    this.sharedKeyCredential = new StorageSharedKeyCredential(accountName, accountKey);
+
+    // Validate container exists on initialization
+    this.validateContainer().catch(err => {
+      console.error("Warning: Azure Blob Storage container validation failed:", err.message);
+      console.error("Uploads may fail until the container is properly configured.");
+    });
+  }
+
+  private async validateContainer(): Promise<void> {
+    try {
+      const containerClient = this.blobServiceClient.getContainerClient(this.containerName);
+      const exists = await containerClient.exists();
+      
+      if (!exists) {
+        console.log(`Container '${this.containerName}' does not exist. Attempting to create...`);
+        try {
+          await containerClient.create({ access: "blob" });
+          console.log(`Successfully created container '${this.containerName}' with public blob access`);
+        } catch (createError: any) {
+          throw new Error(`Failed to create container: ${createError.message}. Please create it manually in Azure Portal.`);
+        }
+      } else {
+        console.log(`Azure Blob Storage container '${this.containerName}' validated successfully`);
+      }
+    } catch (error: any) {
+      throw new Error(`Container validation failed: ${error.message}`);
+    }
   }
 
   async getUploadURL(contentType?: string): Promise<string> {
@@ -153,24 +181,18 @@ export class AzureBlobStorageProvider implements StorageProvider {
     const blobName = `uploads/${blobId}`;
 
     const containerClient = this.blobServiceClient.getContainerClient(this.containerName);
-    
-    // Ensure container exists
-    await containerClient.createIfNotExists({ access: "blob" });
-
     const blobClient = containerClient.getBlobClient(blobName);
 
-    // Generate SAS token for upload
-    const sharedKeyCredential = new StorageSharedKeyCredential(this.accountName, this.accountKey);
-
+    // Generate time-limited SAS token for upload only
     const sasToken = generateBlobSASQueryParameters(
       {
         containerName: this.containerName,
         blobName: blobName,
-        permissions: BlobSASPermissions.parse("cw"), // create, write
-        startsOn: new Date(),
-        expiresOn: new Date(Date.now() + 15 * 60 * 1000), // 15 minutes
+        permissions: BlobSASPermissions.parse("cw"), // create, write only
+        startsOn: new Date(Date.now() - 5 * 60 * 1000), // Start 5 min ago to handle clock skew
+        expiresOn: new Date(Date.now() + 15 * 60 * 1000), // Expires in 15 minutes
       },
-      sharedKeyCredential
+      this.sharedKeyCredential
     ).toString();
 
     return `${blobClient.url}?${sasToken}`;
@@ -178,26 +200,45 @@ export class AzureBlobStorageProvider implements StorageProvider {
 
   async makePublic(fileUrl: string): Promise<void> {
     // Azure blobs with container access set to "blob" are already publicly readable
-    // No action needed
+    // No additional action needed - public access is configured at container level
   }
 
   normalizeUrl(rawUrl: string): string {
-    // Azure blob URLs are already in the correct format
-    // Just remove SAS tokens if present
-    const url = new URL(rawUrl);
-    return `${url.protocol}//${url.host}${url.pathname}`;
+    try {
+      // Azure blob URLs: Remove SAS tokens to get clean public URL
+      const url = new URL(rawUrl);
+      return `${url.protocol}//${url.host}${url.pathname}`;
+    } catch (error) {
+      // If URL parsing fails, return as-is
+      return rawUrl;
+    }
   }
 }
 
 // Factory function to get the appropriate storage provider
 export function getStorageProvider(): StorageProvider {
-  const useAzure = process.env.USE_AZURE_STORAGE === "true" || process.env.AZURE_STORAGE_CONNECTION_STRING;
+  // Explicit environment flag takes precedence
+  const forceProvider = process.env.STORAGE_PROVIDER; // "azure" or "replit"
+  
+  if (forceProvider === "azure") {
+    console.log("Using Azure Blob Storage provider (explicit override)");
+    return new AzureBlobStorageProvider();
+  }
+  
+  if (forceProvider === "replit") {
+    console.log("Using Replit Storage provider (explicit override)");
+    return new ReplitStorageProvider();
+  }
 
-  if (useAzure) {
-    console.log("Using Azure Blob Storage provider");
+  // Auto-detect: Use Azure if connection string is set AND we're not in Replit dev
+  const hasAzureConfig = !!process.env.AZURE_STORAGE_CONNECTION_STRING;
+  const isReplitEnv = !!process.env.REPL_ID; // Replit-specific env var
+
+  if (hasAzureConfig && !isReplitEnv) {
+    console.log("Using Azure Blob Storage provider (auto-detected from environment)");
     return new AzureBlobStorageProvider();
   } else {
-    console.log("Using Replit Storage provider");
+    console.log("Using Replit Storage provider (default for development)");
     return new ReplitStorageProvider();
   }
 }

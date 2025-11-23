@@ -53,6 +53,21 @@ Once environment variables are set, the application will automatically:
 - Create the container if it doesn't exist
 - Generate secure SAS tokens for uploads
 
+## Security Considerations
+
+⚠️ **Important**: The current implementation uses connection strings with account keys. For production deployments, consider:
+
+1. **Azure Managed Identity** (Recommended): Use Azure's managed identity to avoid storing credentials
+2. **Key Vault**: Store connection strings in Azure Key Vault instead of environment variables
+3. **Limited SAS Tokens**: The application generates time-limited SAS tokens (15 min) for uploads only
+
+### Environment Detection
+
+The application automatically selects the storage provider:
+- Sets `STORAGE_PROVIDER=replit` to force Replit storage (development)
+- Sets `STORAGE_PROVIDER=azure` to force Azure storage (production)
+- If not set, auto-detects based on `REPL_ID` environment variable
+
 ## How It Works
 
 The application uses a provider-based architecture:
