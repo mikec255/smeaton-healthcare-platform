@@ -1415,12 +1415,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Admin-only blog image upload endpoint
+  // Admin-only blog image upload endpoint - SIMPLIFIED BASE64 STORAGE
   app.post("/api/blog-images/upload", requireAdmin, async (req, res) => {
     try {
-      const objectStorageService = new ObjectStorageService();
-      const uploadURL = await objectStorageService.getObjectEntityUploadURL();
-      res.json({ uploadURL });
+      // Just return success - client will handle base64 directly
+      res.json({ uploadURL: "base64", useBase64: true });
     } catch (error) {
       console.error("Error getting blog image upload URL:", error);
       res.status(500).json({ 
@@ -1430,15 +1429,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Make blog image public (callable after upload)
+  // Make blog image public (callable after upload) - NO-OP FOR BASE64
   app.post("/api/blog-images/make-public", requireAdmin, async (req, res) => {
     try {
       const { fileUrl } = req.body;
-      if (!fileUrl) {
-        return res.status(400).json({ error: "fileUrl is required" });
-      }
-      const objectStorageService = new ObjectStorageService();
-      await objectStorageService.makeBlogImagePublic(fileUrl);
       res.json({ success: true, url: fileUrl });
     } catch (error) {
       console.error("Error making blog image public:", error);

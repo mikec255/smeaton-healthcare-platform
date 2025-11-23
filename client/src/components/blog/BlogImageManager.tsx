@@ -31,69 +31,18 @@ export default function BlogImageManager({ images, onImagesChange }: BlogImageMa
     setIsUploading(true);
 
     try {
-      const token = localStorage.getItem("auth_token");
-      
-      if (!token) {
-        throw new Error("Not logged in. Please refresh the page and log in again.");
-      }
-
-      const response = await fetch("/api/blog-images/upload", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${token}`,
-        },
-        credentials: "include",
-        body: JSON.stringify({
-          contentType: file.type,
-          prefix: "blog-images",
-        }),
+      // Convert to base64 immediately - NO SERVER UPLOAD NEEDED
+      const reader = new FileReader();
+      const base64Data = await new Promise<string>((resolve, reject) => {
+        reader.onload = () => resolve(reader.result as string);
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
       });
-
-      if (!response.ok) {
-        const errorText = await response.text();
-        throw new Error(`Failed to get upload URL: ${response.status} ${errorText}`);
-      }
-
-      const { uploadURL } = await response.json();
-
-      const uploadResponse = await fetch(uploadURL, {
-        method: "PUT",
-        body: file,
-        headers: {
-          "Content-Type": file.type,
-        },
-      });
-
-      if (!uploadResponse.ok) {
-        throw new Error(`Upload failed: ${uploadResponse.status}`);
-      }
-
-      const imageUrl = uploadURL.split("?")[0];
-
-      // Make image public
-      try {
-        const publicResponse = await fetch("/api/blog-images/make-public", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          credentials: "include",
-          body: JSON.stringify({ fileUrl: imageUrl }),
-        });
-        
-        if (!publicResponse.ok) {
-          console.warn("Could not make image public");
-        }
-      } catch (e) {
-        console.warn("Could not make image public", e);
-      }
 
       // Add new image - if this is the first image, make it featured
       const newImage: BlogImage = {
         id: Math.random().toString(36).substr(2, 9),
-        url: imageUrl,
+        url: base64Data,
         isFeatured: images.length === 0,
         uploadedAt: new Date().toISOString(),
       };
