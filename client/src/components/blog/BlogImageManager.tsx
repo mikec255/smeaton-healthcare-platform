@@ -39,11 +39,11 @@ export default function BlogImageManager({ images, onImagesChange }: BlogImageMa
         reader.readAsDataURL(file);
       });
 
-      // Add new image - if this is the first image, make it featured
+      // Add new image - NOT automatically featured, user must select featured image manually
       const newImage: BlogImage = {
         id: Math.random().toString(36).substr(2, 9),
         url: base64Data,
-        isFeatured: images.length === 0,
+        isFeatured: false,
         uploadedAt: new Date().toISOString(),
       };
 
@@ -77,12 +77,7 @@ export default function BlogImageManager({ images, onImagesChange }: BlogImageMa
 
   const removeImage = (id: string) => {
     const updatedImages = images.filter((img) => img.id !== id);
-    
-    // If we removed the featured image and there are still images, make the first one featured
-    if (updatedImages.length > 0 && !updatedImages.some((img) => img.isFeatured)) {
-      updatedImages[0].isFeatured = true;
-    }
-    
+    // Don't auto-select a new featured image - user must explicitly choose
     onImagesChange(updatedImages);
   };
 
