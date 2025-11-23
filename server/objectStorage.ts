@@ -8,6 +8,7 @@ import {
   getObjectAclPolicy,
   setObjectAclPolicy,
 } from "./objectAcl";
+import { getStorageProvider, type StorageProvider } from "./storage-providers";
 
 const REPLIT_SIDECAR_ENDPOINT = "http://127.0.0.1:1106";
 
@@ -40,7 +41,11 @@ export class ObjectNotFoundError extends Error {
 
 // The object storage service is used to interact with the object storage service.
 export class ObjectStorageService {
-  constructor() {}
+  private provider: StorageProvider;
+
+  constructor() {
+    this.provider = getStorageProvider();
+  }
 
   // Gets the public object search paths.
   getPublicObjectSearchPaths(): Array<string> {
@@ -132,26 +137,7 @@ export class ObjectStorageService {
 
   // Gets the upload URL for an object entity.
   async getObjectEntityUploadURL(): Promise<string> {
-    const privateObjectDir = this.getPrivateObjectDir();
-    if (!privateObjectDir) {
-      throw new Error(
-        "PRIVATE_OBJECT_DIR not set. Create a bucket in 'Object Storage' " +
-          "tool and set PRIVATE_OBJECT_DIR env var."
-      );
-    }
-
-    const objectId = randomUUID();
-    const fullPath = `${privateObjectDir}/uploads/${objectId}`;
-
-    const { bucketName, objectName } = parseObjectPath(fullPath);
-
-    // Sign URL for PUT method with TTL
-    return signObjectURL({
-      bucketName,
-      objectName,
-      method: "PUT",
-      ttlSec: 900,
-    });
+    return this.provider.getUploadURL();
   }
 
   // Gets the object entity file from the object path.
@@ -238,8 +224,14 @@ export class ObjectStorageService {
     });
   }
 
-  // Makes a blog image publicly accessible in Google Cloud Storage
+  // Makes a blog image publicly accessible
   async makeBlogImagePublic(fileUrl: string): Promise<string> {
+    await this.provider.makePublic(fileUrl);
+    return this.provider.normalizeUrl(fileUrl);
+  }
+
+  // Legacy method for backward compatibility with Replit-specific logic
+  private async makeBlogImagePublicLegacy(fileUrl: string): Promise<string> {
     const normalizedPath = this.normalizeObjectEntityPath(fileUrl);
     const objectFile = await this.getObjectEntityFile(normalizedPath);
     

@@ -31,7 +31,6 @@ export default function BlogImageManager({ images, onImagesChange }: BlogImageMa
     setIsUploading(true);
 
     try {
-      console.log("Starting image upload for file:", file.name, file.type);
       const token = localStorage.getItem("auth_token");
       const headers: Record<string, string> = {
         "Content-Type": "application/json",
@@ -41,7 +40,6 @@ export default function BlogImageManager({ images, onImagesChange }: BlogImageMa
         headers.Authorization = `Bearer ${token}`;
       }
 
-      console.log("Requesting upload URL from /api/blog-images/upload");
       const response = await fetch("/api/blog-images/upload", {
         method: "POST",
         headers,
@@ -54,12 +52,10 @@ export default function BlogImageManager({ images, onImagesChange }: BlogImageMa
 
       if (!response.ok) {
         const errorText = await response.text();
-        console.error("Failed to get upload URL. Status:", response.status, "Response:", errorText);
         throw new Error(`Failed to get upload URL: ${response.status} ${errorText}`);
       }
 
       const { uploadURL } = await response.json();
-      console.log("Got upload URL, uploading file...");
 
       const uploadResponse = await fetch(uploadURL, {
         method: "PUT",
@@ -70,16 +66,12 @@ export default function BlogImageManager({ images, onImagesChange }: BlogImageMa
       });
 
       if (!uploadResponse.ok) {
-        const errorText = await uploadResponse.text();
-        console.error("Upload failed. Status:", uploadResponse.status, "Response:", errorText);
         throw new Error(`Upload failed: ${uploadResponse.status}`);
       }
 
       const imageUrl = uploadURL.split("?")[0];
-      console.log("File uploaded successfully to:", imageUrl);
 
       // Make image public
-      console.log("Making image public...");
       try {
         const publicResponse = await fetch("/api/blog-images/make-public", {
           method: "POST",
@@ -92,10 +84,7 @@ export default function BlogImageManager({ images, onImagesChange }: BlogImageMa
         });
         
         if (!publicResponse.ok) {
-          const errorText = await publicResponse.text();
-          console.warn("Could not make image public. Status:", publicResponse.status, "Response:", errorText);
-        } else {
-          console.log("Image made public successfully");
+          console.warn("Could not make image public");
         }
       } catch (e) {
         console.warn("Could not make image public", e);
@@ -112,7 +101,6 @@ export default function BlogImageManager({ images, onImagesChange }: BlogImageMa
       const updatedImages = [...images, newImage];
       onImagesChange(updatedImages);
 
-      console.log("Image upload complete!");
       toast({
         title: "Success",
         description: "Image uploaded successfully",

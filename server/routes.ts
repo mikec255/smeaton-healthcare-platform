@@ -1418,16 +1418,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Admin-only blog image upload endpoint
   app.post("/api/blog-images/upload", requireAdmin, async (req, res) => {
     try {
-      console.log("Blog image upload request received");
-      console.log("PRIVATE_OBJECT_DIR:", process.env.PRIVATE_OBJECT_DIR);
       const objectStorageService = new ObjectStorageService();
-      console.log("ObjectStorageService created");
       const uploadURL = await objectStorageService.getObjectEntityUploadURL();
-      console.log("Upload URL generated:", uploadURL);
       res.json({ uploadURL });
     } catch (error) {
       console.error("Error getting blog image upload URL:", error);
-      console.error("Error stack:", error instanceof Error ? error.stack : "No stack trace");
       res.status(500).json({ 
         message: "Failed to get upload URL",
         error: error instanceof Error ? error.message : String(error)
