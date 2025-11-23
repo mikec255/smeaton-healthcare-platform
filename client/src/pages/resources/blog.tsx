@@ -3,12 +3,13 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ArrowLeft, Calendar, Clock, ArrowRight, Filter } from "lucide-react";
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { type BlogPost, type BlogCategory } from "@shared/schema";
 import DOMPurify from "dompurify";
 import SocialShareBar from "@/components/shared/SocialShareBar";
 import { apiRequest, queryClient } from "@/lib/queryClient";
+import { updateMetaTags, resetMetaTags } from "@/utils/metaTags";
 import teamMeetingImg from "@assets/generated_images/Healthcare_team_meeting_photo_21dc58ac.png";
 import homeCareImg from "@assets/generated_images/Home_care_support_photo_f0866fa2.png";
 import trainingImg from "@assets/generated_images/Healthcare_training_session_photo_91ddee63.png";
@@ -32,6 +33,7 @@ interface TransformedBlogPost {
 
 export default function Blog() {
   const [selectedCategory, setSelectedCategory] = useState("All");
+  const [openDialogPostId, setOpenDialogPostId] = useState<string | null>(null);
   
   // Fetch blog posts (only published ones for public view)
   const { data: blogPosts = [], isLoading: postsLoading } = useQuery<BlogPost[]>({
@@ -279,6 +281,24 @@ export default function Blog() {
     });
   }, [blogPosts, categories]);
 
+  // Update meta tags when a blog post is opened
+  useEffect(() => {
+    if (openDialogPostId) {
+      const post = transformedBlogPosts.find(p => p.id === openDialogPostId);
+      if (post) {
+        updateMetaTags({
+          title: `${post.title} | Smeaton Healthcare Blog`,
+          description: post.excerpt || `Read our blog post: ${post.title}`,
+          image: post.image || undefined,
+          url: `/resources/blog#${post.id}`,
+        });
+      }
+    } else {
+      // Reset to default when dialog closes
+      resetMetaTags();
+    }
+  }, [openDialogPostId, transformedBlogPosts]);
+
   // Create category options with "All" option
   const categoryOptions = ["All", ...categories.map(cat => cat.name)];
   
@@ -507,7 +527,7 @@ export default function Blog() {
                         {post.title}
                       </h2>
                       
-                      <Dialog>
+                      <Dialog onOpenChange={(open) => setOpenDialogPostId(open ? post.id : null)}>
                         <DialogTrigger asChild>
                           <Button 
                             variant="outline" 
