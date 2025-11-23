@@ -53,19 +53,18 @@ export default function ImageUpload({
       }, 100);
 
       // Get upload URL from backend
-      const headers: Record<string, string> = {
-        "Content-Type": "application/json",
-      };
-      
-      // Add Authorization header with token for authentication
       const token = localStorage.getItem('auth_token');
-      if (token) {
-        headers.Authorization = `Bearer ${token}`;
+      
+      if (!token) {
+        throw new Error('Not logged in. Please refresh the page and log in again.');
       }
 
       const response = await fetch("/api/blog-images/upload", {
         method: "POST",
-        headers,
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`,
+        },
         credentials: 'include',
         body: JSON.stringify({
           contentType: file.type,

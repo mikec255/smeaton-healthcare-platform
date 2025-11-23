@@ -32,17 +32,17 @@ export default function BlogImageManager({ images, onImagesChange }: BlogImageMa
 
     try {
       const token = localStorage.getItem("auth_token");
-      const headers: Record<string, string> = {
-        "Content-Type": "application/json",
-      };
-
-      if (token) {
-        headers.Authorization = `Bearer ${token}`;
+      
+      if (!token) {
+        throw new Error("Not logged in. Please refresh the page and log in again.");
       }
 
       const response = await fetch("/api/blog-images/upload", {
         method: "POST",
-        headers,
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`,
+        },
         credentials: "include",
         body: JSON.stringify({
           contentType: file.type,
