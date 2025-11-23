@@ -12,9 +12,31 @@ export function registerBlogSharingRoutes(app: express.Application) {
         return res.redirect("/resources/blog");
       }
       
-      // Find featured image
+      // Find featured image from multiple sources
+      let hasImage = false;
+      
+      // 1. Check for explicitly marked featured image in images array
       const featuredImage = post.images?.find(img => img.isFeatured);
-      const imageUrl = featuredImage 
+      if (featuredImage?.url) {
+        hasImage = true;
+      }
+      
+      // 2. Fallback: Check if there are any images in images array
+      if (!hasImage && post.images && post.images.length > 0) {
+        hasImage = true;
+      }
+      
+      // 3. Fallback: Check for images in visual editor blocks
+      if (!hasImage && post.blocks && Array.isArray(post.blocks)) {
+        const imageBlock = post.blocks.find((block: any) => 
+          block.type === 'image' && block.content?.url
+        );
+        if (imageBlock) {
+          hasImage = true;
+        }
+      }
+      
+      const imageUrl = hasImage
         ? `${req.protocol}://${req.get('host')}/api/blog-images/${post.id}/featured`
         : `${req.protocol}://${req.get('host')}/og-default.jpg`;
       
