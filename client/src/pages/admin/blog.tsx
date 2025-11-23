@@ -1012,6 +1012,10 @@ export default function BlogAdmin() {
                         <Calendar className="h-4 w-4" />
                         {post.createdAt ? new Date(post.createdAt).toLocaleDateString() : 'No date'}
                       </span>
+                      <span className="flex items-center gap-1" title="Total views">
+                        <Eye className="h-4 w-4" />
+                        {post.views || 0} views
+                      </span>
                     </div>
                   </div>
                   

@@ -122,6 +122,7 @@ export interface IStorage {
   updateBlogPost(id: string, updates: Partial<InsertBlogPost>): Promise<BlogPost | undefined>;
   deleteBlogPost(id: string): Promise<boolean>;
   publishBlogPost(id: string): Promise<BlogPost | undefined>;
+  incrementBlogPostViews(id: string): Promise<void>;
   
   // GDPR Audit Logging
   createAuditLog(log: InsertAuditLog): Promise<AuditLog>;
@@ -1295,6 +1296,17 @@ export class MemStorage implements IStorage {
     return publishedPost;
   }
 
+  async incrementBlogPostViews(id: string): Promise<void> {
+    const post = this.blogPosts.get(id);
+    if (!post) return;
+    
+    const updatedPost: BlogPost = {
+      ...post,
+      views: (post.views || 0) + 1,
+    };
+    this.blogPosts.set(id, updatedPost);
+  }
+
   // GDPR Audit Logging Methods
   async createAuditLog(log: InsertAuditLog): Promise<AuditLog> {
     const auditLog: AuditLog = {
@@ -2383,6 +2395,12 @@ export class DrizzleStorage implements IStorage {
       .where(eq(blogPosts.id, id))
       .returning();
     return result[0];
+  }
+
+  async incrementBlogPostViews(id: string): Promise<void> {
+    await db.update(blogPosts)
+      .set({ views: sql`${blogPosts.views} + 1` })
+      .where(eq(blogPosts.id, id));
   }
 
   // GDPR Audit Logging Methods

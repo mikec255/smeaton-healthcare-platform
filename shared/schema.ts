@@ -404,6 +404,7 @@ export const blogPosts = pgTable("blog_posts", {
   publishedAt: timestamp("published_at"),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
+  views: integer("views").default(0).notNull(), // Track number of views
 });
 
 // GDPR Audit Logging Table

@@ -1957,6 +1957,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Track blog post view (public endpoint - no auth required)
+  app.post("/api/blog-posts/:id/view", async (req, res) => {
+    try {
+      await storage.incrementBlogPostViews(req.params.id);
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Error tracking blog post view:", error);
+      res.status(500).json({ message: "Failed to track view" });
+    }
+  });
+
   // ========== CQC AUDIT API ROUTES ==========
   
   // CQC Audits

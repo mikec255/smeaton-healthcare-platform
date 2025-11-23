@@ -8,6 +8,7 @@ import { useQuery } from "@tanstack/react-query";
 import { type BlogPost, type BlogCategory } from "@shared/schema";
 import DOMPurify from "dompurify";
 import SocialShareBar from "@/components/shared/SocialShareBar";
+import { apiRequest, queryClient } from "@/lib/queryClient";
 import teamMeetingImg from "@assets/generated_images/Healthcare_team_meeting_photo_21dc58ac.png";
 import homeCareImg from "@assets/generated_images/Home_care_support_photo_f0866fa2.png";
 import trainingImg from "@assets/generated_images/Healthcare_training_session_photo_91ddee63.png";
@@ -41,6 +42,17 @@ export default function Blog() {
   const { data: categories = [], isLoading: categoriesLoading } = useQuery<BlogCategory[]>({
     queryKey: ["/api/blog-categories"],
   });
+
+  // Track blog post view
+  const trackView = async (postId: string) => {
+    try {
+      await apiRequest('POST', `/api/blog-posts/${postId}/view`);
+      // Invalidate blog posts cache so admin dashboard sees updated counts
+      queryClient.invalidateQueries({ queryKey: ['/api/blog-posts'] });
+    } catch (error) {
+      console.error('Failed to track blog post view:', error);
+    }
+  };
 
   // Helper function to get category name from ID
   const getCategoryName = (categoryId: string): string => {
@@ -501,6 +513,7 @@ export default function Blog() {
                             variant="outline" 
                             className="hover:bg-primary hover:text-primary-foreground group"
                             data-testid={`read-article-${index}`}
+                            onClick={() => trackView(post.id)}
                           >
                             Read Full Article
                             <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" />
