@@ -243,11 +243,14 @@ export class ObjectStorageService {
     const normalizedPath = this.normalizeObjectEntityPath(fileUrl);
     const objectFile = await this.getObjectEntityFile(normalizedPath);
     
-    // Make the file publicly readable in Google Cloud Storage
-    await objectFile.makePublic();
-    
-    // Also set ACL metadata for internal tracking
-    await setObjectAclPolicy(objectFile, { visibility: "public", owner: "system" });
+    // Set ACL metadata for internal tracking
+    // Note: We skip makePublic() because the bucket has public access prevention enabled
+    // Images will be accessible via signed URLs instead
+    try {
+      await setObjectAclPolicy(objectFile, { visibility: "public", owner: "system" });
+    } catch (error) {
+      console.warn("Could not set ACL policy (this is expected with public access prevention):", error);
+    }
     
     return fileUrl;
   }
