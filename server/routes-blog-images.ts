@@ -12,15 +12,36 @@ export function registerBlogImageRoutes(app: express.Application) {
         return res.status(404).send("Post not found");
       }
       
-      // Find featured image
-      const featuredImage = post.images?.find(img => img.isFeatured);
+      // Find featured image from multiple sources
+      let imageUrl: string | null = null;
       
-      if (!featuredImage || !featuredImage.url) {
+      // 1. First, check for explicitly marked featured image in images array
+      const featuredImage = post.images?.find(img => img.isFeatured);
+      if (featuredImage?.url) {
+        imageUrl = featuredImage.url;
+      }
+      
+      // 2. Fallback: Use first image from images array
+      if (!imageUrl && post.images && post.images.length > 0) {
+        imageUrl = post.images[0].url;
+      }
+      
+      // 3. Fallback: Extract first image from visual editor blocks
+      if (!imageUrl && post.blocks && Array.isArray(post.blocks)) {
+        const imageBlock = post.blocks.find((block: any) => 
+          block.type === 'image' && block.content?.url
+        );
+        if (imageBlock) {
+          imageUrl = (imageBlock as any).content.url;
+        }
+      }
+      
+      if (!imageUrl) {
         return res.status(404).send("No featured image found");
       }
       
       // Extract base64 data
-      const base64Match = featuredImage.url.match(/^data:image\/(png|jpg|jpeg|gif|webp);base64,(.+)$/);
+      const base64Match = imageUrl.match(/^data:image\/(png|jpg|jpeg|gif|webp);base64,(.+)$/);
       
       if (!base64Match) {
         return res.status(400).send("Invalid image format");

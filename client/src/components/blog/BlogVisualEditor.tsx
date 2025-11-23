@@ -506,10 +506,15 @@ export default function BlogVisualEditor({ blocks, onChange }: BlogVisualEditorP
         <div className="space-y-2">
           {BLOCK_TYPES.map((blockType) => (
             <Button
+              type="button"
               key={blockType.type}
               variant="outline"
               className="w-full justify-start h-auto p-3"
-              onClick={() => addBlock(blockType.type)}
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                addBlock(blockType.type);
+              }}
               data-testid={`add-${blockType.type}-block`}
             >
               <div className="flex items-start gap-3">

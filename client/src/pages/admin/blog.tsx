@@ -833,6 +833,16 @@ export default function BlogAdmin() {
                   />
 
                   <div className="space-y-4 border border-border rounded-lg p-4 bg-muted/30">
+                    <div className="flex items-start justify-between mb-2">
+                      <div>
+                        <h3 className="font-medium text-sm">Featured Image for Social Sharing</h3>
+                        <p className="text-xs text-muted-foreground mt-1">
+                          {useVisualEditorForCreate 
+                            ? "Optional: Upload images here OR add images in the Visual Editor above. The first image will be used for social media sharing." 
+                            : "Upload and star an image to display when sharing on social media."}
+                        </p>
+                      </div>
+                    </div>
                     <BlogImageManager
                       images={newPostImages}
                       onImagesChange={setNewPostImages}
