@@ -29,6 +29,7 @@ interface TransformedBlogPost {
   category: string;
   image: string;
   fullContent: string;
+  hasBlocks: boolean;
 }
 
 export default function Blog() {
@@ -276,7 +277,8 @@ export default function Blog() {
         author: post.author,
         category: getCategoryName(post.categoryId),
         image: displayImage,
-        fullContent: displayContent
+        fullContent: displayContent,
+        hasBlocks: hasBlocks || false
       };
     });
   }, [blogPosts, categories]);
@@ -562,8 +564,8 @@ export default function Blog() {
                             </div>
                           </DialogHeader>
                           
-                          {/* Article Image in Modal - only show if image exists */}
-                          {post.image && (
+                          {/* Article Image in Modal - only show if image exists AND post doesn't have blocks (visual editor content already includes images) */}
+                          {post.image && !post.hasBlocks && (
                             <div className="aspect-video w-full overflow-hidden rounded-lg mb-6 bg-gray-100 flex items-center justify-center">
                               <img 
                                 src={post.image} 
