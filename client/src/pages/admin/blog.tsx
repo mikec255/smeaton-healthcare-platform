@@ -48,6 +48,7 @@ export default function BlogAdmin() {
   const [previewPost, setPreviewPost] = useState<BlogPost | null>(null);
   const [editingBlocks, setEditingBlocks] = useState<BlogBlock[]>([]);
   const [useVisualEditorForCreate, setUseVisualEditorForCreate] = useState(true);
+  const [slugManuallyEdited, setSlugManuallyEdited] = useState(false);
   const [newPostBlocks, setNewPostBlocks] = useState<BlogBlock[]>([]);
   const [newPostImages, setNewPostImages] = useState<Array<{ id: string; url: string; isFeatured: boolean; uploadedAt?: string }>>([]);
   const { toast } = useToast();
@@ -553,12 +554,12 @@ export default function BlogAdmin() {
   const watchTitle = form.watch("title");
   
   useEffect(() => {
-    const slug = form.getValues("slug");
     const title = form.getValues("title");
-    if (title && !slug) {
+    // Only auto-generate slug if user hasn't manually edited it
+    if (title && !slugManuallyEdited) {
       form.setValue("slug", generateSlug(title));
     }
-  }, [watchTitle, form]);
+  }, [watchTitle, form, slugManuallyEdited]);
 
   // Visual Editor Modal
   if (isVisualEditorOpen) {
@@ -665,7 +666,12 @@ export default function BlogAdmin() {
             </DialogContent>
           </Dialog>
 
-          <Dialog open={isCreateModalOpen} onOpenChange={setIsCreateModalOpen}>
+          <Dialog open={isCreateModalOpen} onOpenChange={(open) => {
+            setIsCreateModalOpen(open);
+            if (!open) {
+              setSlugManuallyEdited(false);
+            }
+          }}>
             <DialogTrigger asChild>
               <Button data-testid="button-create-post">
                 <Plus className="h-4 w-4 mr-2" />
@@ -716,7 +722,14 @@ export default function BlogAdmin() {
                         <FormItem>
                           <FormLabel>Slug</FormLabel>
                           <FormControl>
-                            <Input {...field} data-testid="input-post-slug" />
+                            <Input 
+                              {...field} 
+                              data-testid="input-post-slug"
+                              onChange={(e) => {
+                                field.onChange(e);
+                                setSlugManuallyEdited(true);
+                              }}
+                            />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
