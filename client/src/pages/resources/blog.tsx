@@ -522,10 +522,6 @@ export default function Blog() {
                           <Calendar className="h-4 w-4" />
                           {post.date}
                         </div>
-                        <div className="flex items-center gap-1">
-                          <Clock className="h-4 w-4" />
-                          {post.readTime}
-                        </div>
                       </div>
                       
                       <h2 className="text-xl sm:text-2xl font-bold text-foreground hover:text-primary transition-colors">
