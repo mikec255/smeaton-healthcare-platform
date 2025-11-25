@@ -679,14 +679,22 @@ export default function BlogAdmin() {
               
               <div className="flex-1 overflow-y-auto px-4 sm:px-6 py-4">
                 <Form {...form}>
-                  <form onSubmit={form.handleSubmit(onCreatePost, (errors) => {
-                    console.error("Form validation errors:", errors);
-                    toast({
-                      title: "Form Validation Error",
-                      description: "Please fill in all required fields correctly",
-                      variant: "destructive",
-                    });
-                  })} className="space-y-4 sm:space-y-6" id="create-post-form">
+                  <form onSubmit={(e) => {
+                    const submitter = (e.nativeEvent as SubmitEvent).submitter;
+                    if (!submitter || submitter.getAttribute('data-intent') !== 'publish') {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      return;
+                    }
+                    form.handleSubmit(onCreatePost, (errors) => {
+                      console.error("Form validation errors:", errors);
+                      toast({
+                        title: "Form Validation Error",
+                        description: "Please fill in all required fields correctly",
+                        variant: "destructive",
+                      });
+                    })(e);
+                  }} className="space-y-4 sm:space-y-6" id="create-post-form">
                   <div className="grid grid-cols-2 gap-4">
                     <FormField
                       control={form.control}
@@ -878,6 +886,7 @@ export default function BlogAdmin() {
                   disabled={createPostMutation.isPending} 
                   className="w-full sm:flex-1"
                   data-testid="button-save-post"
+                  data-intent="publish"
                 >
                   {createPostMutation.isPending ? "Creating..." : "Create Post"}
                 </Button>
