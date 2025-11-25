@@ -148,6 +148,7 @@ function SortableBlock({
           <div className="flex items-center justify-between mb-3 opacity-0 group-hover:opacity-100 transition-opacity">
             <div className="flex items-center gap-2">
               <button
+                type="button"
                 {...attributes}
                 {...listeners}
                 className="cursor-grab hover:cursor-grabbing p-1 hover:bg-muted rounded"
@@ -161,27 +162,42 @@ function SortableBlock({
             </div>
             <div className="flex items-center gap-1">
               <Button
+                type="button"
                 size="sm"
                 variant="ghost"
-                onClick={() => onStyleEdit(block.id)}
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  onStyleEdit(block.id);
+                }}
                 className="h-8 w-8 p-0"
                 data-testid={`style-${block.id}`}
               >
                 <Palette className="h-3 w-3" />
               </Button>
               <Button
+                type="button"
                 size="sm"
                 variant="ghost"
-                onClick={() => {/* TODO: Open settings */}}
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  /* TODO: Open settings */
+                }}
                 className="h-8 w-8 p-0"
                 data-testid={`settings-${block.id}`}
               >
                 <Settings className="h-3 w-3" />
               </Button>
               <Button
+                type="button"
                 size="sm"
                 variant="ghost"
-                onClick={() => onDelete(block.id)}
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  onDelete(block.id);
+                }}
                 className="h-8 w-8 p-0 text-destructive hover:text-destructive"
                 data-testid={`delete-${block.id}`}
               >
@@ -435,7 +451,7 @@ function BlockRenderer({
             data-testid={`button-url-${block.id}`}
           />
           <div className="flex justify-center">
-            <Button style={block.style} data-testid={`button-preview-${block.id}`}>
+            <Button type="button" style={block.style} data-testid={`button-preview-${block.id}`}>
               {block.content.text || "Button"}
             </Button>
           </div>
