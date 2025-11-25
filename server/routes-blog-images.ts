@@ -1,4 +1,9 @@
 import express from "express";
+import sharp from "sharp";
+
+// Social media optimal dimensions
+const SOCIAL_MEDIA_WIDTH = 1200;
+const SOCIAL_MEDIA_HEIGHT = 630;
 
 // Endpoint to serve base64 images as proper image URLs for social media
 export function registerBlogImageRoutes(app: express.Application) {
@@ -47,16 +52,25 @@ export function registerBlogImageRoutes(app: express.Application) {
         return res.status(400).send("Invalid image format");
       }
       
-      const imageType = base64Match[1];
       const imageData = base64Match[2];
       
       // Convert base64 to buffer
-      const imageBuffer = Buffer.from(imageData, 'base64');
+      const originalBuffer = Buffer.from(imageData, 'base64');
+      
+      // Resize image to optimal social media dimensions (1200x630)
+      // Uses smart cropping to focus on the center/important parts
+      const resizedBuffer = await sharp(originalBuffer)
+        .resize(SOCIAL_MEDIA_WIDTH, SOCIAL_MEDIA_HEIGHT, {
+          fit: 'cover',
+          position: 'centre'
+        })
+        .jpeg({ quality: 85 }) // Convert to JPEG for best compatibility
+        .toBuffer();
       
       // Set proper content type and cache headers
-      res.setHeader('Content-Type', `image/${imageType}`);
+      res.setHeader('Content-Type', 'image/jpeg');
       res.setHeader('Cache-Control', 'public, max-age=31536000'); // Cache for 1 year
-      res.send(imageBuffer);
+      res.send(resizedBuffer);
     } catch (error) {
       console.error("Error serving blog image:", error);
       res.status(500).send("Error serving image");
