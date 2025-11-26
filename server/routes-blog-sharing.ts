@@ -65,12 +65,15 @@ export function registerBlogSharingRoutes(app: express.Application) {
     
     <!-- Open Graph / Facebook -->
     <meta property="og:type" content="article" />
+    <meta property="og:site_name" content="Smeaton Healthcare" />
     <meta property="og:url" content="${pageUrl}" />
     <meta property="og:title" content="${safeTitle}" />
     <meta property="og:description" content="${safeExcerpt}" />
     <meta property="og:image" content="${imageUrl}" />
+    <meta property="og:image:type" content="image/jpeg" />
     <meta property="og:image:width" content="1200" />
     <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="${safeTitle}" />
     
     <!-- Twitter -->
     <meta name="twitter:card" content="summary_large_image" />
