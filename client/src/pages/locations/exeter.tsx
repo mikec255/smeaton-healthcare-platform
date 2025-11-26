@@ -248,50 +248,48 @@ export default function ExeterPage() {
       {/* Why Choose Us */}
       <section className="py-16 lg:py-24 bg-muted/30">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid lg:grid-cols-2 gap-12 items-center">
-            <div>
-              <h2 className="text-3xl lg:text-4xl font-bold mb-6">Why Families in Exeter Choose Us</h2>
-              <p className="text-lg text-muted-foreground mb-8">
-                We're committed to providing care that makes a real difference. Our local team 
-                understands Exeter and the surrounding area, and we take pride in building 
-                lasting relationships with the families we support.
-              </p>
-              
-              <div className="grid sm:grid-cols-2 gap-6">
-                {benefits.map((benefit, index) => {
-                  const IconComponent = benefit.icon;
-                  return (
-                    <div key={index} className="flex gap-4">
-                      <div className="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center flex-shrink-0">
-                        <IconComponent className="h-5 w-5 text-primary" />
-                      </div>
-                      <div>
-                        <h3 className="font-semibold mb-1">{benefit.title}</h3>
-                        <p className="text-sm text-muted-foreground">{benefit.description}</p>
-                      </div>
+          <div className="text-center mb-12">
+            <h2 className="text-3xl lg:text-4xl font-bold mb-4">Why Families in Exeter Choose Us</h2>
+            <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+              We're committed to providing care that makes a real difference. Our local team 
+              understands Exeter and the surrounding area, and we take pride in building 
+              lasting relationships with the families we support.
+            </p>
+          </div>
+          
+          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
+            {benefits.map((benefit, index) => {
+              const IconComponent = benefit.icon;
+              return (
+                <Card key={index} className="border-0 shadow-lg">
+                  <CardContent className="p-6 text-center">
+                    <div className="w-12 h-12 bg-primary/10 rounded-xl flex items-center justify-center mx-auto mb-4">
+                      <IconComponent className="h-6 w-6 text-primary" />
                     </div>
-                  );
-                })}
-              </div>
+                    <h3 className="font-semibold mb-2">{benefit.title}</h3>
+                    <p className="text-sm text-muted-foreground">{benefit.description}</p>
+                  </CardContent>
+                </Card>
+              );
+            })}
+          </div>
+
+          <div className="bg-white rounded-2xl p-8 shadow-lg max-w-3xl mx-auto">
+            <h3 className="text-xl font-semibold mb-6 flex items-center justify-center gap-2">
+              <MapPin className="h-5 w-5 text-primary" />
+              Areas We Cover
+            </h3>
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
+              {areas.map((area, index) => (
+                <div key={index} className="flex items-center gap-2 text-sm">
+                  <CheckCircle className="h-4 w-4 text-primary flex-shrink-0" />
+                  <span>{area}</span>
+                </div>
+              ))}
             </div>
-            
-            <div className="bg-white rounded-2xl p-8 shadow-lg">
-              <h3 className="text-xl font-semibold mb-6 flex items-center gap-2">
-                <MapPin className="h-5 w-5 text-primary" />
-                Areas We Cover
-              </h3>
-              <div className="grid grid-cols-2 gap-3">
-                {areas.map((area, index) => (
-                  <div key={index} className="flex items-center gap-2 text-sm">
-                    <CheckCircle className="h-4 w-4 text-primary flex-shrink-0" />
-                    <span>{area}</span>
-                  </div>
-                ))}
-              </div>
-              <p className="text-sm text-muted-foreground mt-6 pt-6 border-t">
-                We cover Exeter and much of East Devon. Contact us to confirm your area.
-              </p>
-            </div>
+            <p className="text-sm text-muted-foreground mt-6 pt-6 border-t text-center">
+              We cover Exeter and much of East Devon. Contact us to confirm your area.
+            </p>
           </div>
         </div>
       </section>
