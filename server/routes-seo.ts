@@ -34,8 +34,14 @@ export function registerSeoRoutes(app: express.Application) {
         { url: '/resources/blog', priority: '0.8', changefreq: 'daily' },
         { url: '/resources/working-at-smeaton', priority: '0.7', changefreq: 'monthly' },
         { url: '/resources/sponsorship', priority: '0.7', changefreq: 'monthly' },
-        { url: '/recruitment-application', priority: '0.8', changefreq: 'monthly' },
+        { url: '/apply', priority: '0.8', changefreq: 'monthly' },
         { url: '/referral', priority: '0.6', changefreq: 'monthly' },
+        // Location pages (local SEO)
+        { url: '/locations/plymouth', priority: '0.9', changefreq: 'monthly' },
+        { url: '/locations/truro', priority: '0.9', changefreq: 'monthly' },
+        { url: '/locations/exeter', priority: '0.9', changefreq: 'monthly' },
+        { url: '/locations/cornwall', priority: '0.9', changefreq: 'monthly' },
+        { url: '/locations/devon', priority: '0.9', changefreq: 'monthly' },
       ];
       
       const today = new Date().toISOString().split('T')[0];

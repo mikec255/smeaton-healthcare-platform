@@ -73,6 +73,13 @@ const Sponsorship = lazy(() => import("@/pages/resources/sponsorship"));
 const Newsletter = lazy(() => import("@/pages/resources/newsletter"));
 const Costings = lazy(() => import("@/pages/resources/costings"));
 
+// Location pages (SEO)
+const PlymouthLocation = lazy(() => import("@/pages/locations/plymouth"));
+const TruroLocation = lazy(() => import("@/pages/locations/truro"));
+const ExeterLocation = lazy(() => import("@/pages/locations/exeter"));
+const CornwallLocation = lazy(() => import("@/pages/locations/cornwall"));
+const DevonLocation = lazy(() => import("@/pages/locations/devon"));
+
 function Router() {
   const [location] = useLocation();
   const [heroTab, setHeroTab] = useState("find-care");
@@ -116,6 +123,13 @@ function Router() {
             <Route path="/resources/sponsorship" component={Sponsorship} />
             <Route path="/resources/newsletter" component={Newsletter} />
             <Route path="/resources/costings" component={Costings} />
+            
+            {/* Location pages (SEO) */}
+            <Route path="/locations/plymouth" component={PlymouthLocation} />
+            <Route path="/locations/truro" component={TruroLocation} />
+            <Route path="/locations/exeter" component={ExeterLocation} />
+            <Route path="/locations/cornwall" component={CornwallLocation} />
+            <Route path="/locations/devon" component={DevonLocation} />
             
             {/* Other pages */}
             <Route path="/referral" component={Referral} />
