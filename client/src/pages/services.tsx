@@ -2,6 +2,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Link } from "wouter";
 import { Clock, Home, Clock12, TrendingUp, Coffee, ArrowRight } from "lucide-react";
+import { PageSEO, pageSEO } from "@/components/seo/PageSEO";
 
 export default function Services() {
   const services = [
@@ -74,6 +75,8 @@ export default function Services() {
 
   return (
     <div data-testid="services-page">
+      <PageSEO {...pageSEO.services} />
+      
       {/* Hero Section */}
       <section className="relative min-h-[22vh] overflow-hidden bg-gradient-to-r from-primary/10 via-background to-secondary/10">
         <div className="relative min-h-[22vh] flex items-center">

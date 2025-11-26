@@ -8,6 +8,8 @@ import JobDetailsModal from "@/components/jobs/job-details-modal";
 import SimpleJobApplicationModal from "@/components/jobs/job-application-modal-simple";
 import JobFormModal from "@/components/admin/job-form-modal";
 import { type Job } from "@shared/schema";
+import { PageSEO, pageSEO } from "@/components/seo/PageSEO";
+import { JobPostingSchema } from "@/components/seo/StructuredData";
 
 export default function Jobs() {
   const [filters, setFilters] = useState({
@@ -128,8 +130,50 @@ export default function Jobs() {
     );
   }
 
+  // Helper function to get salary unit text
+  const getSalaryUnit = (salaryType: string) => {
+    switch (salaryType) {
+      case 'hourly': return 'HOUR';
+      case 'weekly': return 'WEEK';
+      case 'annual': return 'YEAR';
+      default: return 'HOUR';
+    }
+  };
+
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16" data-testid="jobs-page">
+      {/* SEO Components */}
+      <PageSEO {...pageSEO.jobs} />
+      
+      {/* Job Posting Schemas for Google Jobs */}
+      {jobs && jobs.map((job) => (
+        <JobPostingSchema
+          key={`schema-${job.id}`}
+          title={job.title}
+          description={job.description}
+          datePosted={job.createdAt ? new Date(job.createdAt).toISOString().split('T')[0] : new Date().toISOString().split('T')[0]}
+          employmentType={job.type === 'permanent' ? 'FULL_TIME' : job.type === 'temporary' ? 'TEMPORARY' : 'FULL_TIME'}
+          jobLocation={{
+            addressLocality: job.location?.split(',')[0] || 'Devon',
+            addressRegion: job.location?.includes('Cornwall') ? 'Cornwall' : 'Devon',
+            addressCountry: 'GB'
+          }}
+          baseSalary={{
+            minValue: job.salaryMin,
+            maxValue: job.salaryMax || job.salaryMin,
+            currency: 'GBP',
+            unitText: getSalaryUnit(job.salaryType)
+          }}
+          hiringOrganization={{
+            name: 'Smeaton Healthcare',
+            sameAs: 'https://smeatonhealthcare.co.uk',
+            logo: 'https://smeatonhealthcare.co.uk/logo.png'
+          }}
+          jobBenefits={job.benefits ? [job.benefits] : undefined}
+          qualifications={job.requirements ? [job.requirements] : undefined}
+        />
+      ))}
+      
       {/* Jobs Header */}
       <div className="text-left mb-12">
         <div className="flex items-center justify-between mb-8">

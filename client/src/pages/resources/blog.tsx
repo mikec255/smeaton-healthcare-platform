@@ -10,6 +10,8 @@ import DOMPurify from "dompurify";
 import SocialShareBar from "@/components/shared/SocialShareBar";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { updateMetaTags, resetMetaTags } from "@/utils/metaTags";
+import { PageSEO, pageSEO } from "@/components/seo/PageSEO";
+import { ArticleSchema, BreadcrumbSchema } from "@/components/seo/StructuredData";
 import teamMeetingImg from "@assets/generated_images/Healthcare_team_meeting_photo_21dc58ac.png";
 import homeCareImg from "@assets/generated_images/Home_care_support_photo_f0866fa2.png";
 import trainingImg from "@assets/generated_images/Healthcare_training_session_photo_91ddee63.png";
@@ -341,8 +343,32 @@ export default function Blog() {
   );
   
 
+  // Breadcrumb data for structured data
+  const breadcrumbs = [
+    { name: 'Home', url: 'https://smeatonhealthcare.co.uk/' },
+    { name: 'Resources', url: 'https://smeatonhealthcare.co.uk/resources' },
+    { name: 'Blog', url: 'https://smeatonhealthcare.co.uk/resources/blog' }
+  ];
+
   return (
     <div className="min-h-screen bg-slate-50">
+      {/* SEO Components */}
+      <PageSEO {...pageSEO.blog} />
+      <BreadcrumbSchema items={breadcrumbs} />
+      
+      {/* Article schemas for each blog post */}
+      {displayPosts.map((post) => (
+        <ArticleSchema
+          key={`schema-${post.id}`}
+          headline={post.title}
+          description={post.excerpt || post.title}
+          image={post.image ? `${window.location.origin}/api/blog-images/${post.id}/featured` : undefined}
+          datePublished={post.date}
+          author={{ name: post.author }}
+          mainEntityOfPage={`${window.location.origin}/blog/${post.id}`}
+        />
+      ))}
+      
       {/* Header */}
       <section className="relative bg-gradient-to-br from-primary/20 via-white to-secondary/15 py-12 overflow-hidden">
         {/* Background decorative elements */}

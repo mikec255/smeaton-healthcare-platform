@@ -18,6 +18,8 @@ import supportedLivingLogo from "@assets/Supported Living Framework Provider Log
 import nhsSupplierLogo from "@assets/nhs-supplier_1757665089697.png";
 import pqsLogo from "@assets/PQS-Pre-Qualification-Scheme_1757665089697.webp";
 import founderPhoto from "@assets/Green Modern Marketing Logo-3_1757678769218.png";
+import { PageSEO, pageSEO } from "@/components/seo/PageSEO";
+import { OrganisationSchema, WebsiteSchema, FAQSchema } from "@/components/seo/StructuredData";
 import { 
   Heart, 
   Shield, 
@@ -352,8 +354,22 @@ export default function Home({ heroTab = "find-care", onHeroTabChange }: { heroT
     }
   ];
 
+  // FAQ data for structured data
+  const homeFAQs = [
+    { question: "What areas do you cover?", answer: "We provide care services across Devon and Cornwall, including Plymouth, Exeter, Truro, and surrounding areas." },
+    { question: "What types of care do you offer?", answer: "We offer live-in care, short visits, respite care, condition-led care, enablement, supported living, and 24/7 care services." },
+    { question: "Are your carers trained and qualified?", answer: "Yes, all our carers are fully trained, DBS checked, and receive ongoing professional development to deliver the highest quality care." },
+    { question: "How quickly can care start?", answer: "We can often arrange care within 24-48 hours for urgent needs. Contact us for a free assessment." }
+  ];
+
   return (
     <div data-testid="home-page">
+      {/* SEO Components */}
+      <PageSEO {...pageSEO.home} />
+      <OrganisationSchema />
+      <WebsiteSchema />
+      <FAQSchema faqs={homeFAQs} />
+      
       {/* Hero Section with Tabs */}
       <section className="relative min-h-[70vh] md:min-h-[90vh] overflow-hidden p-0 m-0" style={{ marginTop: '-72px', paddingTop: '72px' }}>
         <Tabs value={heroTab} onValueChange={onHeroTabChange} className="w-full h-full m-0">

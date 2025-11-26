@@ -11,6 +11,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { Phone, Mail, MapPin, Clock, Send, Building2 } from "lucide-react";
+import { PageSEO, pageSEO } from "@/components/seo/PageSEO";
 
 const contactFormSchema = z.object({
   type: z.literal("general-contact"),
@@ -63,6 +64,8 @@ export default function Contact() {
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16" data-testid="contact-page">
+      <PageSEO {...pageSEO.contact} />
+      
       <div className="text-left mb-12">
         <h1 className="text-4xl font-bold text-foreground mb-4" data-testid="contact-title">
           Get In Touch

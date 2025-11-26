@@ -275,6 +275,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   const { registerBlogSharingRoutes } = await import("./routes-blog-sharing");
   registerBlogSharingRoutes(app);
   
+  // Import and register SEO routes (sitemap.xml, robots.txt)
+  const { registerSeoRoutes } = await import("./routes-seo");
+  registerSeoRoutes(app);
+  
   // Trust proxy for Azure deployment
   if (process.env.NODE_ENV === 'production') {
     app.set('trust proxy', 1);
