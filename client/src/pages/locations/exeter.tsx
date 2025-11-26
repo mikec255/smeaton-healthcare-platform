@@ -1,74 +1,130 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Link } from "wouter";
-import { MapPin, Phone, Clock, Home, Heart, Users, CheckCircle, ArrowRight } from "lucide-react";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
+import { MapPin, Phone, Clock, Home, Heart, Users, CheckCircle, ArrowRight, Shield, Star, Building2, Stethoscope } from "lucide-react";
 import { PageSEO } from "@/components/seo/PageSEO";
 import { OrganisationSchema } from "@/components/seo/StructuredData";
 
 export default function ExeterPage() {
   const services = [
     {
+      icon: Home,
       title: "Live-in Care",
-      description: "Round-the-clock live-in care in Exeter, providing continuous support and companionship at home.",
+      description: "Round-the-clock care in your Exeter home, with a dedicated carer providing continuous support.",
       href: "/services/live-in-care"
     },
     {
+      icon: Clock,
       title: "Short Visits",
-      description: "Flexible daily care visits for personal care, medication support, and companionship across Exeter.",
+      description: "Flexible daily visits for personal care, medication support, and companionship across Exeter.",
       href: "/services/short-visits"
     },
     {
+      icon: Heart,
       title: "Respite Care",
-      description: "Give family carers in Exeter a well-deserved break with professional respite care.",
+      description: "Give family carers a well-deserved break with our professional short-term care services.",
       href: "/services/respite"
     },
     {
+      icon: Shield,
       title: "24/7 Care",
-      description: "Continuous care for complex needs with experienced carers available day and night in Exeter.",
+      description: "Continuous care for complex needs, with experienced carers available whenever you need them.",
       href: "/services/care-24-7"
     },
     {
+      icon: Users,
       title: "Supported Living",
-      description: "Supporting independent living in Exeter with tailored care and support packages.",
+      description: "Helping individuals live independently in their Exeter community with tailored support.",
       href: "/services/supported-living"
     },
     {
+      icon: Stethoscope,
       title: "Condition-Led Care",
-      description: "Specialist care for dementia, Parkinson's, and other conditions from trained Exeter carers.",
+      description: "Specialist care for dementia, Parkinson's, and other conditions from trained local carers.",
       href: "/services/condition-led-care"
+    }
+  ];
+
+  const benefits = [
+    {
+      icon: MapPin,
+      title: "Local Exeter Team",
+      description: "Our carers live and work in Exeter and East Devon, providing quick, responsive support."
+    },
+    {
+      icon: Star,
+      title: "CQC Rated Good",
+      description: "We're rated Good by the Care Quality Commission for quality, safety, and effectiveness."
+    },
+    {
+      icon: Users,
+      title: "Consistent Carers",
+      description: "We match you with regular carers who build genuine relationships over time."
+    },
+    {
+      icon: Building2,
+      title: "NHS Approved",
+      description: "We're an NHS approved supplier, meeting the highest standards for quality care."
     }
   ];
 
   const areas = [
     "Exeter City Centre",
-    "St Thomas",
     "Heavitree",
+    "St Thomas",
     "Pinhoe",
     "Topsham",
     "Exwick",
     "Alphington",
     "Countess Wear",
-    "Crediton (nearby)",
-    "Dawlish (nearby)"
+    "Crediton",
+    "Dawlish"
+  ];
+
+  const faqs = [
+    {
+      question: "What home care services do you offer in Exeter?",
+      answer: "We provide a full range of home care services including short visits, live-in care, respite care, 24/7 care, supported living, and specialist condition-led care for dementia and other health conditions."
+    },
+    {
+      question: "How quickly can you start care in Exeter?",
+      answer: "We understand care needs can arise suddenly. In many cases, we can arrange an assessment within 24-48 hours and start care shortly after. For urgent situations, we'll always do our best to respond quickly."
+    },
+    {
+      question: "Do you cover areas outside Exeter city centre?",
+      answer: "Yes, we provide care across Exeter and the surrounding East Devon area including Topsham, Heavitree, Pinhoe, Crediton, and Dawlish. Contact us to confirm coverage in your specific area."
+    },
+    {
+      question: "Are your Exeter carers fully qualified?",
+      answer: "All our carers are fully trained, DBS-checked, and supervised by experienced care managers. We're CQC registered and rated Good, maintaining high standards across all our services."
+    },
+    {
+      question: "How much does home care cost in Exeter?",
+      answer: "Costs depend on the type and amount of care you need. We offer competitive rates and will provide a clear, personalised quote after a free assessment. There are no hidden fees."
+    }
   ];
 
   return (
-    <div data-testid="exeter-location-page">
+    <div className="min-h-screen bg-background" data-testid="exeter-location-page">
       <PageSEO
-        title="Homecare in Exeter - Quality Home Care Services | Smeaton Healthcare"
+        title="Home Care in Exeter - Quality Care Services | Smeaton Healthcare"
         description="Professional home care services in Exeter. Live-in care, short visits, respite care and 24/7 support. CQC rated Good. Trusted local carers serving Exeter, Topsham, Heavitree and East Devon."
         keywords={[
-          "homecare in Exeter",
           "home care Exeter",
+          "homecare in Exeter",
           "care services Exeter",
           "live-in care Exeter",
           "domiciliary care Exeter",
           "carers in Exeter",
           "elderly care Exeter",
           "respite care Exeter",
-          "Exeter care agency",
-          "home help Exeter",
-          "East Devon care services"
+          "East Devon care agency"
         ]}
         canonicalUrl="https://www.smeatonhealthcare.co.uk/locations/exeter"
       />
@@ -85,193 +141,207 @@ export default function ExeterPage() {
       />
 
       {/* Hero Section */}
-      <section className="relative min-h-[35vh] overflow-hidden bg-gradient-to-r from-primary/10 via-background to-secondary/10">
-        <div className="relative min-h-[35vh] flex items-center">
-          <div className="absolute inset-0 overflow-hidden">
-            <div className="absolute -top-20 -right-20 w-40 h-40 bg-white/10 rounded-full blur-2xl animate-pulse"></div>
-            <div className="absolute -bottom-20 -left-20 w-40 h-40 bg-accent/20 rounded-full blur-2xl animate-pulse" style={{ animationDelay: '1s' }}></div>
-          </div>
-          
-          <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full z-10">
-            <div className="flex items-center gap-2 text-primary mb-4">
-              <MapPin className="h-5 w-5" />
-              <span className="text-lg font-medium">Exeter, Devon</span>
-            </div>
-            <h1 className="text-4xl lg:text-5xl font-bold text-foreground mb-4" data-testid="exeter-hero-title">
-              Homecare in Exeter
-            </h1>
-            <p className="text-xl text-muted-foreground max-w-3xl mb-8" data-testid="exeter-hero-subtitle">
-              Quality home care services across Exeter and East Devon. Our CQC-rated Good team provides compassionate, personalised care to help you live independently at home.
-            </p>
-            <div className="flex flex-wrap gap-4">
-              <Link href="/contact">
-                <Button size="lg" className="gap-2" data-testid="exeter-contact-btn">
-                  <Phone className="h-5 w-5" />
-                  Get in Touch
-                </Button>
-              </Link>
-              <Link href="/referral">
-                <Button size="lg" variant="outline" className="gap-2" data-testid="exeter-referral-btn">
-                  Make a Referral
-                  <ArrowRight className="h-5 w-5" />
-                </Button>
-              </Link>
-            </div>
-          </div>
+      <section className="relative py-20 lg:py-32 overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-br from-primary via-primary/90 to-secondary"></div>
+        
+        <div className="absolute inset-0 overflow-hidden">
+          <div className="absolute top-20 right-20 w-80 h-80 bg-white/10 rounded-full blur-3xl animate-pulse"></div>
+          <div className="absolute bottom-20 left-20 w-96 h-96 bg-secondary/30 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }}></div>
         </div>
-      </section>
 
-      {/* Trust Indicators */}
-      <section className="bg-muted/50 py-8 border-y">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
-            <div>
-              <div className="text-3xl font-bold text-primary">Good</div>
-              <div className="text-sm text-muted-foreground">CQC Rating</div>
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 z-10">
+          <div className="grid lg:grid-cols-2 gap-12 items-center">
+            <div className="text-center lg:text-left">
+              <div className="inline-flex items-center px-4 py-2 rounded-full bg-white/20 backdrop-blur-sm text-white font-semibold mb-6">
+                <MapPin className="w-4 h-4 mr-2" />
+                Exeter, Devon
+              </div>
+              
+              <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-black text-white mb-6 leading-tight">
+                Home Care in Exeter
+              </h1>
+              
+              <p className="text-base sm:text-lg md:text-xl text-white/90 mb-8 leading-relaxed">
+                Quality home care from local carers who know Exeter. From daily visits to round-the-clock 
+                support, we provide compassionate care that helps you stay independent in your own home.
+              </p>
+              
+              <div className="flex flex-col sm:flex-row gap-4">
+                <Link href="/referral">
+                  <Button size="lg" className="bg-white text-primary hover:bg-white/90 hover:scale-105 transition-all duration-300 shadow-xl font-semibold text-lg px-8 py-4 w-full sm:w-auto">
+                    Book Free Assessment
+                    <ArrowRight className="ml-2 h-5 w-5" />
+                  </Button>
+                </Link>
+                <Link href="/contact">
+                  <Button size="lg" variant="outline" className="border-white text-white hover:bg-white/10 font-semibold text-lg px-8 py-4 w-full sm:w-auto">
+                    <Phone className="mr-2 h-5 w-5" />
+                    Call Us Today
+                  </Button>
+                </Link>
+              </div>
             </div>
-            <div>
-              <div className="text-3xl font-bold text-primary">24/7</div>
-              <div className="text-sm text-muted-foreground">Care Available</div>
-            </div>
-            <div>
-              <div className="text-3xl font-bold text-primary">Local</div>
-              <div className="text-sm text-muted-foreground">Devon-Based Team</div>
-            </div>
-            <div>
-              <div className="text-3xl font-bold text-primary">NHS</div>
-              <div className="text-sm text-muted-foreground">Approved Supplier</div>
+            
+            <div className="hidden lg:block">
+              <Card className="p-6 bg-white/95 backdrop-blur-sm shadow-2xl border-0">
+                <CardContent className="p-0 space-y-4">
+                  <div className="grid grid-cols-2 gap-4 text-center">
+                    <div className="p-4 bg-primary/5 rounded-lg">
+                      <div className="text-3xl font-bold text-primary">Good</div>
+                      <div className="text-sm text-muted-foreground">CQC Rating</div>
+                    </div>
+                    <div className="p-4 bg-primary/5 rounded-lg">
+                      <div className="text-3xl font-bold text-primary">24/7</div>
+                      <div className="text-sm text-muted-foreground">Care Available</div>
+                    </div>
+                    <div className="p-4 bg-primary/5 rounded-lg">
+                      <div className="text-3xl font-bold text-primary">Local</div>
+                      <div className="text-sm text-muted-foreground">Exeter Team</div>
+                    </div>
+                    <div className="p-4 bg-primary/5 rounded-lg">
+                      <div className="text-3xl font-bold text-primary">NHS</div>
+                      <div className="text-sm text-muted-foreground">Approved</div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
             </div>
           </div>
         </div>
       </section>
 
       {/* Services Section */}
-      <section className="py-16">
+      <section className="py-16 lg:py-24">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold mb-4">Our Home Care Services in Exeter</h2>
+            <h2 className="text-3xl lg:text-4xl font-bold mb-4">Our Care Services in Exeter</h2>
             <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-              Flexible care solutions from daily visits to round-the-clock support, tailored to your needs in Exeter and East Devon.
+              From daily visits to live-in care, we provide flexible support tailored to your needs. 
+              All our services are delivered by trained, local carers.
             </p>
           </div>
 
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {services.map((service, index) => (
-              <Card key={index} className="hover:shadow-lg transition-shadow">
-                <CardContent className="p-6">
-                  <h3 className="text-xl font-semibold mb-3">{service.title}</h3>
-                  <p className="text-muted-foreground mb-4">{service.description}</p>
-                  <Link href={service.href}>
-                    <Button variant="link" className="p-0 h-auto gap-1">
-                      Learn more <ArrowRight className="h-4 w-4" />
-                    </Button>
-                  </Link>
-                </CardContent>
-              </Card>
-            ))}
+            {services.map((service, index) => {
+              const IconComponent = service.icon;
+              return (
+                <Card key={index} className="group hover:shadow-xl transition-all duration-300 hover:-translate-y-1 border-0 shadow-lg">
+                  <CardContent className="p-6">
+                    <div className="w-12 h-12 bg-primary/10 rounded-xl flex items-center justify-center mb-4 group-hover:bg-primary/20 transition-colors">
+                      <IconComponent className="h-6 w-6 text-primary" />
+                    </div>
+                    <h3 className="text-xl font-semibold mb-2">{service.title}</h3>
+                    <p className="text-muted-foreground mb-4">{service.description}</p>
+                    <Link href={service.href}>
+                      <Button variant="link" className="p-0 h-auto gap-1 text-primary">
+                        Find out more <ArrowRight className="h-4 w-4" />
+                      </Button>
+                    </Link>
+                  </CardContent>
+                </Card>
+              );
+            })}
           </div>
         </div>
       </section>
 
       {/* Why Choose Us */}
-      <section className="py-16 bg-muted/30">
+      <section className="py-16 lg:py-24 bg-muted/30">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             <div>
-              <h2 className="text-3xl font-bold mb-6">Why Choose Smeaton Healthcare in Exeter?</h2>
-              <div className="space-y-4">
-                {[
-                  "Local Devon-based care team with Exeter knowledge",
-                  "CQC rated Good for quality, safety, and care",
-                  "Flexible packages from short visits to live-in care",
-                  "Fully trained, DBS-checked, experienced carers",
-                  "NHS approved supplier in Devon",
-                  "No long-term contracts - care that adapts to you",
-                  "Free, no-obligation care assessments in Exeter"
-                ].map((point, index) => (
-                  <div key={index} className="flex items-start gap-3">
-                    <CheckCircle className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
-                    <span>{point}</span>
-                  </div>
-                ))}
+              <h2 className="text-3xl lg:text-4xl font-bold mb-6">Why Families in Exeter Choose Us</h2>
+              <p className="text-lg text-muted-foreground mb-8">
+                We're committed to providing care that makes a real difference. Our local team 
+                understands Exeter and the surrounding area, and we take pride in building 
+                lasting relationships with the families we support.
+              </p>
+              
+              <div className="grid sm:grid-cols-2 gap-6">
+                {benefits.map((benefit, index) => {
+                  const IconComponent = benefit.icon;
+                  return (
+                    <div key={index} className="flex gap-4">
+                      <div className="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center flex-shrink-0">
+                        <IconComponent className="h-5 w-5 text-primary" />
+                      </div>
+                      <div>
+                        <h3 className="font-semibold mb-1">{benefit.title}</h3>
+                        <p className="text-sm text-muted-foreground">{benefit.description}</p>
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
             </div>
-            <div className="bg-primary/5 rounded-2xl p-8">
-              <h3 className="text-xl font-semibold mb-4">Areas We Cover Around Exeter</h3>
-              <div className="grid grid-cols-2 gap-2">
+            
+            <div className="bg-white rounded-2xl p-8 shadow-lg">
+              <h3 className="text-xl font-semibold mb-6 flex items-center gap-2">
+                <MapPin className="h-5 w-5 text-primary" />
+                Areas We Cover
+              </h3>
+              <div className="grid grid-cols-2 gap-3">
                 {areas.map((area, index) => (
                   <div key={index} className="flex items-center gap-2 text-sm">
-                    <MapPin className="h-4 w-4 text-primary" />
+                    <CheckCircle className="h-4 w-4 text-primary flex-shrink-0" />
                     <span>{area}</span>
                   </div>
                 ))}
               </div>
-              <p className="text-sm text-muted-foreground mt-4">
-                We cover Exeter and much of East Devon. Contact us to confirm.
+              <p className="text-sm text-muted-foreground mt-6 pt-6 border-t">
+                We cover Exeter and much of East Devon. Contact us to confirm your area.
               </p>
             </div>
           </div>
+        </div>
+      </section>
+
+      {/* FAQs */}
+      <section className="py-16 lg:py-24">
+        <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl lg:text-4xl font-bold mb-4">Common Questions About Care in Exeter</h2>
+            <p className="text-lg text-muted-foreground">
+              Here are answers to the questions we hear most often from Exeter families.
+            </p>
+          </div>
+          
+          <Accordion type="single" collapsible className="w-full space-y-4">
+            {faqs.map((faq, index) => (
+              <AccordionItem key={index} value={`item-${index}`} className="bg-white rounded-lg shadow-sm border px-6">
+                <AccordionTrigger className="text-left font-semibold hover:no-underline py-6">
+                  {faq.question}
+                </AccordionTrigger>
+                <AccordionContent className="text-muted-foreground pb-6">
+                  {faq.answer}
+                </AccordionContent>
+              </AccordionItem>
+            ))}
+          </Accordion>
         </div>
       </section>
 
       {/* CTA Section */}
-      <section className="py-16 bg-primary text-primary-foreground">
+      <section className="py-16 lg:py-24 bg-primary text-primary-foreground">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h2 className="text-3xl font-bold mb-4">Looking for Home Care in Exeter?</h2>
-          <p className="text-lg opacity-90 mb-8">
-            Our friendly team is here to help. Get in touch for a free, no-obligation 
-            conversation about how we can support you or your loved one in Exeter.
+          <h2 className="text-3xl lg:text-4xl font-bold mb-4">Ready to Talk About Care?</h2>
+          <p className="text-lg opacity-90 mb-8 max-w-2xl mx-auto">
+            Whether you're exploring options for yourself or a loved one, we're here to help. 
+            Book a free assessment and let's discuss how we can support you.
           </p>
           <div className="flex flex-wrap justify-center gap-4">
-            <Link href="/contact">
-              <Button size="lg" variant="secondary" className="gap-2">
-                <Phone className="h-5 w-5" />
-                Contact Us Today
-              </Button>
-            </Link>
             <Link href="/referral">
-              <Button size="lg" variant="outline" className="gap-2 border-primary-foreground text-primary-foreground hover:bg-primary-foreground hover:text-primary">
-                Make a Referral
+              <Button size="lg" variant="secondary" className="font-semibold text-lg px-8">
+                Book Free Assessment
+                <ArrowRight className="ml-2 h-5 w-5" />
               </Button>
             </Link>
-          </div>
-        </div>
-      </section>
-
-      {/* FAQ Section */}
-      <section className="py-16">
-        <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
-          <h2 className="text-3xl font-bold mb-8 text-center">Frequently Asked Questions About Home Care in Exeter</h2>
-          <div className="space-y-6">
-            <div>
-              <h3 className="font-semibold text-lg mb-2">What home care services do you offer in Exeter?</h3>
-              <p className="text-muted-foreground">
-                We provide a full range of home care services in Exeter including short visits, live-in care, 
-                respite care, 24/7 care, supported living, and specialist condition-led care for dementia and 
-                other health conditions.
-              </p>
-            </div>
-            <div>
-              <h3 className="font-semibold text-lg mb-2">How quickly can you start care in Exeter?</h3>
-              <p className="text-muted-foreground">
-                We understand care needs can be urgent. Contact our team and we'll arrange a care assessment 
-                as soon as possible, with same-day starts available in some cases.
-              </p>
-            </div>
-            <div>
-              <h3 className="font-semibold text-lg mb-2">Do you cover areas outside Exeter city centre?</h3>
-              <p className="text-muted-foreground">
-                Yes, we provide care across Exeter and the surrounding East Devon area including Topsham, 
-                Heavitree, Pinhoe, Crediton, and Dawlish. Contact us to confirm coverage in your area.
-              </p>
-            </div>
-            <div>
-              <h3 className="font-semibold text-lg mb-2">Are your Exeter carers qualified?</h3>
-              <p className="text-muted-foreground">
-                All our Exeter carers are fully trained, DBS-checked, and supervised. We're CQC registered 
-                and rated Good, maintaining high standards across all our care services.
-              </p>
-            </div>
+            <Link href="/contact">
+              <Button size="lg" variant="outline" className="border-primary-foreground text-primary-foreground hover:bg-primary-foreground hover:text-primary font-semibold text-lg px-8">
+                <Phone className="mr-2 h-5 w-5" />
+                Call Us Today
+              </Button>
+            </Link>
           </div>
         </div>
       </section>
