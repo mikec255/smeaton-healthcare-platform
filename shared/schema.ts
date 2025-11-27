@@ -1198,3 +1198,54 @@ export const insertFinanceReportSchema = createInsertSchema(financeReports).omit
 
 export type InsertFinanceReport = z.infer<typeof insertFinanceReportSchema>;
 export type FinanceReport = typeof financeReports.$inferSelect;
+
+// Reference Requests - for external reference collection
+export const referenceRequests = pgTable("reference_requests", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  token: varchar("token").notNull().unique(),
+  status: text("status").notNull().default("draft"), // draft, requested, received
+  
+  // Prefilled by admin
+  employeeName: text("employee_name").notNull(),
+  employeeJobTitle: text("employee_job_title"),
+  refereeEmail: text("referee_email"),
+  refereeName: text("referee_name"),
+  refereeCompany: text("referee_company"),
+  
+  // Filled by referee (only dates mandatory when submitting)
+  employmentStartDate: date("employment_start_date"),
+  employmentEndDate: date("employment_end_date"),
+  jobTitle: text("job_title"),
+  reasonForLeaving: text("reason_for_leaving"),
+  wouldReemploy: boolean("would_reemploy"),
+  performanceRating: text("performance_rating"), // excellent, good, satisfactory, poor
+  additionalComments: text("additional_comments"),
+  
+  // Metadata
+  recruitmentApplicationId: varchar("recruitment_application_id").references(() => recruitmentApplications.id),
+  createdAt: timestamp("created_at").defaultNow(),
+  requestedAt: timestamp("requested_at"),
+  receivedAt: timestamp("received_at"),
+  createdBy: varchar("created_by").references(() => users.id),
+});
+
+export const insertReferenceRequestSchema = createInsertSchema(referenceRequests).omit({
+  id: true,
+  createdAt: true,
+  requestedAt: true,
+  receivedAt: true,
+});
+
+export const submitReferenceFormSchema = z.object({
+  employmentStartDate: z.string().min(1, "Start date is required"),
+  employmentEndDate: z.string().min(1, "End date is required"),
+  jobTitle: z.string().optional(),
+  reasonForLeaving: z.string().optional(),
+  wouldReemploy: z.boolean().optional(),
+  performanceRating: z.string().optional(),
+  additionalComments: z.string().optional(),
+});
+
+export type InsertReferenceRequest = z.infer<typeof insertReferenceRequestSchema>;
+export type ReferenceRequest = typeof referenceRequests.$inferSelect;
+export type SubmitReferenceForm = z.infer<typeof submitReferenceFormSchema>;
