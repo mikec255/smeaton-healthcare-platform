@@ -19,6 +19,7 @@ import teamPhotoImg from "@assets/generated_images/Smeaton_Healthcare_team_photo
 // Transform API BlogPost to component-expected format
 interface TransformedBlogPost {
   id: string;
+  slug: string;
   title: string;
   excerpt: string | null;
   date: string;
@@ -281,6 +282,7 @@ export default function Blog() {
       
       return {
         id: post.id,
+        slug: post.slug,
         title: post.title,
         excerpt: post.excerpt,
         date: formatDate(post.createdAt),
@@ -354,7 +356,7 @@ export default function Blog() {
           image={post.image ? `${window.location.origin}/api/blog-images/${post.id}/featured` : undefined}
           datePublished={post.date}
           author={{ name: post.author }}
-          mainEntityOfPage={`${window.location.origin}/blog/${post.id}`}
+          mainEntityOfPage={`${window.location.origin}/blog/${post.slug}`}
         />
       ))}
       
@@ -544,7 +546,7 @@ export default function Blog() {
                     
                     {/* Read Article Button - right side */}
                     <div className="flex-shrink-0 flex items-center">
-                      <Link href={`/blog/${post.id}`} onClick={() => trackView(post.id)}>
+                      <Link href={`/blog/${post.slug}`} onClick={() => trackView(post.id)}>
                         <Button 
                           variant="outline" 
                           size="sm"

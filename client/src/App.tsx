@@ -74,6 +74,7 @@ const BlogPost = lazy(() => import("@/pages/blog-post"));
 const WorkingAtSmeaton = lazy(() => import("@/pages/resources/working-at-smeaton"));
 const Sponsorship = lazy(() => import("@/pages/resources/sponsorship"));
 const Newsletter = lazy(() => import("@/pages/resources/newsletter"));
+const NewsletterPost = lazy(() => import("@/pages/newsletter-post"));
 const Costings = lazy(() => import("@/pages/resources/costings"));
 
 // Location pages (SEO)
@@ -122,10 +123,11 @@ function Router() {
             {/* Resources pages */}
             <Route path="/resources" component={Resources} />
             <Route path="/resources/blog" component={Blog} />
-            <Route path="/blog/:postId" component={BlogPost} />
+            <Route path="/blog/:slug" component={BlogPost} />
             <Route path="/resources/working-at-smeaton" component={WorkingAtSmeaton} />
             <Route path="/resources/sponsorship" component={Sponsorship} />
             <Route path="/resources/newsletter" component={Newsletter} />
+            <Route path="/newsletter/:slug" component={NewsletterPost} />
             <Route path="/resources/costings" component={Costings} />
             
             {/* Location pages (SEO) */}

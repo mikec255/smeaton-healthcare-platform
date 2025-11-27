@@ -9,11 +9,11 @@ import SocialShareBar from "@/components/shared/SocialShareBar";
 import { useEffect } from "react";
 
 export default function BlogPostPage() {
-  const { postId } = useParams<{ postId: string }>();
+  const { slug } = useParams<{ slug: string }>();
 
   const { data: post, isLoading, error } = useQuery<BlogPost>({
-    queryKey: ['/api/blog-posts', postId],
-    enabled: !!postId,
+    queryKey: ['/api/blog-posts/slug', slug],
+    enabled: !!slug,
   });
 
   const { data: categories = [] } = useQuery<BlogCategory[]>({
@@ -117,7 +117,7 @@ export default function BlogPostPage() {
 
   const featuredImage = getFeaturedImage();
   const content = getContent();
-  const shareUrl = `${window.location.origin}/blog/${post.id}`;
+  const shareUrl = `${window.location.origin}/blog/${post.slug}`;
 
   return (
     <article className="max-w-4xl mx-auto px-4 py-12">

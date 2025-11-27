@@ -27,7 +27,7 @@ function isCrawler(userAgent: string | undefined): boolean {
 
 // Server-side rendered page for blog posts (for Facebook/social media scraping)
 export function registerBlogSharingRoutes(app: express.Application) {
-  app.get("/blog/:postId", async (req, res, next) => {
+  app.get("/blog/:slug", async (req, res, next) => {
     const userAgent = req.headers['user-agent'];
     
     // If not a crawler, let the request pass through to the SPA
@@ -37,7 +37,7 @@ export function registerBlogSharingRoutes(app: express.Application) {
     
     try {
       const { storage } = await import("./storage");
-      const post = await storage.getBlogPost(req.params.postId);
+      const post = await storage.getBlogPostBySlug(req.params.slug);
       
       if (!post || !post.isPublished) {
         return res.redirect("/resources/blog");
@@ -75,7 +75,7 @@ export function registerBlogSharingRoutes(app: express.Application) {
         ? `${protocol}://${host}/api/blog-images/${post.id}/featured`
         : `${protocol}://${host}/og-default.jpg`;
       
-      const pageUrl = `${protocol}://${host}/blog/${post.id}`;
+      const pageUrl = `${protocol}://${host}/blog/${post.slug}`;
       
       // Escape HTML to prevent meta tag injection
       const escapeHtml = (text: string) => text

@@ -1668,9 +1668,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Newsletter API
-  app.get("/api/newsletters", async (req, res) => {
+  app.get("/api/newsletters", optionalAdmin, async (req, res) => {
     try {
       const newsletters = await storage.getAllNewsletters();
+      // Non-admin users only see published newsletters
+      if (!(req as any).isAdmin) {
+        const publishedNewsletters = newsletters.filter(n => n.status === "published");
+        return res.json(publishedNewsletters);
+      }
       res.json(newsletters);
     } catch (error) {
       console.error("Error fetching newsletters:", error);
@@ -1687,6 +1692,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(newsletter);
     } catch (error) {
       console.error("Error fetching newsletter:", error);
+      res.status(500).json({ message: "Failed to fetch newsletter" });
+    }
+  });
+
+  app.get("/api/newsletters/slug/:slug", async (req, res) => {
+    try {
+      const newsletter = await storage.getNewsletterBySlug(req.params.slug);
+      if (!newsletter) {
+        return res.status(404).json({ message: "Newsletter not found" });
+      }
+      // Only return published newsletters for public access
+      if (newsletter.status !== "published") {
+        return res.status(404).json({ message: "Newsletter not found" });
+      }
+      res.json(newsletter);
+    } catch (error) {
+      console.error("Error fetching newsletter by slug:", error);
       res.status(500).json({ message: "Failed to fetch newsletter" });
     }
   });

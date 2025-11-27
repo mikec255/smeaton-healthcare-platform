@@ -80,7 +80,7 @@ export function registerSeoRoutes(app: express.Application) {
           : today;
         
         sitemap += `  <url>
-    <loc>${baseUrl}/blog/${post.id}</loc>
+    <loc>${baseUrl}/blog/${post.slug}</loc>
     <lastmod>${postDate}</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>`;
