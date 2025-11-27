@@ -16,7 +16,6 @@ import { Badge as BadgeIcon, Search, Filter, Eye, Edit, Clock, User, Mail, Build
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import type { ProfessionalReference } from "@shared/schema";
-import { AdminLayout } from "@/components/layout/admin-layout";
 
 const statusConfig = {
   pending: { color: "bg-yellow-500", label: "Pending Review", icon: Clock },
@@ -182,25 +181,22 @@ export default function ProfessionalReferencesPage() {
 
   if (isLoading) {
     return (
-      <AdminLayout>
-        <div className="p-6">
-          <Card>
-            <CardContent className="p-6">
-              <div className="flex items-center justify-center h-32">
-                <div className="text-center">
-                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
-                  <p className="mt-2 text-sm text-gray-500">Loading professional references...</p>
-                </div>
+      <div className="p-6">
+        <Card>
+          <CardContent className="p-6">
+            <div className="flex items-center justify-center h-32">
+              <div className="text-center">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
+                <p className="mt-2 text-sm text-gray-500">Loading professional references...</p>
               </div>
-            </CardContent>
-          </Card>
-        </div>
-      </AdminLayout>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
     );
   }
 
   return (
-    <AdminLayout>
     <div className="p-6 space-y-6">
       <div className="flex justify-between items-center">
         <div>
@@ -599,6 +595,5 @@ export default function ProfessionalReferencesPage() {
         </DialogContent>
       </Dialog>
     </div>
-    </AdminLayout>
   );
 }

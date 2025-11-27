@@ -150,9 +150,9 @@ export default function Admin() {
         },
         {
           title: "References",
-          description: "Manage professional references submitted for candidates",
+          description: "Request and manage external reference requests",
           icon: UserCheck,
-          link: "/admin/professional-references",
+          link: "/admin/reference-requests",
           stats: {
             total: professionalReferences.length,
             pending: professionalReferences.filter(ref => ref.status === 'pending').length,
