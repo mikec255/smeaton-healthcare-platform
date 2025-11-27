@@ -65,20 +65,57 @@ export function registerBlogImageRoutes(app: express.Application) {
       // Convert base64 to buffer
       const originalBuffer = Buffer.from(imageData, 'base64');
       
-      // Resize image to optimal social media dimensions (1200x630)
-      // Uses contain to show the full image without cropping
-      // Brand color background fills any empty space
-      const resizedBuffer = await sharp(originalBuffer)
-        .resize(SOCIAL_MEDIA_WIDTH, SOCIAL_MEDIA_HEIGHT, {
-          fit: 'contain',
-          background: { r: 236, g: 72, b: 153 } // Brand pink (#ec4899)
+      // Get original image metadata
+      const metadata = await sharp(originalBuffer).metadata();
+      const originalWidth = metadata.width || 1200;
+      const originalHeight = metadata.height || 630;
+      
+      // Calculate the aspect ratio
+      const originalAspectRatio = originalWidth / originalHeight;
+      const targetAspectRatio = SOCIAL_MEDIA_WIDTH / SOCIAL_MEDIA_HEIGHT; // 1.9:1
+      
+      let resizedBuffer: Buffer;
+      
+      // If original is wider than target, add padding top/bottom
+      // If original is taller than target, add padding left/right
+      // This ensures the FULL image is always visible without any cropping
+      if (Math.abs(originalAspectRatio - targetAspectRatio) < 0.1) {
+        // Aspect ratio is close enough, just resize directly
+        resizedBuffer = await sharp(originalBuffer)
+          .resize(SOCIAL_MEDIA_WIDTH, SOCIAL_MEDIA_HEIGHT, {
+            fit: 'fill'
+          })
+          .jpeg({ quality: 90 })
+          .toBuffer();
+      } else {
+        // Create a canvas at the target size with brand background
+        // Then composite the original image centered on it
+        resizedBuffer = await sharp({
+          create: {
+            width: SOCIAL_MEDIA_WIDTH,
+            height: SOCIAL_MEDIA_HEIGHT,
+            channels: 3,
+            background: { r: 236, g: 72, b: 153 } // Brand pink
+          }
         })
-        .jpeg({ quality: 85 }) // Convert to JPEG for best compatibility
+        .composite([{
+          input: await sharp(originalBuffer)
+            .resize(SOCIAL_MEDIA_WIDTH, SOCIAL_MEDIA_HEIGHT, {
+              fit: 'inside', // Scale to fit inside, maintaining aspect ratio
+              withoutEnlargement: false
+            })
+            .toBuffer(),
+          gravity: 'centre'
+        }])
+        .jpeg({ quality: 90 })
         .toBuffer();
+      }
       
       // Set proper content type and cache headers
       res.setHeader('Content-Type', 'image/jpeg');
-      res.setHeader('Cache-Control', 'public, max-age=31536000'); // Cache for 1 year
+      res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+      res.setHeader('Pragma', 'no-cache');
+      res.setHeader('Expires', '0');
       res.send(resizedBuffer);
     } catch (error) {
       console.error("Error serving blog image:", error);
