@@ -1,7 +1,7 @@
-import { type User, type InsertUser, type Job, type InsertJob, type Application, type InsertApplication, type ContactSubmission, type InsertContactSubmission, type Feedback, type InsertFeedback, type Newsletter, type InsertNewsletter, type NewsletterBlock, type InsertNewsletterBlock, type Template, type InsertTemplate, type Subscriber, type InsertSubscriber, type Campaign, type InsertCampaign, type Delivery, type InsertDelivery, type BlogCategory, type InsertBlogCategory, type BlogPost, type InsertBlogPost, type AuditLog, type InsertAuditLog, type CqcAudit, type InsertCqcAudit, type CqcAuditCategory, type InsertCqcAuditCategory, type CqcQualityStatement, type InsertCqcQualityStatement, type CqcEvidenceCategory, type InsertCqcEvidenceCategory, type CqcAuditEvidence, type InsertCqcAuditEvidence, type CqcQualityAssessment, type InsertCqcQualityAssessment, type CqcComplianceRecord, type InsertCqcComplianceRecord, type CqcChecklistItem, type InsertCqcChecklistItem, type CqcAuditResponse, type InsertCqcAuditResponse, type KnowledgeQuestionnaire, type InsertKnowledgeQuestionnaire, type KnowledgeQuestion, type InsertKnowledgeQuestion, type KnowledgeSession, type InsertKnowledgeSession, type KnowledgeResponse, type InsertKnowledgeResponse, type KnowledgeAction, type InsertKnowledgeAction, type RecruitmentApplication, type InsertRecruitmentApplication, type ProfessionalReference, type InsertProfessionalReference, type FinanceReport, type InsertFinanceReport, type Client, type InsertClient, type Visit, type InsertVisit, type Run, type InsertRun, type RunStop, type InsertRunStop, type Geocode, type InsertGeocode } from "@shared/schema";
+import { type User, type InsertUser, type Job, type InsertJob, type Application, type InsertApplication, type ContactSubmission, type InsertContactSubmission, type Feedback, type InsertFeedback, type Newsletter, type InsertNewsletter, type NewsletterBlock, type InsertNewsletterBlock, type Template, type InsertTemplate, type Subscriber, type InsertSubscriber, type Campaign, type InsertCampaign, type Delivery, type InsertDelivery, type BlogCategory, type InsertBlogCategory, type BlogPost, type InsertBlogPost, type AuditLog, type InsertAuditLog, type CqcAudit, type InsertCqcAudit, type CqcAuditCategory, type InsertCqcAuditCategory, type CqcQualityStatement, type InsertCqcQualityStatement, type CqcEvidenceCategory, type InsertCqcEvidenceCategory, type CqcAuditEvidence, type InsertCqcAuditEvidence, type CqcQualityAssessment, type InsertCqcQualityAssessment, type CqcComplianceRecord, type InsertCqcComplianceRecord, type CqcChecklistItem, type InsertCqcChecklistItem, type CqcAuditResponse, type InsertCqcAuditResponse, type KnowledgeQuestionnaire, type InsertKnowledgeQuestionnaire, type KnowledgeQuestion, type InsertKnowledgeQuestion, type KnowledgeSession, type InsertKnowledgeSession, type KnowledgeResponse, type InsertKnowledgeResponse, type KnowledgeAction, type InsertKnowledgeAction, type RecruitmentApplication, type InsertRecruitmentApplication, type ProfessionalReference, type InsertProfessionalReference, type FinanceReport, type InsertFinanceReport, type Client, type InsertClient, type Visit, type InsertVisit, type Run, type InsertRun, type RunStop, type InsertRunStop, type Geocode, type InsertGeocode, type ReferenceRequest, type InsertReferenceRequest } from "@shared/schema";
 import { randomUUID } from "crypto";
 import { db } from "./db";
-import { users, jobs, applications, contactSubmissions, blogCategories, blogPosts, auditLogs, cqcAudits, cqcAuditCategories, cqcQualityStatements, cqcEvidenceCategories, cqcAuditEvidence, cqcQualityAssessments, cqcComplianceRecords, knowledgeQuestionnaires, knowledgeQuestions, knowledgeSessions, knowledgeResponses, knowledgeActions, recruitmentApplications, professionalReferences, financeReports, clients, visits, runs, runStops, geocodeCache } from "@shared/schema";
+import { users, jobs, applications, contactSubmissions, blogCategories, blogPosts, auditLogs, cqcAudits, cqcAuditCategories, cqcQualityStatements, cqcEvidenceCategories, cqcAuditEvidence, cqcQualityAssessments, cqcComplianceRecords, knowledgeQuestionnaires, knowledgeQuestions, knowledgeSessions, knowledgeResponses, knowledgeActions, recruitmentApplications, professionalReferences, financeReports, clients, visits, runs, runStops, geocodeCache, referenceRequests } from "@shared/schema";
 import { eq, and, desc } from "drizzle-orm";
 import bcrypt from "bcryptjs";
 
@@ -273,6 +273,15 @@ export interface IStorage {
   getGeocode(address: string): Promise<Geocode | undefined>;
   createGeocode(geocode: InsertGeocode): Promise<Geocode>;
   updateGeocode(id: string, updates: Partial<InsertGeocode>): Promise<Geocode | undefined>;
+  
+  // Reference Requests
+  getAllReferenceRequests(filters?: { status?: string }): Promise<ReferenceRequest[]>;
+  getReferenceRequest(id: string): Promise<ReferenceRequest | undefined>;
+  getReferenceRequestByToken(token: string): Promise<ReferenceRequest | undefined>;
+  createReferenceRequest(request: InsertReferenceRequest): Promise<ReferenceRequest>;
+  updateReferenceRequest(id: string, updates: Partial<InsertReferenceRequest>): Promise<ReferenceRequest | undefined>;
+  updateReferenceRequestStatus(id: string, status: string): Promise<ReferenceRequest | undefined>;
+  deleteReferenceRequest(id: string): Promise<boolean>;
 }
 
 export class MemStorage implements IStorage {
@@ -307,6 +316,7 @@ export class MemStorage implements IStorage {
   private runs: Map<string, Run>;
   private runStops: Map<string, RunStop>;
   private geocodes: Map<string, Geocode>;
+  private referenceRequests: Map<string, ReferenceRequest>;
 
   constructor() {
     this.users = new Map();
@@ -340,6 +350,7 @@ export class MemStorage implements IStorage {
     this.runs = new Map();
     this.runStops = new Map();
     this.geocodes = new Map();
+    this.referenceRequests = new Map();
     
     // Initialize with sample jobs from the website
     this.initializeSampleJobs();
@@ -1850,6 +1861,70 @@ export class MemStorage implements IStorage {
     return updatedGeocode;
   }
 
+  // Reference Requests
+  async getAllReferenceRequests(filters?: { status?: string }): Promise<ReferenceRequest[]> {
+    let requests = Array.from(this.referenceRequests.values());
+    if (filters?.status) {
+      requests = requests.filter(r => r.status === filters.status);
+    }
+    return requests.sort((a, b) => {
+      const dateA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+      const dateB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+      return dateB - dateA;
+    });
+  }
+
+  async getReferenceRequest(id: string): Promise<ReferenceRequest | undefined> {
+    return this.referenceRequests.get(id);
+  }
+
+  async getReferenceRequestByToken(token: string): Promise<ReferenceRequest | undefined> {
+    return Array.from(this.referenceRequests.values()).find(r => r.token === token);
+  }
+
+  async createReferenceRequest(request: InsertReferenceRequest): Promise<ReferenceRequest> {
+    const id = randomUUID();
+    const newRequest: ReferenceRequest = {
+      id,
+      createdAt: new Date(),
+      requestedAt: null,
+      receivedAt: null,
+      ...request,
+    };
+    this.referenceRequests.set(id, newRequest);
+    return newRequest;
+  }
+
+  async updateReferenceRequest(id: string, updates: Partial<InsertReferenceRequest>): Promise<ReferenceRequest | undefined> {
+    const request = this.referenceRequests.get(id);
+    if (!request) return undefined;
+    
+    const updatedRequest: ReferenceRequest = {
+      ...request,
+      ...updates,
+    };
+    this.referenceRequests.set(id, updatedRequest);
+    return updatedRequest;
+  }
+
+  async updateReferenceRequestStatus(id: string, status: string): Promise<ReferenceRequest | undefined> {
+    const request = this.referenceRequests.get(id);
+    if (!request) return undefined;
+    
+    const updatedRequest: ReferenceRequest = {
+      ...request,
+      status,
+      requestedAt: status === 'requested' ? new Date() : request.requestedAt,
+      receivedAt: status === 'received' ? new Date() : request.receivedAt,
+    };
+    this.referenceRequests.set(id, updatedRequest);
+    return updatedRequest;
+  }
+
+  async deleteReferenceRequest(id: string): Promise<boolean> {
+    return this.referenceRequests.delete(id);
+  }
+
   // CQC Quality Statements (stub implementations for MemStorage)
   async getAllCqcQualityStatements(keyQuestion?: string): Promise<CqcQualityStatement[]> {
     return [];
@@ -3222,6 +3297,65 @@ export class DrizzleStorage implements IStorage {
 
   async deleteRun(id: string): Promise<boolean> {
     const result = await db.delete(runs).where(eq(runs.id, id)).returning();
+    return result.length > 0;
+  }
+
+  // Reference Requests
+  async getAllReferenceRequests(filters?: { status?: string }): Promise<ReferenceRequest[]> {
+    let query = db.select().from(referenceRequests);
+    
+    if (filters?.status) {
+      query = query.where(eq(referenceRequests.status, filters.status));
+    }
+    
+    return await query.orderBy(desc(referenceRequests.createdAt));
+  }
+
+  async getReferenceRequest(id: string): Promise<ReferenceRequest | undefined> {
+    const result = await db.select().from(referenceRequests)
+      .where(eq(referenceRequests.id, id))
+      .limit(1);
+    return result[0];
+  }
+
+  async getReferenceRequestByToken(token: string): Promise<ReferenceRequest | undefined> {
+    const result = await db.select().from(referenceRequests)
+      .where(eq(referenceRequests.token, token))
+      .limit(1);
+    return result[0];
+  }
+
+  async createReferenceRequest(request: InsertReferenceRequest): Promise<ReferenceRequest> {
+    const result = await db.insert(referenceRequests).values(request).returning();
+    return result[0];
+  }
+
+  async updateReferenceRequest(id: string, updates: Partial<InsertReferenceRequest>): Promise<ReferenceRequest | undefined> {
+    const result = await db.update(referenceRequests)
+      .set(updates)
+      .where(eq(referenceRequests.id, id))
+      .returning();
+    return result[0];
+  }
+
+  async updateReferenceRequestStatus(id: string, status: string): Promise<ReferenceRequest | undefined> {
+    const updateData: any = { status };
+    
+    if (status === 'requested') {
+      updateData.requestedAt = new Date();
+    } else if (status === 'received') {
+      updateData.receivedAt = new Date();
+    }
+    
+    const result = await db.update(referenceRequests)
+      .set(updateData)
+      .where(eq(referenceRequests.id, id))
+      .returning();
+    return result[0];
+  }
+
+  async deleteReferenceRequest(id: string): Promise<boolean> {
+    const result = await db.delete(referenceRequests).where(eq(referenceRequests.id, id)).returning();
     return result.length > 0;
   }
 }
