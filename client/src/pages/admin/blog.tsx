@@ -42,14 +42,19 @@ type CreateCategoryData = z.infer<typeof createCategorySchema>;
 export default function BlogAdmin() {
   const [selectedPost, setSelectedPost] = useState<BlogPost | null>(null);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [editingPost, setEditingPost] = useState<BlogPost | null>(null);
   const [isCategoryModalOpen, setIsCategoryModalOpen] = useState(false);
   const [isEditorOpen, setIsEditorOpen] = useState(false);
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
   const [previewPost, setPreviewPost] = useState<BlogPost | null>(null);
   const [editingContent, setEditingContent] = useState<string>('');
   const [slugManuallyEdited, setSlugManuallyEdited] = useState(false);
+  const [editSlugManuallyEdited, setEditSlugManuallyEdited] = useState(true); // For edit mode, slug is already set
   const [newPostContent, setNewPostContent] = useState<string>('');
   const [newPostImages, setNewPostImages] = useState<Array<{ id: string; url: string; isFeatured: boolean; uploadedAt?: string }>>([]);
+  const [editPostContent, setEditPostContent] = useState<string>('');
+  const [editPostImages, setEditPostImages] = useState<Array<{ id: string; url: string; isFeatured: boolean; uploadedAt?: string }>>([]);
   const { toast } = useToast();
 
   // Fetch blog posts
@@ -443,8 +448,25 @@ export default function BlogAdmin() {
     },
   });
 
-  // Form setup
+  // Form setup for creating posts
   const form = useForm<CreateBlogPostData>({
+    resolver: zodResolver(createBlogPostSchema),
+    defaultValues: {
+      title: "",
+      excerpt: "",
+      content: "",
+      slug: "",
+      categoryId: "",
+      categoryName: "",
+      author: "",
+      isPublished: false,
+      blocks: [],
+      images: [],
+    },
+  });
+
+  // Form setup for editing posts
+  const editForm = useForm<CreateBlogPostData>({
     resolver: zodResolver(createBlogPostSchema),
     defaultValues: {
       title: "",
@@ -466,6 +488,66 @@ export default function BlogAdmin() {
       form.setValue('categoryId', categories[0].id);
     }
   }, [categories, form]);
+
+  // Update post mutation
+  const updatePostMutation = useMutation({
+    mutationFn: async ({ postId, data }: { postId: string; data: Partial<CreateBlogPostData> }) => {
+      return apiRequest("PUT", `/api/blog-posts/${postId}`, data);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/blog-posts"] });
+      setIsEditModalOpen(false);
+      setEditingPost(null);
+      toast({
+        title: "Success",
+        description: "Blog post updated successfully",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to update blog post",
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Open edit modal with pre-filled data
+  const openEditModal = (post: BlogPost) => {
+    setEditingPost(post);
+    setEditPostContent(post.content || '');
+    setEditPostImages(post.images || []);
+    setEditSlugManuallyEdited(true); // Don't auto-generate slug when editing
+    
+    // Pre-fill the edit form
+    editForm.reset({
+      title: post.title,
+      excerpt: post.excerpt || "",
+      content: post.content || "",
+      slug: post.slug,
+      categoryId: post.categoryId || "",
+      categoryName: "",
+      author: post.author || "",
+      isPublished: post.isPublished || false,
+      blocks: post.blocks || [],
+      images: post.images || [],
+    });
+    
+    setIsEditModalOpen(true);
+  };
+
+  // Handle edit form submission
+  const onEditPost = (data: CreateBlogPostData) => {
+    if (!editingPost) return;
+    
+    const postData = { 
+      ...data, 
+      content: editPostContent || data.content,
+      images: editPostImages 
+    };
+    
+    updatePostMutation.mutate({ postId: editingPost.id, data: postData });
+  };
 
   const categoryForm = useForm<CreateCategoryData>({
     resolver: zodResolver(createCategorySchema),
@@ -849,6 +931,211 @@ export default function BlogAdmin() {
             </DialogContent>
           </Dialog>
 
+          {/* Edit Post Modal */}
+          <Dialog open={isEditModalOpen} onOpenChange={(open) => {
+            setIsEditModalOpen(open);
+            if (!open) {
+              setEditingPost(null);
+              setEditPostContent('');
+              setEditPostImages([]);
+            }
+          }}>
+            <DialogContent className="w-[95vw] max-w-4xl h-[90vh] p-0 flex flex-col">
+              <DialogHeader className="p-4 sm:p-6 pb-4 border-b border-border">
+                <DialogTitle className="text-xl sm:text-2xl">Edit Blog Post</DialogTitle>
+              </DialogHeader>
+              
+              <div className="flex-1 overflow-y-auto px-4 sm:px-6 py-4">
+                <Form {...editForm}>
+                  <form onSubmit={(e) => {
+                    const submitter = (e.nativeEvent as SubmitEvent).submitter;
+                    if (!submitter || submitter.getAttribute('data-intent') !== 'save') {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      return;
+                    }
+                    editForm.handleSubmit(onEditPost, (errors) => {
+                      console.error("Form validation errors:", errors);
+                      toast({
+                        title: "Form Validation Error",
+                        description: "Please fill in all required fields correctly",
+                        variant: "destructive",
+                      });
+                    })(e);
+                  }} className="space-y-4 sm:space-y-6" id="edit-post-form">
+                  <div className="grid grid-cols-2 gap-4">
+                    <FormField
+                      control={editForm.control}
+                      name="title"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Title</FormLabel>
+                          <FormControl>
+                            <Input {...field} data-testid="input-edit-post-title" />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={editForm.control}
+                      name="slug"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Slug</FormLabel>
+                          <FormControl>
+                            <Input 
+                              {...field} 
+                              data-testid="input-edit-post-slug"
+                              onChange={(e) => {
+                                field.onChange(e);
+                                setEditSlugManuallyEdited(true);
+                              }}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+
+                  <FormField
+                    control={editForm.control}
+                    name="excerpt"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Excerpt</FormLabel>
+                        <FormControl>
+                          <Textarea {...field} value={field.value || ""} data-testid="input-edit-post-excerpt" />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <div className="space-y-4">
+                    <FormLabel>Content</FormLabel>
+                    <RichTextEditor
+                      content={editPostContent}
+                      onChange={setEditPostContent}
+                      placeholder="Edit your blog post content..."
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <FormField
+                      control={editForm.control}
+                      name="categoryId"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Category</FormLabel>
+                          <Select onValueChange={field.onChange} value={field.value}>
+                            <FormControl>
+                              <SelectTrigger data-testid="select-edit-post-category">
+                                <SelectValue placeholder="Select a category" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              {categories.map((category) => (
+                                <SelectItem key={category.id} value={category.id}>
+                                  {category.name}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={editForm.control}
+                      name="categoryName"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Or Create New Category</FormLabel>
+                          <FormControl>
+                            <Input {...field} placeholder="New category name" data-testid="input-edit-new-category" />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+
+                  <FormField
+                    control={editForm.control}
+                    name="author"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Author Name</FormLabel>
+                        <FormControl>
+                          <Input {...field} data-testid="input-edit-post-author" />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <div className="space-y-4 border border-border rounded-lg p-4 bg-muted/30">
+                    <div className="flex items-start justify-between mb-2">
+                      <div>
+                        <h3 className="font-medium text-sm">Featured Image for Social Sharing</h3>
+                        <p className="text-xs text-muted-foreground mt-1">
+                          Upload an image to display when sharing on social media. You can also add images directly in the editor above.
+                        </p>
+                      </div>
+                    </div>
+                    <BlogImageManager
+                      images={editPostImages}
+                      onImagesChange={setEditPostImages}
+                    />
+                  </div>
+
+                  <FormField
+                    control={editForm.control}
+                    name="isPublished"
+                    render={({ field }) => (
+                      <FormItem className="flex items-center space-x-2">
+                        <FormControl>
+                          <input
+                            type="checkbox"
+                            checked={field.value || false}
+                            onChange={field.onChange}
+                            data-testid="checkbox-edit-post-published"
+                          />
+                        </FormControl>
+                        <FormLabel>Published</FormLabel>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  </form>
+                </Form>
+              </div>
+
+              <div className="flex flex-col sm:flex-row gap-3 p-4 sm:p-6 pt-4 border-t border-border bg-background">
+                <Button 
+                  type="submit"
+                  form="edit-post-form"
+                  disabled={updatePostMutation.isPending} 
+                  className="w-full sm:flex-1"
+                  data-testid="button-update-post"
+                  data-intent="save"
+                >
+                  {updatePostMutation.isPending ? "Saving..." : "Save Changes"}
+                </Button>
+                <Button 
+                  type="button"
+                  variant="outline"
+                  onClick={() => setIsEditModalOpen(false)}
+                  className="w-full sm:w-auto"
+                >
+                  Cancel
+                </Button>
+              </div>
+            </DialogContent>
+          </Dialog>
+
           </div>
         </div>
       </div>
@@ -1009,12 +1296,12 @@ export default function BlogAdmin() {
                     <Button
                       variant="outline"
                       size="sm"
-                      onClick={() => openEditor(post)}
+                      onClick={() => openEditModal(post)}
                       className="bg-primary/5 border-primary/20 hover:bg-primary/10"
-                      data-testid={`editor-${post.id}`}
+                      data-testid={`button-edit-${post.id}`}
                     >
                       <Edit className="h-4 w-4 mr-1" />
-                      Edit Content
+                      Edit
                     </Button>
                     <Button
                       variant="outline"
