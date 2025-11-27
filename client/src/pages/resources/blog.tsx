@@ -518,7 +518,7 @@ export default function Blog() {
             
             {/* Main Content */}
             <main className="flex-1 min-w-0">
-          <div className="space-y-8">
+          <div className="space-y-3">
             {isLoading ? (
               Array.from({ length: 3 }).map((_, i) => (
                 <BlogPostSkeleton key={i} />
@@ -534,36 +534,36 @@ export default function Blog() {
                 .map((post, index) => (
               <article 
                 key={post.id}
-                className="bg-white rounded-2xl shadow-sm hover:shadow-lg transition-shadow border border-slate-200"
+                className="bg-white rounded-xl shadow-sm hover:shadow-md transition-shadow border border-slate-200"
                 data-testid={`blog-post-${index}`}
               >
-                <div className="p-4 sm:p-6 md:p-8">
-                  <div className="flex gap-4 sm:gap-6 flex-col sm:flex-row">
+                <div className="p-3 sm:p-4">
+                  <div className="flex gap-3 sm:gap-4 flex-col sm:flex-row items-start">
                     {/* Small Thumbnail Image - only show if image exists */}
                     {post.image && (
                       <div className="flex-shrink-0">
                         <img 
                           src={post.image} 
                           alt={post.title}
-                          className="max-w-[120px] sm:max-w-[140px] md:max-w-[160px] max-h-[120px] w-auto h-auto object-contain rounded-lg hover:scale-105 transition-transform duration-300"
+                          className="max-w-[80px] sm:max-w-[100px] max-h-[80px] w-auto h-auto object-contain rounded-md hover:scale-105 transition-transform duration-300"
                           data-testid={`blog-image-${index}`}
                         />
                       </div>
                     )}
 
                     {/* Content */}
-                    <div className="flex-1 space-y-3 sm:space-y-4">
-                      <div className="flex flex-wrap items-center gap-2 sm:gap-4 text-xs sm:text-sm text-muted-foreground">
-                        <span className="bg-primary/10 text-primary px-3 py-1 rounded-full font-medium">
+                    <div className="flex-1 space-y-1.5">
+                      <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
+                        <span className="bg-primary/10 text-primary px-2 py-0.5 rounded-full text-xs font-medium">
                           {post.category}
                         </span>
                         <div className="flex items-center gap-1">
-                          <Calendar className="h-4 w-4" />
+                          <Calendar className="h-3 w-3" />
                           {post.date}
                         </div>
                       </div>
                       
-                      <h2 className="text-xl sm:text-2xl font-bold text-foreground hover:text-primary transition-colors">
+                      <h2 className="text-base sm:text-lg font-semibold text-foreground hover:text-primary transition-colors leading-tight">
                         {post.title}
                       </h2>
                       
@@ -571,12 +571,13 @@ export default function Blog() {
                         <DialogTrigger asChild>
                           <Button 
                             variant="outline" 
-                            className="hover:bg-primary hover:text-primary-foreground group"
+                            size="sm"
+                            className="h-7 text-xs hover:bg-primary hover:text-primary-foreground group"
                             data-testid={`read-article-${index}`}
                             onClick={() => trackView(post.id)}
                           >
-                            Read Full Article
-                            <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" />
+                            Read Article
+                            <ArrowRight className="ml-1.5 h-3 w-3 group-hover:translate-x-1 transition-transform" />
                           </Button>
                         </DialogTrigger>
                         <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
