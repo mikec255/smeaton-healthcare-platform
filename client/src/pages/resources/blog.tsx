@@ -542,11 +542,11 @@ export default function Blog() {
                     {/* Small Thumbnail Image - only show if image exists */}
                     {post.image && (
                       <div className="flex-shrink-0">
-                        <div className="w-full sm:w-32 h-48 sm:h-24 md:w-40 md:h-28 overflow-hidden rounded-lg bg-gray-100 flex items-center justify-center">
+                        <div className="w-full sm:w-32 h-48 sm:h-24 md:w-40 md:h-28 overflow-hidden rounded-lg">
                           <img 
                             src={post.image} 
                             alt={post.title}
-                            className="max-w-full max-h-full object-contain hover:scale-105 transition-transform duration-300"
+                            className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
                             data-testid={`blog-image-${index}`}
                           />
                         </div>
