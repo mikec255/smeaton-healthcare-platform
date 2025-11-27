@@ -287,7 +287,7 @@ export default function Blog() {
         title: post.title,
         excerpt: post.excerpt,
         date: formatDate(post.createdAt),
-        readTime: post.readTime || "5 min read",
+        readTime: post.readTime || null,
         author: post.author,
         category: getCategoryName(post.categoryId),
         image: displayImage,
@@ -591,10 +591,12 @@ export default function Blog() {
                                 <Calendar className="h-4 w-4" />
                                 {post.date}
                               </div>
-                              <div className="flex items-center gap-1">
-                                <Clock className="h-4 w-4" />
-                                {post.readTime}
-                              </div>
+                              {post.readTime && (
+                                <div className="flex items-center gap-1">
+                                  <Clock className="h-4 w-4" />
+                                  {post.readTime}
+                                </div>
+                              )}
                             </div>
                           </DialogHeader>
                           

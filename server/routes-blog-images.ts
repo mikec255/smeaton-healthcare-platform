@@ -41,6 +41,14 @@ export function registerBlogImageRoutes(app: express.Application) {
         }
       }
       
+      // 4. Fallback: Extract first image from HTML content (TipTap editor)
+      if (!imageUrl && post.content && typeof post.content === 'string') {
+        const imgMatch = post.content.match(/<img[^>]+src=["']([^"']+)["']/i);
+        if (imgMatch && imgMatch[1]) {
+          imageUrl = imgMatch[1];
+        }
+      }
+      
       if (!imageUrl) {
         return res.status(404).send("No featured image found");
       }
