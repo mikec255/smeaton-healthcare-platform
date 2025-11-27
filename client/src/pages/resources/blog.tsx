@@ -602,11 +602,11 @@ export default function Blog() {
                           
                           {/* Article Image in Modal - only show if image exists AND post doesn't have blocks (visual editor content already includes images) */}
                           {post.image && !post.hasBlocks && (
-                            <div className="aspect-video w-full overflow-hidden rounded-lg mb-6 bg-gray-100 flex items-center justify-center">
+                            <div className="w-full overflow-hidden rounded-lg mb-6">
                               <img 
                                 src={post.image} 
                                 alt={post.title}
-                                className="max-w-full max-h-full object-contain"
+                                className="w-full h-auto rounded-lg"
                               />
                             </div>
                           )}
