@@ -73,7 +73,7 @@ export default function ReferenceFormPage() {
 
   const submitMutation = useMutation({
     mutationFn: async (data: typeof formData) => {
-      return apiRequest(`/api/reference-form/${token}`, 'POST', {
+      return apiRequest('POST', `/api/reference-form/${token}`, {
         ...data,
         wouldReemploy: data.wouldReemploy === "yes" ? true : data.wouldReemploy === "no" ? false : undefined,
       });

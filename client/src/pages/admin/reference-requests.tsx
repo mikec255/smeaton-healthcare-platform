@@ -62,7 +62,7 @@ export default function ReferenceRequestsPage() {
 
   const createMutation = useMutation({
     mutationFn: async (data: typeof formData) => {
-      return apiRequest('/api/admin/reference-requests', 'POST', data);
+      return apiRequest('POST', '/api/admin/reference-requests', data);
     },
     onSuccess: () => {
       queryClientLocal.invalidateQueries({ queryKey: ['/api/admin/reference-requests'] });
@@ -84,7 +84,7 @@ export default function ReferenceRequestsPage() {
 
   const statusMutation = useMutation({
     mutationFn: async ({ id, status }: { id: string; status: string }) => {
-      return apiRequest(`/api/admin/reference-requests/${id}/status`, 'PUT', { status });
+      return apiRequest('PUT', `/api/admin/reference-requests/${id}/status`, { status });
     },
     onSuccess: () => {
       queryClientLocal.invalidateQueries({ queryKey: ['/api/admin/reference-requests'] });
@@ -105,7 +105,7 @@ export default function ReferenceRequestsPage() {
 
   const deleteMutation = useMutation({
     mutationFn: async (id: string) => {
-      return apiRequest(`/api/admin/reference-requests/${id}`, 'DELETE');
+      return apiRequest('DELETE', `/api/admin/reference-requests/${id}`);
     },
     onSuccess: () => {
       queryClientLocal.invalidateQueries({ queryKey: ['/api/admin/reference-requests'] });
