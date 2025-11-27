@@ -637,7 +637,13 @@ export default function BlogAdmin() {
 
           <Dialog open={isCreateModalOpen} onOpenChange={(open) => {
             setIsCreateModalOpen(open);
-            if (!open) {
+            if (open) {
+              // Reset form and states when opening
+              form.reset();
+              setSlugManuallyEdited(false);
+              setNewPostContent('');
+              setNewPostImages([]);
+            } else {
               setSlugManuallyEdited(false);
             }
           }}>
