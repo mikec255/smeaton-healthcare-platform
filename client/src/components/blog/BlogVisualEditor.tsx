@@ -42,6 +42,7 @@ import {
 import { type BlogBlock, type BlogBlockType } from "@shared/schema";
 import BlockStylePanel from "./BlockStylePanel";
 import ImageUpload from "./ImageUpload";
+import { RichTextEditor } from "./RichTextEditor";
 
 interface BlogVisualEditorProps {
   blocks: BlogBlock[];
@@ -269,14 +270,10 @@ function BlockRenderer({
     case "text":
       return (
         <div className="space-y-3">
-          <textarea
-            placeholder="Enter your text content..."
-            value={block.content.text || ""}
-            onChange={(e) => updateContent({ text: e.target.value })}
-            rows={4}
-            className="w-full bg-transparent border-none outline-none resize-none"
-            style={block.style}
-            data-testid={`text-input-${block.id}`}
+          <RichTextEditor
+            content={block.content.html || block.content.text || ''}
+            onChange={(html) => updateContent({ html, text: html })}
+            placeholder="Start typing your content..."
           />
           <div className="grid grid-cols-2 gap-3">
             <div>
