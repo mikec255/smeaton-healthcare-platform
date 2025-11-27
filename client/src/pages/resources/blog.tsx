@@ -30,6 +30,7 @@ interface TransformedBlogPost {
   author: string;
   category: string;
   image: string;
+  imageIsFromUpload: boolean; // True if image came from images array, false if extracted from content
   fullContent: string;
   hasBlocks: boolean;
 }
@@ -95,22 +96,23 @@ export default function Blog() {
   };
 
   // Helper function to get featured image from post
-  const getFeaturedImage = (post: any): string | null => {
+  // Returns { url, isFromUpload } where isFromUpload is true if image came from images array
+  const getFeaturedImage = (post: any): { url: string | null; isFromUpload: boolean } => {
     // First check if post has images array with featured image
     if (post.images && Array.isArray(post.images)) {
       const featured = post.images.find((img: any) => img.isFeatured);
       if (featured) {
-        return convertToProxyUrl(featured.url);
+        return { url: convertToProxyUrl(featured.url), isFromUpload: true };
       }
       // If no featured image but images exist, use the first one
       if (post.images.length > 0) {
-        return convertToProxyUrl(post.images[0].url);
+        return { url: convertToProxyUrl(post.images[0].url), isFromUpload: true };
       }
     }
     
     // Fallback to legacy imagePath
     if (post.imagePath) {
-      return convertToProxyUrl(post.imagePath);
+      return { url: convertToProxyUrl(post.imagePath), isFromUpload: true };
     }
     
     // Fallback to first image in blocks (legacy visual editor)
@@ -118,20 +120,20 @@ export default function Blog() {
       for (const block of post.blocks) {
         if (block.type === 'image' && (block.content?.url || block.content?.src)) {
           const imageUrl = block.content.url || block.content.src;
-          return convertToProxyUrl(imageUrl);
+          return { url: convertToProxyUrl(imageUrl), isFromUpload: false };
         }
       }
     }
     
-    // Fallback to first image in HTML content (TipTap editor)
+    // Fallback to first image in HTML content (TipTap editor) - NOT from upload
     if (post.content && typeof post.content === 'string') {
       const imgMatch = post.content.match(/<img[^>]+src=["']([^"']+)["']/i);
       if (imgMatch && imgMatch[1]) {
-        return convertToProxyUrl(imgMatch[1]);
+        return { url: convertToProxyUrl(imgMatch[1]), isFromUpload: false };
       }
     }
     
-    return null;
+    return { url: null, isFromUpload: false };
   };
 
   // Helper function to convert block style object to CSS string
@@ -276,7 +278,7 @@ export default function Blog() {
     
     return blogPosts.map(post => {
       // Get featured image from multiple sources
-      const displayImage = getFeaturedImage(post) || '';
+      const { url: displayImage, isFromUpload } = getFeaturedImage(post);
       
       // Render content from visual editor blocks or use regular content
       const hasBlocks = post.blocks && Array.isArray(post.blocks) && post.blocks.length > 0;
@@ -290,7 +292,8 @@ export default function Blog() {
         readTime: post.readTime || null,
         author: post.author,
         category: getCategoryName(post.categoryId),
-        image: displayImage,
+        image: displayImage || '',
+        imageIsFromUpload: isFromUpload,
         fullContent: displayContent,
         hasBlocks: hasBlocks || false
       };
@@ -600,8 +603,8 @@ export default function Blog() {
                             </div>
                           </DialogHeader>
                           
-                          {/* Article Image in Modal - only show if image exists AND post doesn't have blocks (visual editor content already includes images) */}
-                          {post.image && !post.hasBlocks && (
+                          {/* Article Image in Modal - only show if image was uploaded separately (not extracted from content) */}
+                          {post.image && post.imageIsFromUpload && (
                             <div className="w-full overflow-hidden rounded-lg mb-6">
                               <img 
                                 src={post.image} 
