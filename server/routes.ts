@@ -1174,6 +1174,191 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Reference Requests API (External reference collection with unique links)
+  app.get("/api/admin/reference-requests", requireAdmin, async (req, res) => {
+    try {
+      const statusFilter = req.query.status as string | undefined;
+      const requests = await storage.getAllReferenceRequests(statusFilter ? { status: statusFilter } : undefined);
+      res.json(requests);
+    } catch (error) {
+      console.error("Error fetching reference requests:", error);
+      res.status(500).json({ message: "Failed to fetch reference requests" });
+    }
+  });
+
+  app.get("/api/admin/reference-requests/:id", requireAdmin, async (req, res) => {
+    try {
+      const request = await storage.getReferenceRequest(req.params.id);
+      if (!request) {
+        return res.status(404).json({ message: "Reference request not found" });
+      }
+      res.json(request);
+    } catch (error) {
+      console.error("Error fetching reference request:", error);
+      res.status(500).json({ message: "Failed to fetch reference request" });
+    }
+  });
+
+  app.post("/api/admin/reference-requests", requireAdmin, async (req, res) => {
+    try {
+      const createSchema = z.object({
+        employeeName: z.string().min(1, "Employee name is required"),
+        employeeJobTitle: z.string().optional(),
+        refereeEmail: z.string().email("Valid email required").optional().or(z.literal("")),
+        refereeName: z.string().optional(),
+        refereeCompany: z.string().optional(),
+        recruitmentApplicationId: z.string().optional(),
+      });
+
+      const validatedData = createSchema.parse(req.body);
+      
+      // Generate unique token for the public form URL
+      const token = crypto.randomBytes(32).toString('hex');
+      
+      const request = await storage.createReferenceRequest({
+        ...validatedData,
+        token,
+        status: "draft",
+        createdBy: req.user?.id,
+      });
+      
+      res.json(request);
+    } catch (error) {
+      console.error("Error creating reference request:", error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid request data", errors: error.errors });
+      }
+      res.status(500).json({ message: "Failed to create reference request" });
+    }
+  });
+
+  app.put("/api/admin/reference-requests/:id", requireAdmin, async (req, res) => {
+    try {
+      const updateSchema = z.object({
+        employeeName: z.string().optional(),
+        employeeJobTitle: z.string().optional(),
+        refereeEmail: z.string().email().optional().or(z.literal("")),
+        refereeName: z.string().optional(),
+        refereeCompany: z.string().optional(),
+      });
+
+      const validatedData = updateSchema.parse(req.body);
+      const request = await storage.updateReferenceRequest(req.params.id, validatedData);
+      if (!request) {
+        return res.status(404).json({ message: "Reference request not found" });
+      }
+      res.json(request);
+    } catch (error) {
+      console.error("Error updating reference request:", error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid request data", errors: error.errors });
+      }
+      res.status(500).json({ message: "Failed to update reference request" });
+    }
+  });
+
+  app.put("/api/admin/reference-requests/:id/status", requireAdmin, async (req, res) => {
+    try {
+      const statusSchema = z.object({
+        status: z.enum(["draft", "requested", "received"])
+      });
+
+      const validatedData = statusSchema.parse(req.body);
+      const request = await storage.updateReferenceRequestStatus(req.params.id, validatedData.status);
+      if (!request) {
+        return res.status(404).json({ message: "Reference request not found" });
+      }
+      res.json(request);
+    } catch (error) {
+      console.error("Error updating reference request status:", error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid status data", errors: error.errors });
+      }
+      res.status(500).json({ message: "Failed to update reference request status" });
+    }
+  });
+
+  app.delete("/api/admin/reference-requests/:id", requireAdmin, async (req, res) => {
+    try {
+      const deleted = await storage.deleteReferenceRequest(req.params.id);
+      if (!deleted) {
+        return res.status(404).json({ message: "Reference request not found" });
+      }
+      res.json({ message: "Reference request deleted successfully" });
+    } catch (error) {
+      console.error("Error deleting reference request:", error);
+      res.status(500).json({ message: "Failed to delete reference request" });
+    }
+  });
+
+  // Public Reference Form API (accessed via unique token - no auth required)
+  app.get("/api/reference-form/:token", async (req, res) => {
+    try {
+      const request = await storage.getReferenceRequestByToken(req.params.token);
+      if (!request) {
+        return res.status(404).json({ message: "Reference form not found or has expired" });
+      }
+      
+      // Only return prefilled data and status (not full request details)
+      res.json({
+        id: request.id,
+        employeeName: request.employeeName,
+        employeeJobTitle: request.employeeJobTitle,
+        status: request.status,
+        // Include any already filled data if they're returning to the form
+        employmentStartDate: request.employmentStartDate,
+        employmentEndDate: request.employmentEndDate,
+        jobTitle: request.jobTitle,
+        reasonForLeaving: request.reasonForLeaving,
+        wouldReemploy: request.wouldReemploy,
+        performanceRating: request.performanceRating,
+        additionalComments: request.additionalComments,
+      });
+    } catch (error) {
+      console.error("Error fetching reference form:", error);
+      res.status(500).json({ message: "Failed to fetch reference form" });
+    }
+  });
+
+  app.post("/api/reference-form/:token", async (req, res) => {
+    try {
+      const request = await storage.getReferenceRequestByToken(req.params.token);
+      if (!request) {
+        return res.status(404).json({ message: "Reference form not found or has expired" });
+      }
+      
+      if (request.status === "received") {
+        return res.status(400).json({ message: "This reference has already been submitted" });
+      }
+
+      const submitSchema = z.object({
+        employmentStartDate: z.string().min(1, "Start date is required"),
+        employmentEndDate: z.string().min(1, "End date is required"),
+        jobTitle: z.string().optional(),
+        reasonForLeaving: z.string().optional(),
+        wouldReemploy: z.boolean().optional(),
+        performanceRating: z.string().optional(),
+        additionalComments: z.string().optional(),
+      });
+
+      const validatedData = submitSchema.parse(req.body);
+      
+      // Update the reference request with the submitted data and change status to received
+      const updatedRequest = await storage.updateReferenceRequest(request.id, validatedData);
+      if (updatedRequest) {
+        await storage.updateReferenceRequestStatus(request.id, "received");
+      }
+      
+      res.json({ message: "Reference submitted successfully. Thank you!" });
+    } catch (error) {
+      console.error("Error submitting reference form:", error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid form data", errors: error.errors });
+      }
+      res.status(500).json({ message: "Failed to submit reference form" });
+    }
+  });
+
   // Contact submissions API
   app.get("/api/contact-submissions", requireAdmin, async (req, res) => {
     try {
