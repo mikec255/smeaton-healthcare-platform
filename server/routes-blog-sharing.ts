@@ -36,11 +36,15 @@ export function registerBlogSharingRoutes(app: express.Application) {
         }
       }
       
-      const imageUrl = hasImage
-        ? `${req.protocol}://${req.get('host')}/api/blog-images/${post.id}/featured`
-        : `${req.protocol}://${req.get('host')}/og-default.jpg`;
+      // Always use HTTPS for external URLs (Replit proxy handles SSL)
+      const protocol = req.headers['x-forwarded-proto'] || 'https';
+      const host = req.get('host');
       
-      const pageUrl = `${req.protocol}://${req.get('host')}/blog/${post.id}`;
+      const imageUrl = hasImage
+        ? `${protocol}://${host}/api/blog-images/${post.id}/featured`
+        : `${protocol}://${host}/og-default.jpg`;
+      
+      const pageUrl = `${protocol}://${host}/blog/${post.id}`;
       
       // Escape HTML to prevent meta tag injection
       const escapeHtml = (text: string) => text

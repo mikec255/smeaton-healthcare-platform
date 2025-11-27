@@ -279,10 +279,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   const { registerSeoRoutes } = await import("./routes-seo");
   registerSeoRoutes(app);
   
-  // Trust proxy for Azure deployment
+  // Trust proxy for Replit and Azure deployment (both use reverse proxies)
+  app.set('trust proxy', 1);
+  
   if (process.env.NODE_ENV === 'production') {
-    app.set('trust proxy', 1);
-    
     // Require strong session secret in production
     if (!process.env.SESSION_SECRET || process.env.SESSION_SECRET === 'your-secret-key-here-replace-in-production') {
       console.error('CRITICAL: Strong SESSION_SECRET required in production!');
