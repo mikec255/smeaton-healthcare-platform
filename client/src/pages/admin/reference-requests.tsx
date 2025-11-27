@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
+import jsPDF from "jspdf";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -12,7 +13,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Search, Plus, Copy, Check, Send, Trash2, Eye, Clock, CheckCircle, FileText } from "lucide-react";
+import { Search, Plus, Copy, Check, Send, Trash2, Eye, Clock, CheckCircle, FileText, Download } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import type { ReferenceRequest } from "@shared/schema";
@@ -204,6 +205,110 @@ Smeaton Healthcare Recruitment Team`;
     setShowEmailDialog(true);
   };
 
+  const downloadReferencePdf = (request: ReferenceRequest) => {
+    const doc = new jsPDF();
+    const pageWidth = doc.internal.pageSize.getWidth();
+    const margin = 20;
+    let yPos = 20;
+    
+    doc.setFillColor(236, 72, 153);
+    doc.rect(0, 0, pageWidth, 35, 'F');
+    
+    doc.setTextColor(255, 255, 255);
+    doc.setFontSize(20);
+    doc.setFont('helvetica', 'bold');
+    doc.text('Professional Reference', margin, 23);
+    
+    doc.setTextColor(0, 0, 0);
+    yPos = 50;
+    
+    doc.setFontSize(14);
+    doc.setFont('helvetica', 'bold');
+    doc.text('Employee Details', margin, yPos);
+    yPos += 10;
+    
+    doc.setFontSize(11);
+    doc.setFont('helvetica', 'normal');
+    doc.text(`Name: ${request.employeeName}`, margin, yPos);
+    yPos += 7;
+    doc.text(`Job Title: ${request.employeeJobTitle || 'Not specified'}`, margin, yPos);
+    yPos += 15;
+    
+    doc.setFontSize(14);
+    doc.setFont('helvetica', 'bold');
+    doc.text('Referee Information', margin, yPos);
+    yPos += 10;
+    
+    doc.setFontSize(11);
+    doc.setFont('helvetica', 'normal');
+    doc.text(`Name: ${request.refereeName || 'Not specified'}`, margin, yPos);
+    yPos += 7;
+    doc.text(`Email: ${request.refereeEmail || 'Not specified'}`, margin, yPos);
+    yPos += 7;
+    doc.text(`Company: ${request.refereeCompany || 'Not specified'}`, margin, yPos);
+    yPos += 15;
+    
+    if (request.status === 'received') {
+      doc.setFillColor(220, 252, 231);
+      doc.rect(margin - 5, yPos - 5, pageWidth - 2 * margin + 10, 85, 'F');
+      
+      doc.setFontSize(14);
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(21, 128, 61);
+      doc.text('Reference Response', margin, yPos + 5);
+      yPos += 15;
+      
+      doc.setTextColor(0, 0, 0);
+      doc.setFontSize(11);
+      doc.setFont('helvetica', 'normal');
+      
+      doc.text(`Employment Start Date: ${request.employmentStartDate || 'Not provided'}`, margin, yPos);
+      yPos += 7;
+      doc.text(`Employment End Date: ${request.employmentEndDate || 'Not provided'}`, margin, yPos);
+      yPos += 7;
+      doc.text(`Job Title Held: ${request.jobTitle || 'Not provided'}`, margin, yPos);
+      yPos += 7;
+      doc.text(`Reason for Leaving: ${request.reasonForLeaving || 'Not provided'}`, margin, yPos);
+      yPos += 7;
+      doc.text(`Performance Rating: ${request.performanceRating || 'Not provided'}`, margin, yPos);
+      yPos += 7;
+      const wouldReemploy = request.wouldReemploy === true ? 'Yes' : request.wouldReemploy === false ? 'No' : 'Not specified';
+      doc.text(`Would Re-employ: ${wouldReemploy}`, margin, yPos);
+      yPos += 12;
+      
+      if (request.additionalComments) {
+        doc.setFont('helvetica', 'bold');
+        doc.text('Additional Comments:', margin, yPos);
+        yPos += 7;
+        doc.setFont('helvetica', 'normal');
+        const commentLines = doc.splitTextToSize(request.additionalComments, pageWidth - 2 * margin);
+        doc.text(commentLines, margin, yPos);
+        yPos += commentLines.length * 6;
+      }
+    }
+    
+    yPos += 20;
+    doc.setFontSize(9);
+    doc.setTextColor(128, 128, 128);
+    doc.text(`Reference ID: ${request.id}`, margin, yPos);
+    yPos += 5;
+    if (request.createdAt) {
+      doc.text(`Created: ${format(new Date(request.createdAt), 'dd/MM/yyyy HH:mm')}`, margin, yPos);
+    }
+    if (request.receivedAt) {
+      yPos += 5;
+      doc.text(`Received: ${format(new Date(request.receivedAt), 'dd/MM/yyyy HH:mm')}`, margin, yPos);
+    }
+    
+    const fileName = `reference-${request.employeeName.replace(/\s+/g, '-').toLowerCase()}-${request.id.slice(0, 8)}.pdf`;
+    doc.save(fileName);
+    
+    toast({
+      title: "PDF Downloaded",
+      description: `Reference saved as ${fileName}`
+    });
+  };
+
   const StatusBadge = ({ status }: { status: string }) => {
     const config = statusConfig[status as keyof typeof statusConfig] || statusConfig.draft;
     const Icon = config.icon;
@@ -310,6 +415,17 @@ Smeaton Healthcare Recruitment Team`;
                         >
                           <Eye className="w-4 h-4" />
                         </Button>
+                        {request.status === "received" && (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => downloadReferencePdf(request)}
+                            className="text-green-600 hover:text-green-700"
+                            data-testid={`button-download-${request.id}`}
+                          >
+                            <Download className="w-4 h-4" />
+                          </Button>
+                        )}
                         {request.status !== "received" && (
                           <Button
                             variant="outline"
@@ -619,6 +735,16 @@ Smeaton Healthcare Recruitment Team`;
             </ScrollArea>
           )}
           <DialogFooter>
+            {selectedRequest?.status === "received" && (
+              <Button 
+                onClick={() => selectedRequest && downloadReferencePdf(selectedRequest)}
+                className="bg-green-600 hover:bg-green-700"
+                data-testid="button-download-details"
+              >
+                <Download className="w-4 h-4 mr-2" />
+                Download PDF
+              </Button>
+            )}
             <Button variant="outline" onClick={() => setShowDetailsDialog(false)}>
               Close
             </Button>
