@@ -13,7 +13,8 @@ import {
   FileText,
   MapPin,
   DollarSign,
-  FileImage
+  FileImage,
+  FileSearch
 } from 'lucide-react';
 
 export interface NavItem {
@@ -85,10 +86,17 @@ export const navigationItems: NavItem[] = [
       },
       { 
         id: 'professional-references', 
-        label: 'References', 
+        label: 'Received References', 
         icon: UserCheck, 
         href: '/admin/professional-references',
         description: 'Manage professional references submitted for candidates'
+      },
+      { 
+        id: 'reference-requests', 
+        label: 'Request References', 
+        icon: FileSearch, 
+        href: '/admin/reference-requests',
+        description: 'Create and manage external reference requests with unique form links'
       }
     ]
   },
@@ -320,7 +328,14 @@ export const adminRoutes: Record<string, AdminRoute> = {
     path: '/admin/professional-references',
     title: 'Professional References',
     description: 'Manage professional references submitted for candidates',
-    breadcrumbLabel: 'References',
+    breadcrumbLabel: 'Received References',
+    parentId: 'recruitment'
+  },
+  '/admin/reference-requests': {
+    path: '/admin/reference-requests',
+    title: 'Reference Requests',
+    description: 'Create and manage external reference requests with unique form links',
+    breadcrumbLabel: 'Request References',
     parentId: 'recruitment'
   },
   '/admin/route-planner': {
