@@ -39,11 +39,12 @@ export default function BlogImageManager({ images, onImagesChange }: BlogImageMa
         reader.readAsDataURL(file);
       });
 
-      // Add new image - NOT automatically featured, user must select featured image manually
+      // Add new image - automatically featured if it's the first image
+      const isFirstImage = images.length === 0;
       const newImage: BlogImage = {
         id: Math.random().toString(36).substr(2, 9),
         url: base64Data,
-        isFeatured: false,
+        isFeatured: isFirstImage, // First image is automatically featured
         uploadedAt: new Date().toISOString(),
       };
 

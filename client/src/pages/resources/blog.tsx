@@ -102,6 +102,10 @@ export default function Blog() {
       if (featured) {
         return convertToProxyUrl(featured.url);
       }
+      // If no featured image but images exist, use the first one
+      if (post.images.length > 0) {
+        return convertToProxyUrl(post.images[0].url);
+      }
     }
     
     // Fallback to legacy imagePath
@@ -109,13 +113,21 @@ export default function Blog() {
       return convertToProxyUrl(post.imagePath);
     }
     
-    // Fallback to first image in blocks
+    // Fallback to first image in blocks (legacy visual editor)
     if (post.blocks && Array.isArray(post.blocks)) {
       for (const block of post.blocks) {
         if (block.type === 'image' && (block.content?.url || block.content?.src)) {
           const imageUrl = block.content.url || block.content.src;
           return convertToProxyUrl(imageUrl);
         }
+      }
+    }
+    
+    // Fallback to first image in HTML content (TipTap editor)
+    if (post.content && typeof post.content === 'string') {
+      const imgMatch = post.content.match(/<img[^>]+src=["']([^"']+)["']/i);
+      if (imgMatch && imgMatch[1]) {
+        return convertToProxyUrl(imgMatch[1]);
       }
     }
     
