@@ -538,10 +538,10 @@ export default function Blog() {
                 data-testid={`blog-post-${index}`}
               >
                 <div className="p-3 sm:p-4">
-                  <div className="flex gap-3 sm:gap-4 flex-col sm:flex-row items-start">
+                  <div className="flex gap-3 sm:gap-4 items-center">
                     {/* Small Thumbnail Image - only show if image exists */}
                     {post.image && (
-                      <div className="flex-shrink-0">
+                      <div className="flex-shrink-0 flex items-center justify-center w-[80px] sm:w-[100px]">
                         <img 
                           src={post.image} 
                           alt={post.title}
@@ -566,7 +566,10 @@ export default function Blog() {
                       <h2 className="text-base sm:text-lg font-semibold text-foreground hover:text-primary transition-colors leading-tight">
                         {post.title}
                       </h2>
-                      
+                    </div>
+                    
+                    {/* Read Article Button - right side */}
+                    <div className="flex-shrink-0 flex items-center">
                       <Dialog onOpenChange={(open) => setOpenDialogPostId(open ? post.id : null)}>
                         <DialogTrigger asChild>
                           <Button 
