@@ -66,11 +66,12 @@ export function registerBlogImageRoutes(app: express.Application) {
       const originalBuffer = Buffer.from(imageData, 'base64');
       
       // Resize image to optimal social media dimensions (1200x630)
-      // Uses smart cropping to focus on the center/important parts
+      // Uses contain to show the full image without cropping
+      // Brand color background fills any empty space
       const resizedBuffer = await sharp(originalBuffer)
         .resize(SOCIAL_MEDIA_WIDTH, SOCIAL_MEDIA_HEIGHT, {
-          fit: 'cover',
-          position: 'centre'
+          fit: 'contain',
+          background: { r: 236, g: 72, b: 153 } // Brand pink (#ec4899)
         })
         .jpeg({ quality: 85 }) // Convert to JPEG for best compatibility
         .toBuffer();
