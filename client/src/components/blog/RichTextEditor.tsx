@@ -6,8 +6,11 @@ import Link from '@tiptap/extension-link';
 import { TextStyle } from '@tiptap/extension-text-style';
 import { Color } from '@tiptap/extension-color';
 import Highlight from '@tiptap/extension-highlight';
-import { useEffect, useCallback } from 'react';
+import Image from '@tiptap/extension-image';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import {
   Select,
   SelectContent,
@@ -20,6 +23,13 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/popover';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog';
 import {
   Bold,
   Italic,
@@ -37,16 +47,16 @@ import {
   Undo,
   Redo,
   Quote,
-  Heading1,
-  Heading2,
-  Heading3,
   Minus,
+  Image as ImageIcon,
+  Upload,
 } from 'lucide-react';
 
 interface RichTextEditorProps {
   content: string;
   onChange: (html: string) => void;
   placeholder?: string;
+  onImageUpload?: (file: File) => Promise<string>;
 }
 
 const TEXT_COLORS = [
@@ -72,7 +82,12 @@ const HIGHLIGHT_COLORS = [
   { name: 'Purple', value: '#e9d5ff' },
 ];
 
-export function RichTextEditor({ content, onChange, placeholder }: RichTextEditorProps) {
+export function RichTextEditor({ content, onChange, placeholder, onImageUpload }: RichTextEditorProps) {
+  const [imageDialogOpen, setImageDialogOpen] = useState(false);
+  const [imageUrl, setImageUrl] = useState('');
+  const [isUploading, setIsUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
   const editor = useEditor({
     extensions: [
       StarterKit.configure({
@@ -95,11 +110,16 @@ export function RichTextEditor({ content, onChange, placeholder }: RichTextEdito
           class: 'text-primary underline cursor-pointer',
         },
       }),
+      Image.configure({
+        HTMLAttributes: {
+          class: 'max-w-full h-auto rounded-lg my-4',
+        },
+      }),
     ],
     content: content || '',
     editorProps: {
       attributes: {
-        class: 'prose prose-sm max-w-none min-h-[200px] p-4 focus:outline-none',
+        class: 'prose prose-sm max-w-none min-h-[300px] p-4 focus:outline-none',
       },
     },
     onUpdate: ({ editor }) => {
@@ -129,6 +149,46 @@ export function RichTextEditor({ content, onChange, placeholder }: RichTextEdito
     editor.chain().focus().extendMarkRange('link').setLink({ href: url }).run();
   }, [editor]);
 
+  const handleImageUrlInsert = useCallback(() => {
+    if (!editor || !imageUrl) return;
+    
+    editor.chain().focus().setImage({ src: imageUrl }).run();
+    setImageUrl('');
+    setImageDialogOpen(false);
+  }, [editor, imageUrl]);
+
+  const handleFileUpload = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !editor) return;
+
+    if (onImageUpload) {
+      setIsUploading(true);
+      try {
+        const url = await onImageUpload(file);
+        editor.chain().focus().setImage({ src: url }).run();
+        setImageDialogOpen(false);
+      } catch (error) {
+        console.error('Failed to upload image:', error);
+      } finally {
+        setIsUploading(false);
+      }
+    } else {
+      // Fallback: convert to base64 (not recommended for production)
+      const reader = new FileReader();
+      reader.onload = () => {
+        const dataUrl = reader.result as string;
+        editor.chain().focus().setImage({ src: dataUrl }).run();
+        setImageDialogOpen(false);
+      };
+      reader.readAsDataURL(file);
+    }
+
+    // Reset input
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  }, [editor, onImageUpload]);
+
   if (!editor) {
     return null;
   }
@@ -146,6 +206,7 @@ export function RichTextEditor({ content, onChange, placeholder }: RichTextEdito
             onClick={() => editor.chain().focus().undo().run()}
             disabled={!editor.can().undo()}
             className="h-8 w-8 p-0"
+            title="Undo"
             data-testid="toolbar-undo"
           >
             <Undo className="h-4 w-4" />
@@ -157,6 +218,7 @@ export function RichTextEditor({ content, onChange, placeholder }: RichTextEdito
             onClick={() => editor.chain().focus().redo().run()}
             disabled={!editor.can().redo()}
             className="h-8 w-8 p-0"
+            title="Redo"
             data-testid="toolbar-redo"
           >
             <Redo className="h-4 w-4" />
@@ -183,11 +245,11 @@ export function RichTextEditor({ content, onChange, placeholder }: RichTextEdito
               }
             }}
           >
-            <SelectTrigger className="w-[120px] h-8" data-testid="toolbar-heading">
+            <SelectTrigger className="w-[130px] h-8" data-testid="toolbar-heading">
               <SelectValue placeholder="Style" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="p">Normal</SelectItem>
+              <SelectItem value="p">Normal Text</SelectItem>
               <SelectItem value="h1">Heading 1</SelectItem>
               <SelectItem value="h2">Heading 2</SelectItem>
               <SelectItem value="h3">Heading 3</SelectItem>
@@ -203,6 +265,7 @@ export function RichTextEditor({ content, onChange, placeholder }: RichTextEdito
             size="sm"
             onClick={() => editor.chain().focus().toggleBold().run()}
             className="h-8 w-8 p-0"
+            title="Bold"
             data-testid="toolbar-bold"
           >
             <Bold className="h-4 w-4" />
@@ -213,6 +276,7 @@ export function RichTextEditor({ content, onChange, placeholder }: RichTextEdito
             size="sm"
             onClick={() => editor.chain().focus().toggleItalic().run()}
             className="h-8 w-8 p-0"
+            title="Italic"
             data-testid="toolbar-italic"
           >
             <Italic className="h-4 w-4" />
@@ -223,6 +287,7 @@ export function RichTextEditor({ content, onChange, placeholder }: RichTextEdito
             size="sm"
             onClick={() => editor.chain().focus().toggleUnderline().run()}
             className="h-8 w-8 p-0"
+            title="Underline"
             data-testid="toolbar-underline"
           >
             <UnderlineIcon className="h-4 w-4" />
@@ -233,6 +298,7 @@ export function RichTextEditor({ content, onChange, placeholder }: RichTextEdito
             size="sm"
             onClick={() => editor.chain().focus().toggleStrike().run()}
             className="h-8 w-8 p-0"
+            title="Strikethrough"
             data-testid="toolbar-strike"
           >
             <Strikethrough className="h-4 w-4" />
@@ -248,12 +314,14 @@ export function RichTextEditor({ content, onChange, placeholder }: RichTextEdito
                 variant="ghost"
                 size="sm"
                 className="h-8 w-8 p-0"
+                title="Text Colour"
                 data-testid="toolbar-color"
               >
                 <Palette className="h-4 w-4" />
               </Button>
             </PopoverTrigger>
             <PopoverContent className="w-auto p-2">
+              <p className="text-xs font-medium mb-2">Text Colour</p>
               <div className="grid grid-cols-6 gap-1">
                 {TEXT_COLORS.map((color) => (
                   <button
@@ -277,12 +345,14 @@ export function RichTextEditor({ content, onChange, placeholder }: RichTextEdito
                 variant={editor.isActive('highlight') ? 'secondary' : 'ghost'}
                 size="sm"
                 className="h-8 w-8 p-0"
+                title="Highlight"
                 data-testid="toolbar-highlight"
               >
                 <Highlighter className="h-4 w-4" />
               </Button>
             </PopoverTrigger>
             <PopoverContent className="w-auto p-2">
+              <p className="text-xs font-medium mb-2">Highlight Colour</p>
               <div className="grid grid-cols-6 gap-1">
                 {HIGHLIGHT_COLORS.map((color) => (
                   <button
@@ -317,6 +387,7 @@ export function RichTextEditor({ content, onChange, placeholder }: RichTextEdito
             size="sm"
             onClick={() => editor.chain().focus().toggleBulletList().run()}
             className="h-8 w-8 p-0"
+            title="Bullet List"
             data-testid="toolbar-bullet-list"
           >
             <List className="h-4 w-4" />
@@ -327,6 +398,7 @@ export function RichTextEditor({ content, onChange, placeholder }: RichTextEdito
             size="sm"
             onClick={() => editor.chain().focus().toggleOrderedList().run()}
             className="h-8 w-8 p-0"
+            title="Numbered List"
             data-testid="toolbar-ordered-list"
           >
             <ListOrdered className="h-4 w-4" />
@@ -341,6 +413,7 @@ export function RichTextEditor({ content, onChange, placeholder }: RichTextEdito
             size="sm"
             onClick={() => editor.chain().focus().setTextAlign('left').run()}
             className="h-8 w-8 p-0"
+            title="Align Left"
             data-testid="toolbar-align-left"
           >
             <AlignLeft className="h-4 w-4" />
@@ -351,6 +424,7 @@ export function RichTextEditor({ content, onChange, placeholder }: RichTextEdito
             size="sm"
             onClick={() => editor.chain().focus().setTextAlign('center').run()}
             className="h-8 w-8 p-0"
+            title="Align Centre"
             data-testid="toolbar-align-center"
           >
             <AlignCenter className="h-4 w-4" />
@@ -361,6 +435,7 @@ export function RichTextEditor({ content, onChange, placeholder }: RichTextEdito
             size="sm"
             onClick={() => editor.chain().focus().setTextAlign('right').run()}
             className="h-8 w-8 p-0"
+            title="Align Right"
             data-testid="toolbar-align-right"
           >
             <AlignRight className="h-4 w-4" />
@@ -371,6 +446,7 @@ export function RichTextEditor({ content, onChange, placeholder }: RichTextEdito
             size="sm"
             onClick={() => editor.chain().focus().setTextAlign('justify').run()}
             className="h-8 w-8 p-0"
+            title="Justify"
             data-testid="toolbar-align-justify"
           >
             <AlignJustify className="h-4 w-4" />
@@ -385,6 +461,7 @@ export function RichTextEditor({ content, onChange, placeholder }: RichTextEdito
             size="sm"
             onClick={() => editor.chain().focus().toggleBlockquote().run()}
             className="h-8 w-8 p-0"
+            title="Quote"
             data-testid="toolbar-quote"
           >
             <Quote className="h-4 w-4" />
@@ -395,6 +472,7 @@ export function RichTextEditor({ content, onChange, placeholder }: RichTextEdito
             size="sm"
             onClick={setLink}
             className="h-8 w-8 p-0"
+            title="Insert Link"
             data-testid="toolbar-link"
           >
             <LinkIcon className="h-4 w-4" />
@@ -405,23 +483,100 @@ export function RichTextEditor({ content, onChange, placeholder }: RichTextEdito
             size="sm"
             onClick={() => editor.chain().focus().setHorizontalRule().run()}
             className="h-8 w-8 p-0"
+            title="Horizontal Line"
             data-testid="toolbar-hr"
           >
             <Minus className="h-4 w-4" />
           </Button>
+          
+          {/* Image Insert */}
+          <Dialog open={imageDialogOpen} onOpenChange={setImageDialogOpen}>
+            <DialogTrigger asChild>
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                className="h-8 w-8 p-0"
+                title="Insert Image"
+                data-testid="toolbar-image"
+              >
+                <ImageIcon className="h-4 w-4" />
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-md">
+              <DialogHeader>
+                <DialogTitle>Insert Image</DialogTitle>
+              </DialogHeader>
+              <div className="space-y-4">
+                {/* Upload from computer */}
+                <div>
+                  <Label className="text-sm font-medium">Upload from computer</Label>
+                  <div className="mt-2">
+                    <input
+                      ref={fileInputRef}
+                      type="file"
+                      accept="image/*"
+                      onChange={handleFileUpload}
+                      className="hidden"
+                      id="image-upload"
+                    />
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => fileInputRef.current?.click()}
+                      disabled={isUploading}
+                      className="w-full"
+                    >
+                      <Upload className="h-4 w-4 mr-2" />
+                      {isUploading ? 'Uploading...' : 'Choose Image'}
+                    </Button>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-4">
+                  <div className="flex-1 border-t border-gray-200" />
+                  <span className="text-sm text-gray-500">or</span>
+                  <div className="flex-1 border-t border-gray-200" />
+                </div>
+
+                {/* Paste URL */}
+                <div>
+                  <Label htmlFor="image-url" className="text-sm font-medium">
+                    Paste image URL
+                  </Label>
+                  <div className="mt-2 flex gap-2">
+                    <Input
+                      id="image-url"
+                      type="url"
+                      placeholder="https://example.com/image.jpg"
+                      value={imageUrl}
+                      onChange={(e) => setImageUrl(e.target.value)}
+                    />
+                    <Button
+                      type="button"
+                      onClick={handleImageUrlInsert}
+                      disabled={!imageUrl}
+                    >
+                      Insert
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            </DialogContent>
+          </Dialog>
         </div>
       </div>
 
       {/* Editor Content */}
       <EditorContent 
         editor={editor} 
-        className="min-h-[200px]"
+        className="min-h-[300px]"
         data-testid="editor-content"
       />
 
       <style>{`
         .ProseMirror {
-          min-height: 200px;
+          min-height: 300px;
           padding: 1rem;
         }
         .ProseMirror:focus {
@@ -483,6 +638,12 @@ export function RichTextEditor({ content, onChange, placeholder }: RichTextEdito
         .ProseMirror mark {
           padding: 0.125rem 0.25rem;
           border-radius: 0.125rem;
+        }
+        .ProseMirror img {
+          max-width: 100%;
+          height: auto;
+          border-radius: 0.5rem;
+          margin: 1rem 0;
         }
         .ProseMirror p.is-editor-empty:first-child::before {
           content: attr(data-placeholder);

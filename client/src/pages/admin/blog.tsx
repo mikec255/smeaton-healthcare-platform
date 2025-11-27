@@ -16,7 +16,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Plus, Edit, Trash2, ArrowLeft, Eye, EyeOff, Upload, Calendar, User, BookOpen, Tag, Save, FileSearch } from "lucide-react";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { type BlogPost, insertBlogPostSchema, insertBlogCategorySchema, blogCategories, type BlogBlock } from "@shared/schema";
-import BlogVisualEditor from "@/components/blog/BlogVisualEditor";
+import { RichTextEditor } from "@/components/blog/RichTextEditor";
 import BlogImageManager from "@/components/blog/BlogImageManager";
 
 type BlogCategory = typeof blogCategories.$inferSelect;
@@ -43,13 +43,12 @@ export default function BlogAdmin() {
   const [selectedPost, setSelectedPost] = useState<BlogPost | null>(null);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isCategoryModalOpen, setIsCategoryModalOpen] = useState(false);
-  const [isVisualEditorOpen, setIsVisualEditorOpen] = useState(false);
+  const [isEditorOpen, setIsEditorOpen] = useState(false);
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
   const [previewPost, setPreviewPost] = useState<BlogPost | null>(null);
-  const [editingBlocks, setEditingBlocks] = useState<BlogBlock[]>([]);
-  const [useVisualEditorForCreate, setUseVisualEditorForCreate] = useState(true);
+  const [editingContent, setEditingContent] = useState<string>('');
   const [slugManuallyEdited, setSlugManuallyEdited] = useState(false);
-  const [newPostBlocks, setNewPostBlocks] = useState<BlogBlock[]>([]);
+  const [newPostContent, setNewPostContent] = useState<string>('');
   const [newPostImages, setNewPostImages] = useState<Array<{ id: string; url: string; isFeatured: boolean; uploadedAt?: string }>>([]);
   const { toast } = useToast();
 
@@ -272,51 +271,20 @@ export default function BlogAdmin() {
     setIsPreviewOpen(true);
   };
 
-  // Visual editor functions
-  const openVisualEditor = (post?: BlogPost) => {
-    if (post?.blocks) {
-      setEditingBlocks(post.blocks);
+  // Editor functions
+  const openEditor = (post?: BlogPost) => {
+    if (post?.content) {
+      setEditingContent(post.content);
     } else {
-      setEditingBlocks([]);
+      setEditingContent('');
     }
     setSelectedPost(post || null);
-    setIsVisualEditorOpen(true);
+    setIsEditorOpen(true);
   };
 
-  const closeVisualEditor = () => {
-    setIsVisualEditorOpen(false);
-    setEditingBlocks([]);
-  };
-
-  // Save and continue editing
-  const saveVisualContent = async () => {
-    if (!selectedPost) {
-      toast({
-        title: "Error",
-        description: "No post selected for visual editing",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    try {
-      await apiRequest("PUT", `/api/blog-posts/${selectedPost.id}`, {
-        blocks: editingBlocks,
-      });
-      
-      queryClient.invalidateQueries({ queryKey: ["/api/blog-posts"] });
-      
-      toast({
-        title: "Content Saved",
-        description: "Your changes have been saved successfully",
-      });
-    } catch (error) {
-      toast({
-        title: "Save Failed",
-        description: "Failed to save visual content. Please try again.",
-        variant: "destructive",
-      });
-    }
+  const closeEditor = () => {
+    setIsEditorOpen(false);
+    setEditingContent('');
   };
 
   // Save and close editor
@@ -324,7 +292,7 @@ export default function BlogAdmin() {
     if (!selectedPost) {
       toast({
         title: "Error",
-        description: "No post selected for visual editing",
+        description: "No post selected for editing",
         variant: "destructive",
       });
       return;
@@ -332,20 +300,20 @@ export default function BlogAdmin() {
 
     try {
       await apiRequest("PUT", `/api/blog-posts/${selectedPost.id}`, {
-        blocks: editingBlocks,
+        content: editingContent,
       });
       
       queryClient.invalidateQueries({ queryKey: ["/api/blog-posts"] });
-      closeVisualEditor();
+      closeEditor();
       
       toast({
         title: "Content Saved",
-        description: "Your changes have been saved and editor closed",
+        description: "Your changes have been saved",
       });
     } catch (error) {
       toast({
         title: "Save Failed",
-        description: "Failed to save visual content. Please try again.",
+        description: "Failed to save content. Please try again.",
         variant: "destructive",
       });
     }
@@ -508,17 +476,13 @@ export default function BlogAdmin() {
   });
 
   const onCreatePost = (data: CreateBlogPostData) => {
-    console.log("Form data submitted:", data);
-    console.log("Visual editor enabled:", useVisualEditorForCreate);
-    console.log("New post blocks:", newPostBlocks);
-    console.log("New post images:", newPostImages);
+    // Use the rich text content
+    const postData = { 
+      ...data, 
+      content: newPostContent || data.content,
+      images: newPostImages 
+    };
     
-    // Add blocks to the post data if using visual editor
-    const postData = useVisualEditorForCreate 
-      ? { ...data, blocks: newPostBlocks, images: newPostImages }
-      : { ...data, images: newPostImages };
-    
-    console.log("Final post data:", postData);
     createPostMutation.mutate(postData);
   };
 
@@ -561,23 +525,25 @@ export default function BlogAdmin() {
     }
   }, [watchTitle, form, slugManuallyEdited]);
 
-  // Visual Editor Modal
-  if (isVisualEditorOpen) {
+  // Full-screen Editor Modal
+  if (isEditorOpen) {
     return (
       <div className="fixed inset-0 bg-background z-[100] flex flex-col pt-20">
-        {/* Visual Editor Header */}
+        {/* Editor Header */}
         <div className="w-full bg-background border-b border-border p-4 shadow-sm">
           <div className="flex justify-between items-center">
             <div className="flex items-center gap-4">
               <Button
-                onClick={closeVisualEditor}
+                onClick={closeEditor}
                 variant="outline"
-                data-testid="close-visual-editor"
+                data-testid="close-editor"
               >
                 <ArrowLeft className="h-4 w-4 mr-2" />
                 Back to Blog List
               </Button>
-              <h2 className="text-xl font-semibold">Visual Blog Editor</h2>
+              <h2 className="text-xl font-semibold">
+                {selectedPost ? `Editing: ${selectedPost.title}` : 'Blog Editor'}
+              </h2>
             </div>
             <div className="flex gap-2">
               <Button
@@ -585,18 +551,21 @@ export default function BlogAdmin() {
                 className="bg-primary hover:bg-primary/90"
                 data-testid="save-and-close"
               >
-                💾 Save & Close
+                Save & Close
               </Button>
             </div>
           </div>
         </div>
 
-        {/* Visual Editor Content */}
-        <div className="flex-1 overflow-hidden">
-          <BlogVisualEditor
-            blocks={editingBlocks}
-            onChange={setEditingBlocks}
-          />
+        {/* Editor Content */}
+        <div className="flex-1 overflow-auto p-6">
+          <div className="max-w-4xl mx-auto">
+            <RichTextEditor
+              content={editingContent}
+              onChange={setEditingContent}
+              placeholder="Start writing your blog post..."
+            />
+          </div>
         </div>
       </div>
     );
@@ -752,51 +721,12 @@ export default function BlogAdmin() {
                   />
 
                   <div className="space-y-4">
-                    <div className="flex items-center justify-between">
-                      <FormLabel>Content</FormLabel>
-                      <div className="flex items-center space-x-2">
-                        <Button
-                          type="button"
-                          variant={useVisualEditorForCreate ? "default" : "outline"}
-                          size="sm"
-                          onClick={() => setUseVisualEditorForCreate(true)}
-                          data-testid="button-visual-editor"
-                        >
-                          Visual Editor
-                        </Button>
-                        <Button
-                          type="button"
-                          variant={!useVisualEditorForCreate ? "default" : "outline"}
-                          size="sm"
-                          onClick={() => setUseVisualEditorForCreate(false)}
-                          data-testid="button-text-editor"
-                        >
-                          Text Editor
-                        </Button>
-                      </div>
-                    </div>
-                    
-                    {useVisualEditorForCreate ? (
-                      <div className="border border-border rounded-lg p-4 min-h-[400px]">
-                        <BlogVisualEditor
-                          blocks={newPostBlocks}
-                          onChange={setNewPostBlocks}
-                        />
-                      </div>
-                    ) : (
-                      <FormField
-                        control={form.control}
-                        name="content"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormControl>
-                              <Textarea {...field} value={field.value || ""} rows={10} data-testid="input-post-content" />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                    )}
+                    <FormLabel>Content</FormLabel>
+                    <RichTextEditor
+                      content={newPostContent}
+                      onChange={setNewPostContent}
+                      placeholder="Start writing your blog post..."
+                    />
                   </div>
 
                   <div className="grid grid-cols-2 gap-4">
@@ -858,9 +788,7 @@ export default function BlogAdmin() {
                       <div>
                         <h3 className="font-medium text-sm">Featured Image for Social Sharing</h3>
                         <p className="text-xs text-muted-foreground mt-1">
-                          {useVisualEditorForCreate 
-                            ? "Optional: Upload images here OR add images in the Visual Editor above. The first image will be used for social media sharing." 
-                            : "Upload and star an image to display when sharing on social media."}
+                          Upload an image to display when sharing on social media. You can also add images directly in the editor above.
                         </p>
                       </div>
                     </div>
@@ -1075,12 +1003,12 @@ export default function BlogAdmin() {
                     <Button
                       variant="outline"
                       size="sm"
-                      onClick={() => openVisualEditor(post)}
+                      onClick={() => openEditor(post)}
                       className="bg-primary/5 border-primary/20 hover:bg-primary/10"
-                      data-testid={`visual-editor-${post.id}`}
+                      data-testid={`editor-${post.id}`}
                     >
                       <Edit className="h-4 w-4 mr-1" />
-                      Visual Editor
+                      Edit Content
                     </Button>
                     <Button
                       variant="outline"
