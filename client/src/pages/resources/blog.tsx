@@ -1,15 +1,11 @@
 import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ArrowLeft, Calendar, Clock, ArrowRight, Filter } from "lucide-react";
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { type BlogPost, type BlogCategory } from "@shared/schema";
-import DOMPurify from "dompurify";
-import SocialShareBar from "@/components/shared/SocialShareBar";
 import { apiRequest, queryClient } from "@/lib/queryClient";
-import { updateMetaTags, resetMetaTags } from "@/utils/metaTags";
 import { PageSEO, pageSEO } from "@/components/seo/PageSEO";
 import { ArticleSchema, BreadcrumbSchema } from "@/components/seo/StructuredData";
 import teamMeetingImg from "@assets/generated_images/Healthcare_team_meeting_photo_21dc58ac.png";
@@ -37,7 +33,6 @@ interface TransformedBlogPost {
 
 export default function Blog() {
   const [selectedCategory, setSelectedCategory] = useState("All");
-  const [openDialogPostId, setOpenDialogPostId] = useState<string | null>(null);
   
   // Fetch blog posts (only published ones for public view)
   const { data: blogPosts = [], isLoading: postsLoading } = useQuery<BlogPost[]>({
@@ -300,27 +295,6 @@ export default function Blog() {
     });
   }, [blogPosts, categories]);
 
-  // Update meta tags when a blog post is opened
-  useEffect(() => {
-    if (openDialogPostId) {
-      const post = transformedBlogPosts.find(p => p.id === openDialogPostId);
-      if (post) {
-        // Use the server endpoint to serve the featured image for social media
-        const featuredImageUrl = `${window.location.origin}/api/blog-images/${openDialogPostId}/featured`;
-        
-        updateMetaTags({
-          title: `${post.title} | Smeaton Healthcare Blog`,
-          description: post.excerpt || `Read our blog post: ${post.title}`,
-          image: featuredImageUrl,
-          url: `/resources/blog#${post.id}`,
-        });
-      }
-    } else {
-      // Reset to default when dialog closes
-      resetMetaTags();
-    }
-  }, [openDialogPostId, transformedBlogPosts]);
-
   // Create category options with "All" option
   const categoryOptions = ["All", ...categories.map(cat => cat.name)];
   
@@ -570,66 +544,17 @@ export default function Blog() {
                     
                     {/* Read Article Button - right side */}
                     <div className="flex-shrink-0 flex items-center">
-                      <Dialog onOpenChange={(open) => setOpenDialogPostId(open ? post.id : null)}>
-                        <DialogTrigger asChild>
-                          <Button 
-                            variant="outline" 
-                            size="sm"
-                            className="h-7 text-xs hover:bg-primary hover:text-primary-foreground group"
-                            data-testid={`read-article-${index}`}
-                            onClick={() => trackView(post.id)}
-                          >
-                            Read Article
-                            <ArrowRight className="ml-1.5 h-3 w-3 group-hover:translate-x-1 transition-transform" />
-                          </Button>
-                        </DialogTrigger>
-                        <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
-                          <DialogHeader>
-                            <DialogTitle className="text-2xl font-bold text-left pr-8">
-                              {post.title}
-                            </DialogTitle>
-                            <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground pt-2">
-                              <span className="bg-primary/10 text-primary px-3 py-1 rounded-full font-medium">
-                                {post.category}
-                              </span>
-                              <div className="flex items-center gap-1">
-                                <Calendar className="h-4 w-4" />
-                                {post.date}
-                              </div>
-                              {post.readTime && (
-                                <div className="flex items-center gap-1">
-                                  <Clock className="h-4 w-4" />
-                                  {post.readTime}
-                                </div>
-                              )}
-                            </div>
-                          </DialogHeader>
-                          
-                          {/* Article Image in Modal - only show if image was uploaded separately (not extracted from content) */}
-                          {post.image && post.imageIsFromUpload && (
-                            <div className="w-full flex justify-center mb-6">
-                              <img 
-                                src={post.image} 
-                                alt={post.title}
-                                className="max-w-full h-auto max-h-[400px] object-contain rounded-lg"
-                              />
-                            </div>
-                          )}
-                          
-                          {/* Social Share Bar */}
-                          <SocialShareBar 
-                            url={`${window.location.origin}/blog/${post.id}`}
-                            title={post.title}
-                          />
-                          
-                          {/* Full Article Content */}
-                          <div 
-                            className="prose prose-lg max-w-none"
-                            dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(post.fullContent) }}
-                            data-testid={`full-article-${index}`}
-                          />
-                        </DialogContent>
-                      </Dialog>
+                      <Link href={`/blog/${post.id}`} onClick={() => trackView(post.id)}>
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          className="h-7 text-xs hover:bg-primary hover:text-primary-foreground group"
+                          data-testid={`read-article-${index}`}
+                        >
+                          Read Article
+                          <ArrowRight className="ml-1.5 h-3 w-3 group-hover:translate-x-1 transition-transform" />
+                        </Button>
+                      </Link>
                     </div>
                   </div>
                 </div>

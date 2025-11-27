@@ -1,9 +1,40 @@
 import express from "express";
 import type { BlogPost } from "@shared/schema";
 
+// Common social media and search engine crawler user agents
+const CRAWLER_USER_AGENTS = [
+  'facebookexternalhit',
+  'Facebot',
+  'Twitterbot',
+  'LinkedInBot',
+  'Pinterest',
+  'Slackbot',
+  'WhatsApp',
+  'TelegramBot',
+  'Discordbot',
+  'Googlebot',
+  'bingbot',
+  'Baiduspider',
+  'YandexBot',
+];
+
+function isCrawler(userAgent: string | undefined): boolean {
+  if (!userAgent) return false;
+  return CRAWLER_USER_AGENTS.some(crawler => 
+    userAgent.toLowerCase().includes(crawler.toLowerCase())
+  );
+}
+
 // Server-side rendered page for blog posts (for Facebook/social media scraping)
 export function registerBlogSharingRoutes(app: express.Application) {
-  app.get("/blog/:postId", async (req, res) => {
+  app.get("/blog/:postId", async (req, res, next) => {
+    const userAgent = req.headers['user-agent'];
+    
+    // If not a crawler, let the request pass through to the SPA
+    if (!isCrawler(userAgent)) {
+      return next();
+    }
+    
     try {
       const { storage } = await import("./storage");
       const post = await storage.getBlogPost(req.params.postId);
@@ -57,7 +88,7 @@ export function registerBlogSharingRoutes(app: express.Application) {
       const safeTitle = escapeHtml(post.title);
       const safeExcerpt = escapeHtml(post.excerpt || post.title);
       
-      // Return HTML with meta tags for social media
+      // Return HTML with meta tags for social media crawlers
       res.send(`
 <!DOCTYPE html>
 <html lang="en">
@@ -85,16 +116,11 @@ export function registerBlogSharingRoutes(app: express.Application) {
     <meta name="twitter:title" content="${safeTitle}" />
     <meta name="twitter:description" content="${safeExcerpt}" />
     <meta name="twitter:image" content="${imageUrl}" />
-    
-    <!-- Redirect to the React app after meta tags are loaded -->
-    <meta http-equiv="refresh" content="0;url=/resources/blog#${post.id}" />
   </head>
   <body>
-    <p>Loading blog post...</p>
-    <script>
-      // Immediate redirect for users (meta tags already loaded for social crawlers)
-      window.location.href = '/resources/blog#${post.id}';
-    </script>
+    <h1>${safeTitle}</h1>
+    <p>${safeExcerpt}</p>
+    <p>Visit <a href="${pageUrl}">${pageUrl}</a> to read the full article.</p>
   </body>
 </html>
       `);

@@ -70,6 +70,7 @@ const Assessment = lazy(() => import("@/pages/assessment"));
 // Resources pages
 const Resources = lazy(() => import("@/pages/resources"));
 const Blog = lazy(() => import("@/pages/resources/blog"));
+const BlogPost = lazy(() => import("@/pages/blog-post"));
 const WorkingAtSmeaton = lazy(() => import("@/pages/resources/working-at-smeaton"));
 const Sponsorship = lazy(() => import("@/pages/resources/sponsorship"));
 const Newsletter = lazy(() => import("@/pages/resources/newsletter"));
@@ -121,6 +122,7 @@ function Router() {
             {/* Resources pages */}
             <Route path="/resources" component={Resources} />
             <Route path="/resources/blog" component={Blog} />
+            <Route path="/blog/:postId" component={BlogPost} />
             <Route path="/resources/working-at-smeaton" component={WorkingAtSmeaton} />
             <Route path="/resources/sponsorship" component={Sponsorship} />
             <Route path="/resources/newsletter" component={Newsletter} />
