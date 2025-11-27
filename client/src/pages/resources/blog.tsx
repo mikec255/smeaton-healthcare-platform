@@ -542,7 +542,7 @@ export default function Blog() {
                     {/* Small Thumbnail Image - only show if image exists */}
                     {post.image && (
                       <div className="flex-shrink-0">
-                        <div className="w-full sm:w-32 h-48 sm:h-24 md:w-40 md:h-28 overflow-hidden rounded-lg">
+                        <div className="w-24 sm:w-28 md:w-32 aspect-square overflow-hidden rounded-lg">
                           <img 
                             src={post.image} 
                             alt={post.title}
@@ -605,11 +605,11 @@ export default function Blog() {
                           
                           {/* Article Image in Modal - only show if image was uploaded separately (not extracted from content) */}
                           {post.image && post.imageIsFromUpload && (
-                            <div className="w-full overflow-hidden rounded-lg mb-6">
+                            <div className="w-full flex justify-center mb-6">
                               <img 
                                 src={post.image} 
                                 alt={post.title}
-                                className="w-full h-auto rounded-lg"
+                                className="max-w-full h-auto max-h-[400px] object-contain rounded-lg"
                               />
                             </div>
                           )}
