@@ -542,14 +542,12 @@ export default function Blog() {
                     {/* Small Thumbnail Image - only show if image exists */}
                     {post.image && (
                       <div className="flex-shrink-0">
-                        <div className="w-24 sm:w-28 md:w-32 aspect-square overflow-hidden rounded-lg">
-                          <img 
-                            src={post.image} 
-                            alt={post.title}
-                            className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
-                            data-testid={`blog-image-${index}`}
-                          />
-                        </div>
+                        <img 
+                          src={post.image} 
+                          alt={post.title}
+                          className="max-w-[120px] sm:max-w-[140px] md:max-w-[160px] max-h-[120px] w-auto h-auto object-contain rounded-lg hover:scale-105 transition-transform duration-300"
+                          data-testid={`blog-image-${index}`}
+                        />
                       </div>
                     )}
 
