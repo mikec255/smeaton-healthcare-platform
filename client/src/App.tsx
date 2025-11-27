@@ -55,12 +55,14 @@ const ToolsAdmin = lazy(() => import("@/pages/admin/tools"));
 const CqcToolkitAdmin = lazy(() => import("@/pages/admin/cqc-toolkit"));
 const RecruitmentApplicationsAdmin = lazy(() => import("@/pages/admin/recruitment-applications"));
 const ProfessionalReferencesAdmin = lazy(() => import("@/pages/admin/professional-references"));
+const ReferenceRequestsAdmin = lazy(() => import("@/pages/admin/reference-requests"));
 const RoutePlannerAdmin = lazy(() => import("@/pages/admin/route-planner"));
 const FinanceReportsAdmin = lazy(() => import("@/pages/admin/finance-reports"));
 const LiveInCareFlyer = lazy(() => import("@/pages/admin/live-in-care-flyer"));
 const LiveInCareFacebook = lazy(() => import("@/pages/admin/live-in-care-facebook"));
 const RecruitmentApplication = lazy(() => import("@/pages/recruitment-application"));
 const ProfessionalReference = lazy(() => import("@/pages/professional-reference"));
+const ReferenceForm = lazy(() => import("@/pages/reference-form"));
 
 // Assessment page for staff knowledge tests
 const Assessment = lazy(() => import("@/pages/assessment"));
@@ -136,6 +138,7 @@ function Router() {
             <Route path="/create-password" component={CreatePassword} />
             <Route path="/apply" component={RecruitmentApplication} />
             <Route path="/reference" component={ProfessionalReference} />
+            <Route path="/reference-form/:token" component={ReferenceForm} />
             
             {/* Staff Assessment page (public) */}
             <Route path="/assessment/:shareableLink" component={Assessment} />
@@ -161,6 +164,7 @@ function Router() {
             <Route path="/admin/live-in-care-facebook" component={LiveInCareFacebook} />
             <Route path="/admin/recruitment-applications" component={RecruitmentApplicationsAdmin} />
             <Route path="/admin/professional-references" component={ProfessionalReferencesAdmin} />
+            <Route path="/admin/reference-requests" component={ReferenceRequestsAdmin} />
             <Route path="/admin" component={Admin} />
             
             <Route component={NotFound} />
