@@ -474,9 +474,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       return res.status(401).json({ message: "Not authenticated" });
     }
     
-    // Development: Check session first
+    // Development: Check session first, but always get full user from database
     if (req.session?.user) {
-      return res.json({ user: req.session.user });
+      const dbUser = await storage.getUserById(req.session.user.id);
+      if (dbUser && dbUser.isActive) {
+        return res.json({ user: dbUser });
+      }
     }
     
     // Development only: Fallback to insecure token for testing
