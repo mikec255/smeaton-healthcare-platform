@@ -46,11 +46,187 @@ const insuranceAuditSchema = z.object({
   actions: z.string().min(1, "Actions are required"),
 });
 
+// Regulation 12 - Safe Care and Treatment audit form schema
+const safeCareAuditSchema = z.object({
+  riskAssessmentsComplete: z.string().min(1, "Please select an option"),
+  riskAssessmentDetails: z.string().min(1, "Details are required"),
+  medicationManagementSafe: z.string().min(1, "Please select an option"),
+  medicationDetails: z.string().min(1, "Details are required"),
+  incidentReportingEffective: z.string().min(1, "Please select an option"),
+  incidentDetails: z.string().min(1, "Details are required"),
+  equipmentSafe: z.string().min(1, "Please select an option"),
+  equipmentDetails: z.string().min(1, "Details are required"),
+  infectionControlMeasures: z.string().min(1, "Please select an option"),
+  infectionControlDetails: z.string().min(1, "Details are required"),
+  staffTrainedInSafety: z.string().min(1, "Please select an option"),
+  safetyTrainingDetails: z.string().min(1, "Details are required"),
+  score: z.coerce.number().min(0).max(6),
+  areasOfStrength: z.string().optional(),
+  areasForImprovement: z.string().optional(),
+  actions: z.string().min(1, "Actions are required"),
+});
+
+// Regulation 13 - Safeguarding audit form schema
+const safeguardingAuditSchema = z.object({
+  safeguardingPolicyInPlace: z.string().min(1, "Please select an option"),
+  policyDetails: z.string().min(1, "Details are required"),
+  staffTrainedInSafeguarding: z.string().min(1, "Please select an option"),
+  trainingDetails: z.string().min(1, "Details are required"),
+  safeguardingLeadIdentified: z.string().min(1, "Please select an option"),
+  leadDetails: z.string().min(1, "Details are required"),
+  reportingProcessClear: z.string().min(1, "Please select an option"),
+  reportingDetails: z.string().min(1, "Details are required"),
+  dbsChecksComplete: z.string().min(1, "Please select an option"),
+  dbsDetails: z.string().min(1, "Details are required"),
+  concernsDocumented: z.string().min(1, "Please select an option"),
+  documentationDetails: z.string().min(1, "Details are required"),
+  partnershipWithAuthorities: z.string().min(1, "Please select an option"),
+  partnershipDetails: z.string().min(1, "Details are required"),
+  score: z.coerce.number().min(0).max(6),
+  areasOfStrength: z.string().optional(),
+  areasForImprovement: z.string().optional(),
+  actions: z.string().min(1, "Actions are required"),
+});
+
+// Regulation 17 - Good Governance audit form schema
+const governanceAuditSchema = z.object({
+  qualityAssuranceSystemsInPlace: z.string().min(1, "Please select an option"),
+  qaDetails: z.string().min(1, "Details are required"),
+  policiesUpToDate: z.string().min(1, "Please select an option"),
+  policyReviewDetails: z.string().min(1, "Details are required"),
+  recordKeepingAccurate: z.string().min(1, "Please select an option"),
+  recordDetails: z.string().min(1, "Details are required"),
+  riskManagementEffective: z.string().min(1, "Please select an option"),
+  riskManagementDetails: z.string().min(1, "Details are required"),
+  auditScheduleMaintained: z.string().min(1, "Please select an option"),
+  auditDetails: z.string().min(1, "Details are required"),
+  cqcNotificationsSubmitted: z.string().min(1, "Please select an option"),
+  notificationDetails: z.string().min(1, "Details are required"),
+  leadershipOversight: z.string().min(1, "Please select an option"),
+  leadershipDetails: z.string().min(1, "Details are required"),
+  score: z.coerce.number().min(0).max(6),
+  areasOfStrength: z.string().optional(),
+  areasForImprovement: z.string().optional(),
+  actions: z.string().min(1, "Actions are required"),
+});
+
+// Regulation 18 - Staffing audit form schema
+const staffingAuditSchema = z.object({
+  sufficientStaffDeployed: z.string().min(1, "Please select an option"),
+  staffingLevelDetails: z.string().min(1, "Details are required"),
+  staffQualifiedAndCompetent: z.string().min(1, "Please select an option"),
+  qualificationDetails: z.string().min(1, "Details are required"),
+  supervisionProvided: z.string().min(1, "Please select an option"),
+  supervisionDetails: z.string().min(1, "Details are required"),
+  trainingNeedsMet: z.string().min(1, "Please select an option"),
+  trainingDetails: z.string().min(1, "Details are required"),
+  staffSupportedAndDeveloped: z.string().min(1, "Please select an option"),
+  supportDetails: z.string().min(1, "Details are required"),
+  inductionProcessComplete: z.string().min(1, "Please select an option"),
+  inductionDetails: z.string().min(1, "Details are required"),
+  score: z.coerce.number().min(0).max(6),
+  areasOfStrength: z.string().optional(),
+  areasForImprovement: z.string().optional(),
+  actions: z.string().min(1, "Actions are required"),
+});
+
+// Regulation 19 - Fit and Proper Persons audit form schema
+const fitProperPersonsAuditSchema = z.object({
+  recruitmentPolicySafe: z.string().min(1, "Please select an option"),
+  recruitmentDetails: z.string().min(1, "Details are required"),
+  dbsChecksCompleted: z.string().min(1, "Please select an option"),
+  dbsCheckDetails: z.string().min(1, "Details are required"),
+  referencesObtained: z.string().min(1, "Please select an option"),
+  referenceDetails: z.string().min(1, "Details are required"),
+  professionalRegistrationChecked: z.string().min(1, "Please select an option"),
+  registrationDetails: z.string().min(1, "Details are required"),
+  rightToWorkVerified: z.string().min(1, "Please select an option"),
+  rightToWorkDetails: z.string().min(1, "Details are required"),
+  characterAssessmentComplete: z.string().min(1, "Please select an option"),
+  characterDetails: z.string().min(1, "Details are required"),
+  ongoingMonitoring: z.string().min(1, "Please select an option"),
+  monitoringDetails: z.string().min(1, "Details are required"),
+  score: z.coerce.number().min(0).max(6),
+  areasOfStrength: z.string().optional(),
+  areasForImprovement: z.string().optional(),
+  actions: z.string().min(1, "Actions are required"),
+});
+
+// Regulation 12A - Infection Prevention and Control audit form schema
+const infectionControlAuditSchema = z.object({
+  ipcPolicyInPlace: z.string().min(1, "Please select an option"),
+  policyDetails: z.string().min(1, "Details are required"),
+  ppeAvailableAndUsed: z.string().min(1, "Please select an option"),
+  ppeDetails: z.string().min(1, "Details are required"),
+  handHygieneCompliance: z.string().min(1, "Please select an option"),
+  handHygieneDetails: z.string().min(1, "Details are required"),
+  cleaningSchedulesMaintained: z.string().min(1, "Please select an option"),
+  cleaningDetails: z.string().min(1, "Details are required"),
+  outbreakManagementPlan: z.string().min(1, "Please select an option"),
+  outbreakDetails: z.string().min(1, "Details are required"),
+  staffTrainedInIpc: z.string().min(1, "Please select an option"),
+  ipcTrainingDetails: z.string().min(1, "Details are required"),
+  wasteDisposalCompliant: z.string().min(1, "Please select an option"),
+  wasteDetails: z.string().min(1, "Details are required"),
+  score: z.coerce.number().min(0).max(6),
+  areasOfStrength: z.string().optional(),
+  areasForImprovement: z.string().optional(),
+  actions: z.string().min(1, "Actions are required"),
+});
+
+// Regulation 9 - Person-Centred Care audit form schema
+const personCentredCareAuditSchema = z.object({
+  carePlansPersonalised: z.string().min(1, "Please select an option"),
+  carePlanDetails: z.string().min(1, "Details are required"),
+  preferencesDocumented: z.string().min(1, "Please select an option"),
+  preferenceDetails: z.string().min(1, "Details are required"),
+  serviceUserInvolved: z.string().min(1, "Please select an option"),
+  involvementDetails: z.string().min(1, "Details are required"),
+  needsRegularlyReviewed: z.string().min(1, "Please select an option"),
+  reviewDetails: z.string().min(1, "Details are required"),
+  choicesRespected: z.string().min(1, "Please select an option"),
+  choiceDetails: z.string().min(1, "Details are required"),
+  culturalNeedsMet: z.string().min(1, "Please select an option"),
+  culturalDetails: z.string().min(1, "Details are required"),
+  score: z.coerce.number().min(0).max(6),
+  areasOfStrength: z.string().optional(),
+  areasForImprovement: z.string().optional(),
+  actions: z.string().min(1, "Actions are required"),
+});
+
+// Regulation 16 - Complaints Handling audit form schema
+const complaintsAuditSchema = z.object({
+  complaintsProcessAccessible: z.string().min(1, "Please select an option"),
+  processDetails: z.string().min(1, "Details are required"),
+  complaintsInvestigated: z.string().min(1, "Please select an option"),
+  investigationDetails: z.string().min(1, "Details are required"),
+  timelinessMet: z.string().min(1, "Please select an option"),
+  timelinessDetails: z.string().min(1, "Details are required"),
+  learningFromComplaints: z.string().min(1, "Please select an option"),
+  learningDetails: z.string().min(1, "Details are required"),
+  complainantsKeptInformed: z.string().min(1, "Please select an option"),
+  communicationDetails: z.string().min(1, "Details are required"),
+  recordsWellMaintained: z.string().min(1, "Please select an option"),
+  recordsDetails: z.string().min(1, "Details are required"),
+  score: z.coerce.number().min(0).max(6),
+  areasOfStrength: z.string().optional(),
+  areasForImprovement: z.string().optional(),
+  actions: z.string().min(1, "Actions are required"),
+});
+
 type CreateAuditFormData = z.infer<typeof createAuditSchema>;
 type CreateComplianceRecordFormData = z.infer<typeof createComplianceRecordSchema>;
 type CreateKnowledgeQuestionnaireFormData = z.infer<typeof createKnowledgeQuestionnaireSchema>;
 type CreateKnowledgeQuestionFormData = z.infer<typeof createKnowledgeQuestionSchema>;
 type InsuranceAuditFormData = z.infer<typeof insuranceAuditSchema>;
+type SafeCareAuditFormData = z.infer<typeof safeCareAuditSchema>;
+type SafeguardingAuditFormData = z.infer<typeof safeguardingAuditSchema>;
+type GovernanceAuditFormData = z.infer<typeof governanceAuditSchema>;
+type StaffingAuditFormData = z.infer<typeof staffingAuditSchema>;
+type FitProperPersonsAuditFormData = z.infer<typeof fitProperPersonsAuditSchema>;
+type InfectionControlAuditFormData = z.infer<typeof infectionControlAuditSchema>;
+type PersonCentredCareAuditFormData = z.infer<typeof personCentredCareAuditSchema>;
+type ComplaintsAuditFormData = z.infer<typeof complaintsAuditSchema>;
 
 // Icon mapping for evidence categories
 const EVIDENCE_CATEGORY_ICONS: Record<string, any> = {
@@ -83,14 +259,23 @@ export default function CqcToolkit() {
   const [qrCodeData, setQrCodeData] = useState<{ url: string; title: string } | null>(null);
   const [qrCodeDataUrl, setQrCodeDataUrl] = useState<string | null>(null);
   const [insuranceAuditOpen, setInsuranceAuditOpen] = useState(false);
+  const [safeCareAuditOpen, setSafeCareAuditOpen] = useState(false);
+  const [safeguardingAuditOpen, setSafeguardingAuditOpen] = useState(false);
+  const [governanceAuditOpen, setGovernanceAuditOpen] = useState(false);
+  const [staffingAuditOpen, setStaffingAuditOpen] = useState(false);
+  const [fitProperPersonsAuditOpen, setFitProperPersonsAuditOpen] = useState(false);
+  const [infectionControlAuditOpen, setInfectionControlAuditOpen] = useState(false);
+  const [personCentredCareAuditOpen, setPersonCentredCareAuditOpen] = useState(false);
+  const [complaintsAuditOpen, setComplaintsAuditOpen] = useState(false);
   const [selectedEvidenceFiles, setSelectedEvidenceFiles] = useState<File[]>([]);
   const queryClient = useQueryClient();
   const { toast } = useToast();
 
   // Current user query for getting auditor information
-  const { data: currentUser } = useQuery({
+  const { data: authData } = useQuery<{ user: { id: string; username: string; role: string } }>({
     queryKey: ["/api/auth/me"],
   });
+  const currentUser = authData?.user;
 
   // Queries - using single URL format for default fetcher compatibility
   const { data: audits = [], isLoading: auditsLoading, error: auditsError } = useQuery<CqcAudit[]>({
@@ -318,6 +503,62 @@ export default function CqcToolkit() {
     },
   });
 
+  // Generic CQC Audit mutation - reusable for all regulation audits
+  // 6-point scoring: 6=Good, 5=Requires Improvement, 0-4=Inadequate
+  const genericAuditMutation = useMutation({
+    mutationFn: async (params: { 
+      title: string;
+      category: string;
+      keyQuestion: string;
+      data: any;
+    }): Promise<void> => {
+      const { title, category, keyQuestion, data } = params;
+      const score = Number(data.score) || 0;
+      const auditData = {
+        title,
+        auditType: "fundamental_standards",
+        category,
+        serviceType: "domiciliary_care",
+        keyQuestion,
+        auditDate: new Date().toISOString(),
+        auditorId: currentUser?.id || "unknown-auditor",
+        auditorName: currentUser?.username || "Unknown Auditor",
+        overallRating: score === 6 ? "good" : score === 5 ? "requires_improvement" : "inadequate",
+        findings: JSON.stringify(data),
+        areasOfStrength: data.areasOfStrength || "",
+        areasForImprovement: data.areasForImprovement || "",
+        actionPlan: data.actions || "",
+      };
+      await apiRequest('POST', '/api/cqc/audits', auditData);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/cqc/audits"] });
+      toast({ title: "Success", description: "Audit saved successfully" });
+    },
+    onError: (error: Error) => {
+      console.error('Create audit error:', error);
+      toast({ title: "Error", description: error.message || "Failed to save audit", variant: "destructive" });
+    },
+  });
+
+  // Helper function to submit audit and reset form
+  const submitGenericAudit = async (
+    title: string,
+    category: string,
+    keyQuestion: string,
+    data: any,
+    setOpen: (open: boolean) => void,
+    form: any
+  ) => {
+    try {
+      await genericAuditMutation.mutateAsync({ title, category, keyQuestion, data });
+      setOpen(false);
+      form.reset();
+    } catch (error) {
+      // Error handled by mutation
+    }
+  };
+
   // Forms
   const auditForm = useForm({
     resolver: zodResolver(createAuditSchema),
@@ -389,6 +630,190 @@ export default function CqcToolkit() {
       coverageDetails: "",
       score: 0,
       furtherInformation: "",
+      actions: "",
+    },
+  });
+
+  const safeCareAuditForm = useForm<SafeCareAuditFormData>({
+    resolver: zodResolver(safeCareAuditSchema),
+    defaultValues: {
+      riskAssessmentsComplete: "",
+      riskAssessmentDetails: "",
+      medicationManagementSafe: "",
+      medicationDetails: "",
+      incidentReportingEffective: "",
+      incidentDetails: "",
+      equipmentSafe: "",
+      equipmentDetails: "",
+      infectionControlMeasures: "",
+      infectionControlDetails: "",
+      staffTrainedInSafety: "",
+      safetyTrainingDetails: "",
+      score: 0,
+      areasOfStrength: "",
+      areasForImprovement: "",
+      actions: "",
+    },
+  });
+
+  const safeguardingAuditForm = useForm<SafeguardingAuditFormData>({
+    resolver: zodResolver(safeguardingAuditSchema),
+    defaultValues: {
+      safeguardingPolicyInPlace: "",
+      policyDetails: "",
+      staffTrainedInSafeguarding: "",
+      trainingDetails: "",
+      safeguardingLeadIdentified: "",
+      leadDetails: "",
+      reportingProcessClear: "",
+      reportingDetails: "",
+      dbsChecksComplete: "",
+      dbsDetails: "",
+      concernsDocumented: "",
+      documentationDetails: "",
+      partnershipWithAuthorities: "",
+      partnershipDetails: "",
+      score: 0,
+      areasOfStrength: "",
+      areasForImprovement: "",
+      actions: "",
+    },
+  });
+
+  const governanceAuditForm = useForm<GovernanceAuditFormData>({
+    resolver: zodResolver(governanceAuditSchema),
+    defaultValues: {
+      qualityAssuranceSystemsInPlace: "",
+      qaDetails: "",
+      policiesUpToDate: "",
+      policyReviewDetails: "",
+      recordKeepingAccurate: "",
+      recordDetails: "",
+      riskManagementEffective: "",
+      riskManagementDetails: "",
+      auditScheduleMaintained: "",
+      auditDetails: "",
+      cqcNotificationsSubmitted: "",
+      notificationDetails: "",
+      leadershipOversight: "",
+      leadershipDetails: "",
+      score: 0,
+      areasOfStrength: "",
+      areasForImprovement: "",
+      actions: "",
+    },
+  });
+
+  const staffingAuditForm = useForm<StaffingAuditFormData>({
+    resolver: zodResolver(staffingAuditSchema),
+    defaultValues: {
+      sufficientStaffDeployed: "",
+      staffingLevelDetails: "",
+      staffQualifiedAndCompetent: "",
+      qualificationDetails: "",
+      supervisionProvided: "",
+      supervisionDetails: "",
+      trainingNeedsMet: "",
+      trainingDetails: "",
+      staffSupportedAndDeveloped: "",
+      supportDetails: "",
+      inductionProcessComplete: "",
+      inductionDetails: "",
+      score: 0,
+      areasOfStrength: "",
+      areasForImprovement: "",
+      actions: "",
+    },
+  });
+
+  const fitProperPersonsAuditForm = useForm<FitProperPersonsAuditFormData>({
+    resolver: zodResolver(fitProperPersonsAuditSchema),
+    defaultValues: {
+      recruitmentPolicySafe: "",
+      recruitmentDetails: "",
+      dbsChecksCompleted: "",
+      dbsCheckDetails: "",
+      referencesObtained: "",
+      referenceDetails: "",
+      professionalRegistrationChecked: "",
+      registrationDetails: "",
+      rightToWorkVerified: "",
+      rightToWorkDetails: "",
+      characterAssessmentComplete: "",
+      characterDetails: "",
+      ongoingMonitoring: "",
+      monitoringDetails: "",
+      score: 0,
+      areasOfStrength: "",
+      areasForImprovement: "",
+      actions: "",
+    },
+  });
+
+  const infectionControlAuditForm = useForm<InfectionControlAuditFormData>({
+    resolver: zodResolver(infectionControlAuditSchema),
+    defaultValues: {
+      ipcPolicyInPlace: "",
+      policyDetails: "",
+      ppeAvailableAndUsed: "",
+      ppeDetails: "",
+      handHygieneCompliance: "",
+      handHygieneDetails: "",
+      cleaningSchedulesMaintained: "",
+      cleaningDetails: "",
+      outbreakManagementPlan: "",
+      outbreakDetails: "",
+      staffTrainedInIpc: "",
+      ipcTrainingDetails: "",
+      wasteDisposalCompliant: "",
+      wasteDetails: "",
+      score: 0,
+      areasOfStrength: "",
+      areasForImprovement: "",
+      actions: "",
+    },
+  });
+
+  const personCentredCareAuditForm = useForm<PersonCentredCareAuditFormData>({
+    resolver: zodResolver(personCentredCareAuditSchema),
+    defaultValues: {
+      carePlansPersonalised: "",
+      carePlanDetails: "",
+      preferencesDocumented: "",
+      preferenceDetails: "",
+      serviceUserInvolved: "",
+      involvementDetails: "",
+      needsRegularlyReviewed: "",
+      reviewDetails: "",
+      choicesRespected: "",
+      choiceDetails: "",
+      culturalNeedsMet: "",
+      culturalDetails: "",
+      score: 0,
+      areasOfStrength: "",
+      areasForImprovement: "",
+      actions: "",
+    },
+  });
+
+  const complaintsAuditForm = useForm<ComplaintsAuditFormData>({
+    resolver: zodResolver(complaintsAuditSchema),
+    defaultValues: {
+      complaintsProcessAccessible: "",
+      processDetails: "",
+      complaintsInvestigated: "",
+      investigationDetails: "",
+      timelinessMet: "",
+      timelinessDetails: "",
+      learningFromComplaints: "",
+      learningDetails: "",
+      complainantsKeptInformed: "",
+      communicationDetails: "",
+      recordsWellMaintained: "",
+      recordsDetails: "",
+      score: 0,
+      areasOfStrength: "",
+      areasForImprovement: "",
       actions: "",
     },
   });
@@ -1503,16 +1928,894 @@ Delivering outstanding healthcare across Devon & Cornwall`;
                   </DialogContent>
                 </Dialog>
                 
-                {/* Placeholder for additional audit forms */}
-                <Card className="cursor-pointer hover:shadow-md transition-shadow border-2 border-dashed border-gray-300 dark:border-gray-600">
-                  <CardContent className="p-6 text-center">
-                    <div className="text-gray-400 dark:text-gray-500">
-                      <Plus className="h-8 w-8 mx-auto mb-2" />
-                      <p className="text-sm">More audit forms</p>
-                      <p className="text-xs">Coming soon</p>
-                    </div>
-                  </CardContent>
-                </Card>
+                {/* Regulation 12 - Safe Care and Treatment */}
+                <Dialog open={safeCareAuditOpen} onOpenChange={setSafeCareAuditOpen}>
+                  <DialogTrigger asChild>
+                    <Card className="cursor-pointer hover:shadow-md transition-shadow border-2 border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-950/20">
+                      <CardContent className="p-6">
+                        <div className="flex items-start space-x-3">
+                          <div className="p-2 rounded-lg bg-red-100 dark:bg-red-900 text-red-600 dark:text-red-400">
+                            <Shield className="h-5 w-5" />
+                          </div>
+                          <div className="flex-1">
+                            <h3 className="font-semibold text-red-900 dark:text-red-100">Regulation 12: Safe Care</h3>
+                            <p className="text-sm text-red-700 dark:text-red-300 mt-1">
+                              Safe care and treatment assessment
+                            </p>
+                            <Badge className="mt-2 bg-red-200 text-red-800 dark:bg-red-800 dark:text-red-200">
+                              Key Question: Safe
+                            </Badge>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </DialogTrigger>
+                  <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+                    <DialogHeader>
+                      <DialogTitle className="flex items-center gap-2">
+                        <Shield className="h-5 w-5 text-red-600" />
+                        Regulation 12: Safe Care and Treatment
+                      </DialogTitle>
+                      <DialogDescription>
+                        Health and Social Care Act 2008 (Regulated Activities) Regulations 2014
+                      </DialogDescription>
+                    </DialogHeader>
+                    <Form {...safeCareAuditForm}>
+                      <form onSubmit={safeCareAuditForm.handleSubmit((data) => 
+                        submitGenericAudit("Regulation 12: Safe Care and Treatment", "safe_care", "safe", data, setSafeCareAuditOpen, safeCareAuditForm)
+                      )} className="space-y-6">
+                        <Card className="border-red-200 dark:border-red-800">
+                          <CardHeader className="pb-3">
+                            <CardTitle className="text-lg">Risk Assessment</CardTitle>
+                          </CardHeader>
+                          <CardContent className="space-y-4">
+                            <FormField control={safeCareAuditForm.control} name="riskAssessmentsComplete" render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Are comprehensive risk assessments completed for all service users?</FormLabel>
+                                <FormControl>
+                                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                    <SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger>
+                                    <SelectContent>
+                                      <SelectItem value="yes">Yes - fully compliant</SelectItem>
+                                      <SelectItem value="partial">Partially - some gaps</SelectItem>
+                                      <SelectItem value="no">No - significant gaps</SelectItem>
+                                    </SelectContent>
+                                  </Select>
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )} />
+                            <FormField control={safeCareAuditForm.control} name="riskAssessmentDetails" render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Evidence and details:</FormLabel>
+                                <FormControl><Textarea {...field} rows={2} placeholder="Describe evidence of risk assessments..." /></FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )} />
+                          </CardContent>
+                        </Card>
+                        <Card className="border-red-200 dark:border-red-800">
+                          <CardHeader className="pb-3"><CardTitle className="text-lg">Medication Management</CardTitle></CardHeader>
+                          <CardContent className="space-y-4">
+                            <FormField control={safeCareAuditForm.control} name="medicationManagementSafe" render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Is medication managed safely with appropriate records (MAR charts)?</FormLabel>
+                                <FormControl>
+                                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                    <SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger>
+                                    <SelectContent>
+                                      <SelectItem value="yes">Yes - fully compliant</SelectItem>
+                                      <SelectItem value="partial">Partially - some gaps</SelectItem>
+                                      <SelectItem value="no">No - significant gaps</SelectItem>
+                                    </SelectContent>
+                                  </Select>
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )} />
+                            <FormField control={safeCareAuditForm.control} name="medicationDetails" render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Evidence and details:</FormLabel>
+                                <FormControl><Textarea {...field} rows={2} placeholder="Describe medication management practices..." /></FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )} />
+                          </CardContent>
+                        </Card>
+                        <Card className="border-red-200 dark:border-red-800">
+                          <CardHeader className="pb-3"><CardTitle className="text-lg">Incident Reporting</CardTitle></CardHeader>
+                          <CardContent className="space-y-4">
+                            <FormField control={safeCareAuditForm.control} name="incidentReportingEffective" render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Is incident reporting effective with learning outcomes documented?</FormLabel>
+                                <FormControl>
+                                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                    <SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger>
+                                    <SelectContent>
+                                      <SelectItem value="yes">Yes - fully compliant</SelectItem>
+                                      <SelectItem value="partial">Partially - some gaps</SelectItem>
+                                      <SelectItem value="no">No - significant gaps</SelectItem>
+                                    </SelectContent>
+                                  </Select>
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )} />
+                            <FormField control={safeCareAuditForm.control} name="incidentDetails" render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Evidence and details:</FormLabel>
+                                <FormControl><Textarea {...field} rows={2} placeholder="Describe incident reporting system..." /></FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )} />
+                          </CardContent>
+                        </Card>
+                        <Card className="border-red-200 dark:border-red-800">
+                          <CardHeader className="pb-3"><CardTitle className="text-lg">Equipment Safety</CardTitle></CardHeader>
+                          <CardContent className="space-y-4">
+                            <FormField control={safeCareAuditForm.control} name="equipmentSafe" render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Is equipment properly maintained and fit for purpose?</FormLabel>
+                                <FormControl>
+                                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                    <SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger>
+                                    <SelectContent>
+                                      <SelectItem value="yes">Yes - fully compliant</SelectItem>
+                                      <SelectItem value="partial">Partially - some gaps</SelectItem>
+                                      <SelectItem value="no">No - significant gaps</SelectItem>
+                                    </SelectContent>
+                                  </Select>
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )} />
+                            <FormField control={safeCareAuditForm.control} name="equipmentDetails" render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Evidence and details:</FormLabel>
+                                <FormControl><Textarea {...field} rows={2} placeholder="Describe equipment safety measures..." /></FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )} />
+                          </CardContent>
+                        </Card>
+                        <Card className="border-red-200 dark:border-red-800">
+                          <CardHeader className="pb-3"><CardTitle className="text-lg">Infection Control</CardTitle></CardHeader>
+                          <CardContent className="space-y-4">
+                            <FormField control={safeCareAuditForm.control} name="infectionControlMeasures" render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Are infection prevention and control measures in place?</FormLabel>
+                                <FormControl>
+                                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                    <SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger>
+                                    <SelectContent>
+                                      <SelectItem value="yes">Yes - fully compliant</SelectItem>
+                                      <SelectItem value="partial">Partially - some gaps</SelectItem>
+                                      <SelectItem value="no">No - significant gaps</SelectItem>
+                                    </SelectContent>
+                                  </Select>
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )} />
+                            <FormField control={safeCareAuditForm.control} name="infectionControlDetails" render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Evidence and details:</FormLabel>
+                                <FormControl><Textarea {...field} rows={2} placeholder="Describe infection control measures..." /></FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )} />
+                          </CardContent>
+                        </Card>
+                        <Card className="border-red-200 dark:border-red-800">
+                          <CardHeader className="pb-3"><CardTitle className="text-lg">Staff Safety Training</CardTitle></CardHeader>
+                          <CardContent className="space-y-4">
+                            <FormField control={safeCareAuditForm.control} name="staffTrainedInSafety" render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Are all staff appropriately trained in health and safety?</FormLabel>
+                                <FormControl>
+                                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                    <SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger>
+                                    <SelectContent>
+                                      <SelectItem value="yes">Yes - fully compliant</SelectItem>
+                                      <SelectItem value="partial">Partially - some gaps</SelectItem>
+                                      <SelectItem value="no">No - significant gaps</SelectItem>
+                                    </SelectContent>
+                                  </Select>
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )} />
+                            <FormField control={safeCareAuditForm.control} name="safetyTrainingDetails" render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Evidence and details:</FormLabel>
+                                <FormControl><Textarea {...field} rows={2} placeholder="Describe safety training records..." /></FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )} />
+                          </CardContent>
+                        </Card>
+                        <Card className="border-blue-200 dark:border-blue-800 bg-blue-50 dark:bg-blue-950/20">
+                          <CardHeader className="pb-3"><CardTitle className="text-lg">Audit Summary</CardTitle></CardHeader>
+                          <CardContent className="space-y-4">
+                            <FormField control={safeCareAuditForm.control} name="score" render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Overall Score (0-6):</FormLabel>
+                                <FormControl><Input type="number" min="0" max="6" {...field} /></FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )} />
+                            <FormField control={safeCareAuditForm.control} name="areasOfStrength" render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Areas of Strength:</FormLabel>
+                                <FormControl><Textarea {...field} rows={2} placeholder="What is working well..." /></FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )} />
+                            <FormField control={safeCareAuditForm.control} name="areasForImprovement" render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Areas for Improvement:</FormLabel>
+                                <FormControl><Textarea {...field} rows={2} placeholder="What needs improvement..." /></FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )} />
+                            <FormField control={safeCareAuditForm.control} name="actions" render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Required Actions:</FormLabel>
+                                <FormControl><Textarea {...field} rows={3} placeholder="Specify actions required..." /></FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )} />
+                          </CardContent>
+                        </Card>
+                        <div className="flex justify-end gap-2">
+                          <Button type="button" variant="outline" onClick={() => setSafeCareAuditOpen(false)}>Cancel</Button>
+                          <Button type="submit" disabled={genericAuditMutation.isPending} className="bg-red-600 hover:bg-red-700">
+                            {genericAuditMutation.isPending ? "Saving..." : "Save Audit"}
+                          </Button>
+                        </div>
+                      </form>
+                    </Form>
+                  </DialogContent>
+                </Dialog>
+
+                {/* Regulation 13 - Safeguarding */}
+                <Dialog open={safeguardingAuditOpen} onOpenChange={setSafeguardingAuditOpen}>
+                  <DialogTrigger asChild>
+                    <Card className="cursor-pointer hover:shadow-md transition-shadow border-2 border-purple-200 dark:border-purple-800 bg-purple-50 dark:bg-purple-950/20">
+                      <CardContent className="p-6">
+                        <div className="flex items-start space-x-3">
+                          <div className="p-2 rounded-lg bg-purple-100 dark:bg-purple-900 text-purple-600 dark:text-purple-400">
+                            <Users className="h-5 w-5" />
+                          </div>
+                          <div className="flex-1">
+                            <h3 className="font-semibold text-purple-900 dark:text-purple-100">Regulation 13: Safeguarding</h3>
+                            <p className="text-sm text-purple-700 dark:text-purple-300 mt-1">
+                              Safeguarding service users from abuse
+                            </p>
+                            <Badge className="mt-2 bg-purple-200 text-purple-800 dark:bg-purple-800 dark:text-purple-200">
+                              Key Question: Safe
+                            </Badge>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </DialogTrigger>
+                  <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+                    <DialogHeader>
+                      <DialogTitle className="flex items-center gap-2">
+                        <Users className="h-5 w-5 text-purple-600" />
+                        Regulation 13: Safeguarding Service Users
+                      </DialogTitle>
+                      <DialogDescription>
+                        Protecting service users from abuse and improper treatment
+                      </DialogDescription>
+                    </DialogHeader>
+                    <Form {...safeguardingAuditForm}>
+                      <form onSubmit={safeguardingAuditForm.handleSubmit((data) => 
+                        submitGenericAudit("Regulation 13: Safeguarding", "safeguarding", "safe", data, setSafeguardingAuditOpen, safeguardingAuditForm)
+                      )} className="space-y-6">
+                        <Card className="border-purple-200"><CardHeader className="pb-3"><CardTitle className="text-lg">Safeguarding Policy</CardTitle></CardHeader>
+                          <CardContent className="space-y-4">
+                            <FormField control={safeguardingAuditForm.control} name="safeguardingPolicyInPlace" render={({ field }) => (
+                              <FormItem><FormLabel>Is there a comprehensive safeguarding policy in place?</FormLabel>
+                                <FormControl><Select onValueChange={field.onChange} defaultValue={field.value}><SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger><SelectContent><SelectItem value="yes">Yes</SelectItem><SelectItem value="partial">Partial</SelectItem><SelectItem value="no">No</SelectItem></SelectContent></Select></FormControl><FormMessage /></FormItem>
+                            )} />
+                            <FormField control={safeguardingAuditForm.control} name="policyDetails" render={({ field }) => (
+                              <FormItem><FormLabel>Evidence:</FormLabel><FormControl><Textarea {...field} rows={2} /></FormControl><FormMessage /></FormItem>
+                            )} />
+                          </CardContent>
+                        </Card>
+                        <Card className="border-purple-200"><CardHeader className="pb-3"><CardTitle className="text-lg">Staff Training</CardTitle></CardHeader>
+                          <CardContent className="space-y-4">
+                            <FormField control={safeguardingAuditForm.control} name="staffTrainedInSafeguarding" render={({ field }) => (
+                              <FormItem><FormLabel>Are all staff trained in safeguarding (adults and children where applicable)?</FormLabel>
+                                <FormControl><Select onValueChange={field.onChange} defaultValue={field.value}><SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger><SelectContent><SelectItem value="yes">Yes</SelectItem><SelectItem value="partial">Partial</SelectItem><SelectItem value="no">No</SelectItem></SelectContent></Select></FormControl><FormMessage /></FormItem>
+                            )} />
+                            <FormField control={safeguardingAuditForm.control} name="trainingDetails" render={({ field }) => (
+                              <FormItem><FormLabel>Evidence:</FormLabel><FormControl><Textarea {...field} rows={2} /></FormControl><FormMessage /></FormItem>
+                            )} />
+                          </CardContent>
+                        </Card>
+                        <Card className="border-purple-200"><CardHeader className="pb-3"><CardTitle className="text-lg">Safeguarding Lead</CardTitle></CardHeader>
+                          <CardContent className="space-y-4">
+                            <FormField control={safeguardingAuditForm.control} name="safeguardingLeadIdentified" render={({ field }) => (
+                              <FormItem><FormLabel>Is a designated safeguarding lead identified and trained?</FormLabel>
+                                <FormControl><Select onValueChange={field.onChange} defaultValue={field.value}><SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger><SelectContent><SelectItem value="yes">Yes</SelectItem><SelectItem value="partial">Partial</SelectItem><SelectItem value="no">No</SelectItem></SelectContent></Select></FormControl><FormMessage /></FormItem>
+                            )} />
+                            <FormField control={safeguardingAuditForm.control} name="leadDetails" render={({ field }) => (
+                              <FormItem><FormLabel>Evidence:</FormLabel><FormControl><Textarea {...field} rows={2} /></FormControl><FormMessage /></FormItem>
+                            )} />
+                          </CardContent>
+                        </Card>
+                        <Card className="border-purple-200"><CardHeader className="pb-3"><CardTitle className="text-lg">Reporting Process</CardTitle></CardHeader>
+                          <CardContent className="space-y-4">
+                            <FormField control={safeguardingAuditForm.control} name="reportingProcessClear" render={({ field }) => (
+                              <FormItem><FormLabel>Is the reporting process clear and understood by all staff?</FormLabel>
+                                <FormControl><Select onValueChange={field.onChange} defaultValue={field.value}><SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger><SelectContent><SelectItem value="yes">Yes</SelectItem><SelectItem value="partial">Partial</SelectItem><SelectItem value="no">No</SelectItem></SelectContent></Select></FormControl><FormMessage /></FormItem>
+                            )} />
+                            <FormField control={safeguardingAuditForm.control} name="reportingDetails" render={({ field }) => (
+                              <FormItem><FormLabel>Evidence:</FormLabel><FormControl><Textarea {...field} rows={2} /></FormControl><FormMessage /></FormItem>
+                            )} />
+                          </CardContent>
+                        </Card>
+                        <Card className="border-purple-200"><CardHeader className="pb-3"><CardTitle className="text-lg">DBS Checks</CardTitle></CardHeader>
+                          <CardContent className="space-y-4">
+                            <FormField control={safeguardingAuditForm.control} name="dbsChecksComplete" render={({ field }) => (
+                              <FormItem><FormLabel>Are enhanced DBS checks completed for all staff?</FormLabel>
+                                <FormControl><Select onValueChange={field.onChange} defaultValue={field.value}><SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger><SelectContent><SelectItem value="yes">Yes</SelectItem><SelectItem value="partial">Partial</SelectItem><SelectItem value="no">No</SelectItem></SelectContent></Select></FormControl><FormMessage /></FormItem>
+                            )} />
+                            <FormField control={safeguardingAuditForm.control} name="dbsDetails" render={({ field }) => (
+                              <FormItem><FormLabel>Evidence:</FormLabel><FormControl><Textarea {...field} rows={2} /></FormControl><FormMessage /></FormItem>
+                            )} />
+                          </CardContent>
+                        </Card>
+                        <Card className="border-purple-200"><CardHeader className="pb-3"><CardTitle className="text-lg">Documentation</CardTitle></CardHeader>
+                          <CardContent className="space-y-4">
+                            <FormField control={safeguardingAuditForm.control} name="concernsDocumented" render={({ field }) => (
+                              <FormItem><FormLabel>Are safeguarding concerns properly documented and investigated?</FormLabel>
+                                <FormControl><Select onValueChange={field.onChange} defaultValue={field.value}><SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger><SelectContent><SelectItem value="yes">Yes</SelectItem><SelectItem value="partial">Partial</SelectItem><SelectItem value="no">No</SelectItem></SelectContent></Select></FormControl><FormMessage /></FormItem>
+                            )} />
+                            <FormField control={safeguardingAuditForm.control} name="documentationDetails" render={({ field }) => (
+                              <FormItem><FormLabel>Evidence:</FormLabel><FormControl><Textarea {...field} rows={2} /></FormControl><FormMessage /></FormItem>
+                            )} />
+                          </CardContent>
+                        </Card>
+                        <Card className="border-purple-200"><CardHeader className="pb-3"><CardTitle className="text-lg">Multi-Agency Working</CardTitle></CardHeader>
+                          <CardContent className="space-y-4">
+                            <FormField control={safeguardingAuditForm.control} name="partnershipWithAuthorities" render={({ field }) => (
+                              <FormItem><FormLabel>Is there effective partnership working with local authorities?</FormLabel>
+                                <FormControl><Select onValueChange={field.onChange} defaultValue={field.value}><SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger><SelectContent><SelectItem value="yes">Yes</SelectItem><SelectItem value="partial">Partial</SelectItem><SelectItem value="no">No</SelectItem></SelectContent></Select></FormControl><FormMessage /></FormItem>
+                            )} />
+                            <FormField control={safeguardingAuditForm.control} name="partnershipDetails" render={({ field }) => (
+                              <FormItem><FormLabel>Evidence:</FormLabel><FormControl><Textarea {...field} rows={2} /></FormControl><FormMessage /></FormItem>
+                            )} />
+                          </CardContent>
+                        </Card>
+                        <Card className="border-blue-200 bg-blue-50 dark:bg-blue-950/20"><CardHeader className="pb-3"><CardTitle className="text-lg">Audit Summary</CardTitle></CardHeader>
+                          <CardContent className="space-y-4">
+                            <FormField control={safeguardingAuditForm.control} name="score" render={({ field }) => (<FormItem><FormLabel>Overall Score (0-6):</FormLabel><FormControl><Input type="number" min="0" max="6" {...field} /></FormControl><FormMessage /></FormItem>)} />
+                            <FormField control={safeguardingAuditForm.control} name="areasOfStrength" render={({ field }) => (<FormItem><FormLabel>Areas of Strength:</FormLabel><FormControl><Textarea {...field} rows={2} /></FormControl><FormMessage /></FormItem>)} />
+                            <FormField control={safeguardingAuditForm.control} name="areasForImprovement" render={({ field }) => (<FormItem><FormLabel>Areas for Improvement:</FormLabel><FormControl><Textarea {...field} rows={2} /></FormControl><FormMessage /></FormItem>)} />
+                            <FormField control={safeguardingAuditForm.control} name="actions" render={({ field }) => (<FormItem><FormLabel>Required Actions:</FormLabel><FormControl><Textarea {...field} rows={3} /></FormControl><FormMessage /></FormItem>)} />
+                          </CardContent>
+                        </Card>
+                        <div className="flex justify-end gap-2">
+                          <Button type="button" variant="outline" onClick={() => setSafeguardingAuditOpen(false)}>Cancel</Button>
+                          <Button type="submit" disabled={genericAuditMutation.isPending} className="bg-purple-600 hover:bg-purple-700">{genericAuditMutation.isPending ? "Saving..." : "Save Audit"}</Button>
+                        </div>
+                      </form>
+                    </Form>
+                  </DialogContent>
+                </Dialog>
+
+                {/* Regulation 17 - Good Governance */}
+                <Dialog open={governanceAuditOpen} onOpenChange={setGovernanceAuditOpen}>
+                  <DialogTrigger asChild>
+                    <Card className="cursor-pointer hover:shadow-md transition-shadow border-2 border-blue-200 dark:border-blue-800 bg-blue-50 dark:bg-blue-950/20">
+                      <CardContent className="p-6">
+                        <div className="flex items-start space-x-3">
+                          <div className="p-2 rounded-lg bg-blue-100 dark:bg-blue-900 text-blue-600 dark:text-blue-400">
+                            <ClipboardCheck className="h-5 w-5" />
+                          </div>
+                          <div className="flex-1">
+                            <h3 className="font-semibold text-blue-900 dark:text-blue-100">Regulation 17: Governance</h3>
+                            <p className="text-sm text-blue-700 dark:text-blue-300 mt-1">
+                              Good governance and quality assurance
+                            </p>
+                            <Badge className="mt-2 bg-blue-200 text-blue-800 dark:bg-blue-800 dark:text-blue-200">
+                              Key Question: Well-Led
+                            </Badge>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </DialogTrigger>
+                  <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+                    <DialogHeader>
+                      <DialogTitle className="flex items-center gap-2">
+                        <ClipboardCheck className="h-5 w-5 text-blue-600" />
+                        Regulation 17: Good Governance
+                      </DialogTitle>
+                      <DialogDescription>Systems and processes to ensure compliance with fundamental standards</DialogDescription>
+                    </DialogHeader>
+                    <Form {...governanceAuditForm}>
+                      <form onSubmit={governanceAuditForm.handleSubmit((data) => 
+                        submitGenericAudit("Regulation 17: Good Governance", "governance", "well_led", data, setGovernanceAuditOpen, governanceAuditForm)
+                      )} className="space-y-6">
+                        <Card className="border-blue-200"><CardHeader className="pb-3"><CardTitle className="text-lg">Quality Assurance Systems</CardTitle></CardHeader>
+                          <CardContent className="space-y-4">
+                            <FormField control={governanceAuditForm.control} name="qualityAssuranceSystemsInPlace" render={({ field }) => (
+                              <FormItem><FormLabel>Are effective quality assurance systems in place?</FormLabel>
+                                <FormControl><Select onValueChange={field.onChange} defaultValue={field.value}><SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger><SelectContent><SelectItem value="yes">Yes</SelectItem><SelectItem value="partial">Partial</SelectItem><SelectItem value="no">No</SelectItem></SelectContent></Select></FormControl><FormMessage /></FormItem>
+                            )} />
+                            <FormField control={governanceAuditForm.control} name="qaDetails" render={({ field }) => (<FormItem><FormLabel>Evidence:</FormLabel><FormControl><Textarea {...field} rows={2} /></FormControl><FormMessage /></FormItem>)} />
+                          </CardContent>
+                        </Card>
+                        <Card className="border-blue-200"><CardHeader className="pb-3"><CardTitle className="text-lg">Policy Management</CardTitle></CardHeader>
+                          <CardContent className="space-y-4">
+                            <FormField control={governanceAuditForm.control} name="policiesUpToDate" render={({ field }) => (
+                              <FormItem><FormLabel>Are all policies and procedures up to date and regularly reviewed?</FormLabel>
+                                <FormControl><Select onValueChange={field.onChange} defaultValue={field.value}><SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger><SelectContent><SelectItem value="yes">Yes</SelectItem><SelectItem value="partial">Partial</SelectItem><SelectItem value="no">No</SelectItem></SelectContent></Select></FormControl><FormMessage /></FormItem>
+                            )} />
+                            <FormField control={governanceAuditForm.control} name="policyReviewDetails" render={({ field }) => (<FormItem><FormLabel>Evidence:</FormLabel><FormControl><Textarea {...field} rows={2} /></FormControl><FormMessage /></FormItem>)} />
+                          </CardContent>
+                        </Card>
+                        <Card className="border-blue-200"><CardHeader className="pb-3"><CardTitle className="text-lg">Record Keeping</CardTitle></CardHeader>
+                          <CardContent className="space-y-4">
+                            <FormField control={governanceAuditForm.control} name="recordKeepingAccurate" render={({ field }) => (
+                              <FormItem><FormLabel>Are accurate and complete records maintained?</FormLabel>
+                                <FormControl><Select onValueChange={field.onChange} defaultValue={field.value}><SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger><SelectContent><SelectItem value="yes">Yes</SelectItem><SelectItem value="partial">Partial</SelectItem><SelectItem value="no">No</SelectItem></SelectContent></Select></FormControl><FormMessage /></FormItem>
+                            )} />
+                            <FormField control={governanceAuditForm.control} name="recordDetails" render={({ field }) => (<FormItem><FormLabel>Evidence:</FormLabel><FormControl><Textarea {...field} rows={2} /></FormControl><FormMessage /></FormItem>)} />
+                          </CardContent>
+                        </Card>
+                        <Card className="border-blue-200"><CardHeader className="pb-3"><CardTitle className="text-lg">Risk Management</CardTitle></CardHeader>
+                          <CardContent className="space-y-4">
+                            <FormField control={governanceAuditForm.control} name="riskManagementEffective" render={({ field }) => (
+                              <FormItem><FormLabel>Is risk management effective with regular risk register reviews?</FormLabel>
+                                <FormControl><Select onValueChange={field.onChange} defaultValue={field.value}><SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger><SelectContent><SelectItem value="yes">Yes</SelectItem><SelectItem value="partial">Partial</SelectItem><SelectItem value="no">No</SelectItem></SelectContent></Select></FormControl><FormMessage /></FormItem>
+                            )} />
+                            <FormField control={governanceAuditForm.control} name="riskManagementDetails" render={({ field }) => (<FormItem><FormLabel>Evidence:</FormLabel><FormControl><Textarea {...field} rows={2} /></FormControl><FormMessage /></FormItem>)} />
+                          </CardContent>
+                        </Card>
+                        <Card className="border-blue-200"><CardHeader className="pb-3"><CardTitle className="text-lg">Audit Schedule</CardTitle></CardHeader>
+                          <CardContent className="space-y-4">
+                            <FormField control={governanceAuditForm.control} name="auditScheduleMaintained" render={({ field }) => (
+                              <FormItem><FormLabel>Is an internal audit schedule maintained and followed?</FormLabel>
+                                <FormControl><Select onValueChange={field.onChange} defaultValue={field.value}><SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger><SelectContent><SelectItem value="yes">Yes</SelectItem><SelectItem value="partial">Partial</SelectItem><SelectItem value="no">No</SelectItem></SelectContent></Select></FormControl><FormMessage /></FormItem>
+                            )} />
+                            <FormField control={governanceAuditForm.control} name="auditDetails" render={({ field }) => (<FormItem><FormLabel>Evidence:</FormLabel><FormControl><Textarea {...field} rows={2} /></FormControl><FormMessage /></FormItem>)} />
+                          </CardContent>
+                        </Card>
+                        <Card className="border-blue-200"><CardHeader className="pb-3"><CardTitle className="text-lg">CQC Notifications</CardTitle></CardHeader>
+                          <CardContent className="space-y-4">
+                            <FormField control={governanceAuditForm.control} name="cqcNotificationsSubmitted" render={({ field }) => (
+                              <FormItem><FormLabel>Are CQC notifications submitted appropriately and on time?</FormLabel>
+                                <FormControl><Select onValueChange={field.onChange} defaultValue={field.value}><SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger><SelectContent><SelectItem value="yes">Yes</SelectItem><SelectItem value="partial">Partial</SelectItem><SelectItem value="no">No</SelectItem></SelectContent></Select></FormControl><FormMessage /></FormItem>
+                            )} />
+                            <FormField control={governanceAuditForm.control} name="notificationDetails" render={({ field }) => (<FormItem><FormLabel>Evidence:</FormLabel><FormControl><Textarea {...field} rows={2} /></FormControl><FormMessage /></FormItem>)} />
+                          </CardContent>
+                        </Card>
+                        <Card className="border-blue-200"><CardHeader className="pb-3"><CardTitle className="text-lg">Leadership Oversight</CardTitle></CardHeader>
+                          <CardContent className="space-y-4">
+                            <FormField control={governanceAuditForm.control} name="leadershipOversight" render={({ field }) => (
+                              <FormItem><FormLabel>Is there effective leadership oversight and accountability?</FormLabel>
+                                <FormControl><Select onValueChange={field.onChange} defaultValue={field.value}><SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger><SelectContent><SelectItem value="yes">Yes</SelectItem><SelectItem value="partial">Partial</SelectItem><SelectItem value="no">No</SelectItem></SelectContent></Select></FormControl><FormMessage /></FormItem>
+                            )} />
+                            <FormField control={governanceAuditForm.control} name="leadershipDetails" render={({ field }) => (<FormItem><FormLabel>Evidence:</FormLabel><FormControl><Textarea {...field} rows={2} /></FormControl><FormMessage /></FormItem>)} />
+                          </CardContent>
+                        </Card>
+                        <Card className="border-green-200 bg-green-50 dark:bg-green-950/20"><CardHeader className="pb-3"><CardTitle className="text-lg">Audit Summary</CardTitle></CardHeader>
+                          <CardContent className="space-y-4">
+                            <FormField control={governanceAuditForm.control} name="score" render={({ field }) => (<FormItem><FormLabel>Overall Score (0-6):</FormLabel><FormControl><Input type="number" min="0" max="6" {...field} /></FormControl><FormMessage /></FormItem>)} />
+                            <FormField control={governanceAuditForm.control} name="areasOfStrength" render={({ field }) => (<FormItem><FormLabel>Areas of Strength:</FormLabel><FormControl><Textarea {...field} rows={2} /></FormControl><FormMessage /></FormItem>)} />
+                            <FormField control={governanceAuditForm.control} name="areasForImprovement" render={({ field }) => (<FormItem><FormLabel>Areas for Improvement:</FormLabel><FormControl><Textarea {...field} rows={2} /></FormControl><FormMessage /></FormItem>)} />
+                            <FormField control={governanceAuditForm.control} name="actions" render={({ field }) => (<FormItem><FormLabel>Required Actions:</FormLabel><FormControl><Textarea {...field} rows={3} /></FormControl><FormMessage /></FormItem>)} />
+                          </CardContent>
+                        </Card>
+                        <div className="flex justify-end gap-2">
+                          <Button type="button" variant="outline" onClick={() => setGovernanceAuditOpen(false)}>Cancel</Button>
+                          <Button type="submit" disabled={genericAuditMutation.isPending} className="bg-blue-600 hover:bg-blue-700">{genericAuditMutation.isPending ? "Saving..." : "Save Audit"}</Button>
+                        </div>
+                      </form>
+                    </Form>
+                  </DialogContent>
+                </Dialog>
+
+                {/* Regulation 18 - Staffing */}
+                <Dialog open={staffingAuditOpen} onOpenChange={setStaffingAuditOpen}>
+                  <DialogTrigger asChild>
+                    <Card className="cursor-pointer hover:shadow-md transition-shadow border-2 border-green-200 dark:border-green-800 bg-green-50 dark:bg-green-950/20">
+                      <CardContent className="p-6">
+                        <div className="flex items-start space-x-3">
+                          <div className="p-2 rounded-lg bg-green-100 dark:bg-green-900 text-green-600 dark:text-green-400">
+                            <Users className="h-5 w-5" />
+                          </div>
+                          <div className="flex-1">
+                            <h3 className="font-semibold text-green-900 dark:text-green-100">Regulation 18: Staffing</h3>
+                            <p className="text-sm text-green-700 dark:text-green-300 mt-1">
+                              Sufficient staff with appropriate skills
+                            </p>
+                            <Badge className="mt-2 bg-green-200 text-green-800 dark:bg-green-800 dark:text-green-200">
+                              Key Question: Effective
+                            </Badge>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </DialogTrigger>
+                  <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+                    <DialogHeader>
+                      <DialogTitle className="flex items-center gap-2"><Users className="h-5 w-5 text-green-600" />Regulation 18: Staffing</DialogTitle>
+                      <DialogDescription>Ensuring sufficient numbers of suitably qualified, competent staff</DialogDescription>
+                    </DialogHeader>
+                    <Form {...staffingAuditForm}>
+                      <form onSubmit={staffingAuditForm.handleSubmit((data) => submitGenericAudit("Regulation 18: Staffing", "staffing", "effective", data, setStaffingAuditOpen, staffingAuditForm))} className="space-y-6">
+                        <Card className="border-green-200"><CardHeader className="pb-3"><CardTitle className="text-lg">Staffing Levels</CardTitle></CardHeader>
+                          <CardContent className="space-y-4">
+                            <FormField control={staffingAuditForm.control} name="sufficientStaffDeployed" render={({ field }) => (<FormItem><FormLabel>Are sufficient staff deployed to meet service user needs?</FormLabel><FormControl><Select onValueChange={field.onChange} defaultValue={field.value}><SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger><SelectContent><SelectItem value="yes">Yes</SelectItem><SelectItem value="partial">Partial</SelectItem><SelectItem value="no">No</SelectItem></SelectContent></Select></FormControl><FormMessage /></FormItem>)} />
+                            <FormField control={staffingAuditForm.control} name="staffingLevelDetails" render={({ field }) => (<FormItem><FormLabel>Evidence:</FormLabel><FormControl><Textarea {...field} rows={2} /></FormControl><FormMessage /></FormItem>)} />
+                          </CardContent>
+                        </Card>
+                        <Card className="border-green-200"><CardHeader className="pb-3"><CardTitle className="text-lg">Qualifications & Competence</CardTitle></CardHeader>
+                          <CardContent className="space-y-4">
+                            <FormField control={staffingAuditForm.control} name="staffQualifiedAndCompetent" render={({ field }) => (<FormItem><FormLabel>Are staff suitably qualified, competent, and skilled?</FormLabel><FormControl><Select onValueChange={field.onChange} defaultValue={field.value}><SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger><SelectContent><SelectItem value="yes">Yes</SelectItem><SelectItem value="partial">Partial</SelectItem><SelectItem value="no">No</SelectItem></SelectContent></Select></FormControl><FormMessage /></FormItem>)} />
+                            <FormField control={staffingAuditForm.control} name="qualificationDetails" render={({ field }) => (<FormItem><FormLabel>Evidence:</FormLabel><FormControl><Textarea {...field} rows={2} /></FormControl><FormMessage /></FormItem>)} />
+                          </CardContent>
+                        </Card>
+                        <Card className="border-green-200"><CardHeader className="pb-3"><CardTitle className="text-lg">Supervision</CardTitle></CardHeader>
+                          <CardContent className="space-y-4">
+                            <FormField control={staffingAuditForm.control} name="supervisionProvided" render={({ field }) => (<FormItem><FormLabel>Is regular supervision and appraisal provided?</FormLabel><FormControl><Select onValueChange={field.onChange} defaultValue={field.value}><SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger><SelectContent><SelectItem value="yes">Yes</SelectItem><SelectItem value="partial">Partial</SelectItem><SelectItem value="no">No</SelectItem></SelectContent></Select></FormControl><FormMessage /></FormItem>)} />
+                            <FormField control={staffingAuditForm.control} name="supervisionDetails" render={({ field }) => (<FormItem><FormLabel>Evidence:</FormLabel><FormControl><Textarea {...field} rows={2} /></FormControl><FormMessage /></FormItem>)} />
+                          </CardContent>
+                        </Card>
+                        <Card className="border-green-200"><CardHeader className="pb-3"><CardTitle className="text-lg">Training</CardTitle></CardHeader>
+                          <CardContent className="space-y-4">
+                            <FormField control={staffingAuditForm.control} name="trainingNeedsMet" render={({ field }) => (<FormItem><FormLabel>Are training needs identified and met?</FormLabel><FormControl><Select onValueChange={field.onChange} defaultValue={field.value}><SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger><SelectContent><SelectItem value="yes">Yes</SelectItem><SelectItem value="partial">Partial</SelectItem><SelectItem value="no">No</SelectItem></SelectContent></Select></FormControl><FormMessage /></FormItem>)} />
+                            <FormField control={staffingAuditForm.control} name="trainingDetails" render={({ field }) => (<FormItem><FormLabel>Evidence:</FormLabel><FormControl><Textarea {...field} rows={2} /></FormControl><FormMessage /></FormItem>)} />
+                          </CardContent>
+                        </Card>
+                        <Card className="border-green-200"><CardHeader className="pb-3"><CardTitle className="text-lg">Staff Support & Development</CardTitle></CardHeader>
+                          <CardContent className="space-y-4">
+                            <FormField control={staffingAuditForm.control} name="staffSupportedAndDeveloped" render={({ field }) => (<FormItem><FormLabel>Are staff supported and developed?</FormLabel><FormControl><Select onValueChange={field.onChange} defaultValue={field.value}><SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger><SelectContent><SelectItem value="yes">Yes</SelectItem><SelectItem value="partial">Partial</SelectItem><SelectItem value="no">No</SelectItem></SelectContent></Select></FormControl><FormMessage /></FormItem>)} />
+                            <FormField control={staffingAuditForm.control} name="supportDetails" render={({ field }) => (<FormItem><FormLabel>Evidence:</FormLabel><FormControl><Textarea {...field} rows={2} /></FormControl><FormMessage /></FormItem>)} />
+                          </CardContent>
+                        </Card>
+                        <Card className="border-green-200"><CardHeader className="pb-3"><CardTitle className="text-lg">Induction</CardTitle></CardHeader>
+                          <CardContent className="space-y-4">
+                            <FormField control={staffingAuditForm.control} name="inductionProcessComplete" render={({ field }) => (<FormItem><FormLabel>Is a comprehensive induction process in place for new staff?</FormLabel><FormControl><Select onValueChange={field.onChange} defaultValue={field.value}><SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger><SelectContent><SelectItem value="yes">Yes</SelectItem><SelectItem value="partial">Partial</SelectItem><SelectItem value="no">No</SelectItem></SelectContent></Select></FormControl><FormMessage /></FormItem>)} />
+                            <FormField control={staffingAuditForm.control} name="inductionDetails" render={({ field }) => (<FormItem><FormLabel>Evidence:</FormLabel><FormControl><Textarea {...field} rows={2} /></FormControl><FormMessage /></FormItem>)} />
+                          </CardContent>
+                        </Card>
+                        <Card className="border-blue-200 bg-blue-50 dark:bg-blue-950/20"><CardHeader className="pb-3"><CardTitle className="text-lg">Audit Summary</CardTitle></CardHeader>
+                          <CardContent className="space-y-4">
+                            <FormField control={staffingAuditForm.control} name="score" render={({ field }) => (<FormItem><FormLabel>Overall Score (0-6):</FormLabel><FormControl><Input type="number" min="0" max="6" {...field} /></FormControl><FormMessage /></FormItem>)} />
+                            <FormField control={staffingAuditForm.control} name="areasOfStrength" render={({ field }) => (<FormItem><FormLabel>Areas of Strength:</FormLabel><FormControl><Textarea {...field} rows={2} /></FormControl><FormMessage /></FormItem>)} />
+                            <FormField control={staffingAuditForm.control} name="areasForImprovement" render={({ field }) => (<FormItem><FormLabel>Areas for Improvement:</FormLabel><FormControl><Textarea {...field} rows={2} /></FormControl><FormMessage /></FormItem>)} />
+                            <FormField control={staffingAuditForm.control} name="actions" render={({ field }) => (<FormItem><FormLabel>Required Actions:</FormLabel><FormControl><Textarea {...field} rows={3} /></FormControl><FormMessage /></FormItem>)} />
+                          </CardContent>
+                        </Card>
+                        <div className="flex justify-end gap-2"><Button type="button" variant="outline" onClick={() => setStaffingAuditOpen(false)}>Cancel</Button><Button type="submit" disabled={genericAuditMutation.isPending} className="bg-green-600 hover:bg-green-700">{genericAuditMutation.isPending ? "Saving..." : "Save Audit"}</Button></div>
+                      </form>
+                    </Form>
+                  </DialogContent>
+                </Dialog>
+
+                {/* Regulation 19 - Fit and Proper Persons */}
+                <Dialog open={fitProperPersonsAuditOpen} onOpenChange={setFitProperPersonsAuditOpen}>
+                  <DialogTrigger asChild>
+                    <Card className="cursor-pointer hover:shadow-md transition-shadow border-2 border-teal-200 dark:border-teal-800 bg-teal-50 dark:bg-teal-950/20">
+                      <CardContent className="p-6">
+                        <div className="flex items-start space-x-3">
+                          <div className="p-2 rounded-lg bg-teal-100 dark:bg-teal-900 text-teal-600 dark:text-teal-400">
+                            <Award className="h-5 w-5" />
+                          </div>
+                          <div className="flex-1">
+                            <h3 className="font-semibold text-teal-900 dark:text-teal-100">Regulation 19: Fit & Proper</h3>
+                            <p className="text-sm text-teal-700 dark:text-teal-300 mt-1">
+                              Fit and proper persons employed
+                            </p>
+                            <Badge className="mt-2 bg-teal-200 text-teal-800 dark:bg-teal-800 dark:text-teal-200">
+                              Key Question: Safe
+                            </Badge>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </DialogTrigger>
+                  <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+                    <DialogHeader><DialogTitle className="flex items-center gap-2"><Award className="h-5 w-5 text-teal-600" />Regulation 19: Fit and Proper Persons Employed</DialogTitle><DialogDescription>Ensuring robust recruitment and employment processes</DialogDescription></DialogHeader>
+                    <Form {...fitProperPersonsAuditForm}>
+                      <form onSubmit={fitProperPersonsAuditForm.handleSubmit((data) => submitGenericAudit("Regulation 19: Fit and Proper Persons", "fit_proper_persons", "safe", data, setFitProperPersonsAuditOpen, fitProperPersonsAuditForm))} className="space-y-6">
+                        <Card className="border-teal-200"><CardHeader className="pb-3"><CardTitle className="text-lg">Recruitment Policy</CardTitle></CardHeader>
+                          <CardContent className="space-y-4">
+                            <FormField control={fitProperPersonsAuditForm.control} name="recruitmentPolicySafe" render={({ field }) => (<FormItem><FormLabel>Is there a robust, safe recruitment policy in place?</FormLabel><FormControl><Select onValueChange={field.onChange} defaultValue={field.value}><SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger><SelectContent><SelectItem value="yes">Yes</SelectItem><SelectItem value="partial">Partial</SelectItem><SelectItem value="no">No</SelectItem></SelectContent></Select></FormControl><FormMessage /></FormItem>)} />
+                            <FormField control={fitProperPersonsAuditForm.control} name="recruitmentDetails" render={({ field }) => (<FormItem><FormLabel>Evidence:</FormLabel><FormControl><Textarea {...field} rows={2} /></FormControl><FormMessage /></FormItem>)} />
+                          </CardContent>
+                        </Card>
+                        <Card className="border-teal-200"><CardHeader className="pb-3"><CardTitle className="text-lg">DBS Checks</CardTitle></CardHeader>
+                          <CardContent className="space-y-4">
+                            <FormField control={fitProperPersonsAuditForm.control} name="dbsChecksCompleted" render={({ field }) => (<FormItem><FormLabel>Are enhanced DBS checks completed before employment?</FormLabel><FormControl><Select onValueChange={field.onChange} defaultValue={field.value}><SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger><SelectContent><SelectItem value="yes">Yes</SelectItem><SelectItem value="partial">Partial</SelectItem><SelectItem value="no">No</SelectItem></SelectContent></Select></FormControl><FormMessage /></FormItem>)} />
+                            <FormField control={fitProperPersonsAuditForm.control} name="dbsCheckDetails" render={({ field }) => (<FormItem><FormLabel>Evidence:</FormLabel><FormControl><Textarea {...field} rows={2} /></FormControl><FormMessage /></FormItem>)} />
+                          </CardContent>
+                        </Card>
+                        <Card className="border-teal-200"><CardHeader className="pb-3"><CardTitle className="text-lg">References</CardTitle></CardHeader>
+                          <CardContent className="space-y-4">
+                            <FormField control={fitProperPersonsAuditForm.control} name="referencesObtained" render={({ field }) => (<FormItem><FormLabel>Are satisfactory references obtained and verified?</FormLabel><FormControl><Select onValueChange={field.onChange} defaultValue={field.value}><SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger><SelectContent><SelectItem value="yes">Yes</SelectItem><SelectItem value="partial">Partial</SelectItem><SelectItem value="no">No</SelectItem></SelectContent></Select></FormControl><FormMessage /></FormItem>)} />
+                            <FormField control={fitProperPersonsAuditForm.control} name="referenceDetails" render={({ field }) => (<FormItem><FormLabel>Evidence:</FormLabel><FormControl><Textarea {...field} rows={2} /></FormControl><FormMessage /></FormItem>)} />
+                          </CardContent>
+                        </Card>
+                        <Card className="border-teal-200"><CardHeader className="pb-3"><CardTitle className="text-lg">Professional Registration</CardTitle></CardHeader>
+                          <CardContent className="space-y-4">
+                            <FormField control={fitProperPersonsAuditForm.control} name="professionalRegistrationChecked" render={({ field }) => (<FormItem><FormLabel>Is professional registration checked and monitored (NMC, HCPC, etc.)?</FormLabel><FormControl><Select onValueChange={field.onChange} defaultValue={field.value}><SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger><SelectContent><SelectItem value="yes">Yes</SelectItem><SelectItem value="partial">Partial</SelectItem><SelectItem value="no">No</SelectItem><SelectItem value="na">N/A</SelectItem></SelectContent></Select></FormControl><FormMessage /></FormItem>)} />
+                            <FormField control={fitProperPersonsAuditForm.control} name="registrationDetails" render={({ field }) => (<FormItem><FormLabel>Evidence:</FormLabel><FormControl><Textarea {...field} rows={2} /></FormControl><FormMessage /></FormItem>)} />
+                          </CardContent>
+                        </Card>
+                        <Card className="border-teal-200"><CardHeader className="pb-3"><CardTitle className="text-lg">Right to Work</CardTitle></CardHeader>
+                          <CardContent className="space-y-4">
+                            <FormField control={fitProperPersonsAuditForm.control} name="rightToWorkVerified" render={({ field }) => (<FormItem><FormLabel>Is right to work in the UK verified for all staff?</FormLabel><FormControl><Select onValueChange={field.onChange} defaultValue={field.value}><SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger><SelectContent><SelectItem value="yes">Yes</SelectItem><SelectItem value="partial">Partial</SelectItem><SelectItem value="no">No</SelectItem></SelectContent></Select></FormControl><FormMessage /></FormItem>)} />
+                            <FormField control={fitProperPersonsAuditForm.control} name="rightToWorkDetails" render={({ field }) => (<FormItem><FormLabel>Evidence:</FormLabel><FormControl><Textarea {...field} rows={2} /></FormControl><FormMessage /></FormItem>)} />
+                          </CardContent>
+                        </Card>
+                        <Card className="border-teal-200"><CardHeader className="pb-3"><CardTitle className="text-lg">Character Assessment</CardTitle></CardHeader>
+                          <CardContent className="space-y-4">
+                            <FormField control={fitProperPersonsAuditForm.control} name="characterAssessmentComplete" render={({ field }) => (<FormItem><FormLabel>Are full employment history and character assessments completed?</FormLabel><FormControl><Select onValueChange={field.onChange} defaultValue={field.value}><SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger><SelectContent><SelectItem value="yes">Yes</SelectItem><SelectItem value="partial">Partial</SelectItem><SelectItem value="no">No</SelectItem></SelectContent></Select></FormControl><FormMessage /></FormItem>)} />
+                            <FormField control={fitProperPersonsAuditForm.control} name="characterDetails" render={({ field }) => (<FormItem><FormLabel>Evidence:</FormLabel><FormControl><Textarea {...field} rows={2} /></FormControl><FormMessage /></FormItem>)} />
+                          </CardContent>
+                        </Card>
+                        <Card className="border-teal-200"><CardHeader className="pb-3"><CardTitle className="text-lg">Ongoing Monitoring</CardTitle></CardHeader>
+                          <CardContent className="space-y-4">
+                            <FormField control={fitProperPersonsAuditForm.control} name="ongoingMonitoring" render={({ field }) => (<FormItem><FormLabel>Is ongoing fitness to practice monitored?</FormLabel><FormControl><Select onValueChange={field.onChange} defaultValue={field.value}><SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger><SelectContent><SelectItem value="yes">Yes</SelectItem><SelectItem value="partial">Partial</SelectItem><SelectItem value="no">No</SelectItem></SelectContent></Select></FormControl><FormMessage /></FormItem>)} />
+                            <FormField control={fitProperPersonsAuditForm.control} name="monitoringDetails" render={({ field }) => (<FormItem><FormLabel>Evidence:</FormLabel><FormControl><Textarea {...field} rows={2} /></FormControl><FormMessage /></FormItem>)} />
+                          </CardContent>
+                        </Card>
+                        <Card className="border-blue-200 bg-blue-50 dark:bg-blue-950/20"><CardHeader className="pb-3"><CardTitle className="text-lg">Audit Summary</CardTitle></CardHeader>
+                          <CardContent className="space-y-4">
+                            <FormField control={fitProperPersonsAuditForm.control} name="score" render={({ field }) => (<FormItem><FormLabel>Overall Score (0-6):</FormLabel><FormControl><Input type="number" min="0" max="6" {...field} /></FormControl><FormMessage /></FormItem>)} />
+                            <FormField control={fitProperPersonsAuditForm.control} name="areasOfStrength" render={({ field }) => (<FormItem><FormLabel>Areas of Strength:</FormLabel><FormControl><Textarea {...field} rows={2} /></FormControl><FormMessage /></FormItem>)} />
+                            <FormField control={fitProperPersonsAuditForm.control} name="areasForImprovement" render={({ field }) => (<FormItem><FormLabel>Areas for Improvement:</FormLabel><FormControl><Textarea {...field} rows={2} /></FormControl><FormMessage /></FormItem>)} />
+                            <FormField control={fitProperPersonsAuditForm.control} name="actions" render={({ field }) => (<FormItem><FormLabel>Required Actions:</FormLabel><FormControl><Textarea {...field} rows={3} /></FormControl><FormMessage /></FormItem>)} />
+                          </CardContent>
+                        </Card>
+                        <div className="flex justify-end gap-2"><Button type="button" variant="outline" onClick={() => setFitProperPersonsAuditOpen(false)}>Cancel</Button><Button type="submit" disabled={genericAuditMutation.isPending} className="bg-teal-600 hover:bg-teal-700">{genericAuditMutation.isPending ? "Saving..." : "Save Audit"}</Button></div>
+                      </form>
+                    </Form>
+                  </DialogContent>
+                </Dialog>
+
+                {/* Regulation 12A - Infection Control (IPC) */}
+                <Dialog open={infectionControlAuditOpen} onOpenChange={setInfectionControlAuditOpen}>
+                  <DialogTrigger asChild>
+                    <Card className="cursor-pointer hover:shadow-md transition-shadow border-2 border-pink-200 dark:border-pink-800 bg-pink-50 dark:bg-pink-950/20">
+                      <CardContent className="p-6">
+                        <div className="flex items-start space-x-3">
+                          <div className="p-2 rounded-lg bg-pink-100 dark:bg-pink-900 text-pink-600 dark:text-pink-400">
+                            <Shield className="h-5 w-5" />
+                          </div>
+                          <div className="flex-1">
+                            <h3 className="font-semibold text-pink-900 dark:text-pink-100">Infection Control (IPC)</h3>
+                            <p className="text-sm text-pink-700 dark:text-pink-300 mt-1">
+                              Infection prevention and control
+                            </p>
+                            <Badge className="mt-2 bg-pink-200 text-pink-800 dark:bg-pink-800 dark:text-pink-200">
+                              Key Question: Safe
+                            </Badge>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </DialogTrigger>
+                  <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+                    <DialogHeader><DialogTitle className="flex items-center gap-2"><Shield className="h-5 w-5 text-pink-600" />Infection Prevention and Control Audit</DialogTitle><DialogDescription>Comprehensive IPC compliance assessment</DialogDescription></DialogHeader>
+                    <Form {...infectionControlAuditForm}>
+                      <form onSubmit={infectionControlAuditForm.handleSubmit((data) => submitGenericAudit("Infection Prevention and Control", "infection_control", "safe", data, setInfectionControlAuditOpen, infectionControlAuditForm))} className="space-y-6">
+                        <Card className="border-pink-200"><CardHeader className="pb-3"><CardTitle className="text-lg">IPC Policy</CardTitle></CardHeader>
+                          <CardContent className="space-y-4">
+                            <FormField control={infectionControlAuditForm.control} name="ipcPolicyInPlace" render={({ field }) => (<FormItem><FormLabel>Is a comprehensive IPC policy in place?</FormLabel><FormControl><Select onValueChange={field.onChange} defaultValue={field.value}><SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger><SelectContent><SelectItem value="yes">Yes</SelectItem><SelectItem value="partial">Partial</SelectItem><SelectItem value="no">No</SelectItem></SelectContent></Select></FormControl><FormMessage /></FormItem>)} />
+                            <FormField control={infectionControlAuditForm.control} name="policyDetails" render={({ field }) => (<FormItem><FormLabel>Evidence:</FormLabel><FormControl><Textarea {...field} rows={2} /></FormControl><FormMessage /></FormItem>)} />
+                          </CardContent>
+                        </Card>
+                        <Card className="border-pink-200"><CardHeader className="pb-3"><CardTitle className="text-lg">PPE</CardTitle></CardHeader>
+                          <CardContent className="space-y-4">
+                            <FormField control={infectionControlAuditForm.control} name="ppeAvailableAndUsed" render={({ field }) => (<FormItem><FormLabel>Is appropriate PPE available and correctly used?</FormLabel><FormControl><Select onValueChange={field.onChange} defaultValue={field.value}><SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger><SelectContent><SelectItem value="yes">Yes</SelectItem><SelectItem value="partial">Partial</SelectItem><SelectItem value="no">No</SelectItem></SelectContent></Select></FormControl><FormMessage /></FormItem>)} />
+                            <FormField control={infectionControlAuditForm.control} name="ppeDetails" render={({ field }) => (<FormItem><FormLabel>Evidence:</FormLabel><FormControl><Textarea {...field} rows={2} /></FormControl><FormMessage /></FormItem>)} />
+                          </CardContent>
+                        </Card>
+                        <Card className="border-pink-200"><CardHeader className="pb-3"><CardTitle className="text-lg">Hand Hygiene</CardTitle></CardHeader>
+                          <CardContent className="space-y-4">
+                            <FormField control={infectionControlAuditForm.control} name="handHygieneCompliance" render={({ field }) => (<FormItem><FormLabel>Is hand hygiene compliance monitored?</FormLabel><FormControl><Select onValueChange={field.onChange} defaultValue={field.value}><SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger><SelectContent><SelectItem value="yes">Yes</SelectItem><SelectItem value="partial">Partial</SelectItem><SelectItem value="no">No</SelectItem></SelectContent></Select></FormControl><FormMessage /></FormItem>)} />
+                            <FormField control={infectionControlAuditForm.control} name="handHygieneDetails" render={({ field }) => (<FormItem><FormLabel>Evidence:</FormLabel><FormControl><Textarea {...field} rows={2} /></FormControl><FormMessage /></FormItem>)} />
+                          </CardContent>
+                        </Card>
+                        <Card className="border-pink-200"><CardHeader className="pb-3"><CardTitle className="text-lg">Cleaning</CardTitle></CardHeader>
+                          <CardContent className="space-y-4">
+                            <FormField control={infectionControlAuditForm.control} name="cleaningSchedulesMaintained" render={({ field }) => (<FormItem><FormLabel>Are cleaning schedules maintained?</FormLabel><FormControl><Select onValueChange={field.onChange} defaultValue={field.value}><SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger><SelectContent><SelectItem value="yes">Yes</SelectItem><SelectItem value="partial">Partial</SelectItem><SelectItem value="no">No</SelectItem></SelectContent></Select></FormControl><FormMessage /></FormItem>)} />
+                            <FormField control={infectionControlAuditForm.control} name="cleaningDetails" render={({ field }) => (<FormItem><FormLabel>Evidence:</FormLabel><FormControl><Textarea {...field} rows={2} /></FormControl><FormMessage /></FormItem>)} />
+                          </CardContent>
+                        </Card>
+                        <Card className="border-pink-200"><CardHeader className="pb-3"><CardTitle className="text-lg">Outbreak Management</CardTitle></CardHeader>
+                          <CardContent className="space-y-4">
+                            <FormField control={infectionControlAuditForm.control} name="outbreakManagementPlan" render={({ field }) => (<FormItem><FormLabel>Is an outbreak management plan in place?</FormLabel><FormControl><Select onValueChange={field.onChange} defaultValue={field.value}><SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger><SelectContent><SelectItem value="yes">Yes</SelectItem><SelectItem value="partial">Partial</SelectItem><SelectItem value="no">No</SelectItem></SelectContent></Select></FormControl><FormMessage /></FormItem>)} />
+                            <FormField control={infectionControlAuditForm.control} name="outbreakDetails" render={({ field }) => (<FormItem><FormLabel>Evidence:</FormLabel><FormControl><Textarea {...field} rows={2} /></FormControl><FormMessage /></FormItem>)} />
+                          </CardContent>
+                        </Card>
+                        <Card className="border-pink-200"><CardHeader className="pb-3"><CardTitle className="text-lg">IPC Training</CardTitle></CardHeader>
+                          <CardContent className="space-y-4">
+                            <FormField control={infectionControlAuditForm.control} name="staffTrainedInIpc" render={({ field }) => (<FormItem><FormLabel>Are all staff trained in IPC?</FormLabel><FormControl><Select onValueChange={field.onChange} defaultValue={field.value}><SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger><SelectContent><SelectItem value="yes">Yes</SelectItem><SelectItem value="partial">Partial</SelectItem><SelectItem value="no">No</SelectItem></SelectContent></Select></FormControl><FormMessage /></FormItem>)} />
+                            <FormField control={infectionControlAuditForm.control} name="ipcTrainingDetails" render={({ field }) => (<FormItem><FormLabel>Evidence:</FormLabel><FormControl><Textarea {...field} rows={2} /></FormControl><FormMessage /></FormItem>)} />
+                          </CardContent>
+                        </Card>
+                        <Card className="border-pink-200"><CardHeader className="pb-3"><CardTitle className="text-lg">Waste Disposal</CardTitle></CardHeader>
+                          <CardContent className="space-y-4">
+                            <FormField control={infectionControlAuditForm.control} name="wasteDisposalCompliant" render={({ field }) => (<FormItem><FormLabel>Is waste disposal compliant with regulations?</FormLabel><FormControl><Select onValueChange={field.onChange} defaultValue={field.value}><SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger><SelectContent><SelectItem value="yes">Yes</SelectItem><SelectItem value="partial">Partial</SelectItem><SelectItem value="no">No</SelectItem></SelectContent></Select></FormControl><FormMessage /></FormItem>)} />
+                            <FormField control={infectionControlAuditForm.control} name="wasteDetails" render={({ field }) => (<FormItem><FormLabel>Evidence:</FormLabel><FormControl><Textarea {...field} rows={2} /></FormControl><FormMessage /></FormItem>)} />
+                          </CardContent>
+                        </Card>
+                        <Card className="border-blue-200 bg-blue-50 dark:bg-blue-950/20"><CardHeader className="pb-3"><CardTitle className="text-lg">Audit Summary</CardTitle></CardHeader>
+                          <CardContent className="space-y-4">
+                            <FormField control={infectionControlAuditForm.control} name="score" render={({ field }) => (<FormItem><FormLabel>Overall Score (0-6):</FormLabel><FormControl><Input type="number" min="0" max="6" {...field} /></FormControl><FormMessage /></FormItem>)} />
+                            <FormField control={infectionControlAuditForm.control} name="areasOfStrength" render={({ field }) => (<FormItem><FormLabel>Areas of Strength:</FormLabel><FormControl><Textarea {...field} rows={2} /></FormControl><FormMessage /></FormItem>)} />
+                            <FormField control={infectionControlAuditForm.control} name="areasForImprovement" render={({ field }) => (<FormItem><FormLabel>Areas for Improvement:</FormLabel><FormControl><Textarea {...field} rows={2} /></FormControl><FormMessage /></FormItem>)} />
+                            <FormField control={infectionControlAuditForm.control} name="actions" render={({ field }) => (<FormItem><FormLabel>Required Actions:</FormLabel><FormControl><Textarea {...field} rows={3} /></FormControl><FormMessage /></FormItem>)} />
+                          </CardContent>
+                        </Card>
+                        <div className="flex justify-end gap-2"><Button type="button" variant="outline" onClick={() => setInfectionControlAuditOpen(false)}>Cancel</Button><Button type="submit" disabled={genericAuditMutation.isPending} className="bg-pink-600 hover:bg-pink-700">{genericAuditMutation.isPending ? "Saving..." : "Save Audit"}</Button></div>
+                      </form>
+                    </Form>
+                  </DialogContent>
+                </Dialog>
+
+                {/* Regulation 9 - Person-Centred Care */}
+                <Dialog open={personCentredCareAuditOpen} onOpenChange={setPersonCentredCareAuditOpen}>
+                  <DialogTrigger asChild>
+                    <Card className="cursor-pointer hover:shadow-md transition-shadow border-2 border-amber-200 dark:border-amber-800 bg-amber-50 dark:bg-amber-950/20">
+                      <CardContent className="p-6">
+                        <div className="flex items-start space-x-3">
+                          <div className="p-2 rounded-lg bg-amber-100 dark:bg-amber-900 text-amber-600 dark:text-amber-400">
+                            <Users className="h-5 w-5" />
+                          </div>
+                          <div className="flex-1">
+                            <h3 className="font-semibold text-amber-900 dark:text-amber-100">Regulation 9: Person-Centred</h3>
+                            <p className="text-sm text-amber-700 dark:text-amber-300 mt-1">
+                              Person-centred care assessment
+                            </p>
+                            <Badge className="mt-2 bg-amber-200 text-amber-800 dark:bg-amber-800 dark:text-amber-200">
+                              Key Question: Caring
+                            </Badge>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </DialogTrigger>
+                  <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+                    <DialogHeader><DialogTitle className="flex items-center gap-2"><Users className="h-5 w-5 text-amber-600" />Regulation 9: Person-Centred Care</DialogTitle><DialogDescription>Care appropriate to needs and preferences</DialogDescription></DialogHeader>
+                    <Form {...personCentredCareAuditForm}>
+                      <form onSubmit={personCentredCareAuditForm.handleSubmit((data) => submitGenericAudit("Regulation 9: Person-Centred Care", "person_centred_care", "caring", data, setPersonCentredCareAuditOpen, personCentredCareAuditForm))} className="space-y-6">
+                        <Card className="border-amber-200"><CardHeader className="pb-3"><CardTitle className="text-lg">Care Plans</CardTitle></CardHeader>
+                          <CardContent className="space-y-4">
+                            <FormField control={personCentredCareAuditForm.control} name="carePlansPersonalised" render={({ field }) => (<FormItem><FormLabel>Are care plans personalised to individual needs?</FormLabel><FormControl><Select onValueChange={field.onChange} defaultValue={field.value}><SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger><SelectContent><SelectItem value="yes">Yes</SelectItem><SelectItem value="partial">Partial</SelectItem><SelectItem value="no">No</SelectItem></SelectContent></Select></FormControl><FormMessage /></FormItem>)} />
+                            <FormField control={personCentredCareAuditForm.control} name="carePlanDetails" render={({ field }) => (<FormItem><FormLabel>Evidence:</FormLabel><FormControl><Textarea {...field} rows={2} /></FormControl><FormMessage /></FormItem>)} />
+                          </CardContent>
+                        </Card>
+                        <Card className="border-amber-200"><CardHeader className="pb-3"><CardTitle className="text-lg">Preferences</CardTitle></CardHeader>
+                          <CardContent className="space-y-4">
+                            <FormField control={personCentredCareAuditForm.control} name="preferencesDocumented" render={({ field }) => (<FormItem><FormLabel>Are service user preferences clearly documented?</FormLabel><FormControl><Select onValueChange={field.onChange} defaultValue={field.value}><SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger><SelectContent><SelectItem value="yes">Yes</SelectItem><SelectItem value="partial">Partial</SelectItem><SelectItem value="no">No</SelectItem></SelectContent></Select></FormControl><FormMessage /></FormItem>)} />
+                            <FormField control={personCentredCareAuditForm.control} name="preferenceDetails" render={({ field }) => (<FormItem><FormLabel>Evidence:</FormLabel><FormControl><Textarea {...field} rows={2} /></FormControl><FormMessage /></FormItem>)} />
+                          </CardContent>
+                        </Card>
+                        <Card className="border-amber-200"><CardHeader className="pb-3"><CardTitle className="text-lg">Involvement</CardTitle></CardHeader>
+                          <CardContent className="space-y-4">
+                            <FormField control={personCentredCareAuditForm.control} name="serviceUserInvolved" render={({ field }) => (<FormItem><FormLabel>Are service users involved in planning their care?</FormLabel><FormControl><Select onValueChange={field.onChange} defaultValue={field.value}><SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger><SelectContent><SelectItem value="yes">Yes</SelectItem><SelectItem value="partial">Partial</SelectItem><SelectItem value="no">No</SelectItem></SelectContent></Select></FormControl><FormMessage /></FormItem>)} />
+                            <FormField control={personCentredCareAuditForm.control} name="involvementDetails" render={({ field }) => (<FormItem><FormLabel>Evidence:</FormLabel><FormControl><Textarea {...field} rows={2} /></FormControl><FormMessage /></FormItem>)} />
+                          </CardContent>
+                        </Card>
+                        <Card className="border-amber-200"><CardHeader className="pb-3"><CardTitle className="text-lg">Regular Reviews</CardTitle></CardHeader>
+                          <CardContent className="space-y-4">
+                            <FormField control={personCentredCareAuditForm.control} name="needsRegularlyReviewed" render={({ field }) => (<FormItem><FormLabel>Are needs regularly reviewed and updated?</FormLabel><FormControl><Select onValueChange={field.onChange} defaultValue={field.value}><SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger><SelectContent><SelectItem value="yes">Yes</SelectItem><SelectItem value="partial">Partial</SelectItem><SelectItem value="no">No</SelectItem></SelectContent></Select></FormControl><FormMessage /></FormItem>)} />
+                            <FormField control={personCentredCareAuditForm.control} name="reviewDetails" render={({ field }) => (<FormItem><FormLabel>Evidence:</FormLabel><FormControl><Textarea {...field} rows={2} /></FormControl><FormMessage /></FormItem>)} />
+                          </CardContent>
+                        </Card>
+                        <Card className="border-amber-200"><CardHeader className="pb-3"><CardTitle className="text-lg">Choice & Control</CardTitle></CardHeader>
+                          <CardContent className="space-y-4">
+                            <FormField control={personCentredCareAuditForm.control} name="choicesRespected" render={({ field }) => (<FormItem><FormLabel>Are choices respected and promoted?</FormLabel><FormControl><Select onValueChange={field.onChange} defaultValue={field.value}><SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger><SelectContent><SelectItem value="yes">Yes</SelectItem><SelectItem value="partial">Partial</SelectItem><SelectItem value="no">No</SelectItem></SelectContent></Select></FormControl><FormMessage /></FormItem>)} />
+                            <FormField control={personCentredCareAuditForm.control} name="choiceDetails" render={({ field }) => (<FormItem><FormLabel>Evidence:</FormLabel><FormControl><Textarea {...field} rows={2} /></FormControl><FormMessage /></FormItem>)} />
+                          </CardContent>
+                        </Card>
+                        <Card className="border-amber-200"><CardHeader className="pb-3"><CardTitle className="text-lg">Cultural Needs</CardTitle></CardHeader>
+                          <CardContent className="space-y-4">
+                            <FormField control={personCentredCareAuditForm.control} name="culturalNeedsMet" render={({ field }) => (<FormItem><FormLabel>Are cultural, religious and spiritual needs met?</FormLabel><FormControl><Select onValueChange={field.onChange} defaultValue={field.value}><SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger><SelectContent><SelectItem value="yes">Yes</SelectItem><SelectItem value="partial">Partial</SelectItem><SelectItem value="no">No</SelectItem></SelectContent></Select></FormControl><FormMessage /></FormItem>)} />
+                            <FormField control={personCentredCareAuditForm.control} name="culturalDetails" render={({ field }) => (<FormItem><FormLabel>Evidence:</FormLabel><FormControl><Textarea {...field} rows={2} /></FormControl><FormMessage /></FormItem>)} />
+                          </CardContent>
+                        </Card>
+                        <Card className="border-blue-200 bg-blue-50 dark:bg-blue-950/20"><CardHeader className="pb-3"><CardTitle className="text-lg">Audit Summary</CardTitle></CardHeader>
+                          <CardContent className="space-y-4">
+                            <FormField control={personCentredCareAuditForm.control} name="score" render={({ field }) => (<FormItem><FormLabel>Overall Score (0-6):</FormLabel><FormControl><Input type="number" min="0" max="6" {...field} /></FormControl><FormMessage /></FormItem>)} />
+                            <FormField control={personCentredCareAuditForm.control} name="areasOfStrength" render={({ field }) => (<FormItem><FormLabel>Areas of Strength:</FormLabel><FormControl><Textarea {...field} rows={2} /></FormControl><FormMessage /></FormItem>)} />
+                            <FormField control={personCentredCareAuditForm.control} name="areasForImprovement" render={({ field }) => (<FormItem><FormLabel>Areas for Improvement:</FormLabel><FormControl><Textarea {...field} rows={2} /></FormControl><FormMessage /></FormItem>)} />
+                            <FormField control={personCentredCareAuditForm.control} name="actions" render={({ field }) => (<FormItem><FormLabel>Required Actions:</FormLabel><FormControl><Textarea {...field} rows={3} /></FormControl><FormMessage /></FormItem>)} />
+                          </CardContent>
+                        </Card>
+                        <div className="flex justify-end gap-2"><Button type="button" variant="outline" onClick={() => setPersonCentredCareAuditOpen(false)}>Cancel</Button><Button type="submit" disabled={genericAuditMutation.isPending} className="bg-amber-600 hover:bg-amber-700">{genericAuditMutation.isPending ? "Saving..." : "Save Audit"}</Button></div>
+                      </form>
+                    </Form>
+                  </DialogContent>
+                </Dialog>
+
+                {/* Regulation 16 - Complaints */}
+                <Dialog open={complaintsAuditOpen} onOpenChange={setComplaintsAuditOpen}>
+                  <DialogTrigger asChild>
+                    <Card className="cursor-pointer hover:shadow-md transition-shadow border-2 border-indigo-200 dark:border-indigo-800 bg-indigo-50 dark:bg-indigo-950/20">
+                      <CardContent className="p-6">
+                        <div className="flex items-start space-x-3">
+                          <div className="p-2 rounded-lg bg-indigo-100 dark:bg-indigo-900 text-indigo-600 dark:text-indigo-400">
+                            <MessageSquare className="h-5 w-5" />
+                          </div>
+                          <div className="flex-1">
+                            <h3 className="font-semibold text-indigo-900 dark:text-indigo-100">Regulation 16: Complaints</h3>
+                            <p className="text-sm text-indigo-700 dark:text-indigo-300 mt-1">
+                              Receiving and acting on complaints
+                            </p>
+                            <Badge className="mt-2 bg-indigo-200 text-indigo-800 dark:bg-indigo-800 dark:text-indigo-200">
+                              Key Question: Responsive
+                            </Badge>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </DialogTrigger>
+                  <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+                    <DialogHeader><DialogTitle className="flex items-center gap-2"><MessageSquare className="h-5 w-5 text-indigo-600" />Regulation 16: Complaints Handling</DialogTitle><DialogDescription>Receiving and acting on complaints</DialogDescription></DialogHeader>
+                    <Form {...complaintsAuditForm}>
+                      <form onSubmit={complaintsAuditForm.handleSubmit((data) => submitGenericAudit("Regulation 16: Complaints Handling", "complaints", "responsive", data, setComplaintsAuditOpen, complaintsAuditForm))} className="space-y-6">
+                        <Card className="border-indigo-200"><CardHeader className="pb-3"><CardTitle className="text-lg">Accessibility</CardTitle></CardHeader>
+                          <CardContent className="space-y-4">
+                            <FormField control={complaintsAuditForm.control} name="complaintsProcessAccessible" render={({ field }) => (<FormItem><FormLabel>Is the complaints process accessible and well-publicised?</FormLabel><FormControl><Select onValueChange={field.onChange} defaultValue={field.value}><SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger><SelectContent><SelectItem value="yes">Yes</SelectItem><SelectItem value="partial">Partial</SelectItem><SelectItem value="no">No</SelectItem></SelectContent></Select></FormControl><FormMessage /></FormItem>)} />
+                            <FormField control={complaintsAuditForm.control} name="processDetails" render={({ field }) => (<FormItem><FormLabel>Evidence:</FormLabel><FormControl><Textarea {...field} rows={2} /></FormControl><FormMessage /></FormItem>)} />
+                          </CardContent>
+                        </Card>
+                        <Card className="border-indigo-200"><CardHeader className="pb-3"><CardTitle className="text-lg">Investigation</CardTitle></CardHeader>
+                          <CardContent className="space-y-4">
+                            <FormField control={complaintsAuditForm.control} name="complaintsInvestigated" render={({ field }) => (<FormItem><FormLabel>Are complaints investigated thoroughly?</FormLabel><FormControl><Select onValueChange={field.onChange} defaultValue={field.value}><SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger><SelectContent><SelectItem value="yes">Yes</SelectItem><SelectItem value="partial">Partial</SelectItem><SelectItem value="no">No</SelectItem></SelectContent></Select></FormControl><FormMessage /></FormItem>)} />
+                            <FormField control={complaintsAuditForm.control} name="investigationDetails" render={({ field }) => (<FormItem><FormLabel>Evidence:</FormLabel><FormControl><Textarea {...field} rows={2} /></FormControl><FormMessage /></FormItem>)} />
+                          </CardContent>
+                        </Card>
+                        <Card className="border-indigo-200"><CardHeader className="pb-3"><CardTitle className="text-lg">Timeliness</CardTitle></CardHeader>
+                          <CardContent className="space-y-4">
+                            <FormField control={complaintsAuditForm.control} name="timelinessMet" render={({ field }) => (<FormItem><FormLabel>Are response timelines met?</FormLabel><FormControl><Select onValueChange={field.onChange} defaultValue={field.value}><SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger><SelectContent><SelectItem value="yes">Yes</SelectItem><SelectItem value="partial">Partial</SelectItem><SelectItem value="no">No</SelectItem></SelectContent></Select></FormControl><FormMessage /></FormItem>)} />
+                            <FormField control={complaintsAuditForm.control} name="timelinessDetails" render={({ field }) => (<FormItem><FormLabel>Evidence:</FormLabel><FormControl><Textarea {...field} rows={2} /></FormControl><FormMessage /></FormItem>)} />
+                          </CardContent>
+                        </Card>
+                        <Card className="border-indigo-200"><CardHeader className="pb-3"><CardTitle className="text-lg">Learning</CardTitle></CardHeader>
+                          <CardContent className="space-y-4">
+                            <FormField control={complaintsAuditForm.control} name="learningFromComplaints" render={({ field }) => (<FormItem><FormLabel>Is learning from complaints evidenced?</FormLabel><FormControl><Select onValueChange={field.onChange} defaultValue={field.value}><SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger><SelectContent><SelectItem value="yes">Yes</SelectItem><SelectItem value="partial">Partial</SelectItem><SelectItem value="no">No</SelectItem></SelectContent></Select></FormControl><FormMessage /></FormItem>)} />
+                            <FormField control={complaintsAuditForm.control} name="learningDetails" render={({ field }) => (<FormItem><FormLabel>Evidence:</FormLabel><FormControl><Textarea {...field} rows={2} /></FormControl><FormMessage /></FormItem>)} />
+                          </CardContent>
+                        </Card>
+                        <Card className="border-indigo-200"><CardHeader className="pb-3"><CardTitle className="text-lg">Communication</CardTitle></CardHeader>
+                          <CardContent className="space-y-4">
+                            <FormField control={complaintsAuditForm.control} name="complainantsKeptInformed" render={({ field }) => (<FormItem><FormLabel>Are complainants kept informed throughout?</FormLabel><FormControl><Select onValueChange={field.onChange} defaultValue={field.value}><SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger><SelectContent><SelectItem value="yes">Yes</SelectItem><SelectItem value="partial">Partial</SelectItem><SelectItem value="no">No</SelectItem></SelectContent></Select></FormControl><FormMessage /></FormItem>)} />
+                            <FormField control={complaintsAuditForm.control} name="communicationDetails" render={({ field }) => (<FormItem><FormLabel>Evidence:</FormLabel><FormControl><Textarea {...field} rows={2} /></FormControl><FormMessage /></FormItem>)} />
+                          </CardContent>
+                        </Card>
+                        <Card className="border-indigo-200"><CardHeader className="pb-3"><CardTitle className="text-lg">Records</CardTitle></CardHeader>
+                          <CardContent className="space-y-4">
+                            <FormField control={complaintsAuditForm.control} name="recordsWellMaintained" render={({ field }) => (<FormItem><FormLabel>Are complaint records well maintained?</FormLabel><FormControl><Select onValueChange={field.onChange} defaultValue={field.value}><SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger><SelectContent><SelectItem value="yes">Yes</SelectItem><SelectItem value="partial">Partial</SelectItem><SelectItem value="no">No</SelectItem></SelectContent></Select></FormControl><FormMessage /></FormItem>)} />
+                            <FormField control={complaintsAuditForm.control} name="recordsDetails" render={({ field }) => (<FormItem><FormLabel>Evidence:</FormLabel><FormControl><Textarea {...field} rows={2} /></FormControl><FormMessage /></FormItem>)} />
+                          </CardContent>
+                        </Card>
+                        <Card className="border-blue-200 bg-blue-50 dark:bg-blue-950/20"><CardHeader className="pb-3"><CardTitle className="text-lg">Audit Summary</CardTitle></CardHeader>
+                          <CardContent className="space-y-4">
+                            <FormField control={complaintsAuditForm.control} name="score" render={({ field }) => (<FormItem><FormLabel>Overall Score (0-6):</FormLabel><FormControl><Input type="number" min="0" max="6" {...field} /></FormControl><FormMessage /></FormItem>)} />
+                            <FormField control={complaintsAuditForm.control} name="areasOfStrength" render={({ field }) => (<FormItem><FormLabel>Areas of Strength:</FormLabel><FormControl><Textarea {...field} rows={2} /></FormControl><FormMessage /></FormItem>)} />
+                            <FormField control={complaintsAuditForm.control} name="areasForImprovement" render={({ field }) => (<FormItem><FormLabel>Areas for Improvement:</FormLabel><FormControl><Textarea {...field} rows={2} /></FormControl><FormMessage /></FormItem>)} />
+                            <FormField control={complaintsAuditForm.control} name="actions" render={({ field }) => (<FormItem><FormLabel>Required Actions:</FormLabel><FormControl><Textarea {...field} rows={3} /></FormControl><FormMessage /></FormItem>)} />
+                          </CardContent>
+                        </Card>
+                        <div className="flex justify-end gap-2"><Button type="button" variant="outline" onClick={() => setComplaintsAuditOpen(false)}>Cancel</Button><Button type="submit" disabled={genericAuditMutation.isPending} className="bg-indigo-600 hover:bg-indigo-700">{genericAuditMutation.isPending ? "Saving..." : "Save Audit"}</Button></div>
+                      </form>
+                    </Form>
+                  </DialogContent>
+                </Dialog>
               </div>
             </CardContent>
           </Card>
