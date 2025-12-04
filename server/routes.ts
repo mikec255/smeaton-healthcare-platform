@@ -1362,6 +1362,136 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Service Improvement Plan (SIP) API
+  app.get("/api/admin/sip", requireAdmin, async (req, res) => {
+    try {
+      const filters: { status?: string; priority?: string; cqcDomain?: string } = {};
+      if (req.query.status) filters.status = req.query.status as string;
+      if (req.query.priority) filters.priority = req.query.priority as string;
+      if (req.query.cqcDomain) filters.cqcDomain = req.query.cqcDomain as string;
+      
+      const items = await storage.getAllServiceImprovementPlanItems(filters);
+      res.json(items);
+    } catch (error) {
+      console.error("Error fetching SIP items:", error);
+      res.status(500).json({ message: "Failed to fetch service improvement plan items" });
+    }
+  });
+
+  app.get("/api/admin/sip/:id", requireAdmin, async (req, res) => {
+    try {
+      const item = await storage.getServiceImprovementPlanItem(req.params.id);
+      if (!item) {
+        return res.status(404).json({ message: "SIP item not found" });
+      }
+      res.json(item);
+    } catch (error) {
+      console.error("Error fetching SIP item:", error);
+      res.status(500).json({ message: "Failed to fetch service improvement plan item" });
+    }
+  });
+
+  app.post("/api/admin/sip", requireAdmin, async (req, res) => {
+    try {
+      const sipSchema = z.object({
+        description: z.string().min(1, "Description is required"),
+        priority: z.enum(["must_do", "should_do"]),
+        cqcDomain: z.string().optional(),
+        serviceArea: z.string().optional(),
+        sourceAuditId: z.string().optional(),
+        sourceAuditType: z.string().optional(),
+        actions: z.array(z.object({
+          action: z.string(),
+          responsible: z.string().optional(),
+          deadline: z.string().optional(),
+          completed: z.boolean().optional()
+        })).optional(),
+        responsibility: z.string().optional(),
+        targetDate: z.string().optional().transform(v => v ? new Date(v) : undefined),
+        status: z.enum(["open", "in_progress", "completed", "cancelled"]).optional(),
+        evidence: z.string().optional(),
+        progressPercentage: z.number().min(0).max(100).optional(),
+      });
+
+      const validatedData = sipSchema.parse(req.body);
+      const item = await storage.createServiceImprovementPlanItem(validatedData);
+      res.status(201).json(item);
+    } catch (error) {
+      console.error("Error creating SIP item:", error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid SIP data", errors: error.errors });
+      }
+      res.status(500).json({ message: "Failed to create service improvement plan item" });
+    }
+  });
+
+  app.put("/api/admin/sip/:id", requireAdmin, async (req, res) => {
+    try {
+      const updateSchema = z.object({
+        description: z.string().optional(),
+        priority: z.enum(["must_do", "should_do"]).optional(),
+        cqcDomain: z.string().optional(),
+        serviceArea: z.string().optional(),
+        actions: z.array(z.object({
+          action: z.string(),
+          responsible: z.string().optional(),
+          deadline: z.string().optional(),
+          completed: z.boolean().optional()
+        })).optional(),
+        responsibility: z.string().optional(),
+        targetDate: z.string().optional().transform(v => v ? new Date(v) : undefined),
+        status: z.enum(["open", "in_progress", "completed", "cancelled"]).optional(),
+        evidence: z.string().optional(),
+        progressPercentage: z.number().min(0).max(100).optional(),
+        updateHistory: z.array(z.object({
+          date: z.string(),
+          update: z.string(),
+          updatedBy: z.string().optional()
+        })).optional(),
+      });
+
+      const validatedData = updateSchema.parse(req.body);
+      const item = await storage.updateServiceImprovementPlanItem(req.params.id, validatedData);
+      if (!item) {
+        return res.status(404).json({ message: "SIP item not found" });
+      }
+      res.json(item);
+    } catch (error) {
+      console.error("Error updating SIP item:", error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid update data", errors: error.errors });
+      }
+      res.status(500).json({ message: "Failed to update service improvement plan item" });
+    }
+  });
+
+  app.put("/api/admin/sip/:id/complete", requireAdmin, async (req, res) => {
+    try {
+      const completedBy = (req as any).user?.username || "Admin";
+      const item = await storage.completeServiceImprovementPlanItem(req.params.id, completedBy);
+      if (!item) {
+        return res.status(404).json({ message: "SIP item not found" });
+      }
+      res.json(item);
+    } catch (error) {
+      console.error("Error completing SIP item:", error);
+      res.status(500).json({ message: "Failed to complete service improvement plan item" });
+    }
+  });
+
+  app.delete("/api/admin/sip/:id", requireAdmin, async (req, res) => {
+    try {
+      const deleted = await storage.deleteServiceImprovementPlanItem(req.params.id);
+      if (!deleted) {
+        return res.status(404).json({ message: "SIP item not found" });
+      }
+      res.json({ message: "SIP item deleted successfully" });
+    } catch (error) {
+      console.error("Error deleting SIP item:", error);
+      res.status(500).json({ message: "Failed to delete service improvement plan item" });
+    }
+  });
+
   // Contact submissions API
   app.get("/api/contact-submissions", requireAdmin, async (req, res) => {
     try {
