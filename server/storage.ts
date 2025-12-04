@@ -1,7 +1,7 @@
-import { type User, type InsertUser, type Job, type InsertJob, type Application, type InsertApplication, type ContactSubmission, type InsertContactSubmission, type Feedback, type InsertFeedback, type Newsletter, type InsertNewsletter, type NewsletterBlock, type InsertNewsletterBlock, type Template, type InsertTemplate, type Subscriber, type InsertSubscriber, type Campaign, type InsertCampaign, type Delivery, type InsertDelivery, type BlogCategory, type InsertBlogCategory, type BlogPost, type InsertBlogPost, type AuditLog, type InsertAuditLog, type CqcAudit, type InsertCqcAudit, type CqcAuditCategory, type InsertCqcAuditCategory, type CqcQualityStatement, type InsertCqcQualityStatement, type CqcEvidenceCategory, type InsertCqcEvidenceCategory, type CqcAuditEvidence, type InsertCqcAuditEvidence, type CqcQualityAssessment, type InsertCqcQualityAssessment, type CqcComplianceRecord, type InsertCqcComplianceRecord, type CqcChecklistItem, type InsertCqcChecklistItem, type CqcAuditResponse, type InsertCqcAuditResponse, type KnowledgeQuestionnaire, type InsertKnowledgeQuestionnaire, type KnowledgeQuestion, type InsertKnowledgeQuestion, type KnowledgeSession, type InsertKnowledgeSession, type KnowledgeResponse, type InsertKnowledgeResponse, type KnowledgeAction, type InsertKnowledgeAction, type RecruitmentApplication, type InsertRecruitmentApplication, type ProfessionalReference, type InsertProfessionalReference, type FinanceReport, type InsertFinanceReport, type Client, type InsertClient, type Visit, type InsertVisit, type Run, type InsertRun, type RunStop, type InsertRunStop, type Geocode, type InsertGeocode, type ReferenceRequest, type InsertReferenceRequest } from "@shared/schema";
+import { type User, type InsertUser, type Job, type InsertJob, type Application, type InsertApplication, type ContactSubmission, type InsertContactSubmission, type Feedback, type InsertFeedback, type Newsletter, type InsertNewsletter, type NewsletterBlock, type InsertNewsletterBlock, type Template, type InsertTemplate, type Subscriber, type InsertSubscriber, type Campaign, type InsertCampaign, type Delivery, type InsertDelivery, type BlogCategory, type InsertBlogCategory, type BlogPost, type InsertBlogPost, type AuditLog, type InsertAuditLog, type CqcAudit, type InsertCqcAudit, type CqcAuditCategory, type InsertCqcAuditCategory, type CqcQualityStatement, type InsertCqcQualityStatement, type CqcEvidenceCategory, type InsertCqcEvidenceCategory, type CqcAuditEvidence, type InsertCqcAuditEvidence, type CqcQualityAssessment, type InsertCqcQualityAssessment, type CqcComplianceRecord, type InsertCqcComplianceRecord, type CqcChecklistItem, type InsertCqcChecklistItem, type CqcAuditResponse, type InsertCqcAuditResponse, type KnowledgeQuestionnaire, type InsertKnowledgeQuestionnaire, type KnowledgeQuestion, type InsertKnowledgeQuestion, type KnowledgeSession, type InsertKnowledgeSession, type KnowledgeResponse, type InsertKnowledgeResponse, type KnowledgeAction, type InsertKnowledgeAction, type RecruitmentApplication, type InsertRecruitmentApplication, type ProfessionalReference, type InsertProfessionalReference, type FinanceReport, type InsertFinanceReport, type Client, type InsertClient, type Visit, type InsertVisit, type Run, type InsertRun, type RunStop, type InsertRunStop, type Geocode, type InsertGeocode, type ReferenceRequest, type InsertReferenceRequest, type ServiceImprovementPlanItem, type InsertServiceImprovementPlanItem, type UpdateServiceImprovementPlanItem } from "@shared/schema";
 import { randomUUID } from "crypto";
 import { db } from "./db";
-import { users, jobs, applications, contactSubmissions, blogCategories, blogPosts, auditLogs, cqcAudits, cqcAuditCategories, cqcQualityStatements, cqcEvidenceCategories, cqcAuditEvidence, cqcQualityAssessments, cqcComplianceRecords, knowledgeQuestionnaires, knowledgeQuestions, knowledgeSessions, knowledgeResponses, knowledgeActions, recruitmentApplications, professionalReferences, financeReports, clients, visits, runs, runStops, geocodeCache, referenceRequests } from "@shared/schema";
+import { users, jobs, applications, contactSubmissions, blogCategories, blogPosts, auditLogs, cqcAudits, cqcAuditCategories, cqcQualityStatements, cqcEvidenceCategories, cqcAuditEvidence, cqcQualityAssessments, cqcComplianceRecords, knowledgeQuestionnaires, knowledgeQuestions, knowledgeSessions, knowledgeResponses, knowledgeActions, recruitmentApplications, professionalReferences, financeReports, clients, visits, runs, runStops, geocodeCache, referenceRequests, serviceImprovementPlanItems } from "@shared/schema";
 import { eq, and, desc } from "drizzle-orm";
 import bcrypt from "bcryptjs";
 
@@ -282,6 +282,15 @@ export interface IStorage {
   updateReferenceRequest(id: string, updates: Partial<InsertReferenceRequest>): Promise<ReferenceRequest | undefined>;
   updateReferenceRequestStatus(id: string, status: string): Promise<ReferenceRequest | undefined>;
   deleteReferenceRequest(id: string): Promise<boolean>;
+  
+  // Service Improvement Plan (SIP)
+  getAllServiceImprovementPlanItems(filters?: { status?: string; priority?: string; cqcDomain?: string }): Promise<ServiceImprovementPlanItem[]>;
+  getServiceImprovementPlanItem(id: string): Promise<ServiceImprovementPlanItem | undefined>;
+  createServiceImprovementPlanItem(item: InsertServiceImprovementPlanItem): Promise<ServiceImprovementPlanItem>;
+  updateServiceImprovementPlanItem(id: string, updates: UpdateServiceImprovementPlanItem): Promise<ServiceImprovementPlanItem | undefined>;
+  completeServiceImprovementPlanItem(id: string, completedBy: string): Promise<ServiceImprovementPlanItem | undefined>;
+  deleteServiceImprovementPlanItem(id: string): Promise<boolean>;
+  getNextSipReferenceNumber(): Promise<string>;
 }
 
 export class MemStorage implements IStorage {
@@ -317,6 +326,7 @@ export class MemStorage implements IStorage {
   private runStops: Map<string, RunStop>;
   private geocodes: Map<string, Geocode>;
   private referenceRequests: Map<string, ReferenceRequest>;
+  private sipItems: Map<string, ServiceImprovementPlanItem>;
 
   constructor() {
     this.users = new Map();
@@ -351,6 +361,7 @@ export class MemStorage implements IStorage {
     this.runStops = new Map();
     this.geocodes = new Map();
     this.referenceRequests = new Map();
+    this.sipItems = new Map();
     
     // Initialize with sample jobs from the website
     this.initializeSampleJobs();
@@ -1925,6 +1936,81 @@ export class MemStorage implements IStorage {
     return this.referenceRequests.delete(id);
   }
 
+  // Service Improvement Plan (SIP) - MemStorage implementations
+  async getAllServiceImprovementPlanItems(filters?: { status?: string; priority?: string; cqcDomain?: string }): Promise<ServiceImprovementPlanItem[]> {
+    let items = Array.from(this.sipItems.values());
+    if (filters?.status) items = items.filter(i => i.status === filters.status);
+    if (filters?.priority) items = items.filter(i => i.priority === filters.priority);
+    if (filters?.cqcDomain) items = items.filter(i => i.cqcDomain === filters.cqcDomain);
+    return items.sort((a, b) => new Date(b.createdAt!).getTime() - new Date(a.createdAt!).getTime());
+  }
+
+  async getServiceImprovementPlanItem(id: string): Promise<ServiceImprovementPlanItem | undefined> {
+    return this.sipItems.get(id);
+  }
+
+  async createServiceImprovementPlanItem(item: InsertServiceImprovementPlanItem): Promise<ServiceImprovementPlanItem> {
+    const id = randomUUID();
+    const refNumber = await this.getNextSipReferenceNumber();
+    const newItem: ServiceImprovementPlanItem = {
+      id,
+      referenceNumber: refNumber,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      identifiedDate: new Date(),
+      progressPercentage: 0,
+      status: 'open',
+      ...item,
+    };
+    this.sipItems.set(id, newItem);
+    return newItem;
+  }
+
+  async updateServiceImprovementPlanItem(id: string, updates: UpdateServiceImprovementPlanItem): Promise<ServiceImprovementPlanItem | undefined> {
+    const item = this.sipItems.get(id);
+    if (!item) return undefined;
+    const updatedItem: ServiceImprovementPlanItem = {
+      ...item,
+      ...updates,
+      updatedAt: new Date(),
+    };
+    this.sipItems.set(id, updatedItem);
+    return updatedItem;
+  }
+
+  async completeServiceImprovementPlanItem(id: string, completedBy: string): Promise<ServiceImprovementPlanItem | undefined> {
+    const item = this.sipItems.get(id);
+    if (!item) return undefined;
+    const now = new Date();
+    const updateEntry = {
+      date: now.toISOString(),
+      update: 'Marked as completed',
+      updatedBy: completedBy
+    };
+    const updatedItem: ServiceImprovementPlanItem = {
+      ...item,
+      status: 'completed',
+      completedDate: now,
+      progressPercentage: 100,
+      updatedAt: now,
+      updateHistory: [...(item.updateHistory || []), updateEntry],
+    };
+    this.sipItems.set(id, updatedItem);
+    return updatedItem;
+  }
+
+  async deleteServiceImprovementPlanItem(id: string): Promise<boolean> {
+    return this.sipItems.delete(id);
+  }
+
+  async getNextSipReferenceNumber(): Promise<string> {
+    const year = new Date().getFullYear();
+    const items = Array.from(this.sipItems.values());
+    const yearItems = items.filter(i => i.referenceNumber.includes(`SIP-${year}`));
+    const nextNum = yearItems.length + 1;
+    return `SIP-${year}-${String(nextNum).padStart(3, '0')}`;
+  }
+
   // CQC Quality Statements (stub implementations for MemStorage)
   async getAllCqcQualityStatements(keyQuestion?: string): Promise<CqcQualityStatement[]> {
     return [];
@@ -3357,6 +3443,86 @@ export class DrizzleStorage implements IStorage {
   async deleteReferenceRequest(id: string): Promise<boolean> {
     const result = await db.delete(referenceRequests).where(eq(referenceRequests.id, id)).returning();
     return result.length > 0;
+  }
+
+  // Service Improvement Plan (SIP) - DatabaseStorage implementations
+  async getAllServiceImprovementPlanItems(filters?: { status?: string; priority?: string; cqcDomain?: string }): Promise<ServiceImprovementPlanItem[]> {
+    let query = db.select().from(serviceImprovementPlanItems);
+    
+    const conditions = [];
+    if (filters?.status) conditions.push(eq(serviceImprovementPlanItems.status, filters.status));
+    if (filters?.priority) conditions.push(eq(serviceImprovementPlanItems.priority, filters.priority));
+    if (filters?.cqcDomain) conditions.push(eq(serviceImprovementPlanItems.cqcDomain, filters.cqcDomain));
+    
+    if (conditions.length > 0) {
+      query = query.where(and(...conditions));
+    }
+    
+    return await query.orderBy(desc(serviceImprovementPlanItems.createdAt));
+  }
+
+  async getServiceImprovementPlanItem(id: string): Promise<ServiceImprovementPlanItem | undefined> {
+    const result = await db.select().from(serviceImprovementPlanItems)
+      .where(eq(serviceImprovementPlanItems.id, id))
+      .limit(1);
+    return result[0];
+  }
+
+  async createServiceImprovementPlanItem(item: InsertServiceImprovementPlanItem): Promise<ServiceImprovementPlanItem> {
+    const refNumber = await this.getNextSipReferenceNumber();
+    const result = await db.insert(serviceImprovementPlanItems).values({
+      ...item,
+      referenceNumber: refNumber,
+    }).returning();
+    return result[0];
+  }
+
+  async updateServiceImprovementPlanItem(id: string, updates: UpdateServiceImprovementPlanItem): Promise<ServiceImprovementPlanItem | undefined> {
+    const result = await db.update(serviceImprovementPlanItems)
+      .set({
+        ...updates,
+        updatedAt: new Date(),
+      })
+      .where(eq(serviceImprovementPlanItems.id, id))
+      .returning();
+    return result[0];
+  }
+
+  async completeServiceImprovementPlanItem(id: string, completedBy: string): Promise<ServiceImprovementPlanItem | undefined> {
+    const existing = await this.getServiceImprovementPlanItem(id);
+    if (!existing) return undefined;
+    
+    const now = new Date();
+    const updateEntry = {
+      date: now.toISOString(),
+      update: 'Marked as completed',
+      updatedBy: completedBy
+    };
+    
+    const result = await db.update(serviceImprovementPlanItems)
+      .set({
+        status: 'completed',
+        completedDate: now,
+        progressPercentage: 100,
+        updatedAt: now,
+        updateHistory: [...(existing.updateHistory || []), updateEntry],
+      })
+      .where(eq(serviceImprovementPlanItems.id, id))
+      .returning();
+    return result[0];
+  }
+
+  async deleteServiceImprovementPlanItem(id: string): Promise<boolean> {
+    const result = await db.delete(serviceImprovementPlanItems).where(eq(serviceImprovementPlanItems.id, id)).returning();
+    return result.length > 0;
+  }
+
+  async getNextSipReferenceNumber(): Promise<string> {
+    const year = new Date().getFullYear();
+    const allItems = await db.select().from(serviceImprovementPlanItems);
+    const yearItems = allItems.filter(i => i.referenceNumber.includes(`SIP-${year}`));
+    const nextNum = yearItems.length + 1;
+    return `SIP-${year}-${String(nextNum).padStart(3, '0')}`;
   }
 }
 
