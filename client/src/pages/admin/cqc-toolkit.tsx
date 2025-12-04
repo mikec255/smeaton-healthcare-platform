@@ -2255,107 +2255,157 @@ Delivering outstanding healthcare across Devon & Cornwall`;
 
                 {/* BUSINESS AUDITS TAB */}
                 <TabsContent value="business" className="space-y-4">
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {/* Insurance Audit */}
-                    <Dialog open={insuranceAuditOpen} onOpenChange={setInsuranceAuditOpen}>
-                      <DialogTrigger asChild>
-                        <Card className="cursor-pointer hover:shadow-md transition-shadow border-2 border-orange-200 dark:border-orange-800 bg-orange-50 dark:bg-orange-950/20">
-                          <CardContent className="p-6">
-                            <div className="flex items-start space-x-3">
-                              <div className="p-2 rounded-lg bg-orange-100 dark:bg-orange-900 text-orange-600 dark:text-orange-400">
-                                <Shield className="h-5 w-5" />
-                              </div>
-                              <div className="flex-1">
-                                <h3 className="font-semibold text-orange-900 dark:text-orange-100">Insurance Audit</h3>
-                                <p className="text-sm text-orange-700 dark:text-orange-300 mt-1">Verify current insurance coverage and policies</p>
-                                <Badge className="mt-2 bg-orange-200 text-orange-800 dark:bg-orange-800 dark:text-orange-200">6 Point Scoring</Badge>
-                              </div>
-                            </div>
-                          </CardContent>
-                        </Card>
-                      </DialogTrigger>
-                    </Dialog>
+                  <Accordion type="multiple" className="space-y-2">
+                    {/* RISK & INSURANCE */}
+                    <AccordionItem value="risk-insurance" className="border rounded-lg bg-orange-50 dark:bg-orange-950/20">
+                      <AccordionTrigger className="px-4 hover:no-underline">
+                        <div className="flex items-center gap-3">
+                          <div className="p-2 rounded-lg bg-orange-100 dark:bg-orange-900 text-orange-600 dark:text-orange-400">
+                            <Shield className="h-5 w-5" />
+                          </div>
+                          <div className="text-left">
+                            <h3 className="font-semibold text-orange-900 dark:text-orange-100">Risk & Insurance</h3>
+                            <p className="text-sm text-orange-700 dark:text-orange-300">Insurance coverage, liability, indemnity policies</p>
+                          </div>
+                          <Badge className="ml-auto bg-orange-200 text-orange-800 dark:bg-orange-800 dark:text-orange-200">1 Audit</Badge>
+                        </div>
+                      </AccordionTrigger>
+                      <AccordionContent className="px-4 pb-4">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mt-2">
+                          <Dialog open={insuranceAuditOpen} onOpenChange={setInsuranceAuditOpen}>
+                            <DialogTrigger asChild>
+                              <Card className="cursor-pointer hover:shadow-md transition-shadow border border-orange-200">
+                                <CardContent className="p-4">
+                                  <h4 className="font-medium">Insurance Audit</h4>
+                                  <p className="text-sm text-muted-foreground mt-1">Verify current insurance coverage and policies</p>
+                                </CardContent>
+                              </Card>
+                            </DialogTrigger>
+                          </Dialog>
+                        </div>
+                      </AccordionContent>
+                    </AccordionItem>
 
-                    {/* Business Continuity Audit */}
-                    <Dialog open={businessContinuityAuditOpen} onOpenChange={setBusinessContinuityAuditOpen}>
-                      <DialogTrigger asChild>
-                        <Card className="cursor-pointer hover:shadow-md transition-shadow border-2 border-cyan-200 dark:border-cyan-800 bg-cyan-50 dark:bg-cyan-950/20">
-                          <CardContent className="p-6">
-                            <div className="flex items-start space-x-3">
-                              <div className="p-2 rounded-lg bg-cyan-100 dark:bg-cyan-900 text-cyan-600 dark:text-cyan-400">
-                                <Building2 className="h-5 w-5" />
-                              </div>
-                              <div className="flex-1">
-                                <h3 className="font-semibold text-cyan-900 dark:text-cyan-100">Business Continuity</h3>
-                                <p className="text-sm text-cyan-700 dark:text-cyan-300 mt-1">BCP, emergency planning, backup systems</p>
-                                <Badge className="mt-2 bg-cyan-200 text-cyan-800 dark:bg-cyan-800 dark:text-cyan-200">6 Point Scoring</Badge>
-                              </div>
-                            </div>
-                          </CardContent>
-                        </Card>
-                      </DialogTrigger>
-                    </Dialog>
+                    {/* BUSINESS OPERATIONS */}
+                    <AccordionItem value="business-ops" className="border rounded-lg bg-cyan-50 dark:bg-cyan-950/20">
+                      <AccordionTrigger className="px-4 hover:no-underline">
+                        <div className="flex items-center gap-3">
+                          <div className="p-2 rounded-lg bg-cyan-100 dark:bg-cyan-900 text-cyan-600 dark:text-cyan-400">
+                            <Building2 className="h-5 w-5" />
+                          </div>
+                          <div className="text-left">
+                            <h3 className="font-semibold text-cyan-900 dark:text-cyan-100">Business Operations</h3>
+                            <p className="text-sm text-cyan-700 dark:text-cyan-300">Continuity planning, emergency response, backup systems</p>
+                          </div>
+                          <Badge className="ml-auto bg-cyan-200 text-cyan-800 dark:bg-cyan-800 dark:text-cyan-200">1 Audit</Badge>
+                        </div>
+                      </AccordionTrigger>
+                      <AccordionContent className="px-4 pb-4">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mt-2">
+                          <Dialog open={businessContinuityAuditOpen} onOpenChange={setBusinessContinuityAuditOpen}>
+                            <DialogTrigger asChild>
+                              <Card className="cursor-pointer hover:shadow-md transition-shadow border border-cyan-200">
+                                <CardContent className="p-4">
+                                  <h4 className="font-medium">Business Continuity</h4>
+                                  <p className="text-sm text-muted-foreground mt-1">BCP, emergency planning, backup systems</p>
+                                </CardContent>
+                              </Card>
+                            </DialogTrigger>
+                          </Dialog>
+                        </div>
+                      </AccordionContent>
+                    </AccordionItem>
 
-                    {/* Data Protection Audit */}
-                    <Dialog open={dataProtectionAuditOpen} onOpenChange={setDataProtectionAuditOpen}>
-                      <DialogTrigger asChild>
-                        <Card className="cursor-pointer hover:shadow-md transition-shadow border-2 border-violet-200 dark:border-violet-800 bg-violet-50 dark:bg-violet-950/20">
-                          <CardContent className="p-6">
-                            <div className="flex items-start space-x-3">
-                              <div className="p-2 rounded-lg bg-violet-100 dark:bg-violet-900 text-violet-600 dark:text-violet-400">
-                                <FileWarning className="h-5 w-5" />
-                              </div>
-                              <div className="flex-1">
-                                <h3 className="font-semibold text-violet-900 dark:text-violet-100">Data Protection / GDPR</h3>
-                                <p className="text-sm text-violet-700 dark:text-violet-300 mt-1">Privacy policy, consent, SAR, breach procedures</p>
-                                <Badge className="mt-2 bg-violet-200 text-violet-800 dark:bg-violet-800 dark:text-violet-200">6 Point Scoring</Badge>
-                              </div>
-                            </div>
-                          </CardContent>
-                        </Card>
-                      </DialogTrigger>
-                    </Dialog>
+                    {/* DATA & COMPLIANCE */}
+                    <AccordionItem value="data-compliance" className="border rounded-lg bg-violet-50 dark:bg-violet-950/20">
+                      <AccordionTrigger className="px-4 hover:no-underline">
+                        <div className="flex items-center gap-3">
+                          <div className="p-2 rounded-lg bg-violet-100 dark:bg-violet-900 text-violet-600 dark:text-violet-400">
+                            <FileWarning className="h-5 w-5" />
+                          </div>
+                          <div className="text-left">
+                            <h3 className="font-semibold text-violet-900 dark:text-violet-100">Data & Compliance</h3>
+                            <p className="text-sm text-violet-700 dark:text-violet-300">GDPR, privacy policies, data protection, consent management</p>
+                          </div>
+                          <Badge className="ml-auto bg-violet-200 text-violet-800 dark:bg-violet-800 dark:text-violet-200">1 Audit</Badge>
+                        </div>
+                      </AccordionTrigger>
+                      <AccordionContent className="px-4 pb-4">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mt-2">
+                          <Dialog open={dataProtectionAuditOpen} onOpenChange={setDataProtectionAuditOpen}>
+                            <DialogTrigger asChild>
+                              <Card className="cursor-pointer hover:shadow-md transition-shadow border border-violet-200">
+                                <CardContent className="p-4">
+                                  <h4 className="font-medium">Data Protection / GDPR</h4>
+                                  <p className="text-sm text-muted-foreground mt-1">Privacy policy, consent, SAR, breach procedures</p>
+                                </CardContent>
+                              </Card>
+                            </DialogTrigger>
+                          </Dialog>
+                        </div>
+                      </AccordionContent>
+                    </AccordionItem>
 
-                    {/* Financial Controls Audit */}
-                    <Dialog open={financialControlsAuditOpen} onOpenChange={setFinancialControlsAuditOpen}>
-                      <DialogTrigger asChild>
-                        <Card className="cursor-pointer hover:shadow-md transition-shadow border-2 border-emerald-200 dark:border-emerald-800 bg-emerald-50 dark:bg-emerald-950/20">
-                          <CardContent className="p-6">
-                            <div className="flex items-start space-x-3">
-                              <div className="p-2 rounded-lg bg-emerald-100 dark:bg-emerald-900 text-emerald-600 dark:text-emerald-400">
-                                <DollarSign className="h-5 w-5" />
-                              </div>
-                              <div className="flex-1">
-                                <h3 className="font-semibold text-emerald-900 dark:text-emerald-100">Financial Controls</h3>
-                                <p className="text-sm text-emerald-700 dark:text-emerald-300 mt-1">Payments, reconciliations, expense controls</p>
-                                <Badge className="mt-2 bg-emerald-200 text-emerald-800 dark:bg-emerald-800 dark:text-emerald-200">6 Point Scoring</Badge>
-                              </div>
-                            </div>
-                          </CardContent>
-                        </Card>
-                      </DialogTrigger>
-                    </Dialog>
+                    {/* FINANCIAL MANAGEMENT */}
+                    <AccordionItem value="financial" className="border rounded-lg bg-emerald-50 dark:bg-emerald-950/20">
+                      <AccordionTrigger className="px-4 hover:no-underline">
+                        <div className="flex items-center gap-3">
+                          <div className="p-2 rounded-lg bg-emerald-100 dark:bg-emerald-900 text-emerald-600 dark:text-emerald-400">
+                            <DollarSign className="h-5 w-5" />
+                          </div>
+                          <div className="text-left">
+                            <h3 className="font-semibold text-emerald-900 dark:text-emerald-100">Financial Management</h3>
+                            <p className="text-sm text-emerald-700 dark:text-emerald-300">Financial controls, payments, reconciliations, budgets</p>
+                          </div>
+                          <Badge className="ml-auto bg-emerald-200 text-emerald-800 dark:bg-emerald-800 dark:text-emerald-200">1 Audit</Badge>
+                        </div>
+                      </AccordionTrigger>
+                      <AccordionContent className="px-4 pb-4">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mt-2">
+                          <Dialog open={financialControlsAuditOpen} onOpenChange={setFinancialControlsAuditOpen}>
+                            <DialogTrigger asChild>
+                              <Card className="cursor-pointer hover:shadow-md transition-shadow border border-emerald-200">
+                                <CardContent className="p-4">
+                                  <h4 className="font-medium">Financial Controls</h4>
+                                  <p className="text-sm text-muted-foreground mt-1">Payments, reconciliations, expense controls</p>
+                                </CardContent>
+                              </Card>
+                            </DialogTrigger>
+                          </Dialog>
+                        </div>
+                      </AccordionContent>
+                    </AccordionItem>
 
-                    {/* Premises Audit */}
-                    <Dialog open={premisesAuditOpen} onOpenChange={setPremisesAuditOpen}>
-                      <DialogTrigger asChild>
-                        <Card className="cursor-pointer hover:shadow-md transition-shadow border-2 border-rose-200 dark:border-rose-800 bg-rose-50 dark:bg-rose-950/20">
-                          <CardContent className="p-6">
-                            <div className="flex items-start space-x-3">
-                              <div className="p-2 rounded-lg bg-rose-100 dark:bg-rose-900 text-rose-600 dark:text-rose-400">
-                                <Home className="h-5 w-5" />
-                              </div>
-                              <div className="flex-1">
-                                <h3 className="font-semibold text-rose-900 dark:text-rose-100">Health & Safety Premises</h3>
-                                <p className="text-sm text-rose-700 dark:text-rose-300 mt-1">Fire, PAT, legionella, security, accessibility</p>
-                                <Badge className="mt-2 bg-rose-200 text-rose-800 dark:bg-rose-800 dark:text-rose-200">6 Point Scoring</Badge>
-                              </div>
-                            </div>
-                          </CardContent>
-                        </Card>
-                      </DialogTrigger>
-                    </Dialog>
-                  </div>
+                    {/* PREMISES & SAFETY */}
+                    <AccordionItem value="premises-safety" className="border rounded-lg bg-rose-50 dark:bg-rose-950/20">
+                      <AccordionTrigger className="px-4 hover:no-underline">
+                        <div className="flex items-center gap-3">
+                          <div className="p-2 rounded-lg bg-rose-100 dark:bg-rose-900 text-rose-600 dark:text-rose-400">
+                            <Home className="h-5 w-5" />
+                          </div>
+                          <div className="text-left">
+                            <h3 className="font-semibold text-rose-900 dark:text-rose-100">Premises & Safety</h3>
+                            <p className="text-sm text-rose-700 dark:text-rose-300">Fire safety, PAT testing, legionella, security, accessibility</p>
+                          </div>
+                          <Badge className="ml-auto bg-rose-200 text-rose-800 dark:bg-rose-800 dark:text-rose-200">1 Audit</Badge>
+                        </div>
+                      </AccordionTrigger>
+                      <AccordionContent className="px-4 pb-4">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mt-2">
+                          <Dialog open={premisesAuditOpen} onOpenChange={setPremisesAuditOpen}>
+                            <DialogTrigger asChild>
+                              <Card className="cursor-pointer hover:shadow-md transition-shadow border border-rose-200">
+                                <CardContent className="p-4">
+                                  <h4 className="font-medium">Health & Safety Premises</h4>
+                                  <p className="text-sm text-muted-foreground mt-1">Fire, PAT, legionella, security, accessibility</p>
+                                </CardContent>
+                              </Card>
+                            </DialogTrigger>
+                          </Dialog>
+                        </div>
+                      </AccordionContent>
+                    </AccordionItem>
+                  </Accordion>
                 </TabsContent>
               </Tabs>
 
