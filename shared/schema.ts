@@ -1249,3 +1249,75 @@ export const submitReferenceFormSchema = z.object({
 export type InsertReferenceRequest = z.infer<typeof insertReferenceRequestSchema>;
 export type ReferenceRequest = typeof referenceRequests.$inferSelect;
 export type SubmitReferenceForm = z.infer<typeof submitReferenceFormSchema>;
+
+// Service Improvement Plan (SIP) - CQC Quality Improvement Tracking
+export const serviceImprovementPlanItems = pgTable("service_improvement_plan_items", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  referenceNumber: text("reference_number").notNull(), // Auto-generated: SIP-2024-001
+  
+  // Core Details
+  title: text("title").notNull(),
+  description: text("description").notNull(),
+  priority: text("priority").notNull().default("should_do"), // must_do, should_do
+  
+  // CQC Alignment
+  cqcDomain: text("cqc_domain"), // safe, effective, caring, responsive, well_led
+  keyQuestion: text("key_question"), // Which key question this relates to
+  regulation: text("regulation"), // e.g., "Regulation 12: Safe Care and Treatment"
+  serviceArea: text("service_area"), // Department or function affected
+  
+  // Source - where this improvement came from
+  sourceType: text("source_type").notNull(), // audit, inspection, complaint, incident, self_identified
+  sourceAuditId: varchar("source_audit_id").references(() => cqcAudits.id),
+  sourceAuditType: text("source_audit_type"), // Type of audit it came from
+  sourceDetails: text("source_details"), // Additional source context
+  
+  // Actions
+  improvementObjective: text("improvement_objective"), // Expected outcome
+  actionsRequired: text("actions_required"), // Specific steps to achieve
+  evidenceMeasures: text("evidence_measures"), // How will we know it's achieved
+  
+  // Responsibility
+  leadResponsiblePerson: text("lead_responsible_person"), // Executive lead
+  operationalLead: text("operational_lead"), // Day-to-day responsible person
+  
+  // Dates
+  identifiedDate: timestamp("identified_date").defaultNow(),
+  targetDate: timestamp("target_date"),
+  completedDate: timestamp("completed_date"),
+  
+  // Status
+  status: text("status").notNull().default("open"), // open, in_progress, completed, cancelled
+  progressPercentage: integer("progress_percentage").default(0),
+  
+  // Updates & Evidence
+  latestUpdate: text("latest_update"),
+  updateHistory: json("update_history").$type<Array<{
+    date: string;
+    update: string;
+    updatedBy: string;
+  }>>(),
+  evidenceLinks: json("evidence_links").$type<string[]>(), // Links to evidence documents
+  
+  // Metadata
+  createdBy: varchar("created_by").references(() => users.id),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const insertServiceImprovementPlanItemSchema = createInsertSchema(serviceImprovementPlanItems).omit({
+  id: true,
+  referenceNumber: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const updateServiceImprovementPlanItemSchema = createInsertSchema(serviceImprovementPlanItems).omit({
+  id: true,
+  referenceNumber: true,
+  createdAt: true,
+}).partial();
+
+export type InsertServiceImprovementPlanItem = z.infer<typeof insertServiceImprovementPlanItemSchema>;
+export type UpdateServiceImprovementPlanItem = z.infer<typeof updateServiceImprovementPlanItemSchema>;
+export type ServiceImprovementPlanItem = typeof serviceImprovementPlanItems.$inferSelect;
