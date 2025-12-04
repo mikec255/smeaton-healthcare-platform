@@ -12,6 +12,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Checkbox } from "@/components/ui/checkbox";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -447,6 +448,11 @@ export default function CqcToolkit() {
   const [sipDialogOpen, setSipDialogOpen] = useState(false);
   const [editingSipItem, setEditingSipItem] = useState<ServiceImprovementPlanItem | null>(null);
   const [sipFilter, setSipFilter] = useState<{ status?: string; priority?: string }>({});
+  // SIP checkbox states for audit forms - tracks which sections should be added to SIP on submit
+  const [bcSipChecks, setBcSipChecks] = useState<Record<string, boolean>>({});
+  const [dpSipChecks, setDpSipChecks] = useState<Record<string, boolean>>({});
+  const [fcSipChecks, setFcSipChecks] = useState<Record<string, boolean>>({});
+  const [premisesSipChecks, setPremisesSipChecks] = useState<Record<string, boolean>>({});
   // Audit forms tab state
   const [auditFormsTab, setAuditFormsTab] = useState("cqc");
   const [selectedEvidenceFiles, setSelectedEvidenceFiles] = useState<File[]>([]);
@@ -640,6 +646,14 @@ export default function CqcToolkit() {
     onError: (error: Error) => {
       console.error('Create SIP item error:', error);
       toast({ title: "Error", description: error.message || "Failed to add improvement item", variant: "destructive" });
+    },
+  });
+
+  // Silent SIP mutation for batch creation from audit forms (no dialog side effects)
+  const createSipSilentMutation = useMutation({
+    mutationFn: async (data: SipFormData): Promise<ServiceImprovementPlanItem> => {
+      const response = await apiRequest('POST', '/api/admin/sip', data);
+      return response.json();
     },
   });
 
@@ -838,6 +852,41 @@ export default function CqcToolkit() {
     });
     setActiveTab("sip");
     setSipDialogOpen(true);
+  };
+
+  // Helper function to batch-create SIP items from checked sections on form submit
+  const batchAddToSip = async (
+    checkedSections: { section: string; description: string; priority: "must_do" | "should_do" }[],
+    auditType: string,
+    cqcDomain: string
+  ) => {
+    const validItems = checkedSections.filter(item => item.description && item.description.trim() !== "");
+    if (validItems.length === 0) return 0;
+
+    const results = await Promise.allSettled(
+      validItems.map(item => 
+        createSipSilentMutation.mutateAsync({
+          description: `[${item.section}] ${item.description.trim()}`,
+          priority: item.priority,
+          cqcDomain,
+          serviceArea: auditType,
+          responsibility: "",
+          targetDate: "",
+          evidence: "",
+        })
+      )
+    );
+
+    const successCount = results.filter(r => r.status === 'fulfilled').length;
+    const failCount = results.filter(r => r.status === 'rejected').length;
+
+    if (successCount > 0) {
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/sip"] });
+    }
+    if (failCount > 0) {
+      console.error(`Failed to add ${failCount} SIP item(s)`);
+    }
+    return successCount;
   };
 
   // Forms
@@ -2823,170 +2872,236 @@ Delivering outstanding healthcare across Devon & Cornwall`;
                 </Dialog>
                 
                 {/* Business Continuity Audit Dialog Content */}
-                <Dialog open={businessContinuityAuditOpen} onOpenChange={setBusinessContinuityAuditOpen}>
+                <Dialog open={businessContinuityAuditOpen} onOpenChange={(open) => { setBusinessContinuityAuditOpen(open); if (!open) setBcSipChecks({}); }}>
                   <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
                     <DialogHeader>
                       <DialogTitle className="flex items-center gap-2"><ShieldCheck className="h-5 w-5 text-amber-600" />Business Continuity Audit</DialogTitle>
                       <DialogDescription>Comprehensive audit of business continuity planning and disaster recovery</DialogDescription>
                     </DialogHeader>
                     <Form {...businessContinuityAuditForm}>
-                      <form onSubmit={businessContinuityAuditForm.handleSubmit((data) => submitGenericAudit("Business Continuity", "business_continuity", "effective", data, setBusinessContinuityAuditOpen, businessContinuityAuditForm))} className="space-y-4">
+                      <form onSubmit={businessContinuityAuditForm.handleSubmit(async (data) => {
+                        await submitGenericAudit("Business Continuity", "business_continuity", "effective", data, setBusinessContinuityAuditOpen, businessContinuityAuditForm);
+                        const checkedItems = [];
+                        if (bcSipChecks.bcp && data.bcpDetails) checkedItems.push({ section: "Business Continuity Plan", description: data.bcpDetails, priority: data.bcpInPlace === "no" ? "must_do" as const : "should_do" as const });
+                        if (bcSipChecks.training && data.staffTrainingDetails) checkedItems.push({ section: "Staff Training", description: data.staffTrainingDetails, priority: data.staffAware === "no" ? "must_do" as const : "should_do" as const });
+                        if (bcSipChecks.testing && data.testingDetails) checkedItems.push({ section: "Testing & Review", description: data.testingDetails, priority: data.planTested === "no" ? "must_do" as const : "should_do" as const });
+                        if (bcSipChecks.summary && data.areasForImprovement) checkedItems.push({ section: "Areas for Improvement", description: data.areasForImprovement, priority: "should_do" as const });
+                        if (checkedItems.length > 0) {
+                          const count = await batchAddToSip(checkedItems, "Business Continuity", "effective");
+                          if (count > 0) toast({ title: "Added to SIP", description: `${count} item${count > 1 ? 's' : ''} added to Service Improvement Plan` });
+                        }
+                        setBcSipChecks({});
+                      })} className="space-y-4">
                         <Card className="border-amber-200"><CardHeader className="pb-3"><CardTitle className="text-lg">Business Continuity Plan</CardTitle></CardHeader>
                           <CardContent className="space-y-4">
                             <FormField control={businessContinuityAuditForm.control} name="bcpInPlace" render={({ field }) => (<FormItem><FormLabel>Is a business continuity plan in place?</FormLabel><FormControl><Select onValueChange={field.onChange} defaultValue={field.value}><SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger><SelectContent><SelectItem value="yes">Yes</SelectItem><SelectItem value="partial">Partial</SelectItem><SelectItem value="no">No</SelectItem></SelectContent></Select></FormControl><FormMessage /></FormItem>)} />
                             <FormField control={businessContinuityAuditForm.control} name="bcpDetails" render={({ field }) => (<FormItem><FormLabel>Evidence:</FormLabel><FormControl><Textarea {...field} rows={2} /></FormControl><FormMessage /></FormItem>)} />
+                            <div className="flex items-center gap-2 pt-2 border-t"><Checkbox id="bc-sip-bcp" checked={bcSipChecks.bcp || false} onCheckedChange={(checked) => setBcSipChecks(prev => ({ ...prev, bcp: !!checked }))} data-testid="checkbox-sip-bc-bcp" /><label htmlFor="bc-sip-bcp" className="text-sm text-muted-foreground cursor-pointer flex items-center gap-1"><ClipboardCheck className="h-3 w-3" />Add this section to Service Improvement Plan</label></div>
                           </CardContent>
                         </Card>
                         <Card className="border-amber-200"><CardHeader className="pb-3"><CardTitle className="text-lg">Staff Training & Awareness</CardTitle></CardHeader>
                           <CardContent className="space-y-4">
                             <FormField control={businessContinuityAuditForm.control} name="staffAware" render={({ field }) => (<FormItem><FormLabel>Are staff aware of their roles in emergencies?</FormLabel><FormControl><Select onValueChange={field.onChange} defaultValue={field.value}><SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger><SelectContent><SelectItem value="yes">Yes</SelectItem><SelectItem value="partial">Partial</SelectItem><SelectItem value="no">No</SelectItem></SelectContent></Select></FormControl><FormMessage /></FormItem>)} />
                             <FormField control={businessContinuityAuditForm.control} name="staffTrainingDetails" render={({ field }) => (<FormItem><FormLabel>Evidence:</FormLabel><FormControl><Textarea {...field} rows={2} /></FormControl><FormMessage /></FormItem>)} />
+                            <div className="flex items-center gap-2 pt-2 border-t"><Checkbox id="bc-sip-training" checked={bcSipChecks.training || false} onCheckedChange={(checked) => setBcSipChecks(prev => ({ ...prev, training: !!checked }))} data-testid="checkbox-sip-bc-training" /><label htmlFor="bc-sip-training" className="text-sm text-muted-foreground cursor-pointer flex items-center gap-1"><ClipboardCheck className="h-3 w-3" />Add this section to Service Improvement Plan</label></div>
                           </CardContent>
                         </Card>
                         <Card className="border-amber-200"><CardHeader className="pb-3"><CardTitle className="text-lg">Testing & Review</CardTitle></CardHeader>
                           <CardContent className="space-y-4">
                             <FormField control={businessContinuityAuditForm.control} name="planTested" render={({ field }) => (<FormItem><FormLabel>Has the plan been tested within the last 12 months?</FormLabel><FormControl><Select onValueChange={field.onChange} defaultValue={field.value}><SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger><SelectContent><SelectItem value="yes">Yes</SelectItem><SelectItem value="partial">Partial</SelectItem><SelectItem value="no">No</SelectItem></SelectContent></Select></FormControl><FormMessage /></FormItem>)} />
                             <FormField control={businessContinuityAuditForm.control} name="testingDetails" render={({ field }) => (<FormItem><FormLabel>Evidence:</FormLabel><FormControl><Textarea {...field} rows={2} /></FormControl><FormMessage /></FormItem>)} />
+                            <div className="flex items-center gap-2 pt-2 border-t"><Checkbox id="bc-sip-testing" checked={bcSipChecks.testing || false} onCheckedChange={(checked) => setBcSipChecks(prev => ({ ...prev, testing: !!checked }))} data-testid="checkbox-sip-bc-testing" /><label htmlFor="bc-sip-testing" className="text-sm text-muted-foreground cursor-pointer flex items-center gap-1"><ClipboardCheck className="h-3 w-3" />Add this section to Service Improvement Plan</label></div>
                           </CardContent>
                         </Card>
                         <Card className="border-blue-200 bg-blue-50 dark:bg-blue-950/20"><CardHeader className="pb-3"><CardTitle className="text-lg">Audit Summary</CardTitle></CardHeader>
                           <CardContent className="space-y-4">
                             <FormField control={businessContinuityAuditForm.control} name="score" render={({ field }) => (<FormItem><FormLabel>Overall Score (0-6):</FormLabel><FormControl><Input type="number" min="0" max="6" {...field} /></FormControl><FormMessage /></FormItem>)} />
                             <FormField control={businessContinuityAuditForm.control} name="areasOfStrength" render={({ field }) => (<FormItem><FormLabel>Areas of Strength:</FormLabel><FormControl><Textarea {...field} rows={2} /></FormControl><FormMessage /></FormItem>)} />
-                            <FormField control={businessContinuityAuditForm.control} name="areasForImprovement" render={({ field }) => (<FormItem><FormLabel className="flex items-center justify-between">Areas for Improvement: <Button type="button" variant="outline" size="sm" onClick={() => addToSip(businessContinuityAuditForm.getValues("areasForImprovement") || "", "Business Continuity", "effective")} data-testid="button-add-to-sip-bc"><ClipboardCheck className="h-3 w-3 mr-1" />Add to SIP</Button></FormLabel><FormControl><Textarea {...field} rows={2} /></FormControl><FormMessage /></FormItem>)} />
+                            <FormField control={businessContinuityAuditForm.control} name="areasForImprovement" render={({ field }) => (<FormItem><FormLabel>Areas for Improvement:</FormLabel><FormControl><Textarea {...field} rows={2} /></FormControl><FormMessage /></FormItem>)} />
+                            <div className="flex items-center gap-2 pt-2 border-t"><Checkbox id="bc-sip-summary" checked={bcSipChecks.summary || false} onCheckedChange={(checked) => setBcSipChecks(prev => ({ ...prev, summary: !!checked }))} data-testid="checkbox-sip-bc-summary" /><label htmlFor="bc-sip-summary" className="text-sm text-muted-foreground cursor-pointer flex items-center gap-1"><ClipboardCheck className="h-3 w-3" />Add Areas for Improvement to Service Improvement Plan</label></div>
                             <FormField control={businessContinuityAuditForm.control} name="actions" render={({ field }) => (<FormItem><FormLabel>Required Actions:</FormLabel><FormControl><Textarea {...field} rows={3} /></FormControl><FormMessage /></FormItem>)} />
                           </CardContent>
                         </Card>
-                        <div className="flex justify-end gap-2"><Button type="button" variant="outline" onClick={() => setBusinessContinuityAuditOpen(false)}>Cancel</Button><Button type="submit" disabled={genericAuditMutation.isPending} className="bg-amber-600 hover:bg-amber-700">{genericAuditMutation.isPending ? "Saving..." : "Save Audit"}</Button></div>
+                        <div className="flex justify-end gap-2"><Button type="button" variant="outline" onClick={() => { setBusinessContinuityAuditOpen(false); setBcSipChecks({}); }}>Cancel</Button><Button type="submit" disabled={genericAuditMutation.isPending} className="bg-amber-600 hover:bg-amber-700">{genericAuditMutation.isPending ? "Saving..." : "Save Audit"}</Button></div>
                       </form>
                     </Form>
                   </DialogContent>
                 </Dialog>
 
                 {/* Data Protection / GDPR Audit Dialog Content */}
-                <Dialog open={dataProtectionAuditOpen} onOpenChange={setDataProtectionAuditOpen}>
+                <Dialog open={dataProtectionAuditOpen} onOpenChange={(open) => { setDataProtectionAuditOpen(open); if (!open) setDpSipChecks({}); }}>
                   <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
                     <DialogHeader>
                       <DialogTitle className="flex items-center gap-2"><Lock className="h-5 w-5 text-purple-600" />Data Protection / GDPR Audit</DialogTitle>
                       <DialogDescription>Comprehensive audit of data protection policies and GDPR compliance</DialogDescription>
                     </DialogHeader>
                     <Form {...dataProtectionAuditForm}>
-                      <form onSubmit={dataProtectionAuditForm.handleSubmit((data) => submitGenericAudit("Data Protection / GDPR", "data_protection", "effective", data, setDataProtectionAuditOpen, dataProtectionAuditForm))} className="space-y-4">
+                      <form onSubmit={dataProtectionAuditForm.handleSubmit(async (data) => {
+                        await submitGenericAudit("Data Protection / GDPR", "data_protection", "effective", data, setDataProtectionAuditOpen, dataProtectionAuditForm);
+                        const checkedItems = [];
+                        if (dpSipChecks.policies && data.policiesDetails) checkedItems.push({ section: "Data Protection Policies", description: data.policiesDetails, priority: data.policiesInPlace === "no" ? "must_do" as const : "should_do" as const });
+                        if (dpSipChecks.security && data.securityDetails) checkedItems.push({ section: "Data Security", description: data.securityDetails, priority: data.dataSecure === "no" ? "must_do" as const : "should_do" as const });
+                        if (dpSipChecks.training && data.trainingDetails) checkedItems.push({ section: "Staff Training", description: data.trainingDetails, priority: data.staffTrained === "no" ? "must_do" as const : "should_do" as const });
+                        if (dpSipChecks.summary && data.areasForImprovement) checkedItems.push({ section: "Areas for Improvement", description: data.areasForImprovement, priority: "should_do" as const });
+                        if (checkedItems.length > 0) {
+                          const count = await batchAddToSip(checkedItems, "Data Protection", "well_led");
+                          if (count > 0) toast({ title: "Added to SIP", description: `${count} item${count > 1 ? 's' : ''} added to Service Improvement Plan` });
+                        }
+                        setDpSipChecks({});
+                      })} className="space-y-4">
                         <Card className="border-purple-200"><CardHeader className="pb-3"><CardTitle className="text-lg">Data Protection Policies</CardTitle></CardHeader>
                           <CardContent className="space-y-4">
                             <FormField control={dataProtectionAuditForm.control} name="policiesInPlace" render={({ field }) => (<FormItem><FormLabel>Are comprehensive data protection policies in place?</FormLabel><FormControl><Select onValueChange={field.onChange} defaultValue={field.value}><SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger><SelectContent><SelectItem value="yes">Yes</SelectItem><SelectItem value="partial">Partial</SelectItem><SelectItem value="no">No</SelectItem></SelectContent></Select></FormControl><FormMessage /></FormItem>)} />
                             <FormField control={dataProtectionAuditForm.control} name="policiesDetails" render={({ field }) => (<FormItem><FormLabel>Evidence:</FormLabel><FormControl><Textarea {...field} rows={2} /></FormControl><FormMessage /></FormItem>)} />
+                            <div className="flex items-center gap-2 pt-2 border-t"><Checkbox id="dp-sip-policies" checked={dpSipChecks.policies || false} onCheckedChange={(checked) => setDpSipChecks(prev => ({ ...prev, policies: !!checked }))} data-testid="checkbox-sip-dp-policies" /><label htmlFor="dp-sip-policies" className="text-sm text-muted-foreground cursor-pointer flex items-center gap-1"><ClipboardCheck className="h-3 w-3" />Add this section to Service Improvement Plan</label></div>
                           </CardContent>
                         </Card>
                         <Card className="border-purple-200"><CardHeader className="pb-3"><CardTitle className="text-lg">Data Security</CardTitle></CardHeader>
                           <CardContent className="space-y-4">
                             <FormField control={dataProtectionAuditForm.control} name="dataSecure" render={({ field }) => (<FormItem><FormLabel>Is personal data stored securely (encryption, access controls)?</FormLabel><FormControl><Select onValueChange={field.onChange} defaultValue={field.value}><SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger><SelectContent><SelectItem value="yes">Yes</SelectItem><SelectItem value="partial">Partial</SelectItem><SelectItem value="no">No</SelectItem></SelectContent></Select></FormControl><FormMessage /></FormItem>)} />
                             <FormField control={dataProtectionAuditForm.control} name="securityDetails" render={({ field }) => (<FormItem><FormLabel>Evidence:</FormLabel><FormControl><Textarea {...field} rows={2} /></FormControl><FormMessage /></FormItem>)} />
+                            <div className="flex items-center gap-2 pt-2 border-t"><Checkbox id="dp-sip-security" checked={dpSipChecks.security || false} onCheckedChange={(checked) => setDpSipChecks(prev => ({ ...prev, security: !!checked }))} data-testid="checkbox-sip-dp-security" /><label htmlFor="dp-sip-security" className="text-sm text-muted-foreground cursor-pointer flex items-center gap-1"><ClipboardCheck className="h-3 w-3" />Add this section to Service Improvement Plan</label></div>
                           </CardContent>
                         </Card>
                         <Card className="border-purple-200"><CardHeader className="pb-3"><CardTitle className="text-lg">Staff Training</CardTitle></CardHeader>
                           <CardContent className="space-y-4">
                             <FormField control={dataProtectionAuditForm.control} name="staffTrained" render={({ field }) => (<FormItem><FormLabel>Have all staff completed GDPR training?</FormLabel><FormControl><Select onValueChange={field.onChange} defaultValue={field.value}><SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger><SelectContent><SelectItem value="yes">Yes</SelectItem><SelectItem value="partial">Partial</SelectItem><SelectItem value="no">No</SelectItem></SelectContent></Select></FormControl><FormMessage /></FormItem>)} />
                             <FormField control={dataProtectionAuditForm.control} name="trainingDetails" render={({ field }) => (<FormItem><FormLabel>Evidence:</FormLabel><FormControl><Textarea {...field} rows={2} /></FormControl><FormMessage /></FormItem>)} />
+                            <div className="flex items-center gap-2 pt-2 border-t"><Checkbox id="dp-sip-training" checked={dpSipChecks.training || false} onCheckedChange={(checked) => setDpSipChecks(prev => ({ ...prev, training: !!checked }))} data-testid="checkbox-sip-dp-training" /><label htmlFor="dp-sip-training" className="text-sm text-muted-foreground cursor-pointer flex items-center gap-1"><ClipboardCheck className="h-3 w-3" />Add this section to Service Improvement Plan</label></div>
                           </CardContent>
                         </Card>
                         <Card className="border-blue-200 bg-blue-50 dark:bg-blue-950/20"><CardHeader className="pb-3"><CardTitle className="text-lg">Audit Summary</CardTitle></CardHeader>
                           <CardContent className="space-y-4">
                             <FormField control={dataProtectionAuditForm.control} name="score" render={({ field }) => (<FormItem><FormLabel>Overall Score (0-6):</FormLabel><FormControl><Input type="number" min="0" max="6" {...field} /></FormControl><FormMessage /></FormItem>)} />
                             <FormField control={dataProtectionAuditForm.control} name="areasOfStrength" render={({ field }) => (<FormItem><FormLabel>Areas of Strength:</FormLabel><FormControl><Textarea {...field} rows={2} /></FormControl><FormMessage /></FormItem>)} />
-                            <FormField control={dataProtectionAuditForm.control} name="areasForImprovement" render={({ field }) => (<FormItem><FormLabel className="flex items-center justify-between">Areas for Improvement: <Button type="button" variant="outline" size="sm" onClick={() => addToSip(dataProtectionAuditForm.getValues("areasForImprovement") || "", "Data Protection", "well_led")} data-testid="button-add-to-sip-dp"><ClipboardCheck className="h-3 w-3 mr-1" />Add to SIP</Button></FormLabel><FormControl><Textarea {...field} rows={2} /></FormControl><FormMessage /></FormItem>)} />
+                            <FormField control={dataProtectionAuditForm.control} name="areasForImprovement" render={({ field }) => (<FormItem><FormLabel>Areas for Improvement:</FormLabel><FormControl><Textarea {...field} rows={2} /></FormControl><FormMessage /></FormItem>)} />
+                            <div className="flex items-center gap-2 pt-2 border-t"><Checkbox id="dp-sip-summary" checked={dpSipChecks.summary || false} onCheckedChange={(checked) => setDpSipChecks(prev => ({ ...prev, summary: !!checked }))} data-testid="checkbox-sip-dp-summary" /><label htmlFor="dp-sip-summary" className="text-sm text-muted-foreground cursor-pointer flex items-center gap-1"><ClipboardCheck className="h-3 w-3" />Add Areas for Improvement to Service Improvement Plan</label></div>
                             <FormField control={dataProtectionAuditForm.control} name="actions" render={({ field }) => (<FormItem><FormLabel>Required Actions:</FormLabel><FormControl><Textarea {...field} rows={3} /></FormControl><FormMessage /></FormItem>)} />
                           </CardContent>
                         </Card>
-                        <div className="flex justify-end gap-2"><Button type="button" variant="outline" onClick={() => setDataProtectionAuditOpen(false)}>Cancel</Button><Button type="submit" disabled={genericAuditMutation.isPending} className="bg-purple-600 hover:bg-purple-700">{genericAuditMutation.isPending ? "Saving..." : "Save Audit"}</Button></div>
+                        <div className="flex justify-end gap-2"><Button type="button" variant="outline" onClick={() => { setDataProtectionAuditOpen(false); setDpSipChecks({}); }}>Cancel</Button><Button type="submit" disabled={genericAuditMutation.isPending} className="bg-purple-600 hover:bg-purple-700">{genericAuditMutation.isPending ? "Saving..." : "Save Audit"}</Button></div>
                       </form>
                     </Form>
                   </DialogContent>
                 </Dialog>
 
                 {/* Financial Controls Audit Dialog Content */}
-                <Dialog open={financialControlsAuditOpen} onOpenChange={setFinancialControlsAuditOpen}>
+                <Dialog open={financialControlsAuditOpen} onOpenChange={(open) => { setFinancialControlsAuditOpen(open); if (!open) setFcSipChecks({}); }}>
                   <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
                     <DialogHeader>
                       <DialogTitle className="flex items-center gap-2"><DollarSign className="h-5 w-5 text-emerald-600" />Financial Controls Audit</DialogTitle>
                       <DialogDescription>Comprehensive audit of financial procedures and controls</DialogDescription>
                     </DialogHeader>
                     <Form {...financialControlsAuditForm}>
-                      <form onSubmit={financialControlsAuditForm.handleSubmit((data) => submitGenericAudit("Financial Controls", "financial_controls", "effective", data, setFinancialControlsAuditOpen, financialControlsAuditForm))} className="space-y-4">
+                      <form onSubmit={financialControlsAuditForm.handleSubmit(async (data) => {
+                        await submitGenericAudit("Financial Controls", "financial_controls", "effective", data, setFinancialControlsAuditOpen, financialControlsAuditForm);
+                        const checkedItems = [];
+                        if (fcSipChecks.payment && data.paymentDetails) checkedItems.push({ section: "Payment Procedures", description: data.paymentDetails, priority: data.paymentProceduresInPlace === "no" ? "must_do" as const : "should_do" as const });
+                        if (fcSipChecks.reconciliation && data.reconciliationDetails) checkedItems.push({ section: "Reconciliations", description: data.reconciliationDetails, priority: data.reconciliationsComplete === "no" ? "must_do" as const : "should_do" as const });
+                        if (fcSipChecks.expense && data.expenseDetails) checkedItems.push({ section: "Expense Controls", description: data.expenseDetails, priority: data.expenseControlsInPlace === "no" ? "must_do" as const : "should_do" as const });
+                        if (fcSipChecks.summary && data.areasForImprovement) checkedItems.push({ section: "Areas for Improvement", description: data.areasForImprovement, priority: "should_do" as const });
+                        if (checkedItems.length > 0) {
+                          const count = await batchAddToSip(checkedItems, "Financial Controls", "well_led");
+                          if (count > 0) toast({ title: "Added to SIP", description: `${count} item${count > 1 ? 's' : ''} added to Service Improvement Plan` });
+                        }
+                        setFcSipChecks({});
+                      })} className="space-y-4">
                         <Card className="border-emerald-200"><CardHeader className="pb-3"><CardTitle className="text-lg">Payment Procedures</CardTitle></CardHeader>
                           <CardContent className="space-y-4">
                             <FormField control={financialControlsAuditForm.control} name="paymentProceduresInPlace" render={({ field }) => (<FormItem><FormLabel>Are robust payment approval procedures in place?</FormLabel><FormControl><Select onValueChange={field.onChange} defaultValue={field.value}><SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger><SelectContent><SelectItem value="yes">Yes</SelectItem><SelectItem value="partial">Partial</SelectItem><SelectItem value="no">No</SelectItem></SelectContent></Select></FormControl><FormMessage /></FormItem>)} />
                             <FormField control={financialControlsAuditForm.control} name="paymentDetails" render={({ field }) => (<FormItem><FormLabel>Evidence:</FormLabel><FormControl><Textarea {...field} rows={2} /></FormControl><FormMessage /></FormItem>)} />
+                            <div className="flex items-center gap-2 pt-2 border-t"><Checkbox id="fc-sip-payment" checked={fcSipChecks.payment || false} onCheckedChange={(checked) => setFcSipChecks(prev => ({ ...prev, payment: !!checked }))} data-testid="checkbox-sip-fc-payment" /><label htmlFor="fc-sip-payment" className="text-sm text-muted-foreground cursor-pointer flex items-center gap-1"><ClipboardCheck className="h-3 w-3" />Add this section to Service Improvement Plan</label></div>
                           </CardContent>
                         </Card>
                         <Card className="border-emerald-200"><CardHeader className="pb-3"><CardTitle className="text-lg">Reconciliations</CardTitle></CardHeader>
                           <CardContent className="space-y-4">
                             <FormField control={financialControlsAuditForm.control} name="reconciliationsComplete" render={({ field }) => (<FormItem><FormLabel>Are bank and account reconciliations completed monthly?</FormLabel><FormControl><Select onValueChange={field.onChange} defaultValue={field.value}><SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger><SelectContent><SelectItem value="yes">Yes</SelectItem><SelectItem value="partial">Partial</SelectItem><SelectItem value="no">No</SelectItem></SelectContent></Select></FormControl><FormMessage /></FormItem>)} />
                             <FormField control={financialControlsAuditForm.control} name="reconciliationDetails" render={({ field }) => (<FormItem><FormLabel>Evidence:</FormLabel><FormControl><Textarea {...field} rows={2} /></FormControl><FormMessage /></FormItem>)} />
+                            <div className="flex items-center gap-2 pt-2 border-t"><Checkbox id="fc-sip-reconciliation" checked={fcSipChecks.reconciliation || false} onCheckedChange={(checked) => setFcSipChecks(prev => ({ ...prev, reconciliation: !!checked }))} data-testid="checkbox-sip-fc-reconciliation" /><label htmlFor="fc-sip-reconciliation" className="text-sm text-muted-foreground cursor-pointer flex items-center gap-1"><ClipboardCheck className="h-3 w-3" />Add this section to Service Improvement Plan</label></div>
                           </CardContent>
                         </Card>
                         <Card className="border-emerald-200"><CardHeader className="pb-3"><CardTitle className="text-lg">Expense Controls</CardTitle></CardHeader>
                           <CardContent className="space-y-4">
                             <FormField control={financialControlsAuditForm.control} name="expenseControlsInPlace" render={({ field }) => (<FormItem><FormLabel>Are expense controls and approval limits in place?</FormLabel><FormControl><Select onValueChange={field.onChange} defaultValue={field.value}><SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger><SelectContent><SelectItem value="yes">Yes</SelectItem><SelectItem value="partial">Partial</SelectItem><SelectItem value="no">No</SelectItem></SelectContent></Select></FormControl><FormMessage /></FormItem>)} />
                             <FormField control={financialControlsAuditForm.control} name="expenseDetails" render={({ field }) => (<FormItem><FormLabel>Evidence:</FormLabel><FormControl><Textarea {...field} rows={2} /></FormControl><FormMessage /></FormItem>)} />
+                            <div className="flex items-center gap-2 pt-2 border-t"><Checkbox id="fc-sip-expense" checked={fcSipChecks.expense || false} onCheckedChange={(checked) => setFcSipChecks(prev => ({ ...prev, expense: !!checked }))} data-testid="checkbox-sip-fc-expense" /><label htmlFor="fc-sip-expense" className="text-sm text-muted-foreground cursor-pointer flex items-center gap-1"><ClipboardCheck className="h-3 w-3" />Add this section to Service Improvement Plan</label></div>
                           </CardContent>
                         </Card>
                         <Card className="border-blue-200 bg-blue-50 dark:bg-blue-950/20"><CardHeader className="pb-3"><CardTitle className="text-lg">Audit Summary</CardTitle></CardHeader>
                           <CardContent className="space-y-4">
                             <FormField control={financialControlsAuditForm.control} name="score" render={({ field }) => (<FormItem><FormLabel>Overall Score (0-6):</FormLabel><FormControl><Input type="number" min="0" max="6" {...field} /></FormControl><FormMessage /></FormItem>)} />
                             <FormField control={financialControlsAuditForm.control} name="areasOfStrength" render={({ field }) => (<FormItem><FormLabel>Areas of Strength:</FormLabel><FormControl><Textarea {...field} rows={2} /></FormControl><FormMessage /></FormItem>)} />
-                            <FormField control={financialControlsAuditForm.control} name="areasForImprovement" render={({ field }) => (<FormItem><FormLabel className="flex items-center justify-between">Areas for Improvement: <Button type="button" variant="outline" size="sm" onClick={() => addToSip(financialControlsAuditForm.getValues("areasForImprovement") || "", "Financial Controls", "well_led")} data-testid="button-add-to-sip-fc"><ClipboardCheck className="h-3 w-3 mr-1" />Add to SIP</Button></FormLabel><FormControl><Textarea {...field} rows={2} /></FormControl><FormMessage /></FormItem>)} />
+                            <FormField control={financialControlsAuditForm.control} name="areasForImprovement" render={({ field }) => (<FormItem><FormLabel>Areas for Improvement:</FormLabel><FormControl><Textarea {...field} rows={2} /></FormControl><FormMessage /></FormItem>)} />
+                            <div className="flex items-center gap-2 pt-2 border-t"><Checkbox id="fc-sip-summary" checked={fcSipChecks.summary || false} onCheckedChange={(checked) => setFcSipChecks(prev => ({ ...prev, summary: !!checked }))} data-testid="checkbox-sip-fc-summary" /><label htmlFor="fc-sip-summary" className="text-sm text-muted-foreground cursor-pointer flex items-center gap-1"><ClipboardCheck className="h-3 w-3" />Add Areas for Improvement to Service Improvement Plan</label></div>
                             <FormField control={financialControlsAuditForm.control} name="actions" render={({ field }) => (<FormItem><FormLabel>Required Actions:</FormLabel><FormControl><Textarea {...field} rows={3} /></FormControl><FormMessage /></FormItem>)} />
                           </CardContent>
                         </Card>
-                        <div className="flex justify-end gap-2"><Button type="button" variant="outline" onClick={() => setFinancialControlsAuditOpen(false)}>Cancel</Button><Button type="submit" disabled={genericAuditMutation.isPending} className="bg-emerald-600 hover:bg-emerald-700">{genericAuditMutation.isPending ? "Saving..." : "Save Audit"}</Button></div>
+                        <div className="flex justify-end gap-2"><Button type="button" variant="outline" onClick={() => { setFinancialControlsAuditOpen(false); setFcSipChecks({}); }}>Cancel</Button><Button type="submit" disabled={genericAuditMutation.isPending} className="bg-emerald-600 hover:bg-emerald-700">{genericAuditMutation.isPending ? "Saving..." : "Save Audit"}</Button></div>
                       </form>
                     </Form>
                   </DialogContent>
                 </Dialog>
 
                 {/* Premises Audit Dialog Content */}
-                <Dialog open={premisesAuditOpen} onOpenChange={setPremisesAuditOpen}>
+                <Dialog open={premisesAuditOpen} onOpenChange={(open) => { setPremisesAuditOpen(open); if (!open) setPremisesSipChecks({}); }}>
                   <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
                     <DialogHeader>
                       <DialogTitle className="flex items-center gap-2"><Home className="h-5 w-5 text-rose-600" />Health & Safety Premises Audit</DialogTitle>
                       <DialogDescription>Comprehensive audit of premises safety and compliance</DialogDescription>
                     </DialogHeader>
                     <Form {...premisesAuditForm}>
-                      <form onSubmit={premisesAuditForm.handleSubmit((data) => submitGenericAudit("Health & Safety Premises", "premises", "safe", data, setPremisesAuditOpen, premisesAuditForm))} className="space-y-4">
+                      <form onSubmit={premisesAuditForm.handleSubmit(async (data) => {
+                        await submitGenericAudit("Health & Safety Premises", "premises", "safe", data, setPremisesAuditOpen, premisesAuditForm);
+                        const checkedItems = [];
+                        if (premisesSipChecks.fire && data.fireSafetyDetails) checkedItems.push({ section: "Fire Safety", description: data.fireSafetyDetails, priority: data.fireSafetyCompliant === "no" ? "must_do" as const : "should_do" as const });
+                        if (premisesSipChecks.pat && data.patTestingDetails) checkedItems.push({ section: "PAT Testing", description: data.patTestingDetails, priority: data.patTestingComplete === "no" ? "must_do" as const : "should_do" as const });
+                        if (premisesSipChecks.legionella && data.legionellaDetails) checkedItems.push({ section: "Legionella Assessment", description: data.legionellaDetails, priority: data.legionellaCompliant === "no" ? "must_do" as const : "should_do" as const });
+                        if (premisesSipChecks.security && data.securityDetails) checkedItems.push({ section: "Security & Accessibility", description: data.securityDetails, priority: data.securityAdequate === "no" ? "must_do" as const : "should_do" as const });
+                        if (premisesSipChecks.summary && data.areasForImprovement) checkedItems.push({ section: "Areas for Improvement", description: data.areasForImprovement, priority: "should_do" as const });
+                        if (checkedItems.length > 0) {
+                          const count = await batchAddToSip(checkedItems, "Premises & Equipment", "safe");
+                          if (count > 0) toast({ title: "Added to SIP", description: `${count} item${count > 1 ? 's' : ''} added to Service Improvement Plan` });
+                        }
+                        setPremisesSipChecks({});
+                      })} className="space-y-4">
                         <Card className="border-rose-200"><CardHeader className="pb-3"><CardTitle className="text-lg">Fire Safety</CardTitle></CardHeader>
                           <CardContent className="space-y-4">
                             <FormField control={premisesAuditForm.control} name="fireSafetyCompliant" render={({ field }) => (<FormItem><FormLabel>Is fire safety equipment maintained and staff trained?</FormLabel><FormControl><Select onValueChange={field.onChange} defaultValue={field.value}><SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger><SelectContent><SelectItem value="yes">Yes</SelectItem><SelectItem value="partial">Partial</SelectItem><SelectItem value="no">No</SelectItem></SelectContent></Select></FormControl><FormMessage /></FormItem>)} />
                             <FormField control={premisesAuditForm.control} name="fireSafetyDetails" render={({ field }) => (<FormItem><FormLabel>Evidence:</FormLabel><FormControl><Textarea {...field} rows={2} /></FormControl><FormMessage /></FormItem>)} />
+                            <div className="flex items-center gap-2 pt-2 border-t"><Checkbox id="premises-sip-fire" checked={premisesSipChecks.fire || false} onCheckedChange={(checked) => setPremisesSipChecks(prev => ({ ...prev, fire: !!checked }))} data-testid="checkbox-sip-premises-fire" /><label htmlFor="premises-sip-fire" className="text-sm text-muted-foreground cursor-pointer flex items-center gap-1"><ClipboardCheck className="h-3 w-3" />Add this section to Service Improvement Plan</label></div>
                           </CardContent>
                         </Card>
                         <Card className="border-rose-200"><CardHeader className="pb-3"><CardTitle className="text-lg">PAT Testing</CardTitle></CardHeader>
                           <CardContent className="space-y-4">
                             <FormField control={premisesAuditForm.control} name="patTestingComplete" render={({ field }) => (<FormItem><FormLabel>Is PAT testing up to date for all portable equipment?</FormLabel><FormControl><Select onValueChange={field.onChange} defaultValue={field.value}><SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger><SelectContent><SelectItem value="yes">Yes</SelectItem><SelectItem value="partial">Partial</SelectItem><SelectItem value="no">No</SelectItem></SelectContent></Select></FormControl><FormMessage /></FormItem>)} />
                             <FormField control={premisesAuditForm.control} name="patTestingDetails" render={({ field }) => (<FormItem><FormLabel>Evidence:</FormLabel><FormControl><Textarea {...field} rows={2} /></FormControl><FormMessage /></FormItem>)} />
+                            <div className="flex items-center gap-2 pt-2 border-t"><Checkbox id="premises-sip-pat" checked={premisesSipChecks.pat || false} onCheckedChange={(checked) => setPremisesSipChecks(prev => ({ ...prev, pat: !!checked }))} data-testid="checkbox-sip-premises-pat" /><label htmlFor="premises-sip-pat" className="text-sm text-muted-foreground cursor-pointer flex items-center gap-1"><ClipboardCheck className="h-3 w-3" />Add this section to Service Improvement Plan</label></div>
                           </CardContent>
                         </Card>
                         <Card className="border-rose-200"><CardHeader className="pb-3"><CardTitle className="text-lg">Legionella Assessment</CardTitle></CardHeader>
                           <CardContent className="space-y-4">
                             <FormField control={premisesAuditForm.control} name="legionellaCompliant" render={({ field }) => (<FormItem><FormLabel>Is legionella risk assessment and monitoring in place?</FormLabel><FormControl><Select onValueChange={field.onChange} defaultValue={field.value}><SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger><SelectContent><SelectItem value="yes">Yes</SelectItem><SelectItem value="partial">Partial</SelectItem><SelectItem value="no">No</SelectItem></SelectContent></Select></FormControl><FormMessage /></FormItem>)} />
                             <FormField control={premisesAuditForm.control} name="legionellaDetails" render={({ field }) => (<FormItem><FormLabel>Evidence:</FormLabel><FormControl><Textarea {...field} rows={2} /></FormControl><FormMessage /></FormItem>)} />
+                            <div className="flex items-center gap-2 pt-2 border-t"><Checkbox id="premises-sip-legionella" checked={premisesSipChecks.legionella || false} onCheckedChange={(checked) => setPremisesSipChecks(prev => ({ ...prev, legionella: !!checked }))} data-testid="checkbox-sip-premises-legionella" /><label htmlFor="premises-sip-legionella" className="text-sm text-muted-foreground cursor-pointer flex items-center gap-1"><ClipboardCheck className="h-3 w-3" />Add this section to Service Improvement Plan</label></div>
                           </CardContent>
                         </Card>
                         <Card className="border-rose-200"><CardHeader className="pb-3"><CardTitle className="text-lg">Security & Accessibility</CardTitle></CardHeader>
                           <CardContent className="space-y-4">
                             <FormField control={premisesAuditForm.control} name="securityAdequate" render={({ field }) => (<FormItem><FormLabel>Are security measures and accessibility provisions adequate?</FormLabel><FormControl><Select onValueChange={field.onChange} defaultValue={field.value}><SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger><SelectContent><SelectItem value="yes">Yes</SelectItem><SelectItem value="partial">Partial</SelectItem><SelectItem value="no">No</SelectItem></SelectContent></Select></FormControl><FormMessage /></FormItem>)} />
                             <FormField control={premisesAuditForm.control} name="securityDetails" render={({ field }) => (<FormItem><FormLabel>Evidence:</FormLabel><FormControl><Textarea {...field} rows={2} /></FormControl><FormMessage /></FormItem>)} />
+                            <div className="flex items-center gap-2 pt-2 border-t"><Checkbox id="premises-sip-security" checked={premisesSipChecks.security || false} onCheckedChange={(checked) => setPremisesSipChecks(prev => ({ ...prev, security: !!checked }))} data-testid="checkbox-sip-premises-security" /><label htmlFor="premises-sip-security" className="text-sm text-muted-foreground cursor-pointer flex items-center gap-1"><ClipboardCheck className="h-3 w-3" />Add this section to Service Improvement Plan</label></div>
                           </CardContent>
                         </Card>
                         <Card className="border-blue-200 bg-blue-50 dark:bg-blue-950/20"><CardHeader className="pb-3"><CardTitle className="text-lg">Audit Summary</CardTitle></CardHeader>
                           <CardContent className="space-y-4">
                             <FormField control={premisesAuditForm.control} name="score" render={({ field }) => (<FormItem><FormLabel>Overall Score (0-6):</FormLabel><FormControl><Input type="number" min="0" max="6" {...field} /></FormControl><FormMessage /></FormItem>)} />
                             <FormField control={premisesAuditForm.control} name="areasOfStrength" render={({ field }) => (<FormItem><FormLabel>Areas of Strength:</FormLabel><FormControl><Textarea {...field} rows={2} /></FormControl><FormMessage /></FormItem>)} />
-                            <FormField control={premisesAuditForm.control} name="areasForImprovement" render={({ field }) => (<FormItem><FormLabel className="flex items-center justify-between">Areas for Improvement: <Button type="button" variant="outline" size="sm" onClick={() => addToSip(premisesAuditForm.getValues("areasForImprovement") || "", "Premises & Equipment", "safe")} data-testid="button-add-to-sip-premises"><ClipboardCheck className="h-3 w-3 mr-1" />Add to SIP</Button></FormLabel><FormControl><Textarea {...field} rows={2} /></FormControl><FormMessage /></FormItem>)} />
+                            <FormField control={premisesAuditForm.control} name="areasForImprovement" render={({ field }) => (<FormItem><FormLabel>Areas for Improvement:</FormLabel><FormControl><Textarea {...field} rows={2} /></FormControl><FormMessage /></FormItem>)} />
+                            <div className="flex items-center gap-2 pt-2 border-t"><Checkbox id="premises-sip-summary" checked={premisesSipChecks.summary || false} onCheckedChange={(checked) => setPremisesSipChecks(prev => ({ ...prev, summary: !!checked }))} data-testid="checkbox-sip-premises-summary" /><label htmlFor="premises-sip-summary" className="text-sm text-muted-foreground cursor-pointer flex items-center gap-1"><ClipboardCheck className="h-3 w-3" />Add Areas for Improvement to Service Improvement Plan</label></div>
                             <FormField control={premisesAuditForm.control} name="actions" render={({ field }) => (<FormItem><FormLabel>Required Actions:</FormLabel><FormControl><Textarea {...field} rows={3} /></FormControl><FormMessage /></FormItem>)} />
                           </CardContent>
                         </Card>
-                        <div className="flex justify-end gap-2"><Button type="button" variant="outline" onClick={() => setPremisesAuditOpen(false)}>Cancel</Button><Button type="submit" disabled={genericAuditMutation.isPending} className="bg-rose-600 hover:bg-rose-700">{genericAuditMutation.isPending ? "Saving..." : "Save Audit"}</Button></div>
+                        <div className="flex justify-end gap-2"><Button type="button" variant="outline" onClick={() => { setPremisesAuditOpen(false); setPremisesSipChecks({}); }}>Cancel</Button><Button type="submit" disabled={genericAuditMutation.isPending} className="bg-rose-600 hover:bg-rose-700">{genericAuditMutation.isPending ? "Saving..." : "Save Audit"}</Button></div>
                       </form>
                     </Form>
                   </DialogContent>
