@@ -1329,6 +1329,64 @@ Delivering outstanding healthcare across Devon & Cornwall`;
     createRecordMutation.mutate(data);
   };
 
+  // Helper functions for Audit Matrix
+  const getTrafficLightColor = (rating: string | null | undefined) => {
+    if (!rating) return "bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-400";
+    switch (rating.toLowerCase()) {
+      case "outstanding":
+      case "good":
+        return "bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 border-green-300 dark:border-green-700";
+      case "requires_improvement":
+      case "requires improvement":
+        return "bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 border-amber-300 dark:border-amber-700";
+      case "inadequate":
+        return "bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400 border-red-300 dark:border-red-700";
+      default:
+        return "bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-400";
+    }
+  };
+
+  const getStatusIcon = (rating: string | null | undefined) => {
+    if (!rating) return <FileCheck className="h-4 w-4 opacity-50" />;
+    switch (rating.toLowerCase()) {
+      case "outstanding":
+      case "good":
+        return <CheckCircle className="h-4 w-4 text-green-600" />;
+      case "requires_improvement":
+      case "requires improvement":
+        return <AlertTriangle className="h-4 w-4 text-amber-600" />;
+      case "inadequate":
+        return <XCircle className="h-4 w-4 text-red-600" />;
+      default:
+        return <FileCheck className="h-4 w-4 opacity-50" />;
+    }
+  };
+
+  const formatAuditDate = (date: string | Date | null | undefined) => {
+    if (!date) return "Not assessed";
+    return new Date(date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: '2-digit' });
+  };
+
+  const auditCategories = [
+    { key: "insurance", label: "Insurance", icon: "🛡️" },
+    { key: "safeguarding", label: "Safeguarding", icon: "👥" },
+    { key: "health_safety", label: "Health & Safety", icon: "⚠️" },
+    { key: "safe_care", label: "Safe Care", icon: "💊" },
+    { key: "staffing", label: "Staffing", icon: "👔" },
+    { key: "complaints", label: "Complaints", icon: "📝" },
+    { key: "consent", label: "Consent", icon: "✓" },
+    { key: "dignity", label: "Dignity", icon: "❤️" },
+    { key: "governance", label: "Governance", icon: "📋" },
+    { key: "duty_candour", label: "Duty of Candour", icon: "🔍" },
+    { key: "business_continuity", label: "Business Continuity", icon: "🏢" },
+    { key: "data_protection", label: "Data Protection", icon: "🔒" },
+    { key: "financial_controls", label: "Financial Controls", icon: "💰" },
+    { key: "premises", label: "Premises", icon: "🏠" },
+    { key: "medication_management", label: "Medication", icon: "💉" },
+    { key: "care_planning", label: "Care Planning", icon: "📑" },
+    { key: "training_competency", label: "Training", icon: "🎓" },
+  ];
+
   return (
     <div className="container mx-auto p-6 space-y-6">
       <div className="flex items-center justify-between">
@@ -1761,6 +1819,72 @@ Delivering outstanding healthcare across Devon & Cornwall`;
               </CardContent>
             </Card>
           </div>
+
+          {/* Audit Compliance Matrix - Traffic Light System */}
+          <Card data-testid="audit-compliance-matrix">
+            <CardHeader className="pb-3">
+              <div className="flex items-center gap-2">
+                <Shield className="h-5 w-5 text-blue-600" />
+                <CardTitle>Audit Compliance Matrix</CardTitle>
+              </div>
+              <CardDescription>
+                Visual overview of all audit areas with traffic light status indicators
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              {/* Traffic Light Legend */}
+              <div className="flex flex-wrap gap-4 mb-4 text-xs border-b pb-3">
+                <div className="flex items-center gap-1.5">
+                  <div className="w-3 h-3 rounded-full bg-green-500"></div>
+                  <span className="text-muted-foreground">Good / Outstanding</span>
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <div className="w-3 h-3 rounded-full bg-amber-500"></div>
+                  <span className="text-muted-foreground">Requires Improvement</span>
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <div className="w-3 h-3 rounded-full bg-red-500"></div>
+                  <span className="text-muted-foreground">Inadequate</span>
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <div className="w-3 h-3 rounded-full bg-gray-300 dark:bg-gray-600"></div>
+                  <span className="text-muted-foreground">Not Assessed</span>
+                </div>
+              </div>
+
+              {/* Audit Matrix Grid */}
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
+                {auditCategories.map((cat) => {
+                  const latestAudit = audits
+                    .filter(a => a.category === cat.key)
+                    .sort((a, b) => new Date(b.auditDate).getTime() - new Date(a.auditDate).getTime())[0];
+
+                  return (
+                    <div 
+                      key={cat.key}
+                      className={`p-3 rounded-lg border-2 cursor-pointer transition-all hover:shadow-md ${getTrafficLightColor(latestAudit?.overallRating)}`}
+                      data-testid={`audit-matrix-tile-${cat.key}`}
+                      title={latestAudit ? `Last audit: ${formatAuditDate(latestAudit.auditDate)} - ${latestAudit.overallRating?.replace('_', ' ') || 'Not rated'}` : 'No audit completed yet'}
+                    >
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="text-lg">{cat.icon}</span>
+                        {getStatusIcon(latestAudit?.overallRating)}
+                      </div>
+                      <div className="text-sm font-medium truncate">{cat.label}</div>
+                      <div className="text-xs opacity-75 mt-1">
+                        {latestAudit ? formatAuditDate(latestAudit.auditDate) : "Not assessed"}
+                      </div>
+                      {latestAudit?.nextAuditDue && (
+                        <div className="text-[10px] opacity-60 mt-0.5">
+                          Due: {formatAuditDate(latestAudit.nextAuditDue)}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            </CardContent>
+          </Card>
 
           {/* Recent Activity */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">

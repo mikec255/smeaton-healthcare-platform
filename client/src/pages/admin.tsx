@@ -14,10 +14,8 @@ import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import JobsTable from "@/components/admin/jobs-table";
 import JobFormModal from "@/components/admin/job-form-modal";
-import { Plus, Briefcase, UserPlus, Clock, CheckCircle, FileText, Send, Edit, ArrowRight, MessageSquare, Star, Mail, Users, UserCheck, Settings, BookOpen, LogOut, ChevronDown, ChevronRight, BarChart3, Shield, Calculator, MapPin, AlertTriangle, XCircle, CheckCircle2, Circle } from "lucide-react";
-import { type Job, type Newsletter, type Feedback, type BlogPost, type User, type CqcAudit } from "@shared/schema";
-import { Badge } from "@/components/ui/badge";
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { Plus, Briefcase, UserPlus, Clock, CheckCircle, FileText, Send, Edit, ArrowRight, MessageSquare, Star, Mail, Users, UserCheck, Settings, BookOpen, LogOut, ChevronDown, ChevronRight, BarChart3, Shield, Calculator, MapPin } from "lucide-react";
+import { type Job, type Newsletter, type Feedback, type BlogPost, type User } from "@shared/schema";
 
 
 export default function Admin() {
@@ -82,11 +80,6 @@ export default function Admin() {
     enabled: !!authUser && authUser.user?.role === "superadmin",
   });
 
-  // CQC Audits for the matrix display
-  const { data: cqcAudits = [] } = useQuery<CqcAudit[]>({
-    queryKey: ["/api/cqc/audits"],
-    enabled: !!authUser && authUser.user?.role === "superadmin",
-  });
 
 
   // Redirect to login if not authenticated
@@ -369,163 +362,6 @@ export default function Admin() {
         </p>
       </div>
 
-      {/* Audit Compliance Matrix - Traffic Light System */}
-      {authUser?.user?.role === "superadmin" && (
-        <Card className="mb-8" data-testid="audit-matrix-card">
-          <CardHeader className="pb-3">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <Shield className="h-5 w-5 text-blue-600" />
-                <CardTitle className="text-lg">Audit Compliance Matrix</CardTitle>
-              </div>
-              <Link href="/admin/cqc-toolkit">
-                <Button variant="outline" size="sm" className="text-xs">
-                  View All Audits
-                  <ArrowRight className="ml-1 h-3 w-3" />
-                </Button>
-              </Link>
-            </div>
-          </CardHeader>
-          <CardContent>
-            {/* Traffic Light Legend */}
-            <div className="flex flex-wrap gap-4 mb-4 text-xs">
-              <div className="flex items-center gap-1.5">
-                <div className="w-3 h-3 rounded-full bg-green-500"></div>
-                <span className="text-muted-foreground">Good / Outstanding</span>
-              </div>
-              <div className="flex items-center gap-1.5">
-                <div className="w-3 h-3 rounded-full bg-amber-500"></div>
-                <span className="text-muted-foreground">Requires Improvement</span>
-              </div>
-              <div className="flex items-center gap-1.5">
-                <div className="w-3 h-3 rounded-full bg-red-500"></div>
-                <span className="text-muted-foreground">Inadequate</span>
-              </div>
-              <div className="flex items-center gap-1.5">
-                <div className="w-3 h-3 rounded-full bg-gray-300 dark:bg-gray-600"></div>
-                <span className="text-muted-foreground">Not Assessed</span>
-              </div>
-            </div>
-
-            {/* Audit Matrix Grid */}
-            {cqcAudits.length > 0 ? (
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-2">
-                {(() => {
-                  const auditCategories = [
-                    { key: "insurance", label: "Insurance", icon: "🛡️" },
-                    { key: "safeguarding", label: "Safeguarding", icon: "👥" },
-                    { key: "health_safety", label: "Health & Safety", icon: "⚠️" },
-                    { key: "safe_care", label: "Safe Care", icon: "💊" },
-                    { key: "staffing", label: "Staffing", icon: "👔" },
-                    { key: "complaints", label: "Complaints", icon: "📝" },
-                    { key: "consent", label: "Consent", icon: "✓" },
-                    { key: "dignity", label: "Dignity", icon: "❤️" },
-                    { key: "governance", label: "Governance", icon: "📋" },
-                    { key: "duty_candour", label: "Duty of Candour", icon: "🔍" },
-                    { key: "business_continuity", label: "Business Continuity", icon: "🏢" },
-                    { key: "data_protection", label: "Data Protection", icon: "🔒" },
-                    { key: "financial_controls", label: "Financial Controls", icon: "💰" },
-                    { key: "premises", label: "Premises", icon: "🏠" },
-                    { key: "medication_management", label: "Medication", icon: "💉" },
-                    { key: "care_planning", label: "Care Planning", icon: "📑" },
-                    { key: "training_competency", label: "Training", icon: "🎓" },
-                  ];
-
-                  return auditCategories.map((cat) => {
-                    const latestAudit = cqcAudits
-                      .filter(a => a.category === cat.key)
-                      .sort((a, b) => new Date(b.auditDate).getTime() - new Date(a.auditDate).getTime())[0];
-
-                    const getTrafficLightColor = (rating: string | null | undefined) => {
-                      if (!rating) return "bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-400";
-                      switch (rating.toLowerCase()) {
-                        case "outstanding":
-                        case "good":
-                          return "bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 border-green-300 dark:border-green-700";
-                        case "requires_improvement":
-                        case "requires improvement":
-                          return "bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 border-amber-300 dark:border-amber-700";
-                        case "inadequate":
-                          return "bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400 border-red-300 dark:border-red-700";
-                        default:
-                          return "bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-400";
-                      }
-                    };
-
-                    const getStatusIcon = (rating: string | null | undefined) => {
-                      if (!rating) return <Circle className="h-3 w-3" />;
-                      switch (rating.toLowerCase()) {
-                        case "outstanding":
-                        case "good":
-                          return <CheckCircle2 className="h-3 w-3" />;
-                        case "requires_improvement":
-                        case "requires improvement":
-                          return <AlertTriangle className="h-3 w-3" />;
-                        case "inadequate":
-                          return <XCircle className="h-3 w-3" />;
-                        default:
-                          return <Circle className="h-3 w-3" />;
-                      }
-                    };
-
-                    const formatDate = (date: string | Date | null | undefined) => {
-                      if (!date) return "Not assessed";
-                      return new Date(date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: '2-digit' });
-                    };
-
-                    return (
-                      <Tooltip key={cat.key}>
-                        <TooltipTrigger asChild>
-                          <div 
-                            className={`p-2 rounded-lg border cursor-pointer transition-all hover:shadow-md ${getTrafficLightColor(latestAudit?.overallRating)}`}
-                            data-testid={`audit-tile-${cat.key}`}
-                          >
-                            <div className="flex items-center gap-1.5 mb-1">
-                              <span className="text-sm">{cat.icon}</span>
-                              {getStatusIcon(latestAudit?.overallRating)}
-                            </div>
-                            <div className="text-xs font-medium truncate">{cat.label}</div>
-                            <div className="text-[10px] opacity-75 truncate">
-                              {latestAudit ? formatDate(latestAudit.auditDate) : "—"}
-                            </div>
-                          </div>
-                        </TooltipTrigger>
-                        <TooltipContent side="top" className="max-w-xs">
-                          <div className="space-y-1">
-                            <p className="font-semibold">{cat.label}</p>
-                            {latestAudit ? (
-                              <>
-                                <p className="text-xs">Rating: <span className="font-medium capitalize">{latestAudit.overallRating?.replace('_', ' ') || 'Not rated'}</span></p>
-                                <p className="text-xs">Last Audit: {formatDate(latestAudit.auditDate)}</p>
-                                {latestAudit.nextAuditDue && (
-                                  <p className="text-xs">Next Due: {formatDate(latestAudit.nextAuditDue)}</p>
-                                )}
-                              </>
-                            ) : (
-                              <p className="text-xs text-muted-foreground">No audit completed yet</p>
-                            )}
-                          </div>
-                        </TooltipContent>
-                      </Tooltip>
-                    );
-                  });
-                })()}
-              </div>
-            ) : (
-              <div className="text-center py-6 text-muted-foreground">
-                <Shield className="h-8 w-8 mx-auto mb-2 opacity-50" />
-                <p className="text-sm">No audits completed yet</p>
-                <Link href="/admin/cqc-toolkit">
-                  <Button variant="link" size="sm" className="mt-2">
-                    Start your first audit
-                  </Button>
-                </Link>
-              </div>
-            )}
-          </CardContent>
-        </Card>
-      )}
-      
       {/* Two Column Layout */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         {managementCategories.map((category) => (
