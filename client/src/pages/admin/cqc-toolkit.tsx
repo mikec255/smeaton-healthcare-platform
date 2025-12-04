@@ -4,6 +4,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+import { Building2, Briefcase, FileWarning, DollarSign, Home, ShieldCheck, Lock } from "lucide-react";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
@@ -214,11 +216,162 @@ const complaintsAuditSchema = z.object({
   actions: z.string().min(1, "Actions are required"),
 });
 
+// === BUSINESS AUDITS SCHEMAS ===
+
+// Business Continuity Plan audit schema
+const businessContinuityAuditSchema = z.object({
+  bcpDocumentInPlace: z.string().min(1, "Please select an option"),
+  bcpDetails: z.string().min(1, "Details are required"),
+  riskAssessmentComplete: z.string().min(1, "Please select an option"),
+  riskDetails: z.string().min(1, "Details are required"),
+  emergencyContactsUpdated: z.string().min(1, "Please select an option"),
+  contactDetails: z.string().min(1, "Details are required"),
+  backupSystemsInPlace: z.string().min(1, "Please select an option"),
+  backupDetails: z.string().min(1, "Details are required"),
+  staffTrainedInBcp: z.string().min(1, "Please select an option"),
+  trainingDetails: z.string().min(1, "Details are required"),
+  testingConducted: z.string().min(1, "Please select an option"),
+  testingDetails: z.string().min(1, "Details are required"),
+  score: z.coerce.number().min(0).max(6),
+  areasOfStrength: z.string().optional(),
+  areasForImprovement: z.string().optional(),
+  actions: z.string().min(1, "Actions are required"),
+});
+
+// Data Protection / GDPR audit schema
+const dataProtectionAuditSchema = z.object({
+  privacyPolicyInPlace: z.string().min(1, "Please select an option"),
+  policyDetails: z.string().min(1, "Details are required"),
+  dpoIdentified: z.string().min(1, "Please select an option"),
+  dpoDetails: z.string().min(1, "Details are required"),
+  dataProcessingRecords: z.string().min(1, "Please select an option"),
+  recordsDetails: z.string().min(1, "Details are required"),
+  consentManagement: z.string().min(1, "Please select an option"),
+  consentDetails: z.string().min(1, "Details are required"),
+  dataBreachProcedure: z.string().min(1, "Please select an option"),
+  breachDetails: z.string().min(1, "Details are required"),
+  staffTrainedInGdpr: z.string().min(1, "Please select an option"),
+  gdprTrainingDetails: z.string().min(1, "Details are required"),
+  subjectAccessProcess: z.string().min(1, "Please select an option"),
+  sarDetails: z.string().min(1, "Details are required"),
+  score: z.coerce.number().min(0).max(6),
+  areasOfStrength: z.string().optional(),
+  areasForImprovement: z.string().optional(),
+  actions: z.string().min(1, "Actions are required"),
+});
+
+// Financial Controls audit schema
+const financialControlsAuditSchema = z.object({
+  segregationOfDuties: z.string().min(1, "Please select an option"),
+  segregationDetails: z.string().min(1, "Details are required"),
+  paymentApprovals: z.string().min(1, "Please select an option"),
+  approvalDetails: z.string().min(1, "Details are required"),
+  bankReconciliations: z.string().min(1, "Please select an option"),
+  reconciliationDetails: z.string().min(1, "Details are required"),
+  expenseControls: z.string().min(1, "Please select an option"),
+  expenseDetails: z.string().min(1, "Details are required"),
+  auditTrailMaintained: z.string().min(1, "Please select an option"),
+  auditTrailDetails: z.string().min(1, "Details are required"),
+  budgetMonitoring: z.string().min(1, "Please select an option"),
+  budgetDetails: z.string().min(1, "Details are required"),
+  score: z.coerce.number().min(0).max(6),
+  areasOfStrength: z.string().optional(),
+  areasForImprovement: z.string().optional(),
+  actions: z.string().min(1, "Actions are required"),
+});
+
+// Health & Safety Premises audit schema
+const premisesAuditSchema = z.object({
+  fireRiskAssessment: z.string().min(1, "Please select an option"),
+  fireDetails: z.string().min(1, "Details are required"),
+  patTesting: z.string().min(1, "Please select an option"),
+  patDetails: z.string().min(1, "Details are required"),
+  legionellaAssessment: z.string().min(1, "Please select an option"),
+  legionellaDetails: z.string().min(1, "Details are required"),
+  asbestosRegister: z.string().min(1, "Please select an option"),
+  asbestosDetails: z.string().min(1, "Details are required"),
+  securityMeasures: z.string().min(1, "Please select an option"),
+  securityDetails: z.string().min(1, "Details are required"),
+  accessibilityCompliance: z.string().min(1, "Please select an option"),
+  accessibilityDetails: z.string().min(1, "Details are required"),
+  score: z.coerce.number().min(0).max(6),
+  areasOfStrength: z.string().optional(),
+  areasForImprovement: z.string().optional(),
+  actions: z.string().min(1, "Actions are required"),
+});
+
+// Medication Management sub-audit (Regulation 12)
+const medicationManagementAuditSchema = z.object({
+  marChartsAccurate: z.string().min(1, "Please select an option"),
+  marDetails: z.string().min(1, "Details are required"),
+  controlledDrugsSecure: z.string().min(1, "Please select an option"),
+  controlledDetails: z.string().min(1, "Details are required"),
+  medicationStorageSafe: z.string().min(1, "Please select an option"),
+  storageDetails: z.string().min(1, "Details are required"),
+  administrationRecorded: z.string().min(1, "Please select an option"),
+  administrationDetails: z.string().min(1, "Details are required"),
+  medicationErrorsReported: z.string().min(1, "Please select an option"),
+  errorDetails: z.string().min(1, "Details are required"),
+  staffCompetencyAssessed: z.string().min(1, "Please select an option"),
+  competencyDetails: z.string().min(1, "Details are required"),
+  score: z.coerce.number().min(0).max(6),
+  areasOfStrength: z.string().optional(),
+  areasForImprovement: z.string().optional(),
+  actions: z.string().min(1, "Actions are required"),
+});
+
+// Care Planning sub-audit (Regulation 9)
+const carePlanningAuditSchema = z.object({
+  initialAssessmentComplete: z.string().min(1, "Please select an option"),
+  assessmentDetails: z.string().min(1, "Details are required"),
+  carePlansPersonCentred: z.string().min(1, "Please select an option"),
+  personCentredDetails: z.string().min(1, "Details are required"),
+  regularReviewsConducted: z.string().min(1, "Please select an option"),
+  reviewDetails: z.string().min(1, "Details are required"),
+  serviceUserInvolvement: z.string().min(1, "Please select an option"),
+  involvementDetails: z.string().min(1, "Details are required"),
+  familyInclusion: z.string().min(1, "Please select an option"),
+  familyDetails: z.string().min(1, "Details are required"),
+  outcomesDocumented: z.string().min(1, "Please select an option"),
+  outcomesDetails: z.string().min(1, "Details are required"),
+  score: z.coerce.number().min(0).max(6),
+  areasOfStrength: z.string().optional(),
+  areasForImprovement: z.string().optional(),
+  actions: z.string().min(1, "Actions are required"),
+});
+
+// Training & Competency sub-audit (Regulation 18)
+const trainingCompetencyAuditSchema = z.object({
+  trainingMatrixMaintained: z.string().min(1, "Please select an option"),
+  matrixDetails: z.string().min(1, "Details are required"),
+  mandatoryTrainingComplete: z.string().min(1, "Please select an option"),
+  mandatoryDetails: z.string().min(1, "Details are required"),
+  competencyAssessmentsComplete: z.string().min(1, "Please select an option"),
+  competencyDetails: z.string().min(1, "Details are required"),
+  cpDevelopmentSupported: z.string().min(1, "Please select an option"),
+  cpdDetails: z.string().min(1, "Details are required"),
+  trainingNeedsIdentified: z.string().min(1, "Please select an option"),
+  needsDetails: z.string().min(1, "Details are required"),
+  refresherTrainingScheduled: z.string().min(1, "Please select an option"),
+  refresherDetails: z.string().min(1, "Details are required"),
+  score: z.coerce.number().min(0).max(6),
+  areasOfStrength: z.string().optional(),
+  areasForImprovement: z.string().optional(),
+  actions: z.string().min(1, "Actions are required"),
+});
+
 type CreateAuditFormData = z.infer<typeof createAuditSchema>;
 type CreateComplianceRecordFormData = z.infer<typeof createComplianceRecordSchema>;
 type CreateKnowledgeQuestionnaireFormData = z.infer<typeof createKnowledgeQuestionnaireSchema>;
 type CreateKnowledgeQuestionFormData = z.infer<typeof createKnowledgeQuestionSchema>;
 type InsuranceAuditFormData = z.infer<typeof insuranceAuditSchema>;
+type BusinessContinuityAuditFormData = z.infer<typeof businessContinuityAuditSchema>;
+type DataProtectionAuditFormData = z.infer<typeof dataProtectionAuditSchema>;
+type FinancialControlsAuditFormData = z.infer<typeof financialControlsAuditSchema>;
+type PremisesAuditFormData = z.infer<typeof premisesAuditSchema>;
+type MedicationManagementAuditFormData = z.infer<typeof medicationManagementAuditSchema>;
+type CarePlanningAuditFormData = z.infer<typeof carePlanningAuditSchema>;
+type TrainingCompetencyAuditFormData = z.infer<typeof trainingCompetencyAuditSchema>;
 type SafeCareAuditFormData = z.infer<typeof safeCareAuditSchema>;
 type SafeguardingAuditFormData = z.infer<typeof safeguardingAuditSchema>;
 type GovernanceAuditFormData = z.infer<typeof governanceAuditSchema>;
@@ -258,6 +411,7 @@ export default function CqcToolkit() {
   const [selectedQuestionnaire, setSelectedQuestionnaire] = useState<string | null>(null);
   const [qrCodeData, setQrCodeData] = useState<{ url: string; title: string } | null>(null);
   const [qrCodeDataUrl, setQrCodeDataUrl] = useState<string | null>(null);
+  // CQC Regulation Audit States
   const [insuranceAuditOpen, setInsuranceAuditOpen] = useState(false);
   const [safeCareAuditOpen, setSafeCareAuditOpen] = useState(false);
   const [safeguardingAuditOpen, setSafeguardingAuditOpen] = useState(false);
@@ -267,6 +421,17 @@ export default function CqcToolkit() {
   const [infectionControlAuditOpen, setInfectionControlAuditOpen] = useState(false);
   const [personCentredCareAuditOpen, setPersonCentredCareAuditOpen] = useState(false);
   const [complaintsAuditOpen, setComplaintsAuditOpen] = useState(false);
+  // Regulation sub-audit states
+  const [medicationManagementAuditOpen, setMedicationManagementAuditOpen] = useState(false);
+  const [carePlanningAuditOpen, setCarePlanningAuditOpen] = useState(false);
+  const [trainingCompetencyAuditOpen, setTrainingCompetencyAuditOpen] = useState(false);
+  // Business Audit States
+  const [businessContinuityAuditOpen, setBusinessContinuityAuditOpen] = useState(false);
+  const [dataProtectionAuditOpen, setDataProtectionAuditOpen] = useState(false);
+  const [financialControlsAuditOpen, setFinancialControlsAuditOpen] = useState(false);
+  const [premisesAuditOpen, setPremisesAuditOpen] = useState(false);
+  // Audit forms tab state
+  const [auditFormsTab, setAuditFormsTab] = useState("cqc");
   const [selectedEvidenceFiles, setSelectedEvidenceFiles] = useState<File[]>([]);
   const queryClient = useQueryClient();
   const { toast } = useToast();
@@ -815,6 +980,78 @@ export default function CqcToolkit() {
       areasOfStrength: "",
       areasForImprovement: "",
       actions: "",
+    },
+  });
+
+  // === BUSINESS AUDIT FORMS ===
+  const businessContinuityAuditForm = useForm<BusinessContinuityAuditFormData>({
+    resolver: zodResolver(businessContinuityAuditSchema),
+    defaultValues: {
+      bcpDocumentInPlace: "", bcpDetails: "", riskAssessmentComplete: "", riskDetails: "",
+      emergencyContactsUpdated: "", contactDetails: "", backupSystemsInPlace: "", backupDetails: "",
+      staffTrainedInBcp: "", trainingDetails: "", testingConducted: "", testingDetails: "",
+      score: 0, areasOfStrength: "", areasForImprovement: "", actions: "",
+    },
+  });
+
+  const dataProtectionAuditForm = useForm<DataProtectionAuditFormData>({
+    resolver: zodResolver(dataProtectionAuditSchema),
+    defaultValues: {
+      privacyPolicyInPlace: "", policyDetails: "", dpoIdentified: "", dpoDetails: "",
+      dataProcessingRecords: "", recordsDetails: "", consentManagement: "", consentDetails: "",
+      dataBreachProcedure: "", breachDetails: "", staffTrainedInGdpr: "", gdprTrainingDetails: "",
+      subjectAccessProcess: "", sarDetails: "", score: 0, areasOfStrength: "", areasForImprovement: "", actions: "",
+    },
+  });
+
+  const financialControlsAuditForm = useForm<FinancialControlsAuditFormData>({
+    resolver: zodResolver(financialControlsAuditSchema),
+    defaultValues: {
+      segregationOfDuties: "", segregationDetails: "", paymentApprovals: "", approvalDetails: "",
+      bankReconciliations: "", reconciliationDetails: "", expenseControls: "", expenseDetails: "",
+      auditTrailMaintained: "", auditTrailDetails: "", budgetMonitoring: "", budgetDetails: "",
+      score: 0, areasOfStrength: "", areasForImprovement: "", actions: "",
+    },
+  });
+
+  const premisesAuditForm = useForm<PremisesAuditFormData>({
+    resolver: zodResolver(premisesAuditSchema),
+    defaultValues: {
+      fireRiskAssessment: "", fireDetails: "", patTesting: "", patDetails: "",
+      legionellaAssessment: "", legionellaDetails: "", asbestosRegister: "", asbestosDetails: "",
+      securityMeasures: "", securityDetails: "", accessibilityCompliance: "", accessibilityDetails: "",
+      score: 0, areasOfStrength: "", areasForImprovement: "", actions: "",
+    },
+  });
+
+  // === REGULATION SUB-AUDIT FORMS ===
+  const medicationManagementAuditForm = useForm<MedicationManagementAuditFormData>({
+    resolver: zodResolver(medicationManagementAuditSchema),
+    defaultValues: {
+      marChartsAccurate: "", marDetails: "", controlledDrugsSecure: "", controlledDetails: "",
+      medicationStorageSafe: "", storageDetails: "", administrationRecorded: "", administrationDetails: "",
+      medicationErrorsReported: "", errorDetails: "", staffCompetencyAssessed: "", competencyDetails: "",
+      score: 0, areasOfStrength: "", areasForImprovement: "", actions: "",
+    },
+  });
+
+  const carePlanningAuditForm = useForm<CarePlanningAuditFormData>({
+    resolver: zodResolver(carePlanningAuditSchema),
+    defaultValues: {
+      initialAssessmentComplete: "", assessmentDetails: "", carePlansPersonCentred: "", personCentredDetails: "",
+      regularReviewsConducted: "", reviewDetails: "", serviceUserInvolvement: "", involvementDetails: "",
+      familyInclusion: "", familyDetails: "", outcomesDocumented: "", outcomesDetails: "",
+      score: 0, areasOfStrength: "", areasForImprovement: "", actions: "",
+    },
+  });
+
+  const trainingCompetencyAuditForm = useForm<TrainingCompetencyAuditFormData>({
+    resolver: zodResolver(trainingCompetencyAuditSchema),
+    defaultValues: {
+      trainingMatrixMaintained: "", matrixDetails: "", mandatoryTrainingComplete: "", mandatoryDetails: "",
+      competencyAssessmentsComplete: "", competencyDetails: "", cpDevelopmentSupported: "", cpdDetails: "",
+      trainingNeedsIdentified: "", needsDetails: "", refresherTrainingScheduled: "", refresherDetails: "",
+      score: 0, areasOfStrength: "", areasForImprovement: "", actions: "",
     },
   });
 
@@ -1621,33 +1858,387 @@ Delivering outstanding healthcare across Devon & Cornwall`;
                 Quick Start Audit Forms
               </CardTitle>
               <CardDescription>
-                Predefined audit forms for common compliance requirements and regulatory standards
+                Predefined audit forms for CQC regulatory compliance and business operations
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {/* Insurance Audit Form */}
-                <Dialog open={insuranceAuditOpen} onOpenChange={setInsuranceAuditOpen}>
-                  <DialogTrigger asChild>
-                    <Card className="cursor-pointer hover:shadow-md transition-shadow border-2 border-orange-200 dark:border-orange-800 bg-orange-50 dark:bg-orange-950/20">
-                      <CardContent className="p-6">
-                        <div className="flex items-start space-x-3">
-                          <div className="p-2 rounded-lg bg-orange-100 dark:bg-orange-900 text-orange-600 dark:text-orange-400">
+              <Tabs value={auditFormsTab} onValueChange={setAuditFormsTab} className="w-full">
+                <TabsList className="grid w-full grid-cols-2 mb-6">
+                  <TabsTrigger value="cqc" className="flex items-center gap-2">
+                    <Shield className="h-4 w-4" />
+                    CQC Regulations
+                  </TabsTrigger>
+                  <TabsTrigger value="business" className="flex items-center gap-2">
+                    <Briefcase className="h-4 w-4" />
+                    Business Audits
+                  </TabsTrigger>
+                </TabsList>
+
+                {/* CQC REGULATIONS TAB */}
+                <TabsContent value="cqc" className="space-y-4">
+                  <Accordion type="multiple" className="space-y-2">
+                    {/* REGULATION 12 - SAFE CARE AND TREATMENT */}
+                    <AccordionItem value="reg12" className="border rounded-lg bg-red-50 dark:bg-red-950/20">
+                      <AccordionTrigger className="px-4 hover:no-underline">
+                        <div className="flex items-center gap-3">
+                          <div className="p-2 rounded-lg bg-red-100 dark:bg-red-900 text-red-600 dark:text-red-400">
                             <Shield className="h-5 w-5" />
                           </div>
-                          <div className="flex-1">
-                            <h3 className="font-semibold text-orange-900 dark:text-orange-100">Insurance Audit</h3>
-                            <p className="text-sm text-orange-700 dark:text-orange-300 mt-1">
-                              Verify current insurance coverage and policies
-                            </p>
-                            <Badge className="mt-2 bg-orange-200 text-orange-800 dark:bg-orange-800 dark:text-orange-200">
-                              6 Point Scoring
-                            </Badge>
+                          <div className="text-left">
+                            <h3 className="font-semibold text-red-900 dark:text-red-100">Regulation 12: Safe Care and Treatment</h3>
+                            <p className="text-sm text-red-700 dark:text-red-300">Risk assessments, medication, infection control, equipment safety</p>
                           </div>
+                          <Badge className="ml-auto bg-red-200 text-red-800 dark:bg-red-800 dark:text-red-200">4 Audits</Badge>
                         </div>
-                      </CardContent>
-                    </Card>
-                  </DialogTrigger>
+                      </AccordionTrigger>
+                      <AccordionContent className="px-4 pb-4">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mt-2">
+                          <Dialog open={safeCareAuditOpen} onOpenChange={setSafeCareAuditOpen}>
+                            <DialogTrigger asChild>
+                              <Card className="cursor-pointer hover:shadow-md transition-shadow border border-red-200">
+                                <CardContent className="p-4">
+                                  <h4 className="font-medium">Safe Care Overview</h4>
+                                  <p className="text-sm text-muted-foreground mt-1">Comprehensive safe care assessment</p>
+                                </CardContent>
+                              </Card>
+                            </DialogTrigger>
+                          </Dialog>
+                          <Dialog open={medicationManagementAuditOpen} onOpenChange={setMedicationManagementAuditOpen}>
+                            <DialogTrigger asChild>
+                              <Card className="cursor-pointer hover:shadow-md transition-shadow border border-red-200">
+                                <CardContent className="p-4">
+                                  <h4 className="font-medium">Medication Management</h4>
+                                  <p className="text-sm text-muted-foreground mt-1">MAR charts, controlled drugs, storage</p>
+                                </CardContent>
+                              </Card>
+                            </DialogTrigger>
+                          </Dialog>
+                          <Dialog open={infectionControlAuditOpen} onOpenChange={setInfectionControlAuditOpen}>
+                            <DialogTrigger asChild>
+                              <Card className="cursor-pointer hover:shadow-md transition-shadow border border-red-200">
+                                <CardContent className="p-4">
+                                  <h4 className="font-medium">Infection Prevention & Control</h4>
+                                  <p className="text-sm text-muted-foreground mt-1">PPE, hand hygiene, IPC policies</p>
+                                </CardContent>
+                              </Card>
+                            </DialogTrigger>
+                          </Dialog>
+                        </div>
+                      </AccordionContent>
+                    </AccordionItem>
+
+                    {/* REGULATION 13 - SAFEGUARDING */}
+                    <AccordionItem value="reg13" className="border rounded-lg bg-purple-50 dark:bg-purple-950/20">
+                      <AccordionTrigger className="px-4 hover:no-underline">
+                        <div className="flex items-center gap-3">
+                          <div className="p-2 rounded-lg bg-purple-100 dark:bg-purple-900 text-purple-600 dark:text-purple-400">
+                            <Users className="h-5 w-5" />
+                          </div>
+                          <div className="text-left">
+                            <h3 className="font-semibold text-purple-900 dark:text-purple-100">Regulation 13: Safeguarding</h3>
+                            <p className="text-sm text-purple-700 dark:text-purple-300">Policies, training, DBS, reporting, multi-agency</p>
+                          </div>
+                          <Badge className="ml-auto bg-purple-200 text-purple-800 dark:bg-purple-800 dark:text-purple-200">1 Audit</Badge>
+                        </div>
+                      </AccordionTrigger>
+                      <AccordionContent className="px-4 pb-4">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mt-2">
+                          <Dialog open={safeguardingAuditOpen} onOpenChange={setSafeguardingAuditOpen}>
+                            <DialogTrigger asChild>
+                              <Card className="cursor-pointer hover:shadow-md transition-shadow border border-purple-200">
+                                <CardContent className="p-4">
+                                  <h4 className="font-medium">Safeguarding Audit</h4>
+                                  <p className="text-sm text-muted-foreground mt-1">Full safeguarding compliance check</p>
+                                </CardContent>
+                              </Card>
+                            </DialogTrigger>
+                          </Dialog>
+                        </div>
+                      </AccordionContent>
+                    </AccordionItem>
+
+                    {/* REGULATION 17 - GOOD GOVERNANCE */}
+                    <AccordionItem value="reg17" className="border rounded-lg bg-blue-50 dark:bg-blue-950/20">
+                      <AccordionTrigger className="px-4 hover:no-underline">
+                        <div className="flex items-center gap-3">
+                          <div className="p-2 rounded-lg bg-blue-100 dark:bg-blue-900 text-blue-600 dark:text-blue-400">
+                            <ClipboardCheck className="h-5 w-5" />
+                          </div>
+                          <div className="text-left">
+                            <h3 className="font-semibold text-blue-900 dark:text-blue-100">Regulation 17: Good Governance</h3>
+                            <p className="text-sm text-blue-700 dark:text-blue-300">QA systems, policies, records, risk management</p>
+                          </div>
+                          <Badge className="ml-auto bg-blue-200 text-blue-800 dark:bg-blue-800 dark:text-blue-200">1 Audit</Badge>
+                        </div>
+                      </AccordionTrigger>
+                      <AccordionContent className="px-4 pb-4">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mt-2">
+                          <Dialog open={governanceAuditOpen} onOpenChange={setGovernanceAuditOpen}>
+                            <DialogTrigger asChild>
+                              <Card className="cursor-pointer hover:shadow-md transition-shadow border border-blue-200">
+                                <CardContent className="p-4">
+                                  <h4 className="font-medium">Governance Audit</h4>
+                                  <p className="text-sm text-muted-foreground mt-1">Leadership oversight and systems</p>
+                                </CardContent>
+                              </Card>
+                            </DialogTrigger>
+                          </Dialog>
+                        </div>
+                      </AccordionContent>
+                    </AccordionItem>
+
+                    {/* REGULATION 18 - STAFFING */}
+                    <AccordionItem value="reg18" className="border rounded-lg bg-green-50 dark:bg-green-950/20">
+                      <AccordionTrigger className="px-4 hover:no-underline">
+                        <div className="flex items-center gap-3">
+                          <div className="p-2 rounded-lg bg-green-100 dark:bg-green-900 text-green-600 dark:text-green-400">
+                            <Users className="h-5 w-5" />
+                          </div>
+                          <div className="text-left">
+                            <h3 className="font-semibold text-green-900 dark:text-green-100">Regulation 18: Staffing</h3>
+                            <p className="text-sm text-green-700 dark:text-green-300">Staffing levels, training, supervision, competency</p>
+                          </div>
+                          <Badge className="ml-auto bg-green-200 text-green-800 dark:bg-green-800 dark:text-green-200">2 Audits</Badge>
+                        </div>
+                      </AccordionTrigger>
+                      <AccordionContent className="px-4 pb-4">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mt-2">
+                          <Dialog open={staffingAuditOpen} onOpenChange={setStaffingAuditOpen}>
+                            <DialogTrigger asChild>
+                              <Card className="cursor-pointer hover:shadow-md transition-shadow border border-green-200">
+                                <CardContent className="p-4">
+                                  <h4 className="font-medium">Staffing Overview</h4>
+                                  <p className="text-sm text-muted-foreground mt-1">Levels, qualifications, supervision</p>
+                                </CardContent>
+                              </Card>
+                            </DialogTrigger>
+                          </Dialog>
+                          <Dialog open={trainingCompetencyAuditOpen} onOpenChange={setTrainingCompetencyAuditOpen}>
+                            <DialogTrigger asChild>
+                              <Card className="cursor-pointer hover:shadow-md transition-shadow border border-green-200">
+                                <CardContent className="p-4">
+                                  <h4 className="font-medium">Training & Competency</h4>
+                                  <p className="text-sm text-muted-foreground mt-1">Training matrix, mandatory training</p>
+                                </CardContent>
+                              </Card>
+                            </DialogTrigger>
+                          </Dialog>
+                        </div>
+                      </AccordionContent>
+                    </AccordionItem>
+
+                    {/* REGULATION 19 - FIT AND PROPER PERSONS */}
+                    <AccordionItem value="reg19" className="border rounded-lg bg-teal-50 dark:bg-teal-950/20">
+                      <AccordionTrigger className="px-4 hover:no-underline">
+                        <div className="flex items-center gap-3">
+                          <div className="p-2 rounded-lg bg-teal-100 dark:bg-teal-900 text-teal-600 dark:text-teal-400">
+                            <Award className="h-5 w-5" />
+                          </div>
+                          <div className="text-left">
+                            <h3 className="font-semibold text-teal-900 dark:text-teal-100">Regulation 19: Fit & Proper Persons</h3>
+                            <p className="text-sm text-teal-700 dark:text-teal-300">Recruitment, DBS, references, registration</p>
+                          </div>
+                          <Badge className="ml-auto bg-teal-200 text-teal-800 dark:bg-teal-800 dark:text-teal-200">1 Audit</Badge>
+                        </div>
+                      </AccordionTrigger>
+                      <AccordionContent className="px-4 pb-4">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mt-2">
+                          <Dialog open={fitProperPersonsAuditOpen} onOpenChange={setFitProperPersonsAuditOpen}>
+                            <DialogTrigger asChild>
+                              <Card className="cursor-pointer hover:shadow-md transition-shadow border border-teal-200">
+                                <CardContent className="p-4">
+                                  <h4 className="font-medium">Fit & Proper Persons Audit</h4>
+                                  <p className="text-sm text-muted-foreground mt-1">Safe recruitment processes</p>
+                                </CardContent>
+                              </Card>
+                            </DialogTrigger>
+                          </Dialog>
+                        </div>
+                      </AccordionContent>
+                    </AccordionItem>
+
+                    {/* REGULATION 9 - PERSON-CENTRED CARE */}
+                    <AccordionItem value="reg9" className="border rounded-lg bg-amber-50 dark:bg-amber-950/20">
+                      <AccordionTrigger className="px-4 hover:no-underline">
+                        <div className="flex items-center gap-3">
+                          <div className="p-2 rounded-lg bg-amber-100 dark:bg-amber-900 text-amber-600 dark:text-amber-400">
+                            <Users className="h-5 w-5" />
+                          </div>
+                          <div className="text-left">
+                            <h3 className="font-semibold text-amber-900 dark:text-amber-100">Regulation 9: Person-Centred Care</h3>
+                            <p className="text-sm text-amber-700 dark:text-amber-300">Care plans, preferences, involvement, reviews</p>
+                          </div>
+                          <Badge className="ml-auto bg-amber-200 text-amber-800 dark:bg-amber-800 dark:text-amber-200">2 Audits</Badge>
+                        </div>
+                      </AccordionTrigger>
+                      <AccordionContent className="px-4 pb-4">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mt-2">
+                          <Dialog open={personCentredCareAuditOpen} onOpenChange={setPersonCentredCareAuditOpen}>
+                            <DialogTrigger asChild>
+                              <Card className="cursor-pointer hover:shadow-md transition-shadow border border-amber-200">
+                                <CardContent className="p-4">
+                                  <h4 className="font-medium">Person-Centred Care Overview</h4>
+                                  <p className="text-sm text-muted-foreground mt-1">Full person-centred care audit</p>
+                                </CardContent>
+                              </Card>
+                            </DialogTrigger>
+                          </Dialog>
+                          <Dialog open={carePlanningAuditOpen} onOpenChange={setCarePlanningAuditOpen}>
+                            <DialogTrigger asChild>
+                              <Card className="cursor-pointer hover:shadow-md transition-shadow border border-amber-200">
+                                <CardContent className="p-4">
+                                  <h4 className="font-medium">Care Planning Audit</h4>
+                                  <p className="text-sm text-muted-foreground mt-1">Assessments, reviews, outcomes</p>
+                                </CardContent>
+                              </Card>
+                            </DialogTrigger>
+                          </Dialog>
+                        </div>
+                      </AccordionContent>
+                    </AccordionItem>
+
+                    {/* REGULATION 16 - COMPLAINTS */}
+                    <AccordionItem value="reg16" className="border rounded-lg bg-indigo-50 dark:bg-indigo-950/20">
+                      <AccordionTrigger className="px-4 hover:no-underline">
+                        <div className="flex items-center gap-3">
+                          <div className="p-2 rounded-lg bg-indigo-100 dark:bg-indigo-900 text-indigo-600 dark:text-indigo-400">
+                            <MessageSquare className="h-5 w-5" />
+                          </div>
+                          <div className="text-left">
+                            <h3 className="font-semibold text-indigo-900 dark:text-indigo-100">Regulation 16: Complaints</h3>
+                            <p className="text-sm text-indigo-700 dark:text-indigo-300">Handling, investigation, learning, timeliness</p>
+                          </div>
+                          <Badge className="ml-auto bg-indigo-200 text-indigo-800 dark:bg-indigo-800 dark:text-indigo-200">1 Audit</Badge>
+                        </div>
+                      </AccordionTrigger>
+                      <AccordionContent className="px-4 pb-4">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mt-2">
+                          <Dialog open={complaintsAuditOpen} onOpenChange={setComplaintsAuditOpen}>
+                            <DialogTrigger asChild>
+                              <Card className="cursor-pointer hover:shadow-md transition-shadow border border-indigo-200">
+                                <CardContent className="p-4">
+                                  <h4 className="font-medium">Complaints Handling Audit</h4>
+                                  <p className="text-sm text-muted-foreground mt-1">Full complaints process audit</p>
+                                </CardContent>
+                              </Card>
+                            </DialogTrigger>
+                          </Dialog>
+                        </div>
+                      </AccordionContent>
+                    </AccordionItem>
+                  </Accordion>
+                </TabsContent>
+
+                {/* BUSINESS AUDITS TAB */}
+                <TabsContent value="business" className="space-y-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {/* Insurance Audit */}
+                    <Dialog open={insuranceAuditOpen} onOpenChange={setInsuranceAuditOpen}>
+                      <DialogTrigger asChild>
+                        <Card className="cursor-pointer hover:shadow-md transition-shadow border-2 border-orange-200 dark:border-orange-800 bg-orange-50 dark:bg-orange-950/20">
+                          <CardContent className="p-6">
+                            <div className="flex items-start space-x-3">
+                              <div className="p-2 rounded-lg bg-orange-100 dark:bg-orange-900 text-orange-600 dark:text-orange-400">
+                                <Shield className="h-5 w-5" />
+                              </div>
+                              <div className="flex-1">
+                                <h3 className="font-semibold text-orange-900 dark:text-orange-100">Insurance Audit</h3>
+                                <p className="text-sm text-orange-700 dark:text-orange-300 mt-1">Verify current insurance coverage and policies</p>
+                                <Badge className="mt-2 bg-orange-200 text-orange-800 dark:bg-orange-800 dark:text-orange-200">6 Point Scoring</Badge>
+                              </div>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      </DialogTrigger>
+                    </Dialog>
+
+                    {/* Business Continuity Audit */}
+                    <Dialog open={businessContinuityAuditOpen} onOpenChange={setBusinessContinuityAuditOpen}>
+                      <DialogTrigger asChild>
+                        <Card className="cursor-pointer hover:shadow-md transition-shadow border-2 border-cyan-200 dark:border-cyan-800 bg-cyan-50 dark:bg-cyan-950/20">
+                          <CardContent className="p-6">
+                            <div className="flex items-start space-x-3">
+                              <div className="p-2 rounded-lg bg-cyan-100 dark:bg-cyan-900 text-cyan-600 dark:text-cyan-400">
+                                <Building2 className="h-5 w-5" />
+                              </div>
+                              <div className="flex-1">
+                                <h3 className="font-semibold text-cyan-900 dark:text-cyan-100">Business Continuity</h3>
+                                <p className="text-sm text-cyan-700 dark:text-cyan-300 mt-1">BCP, emergency planning, backup systems</p>
+                                <Badge className="mt-2 bg-cyan-200 text-cyan-800 dark:bg-cyan-800 dark:text-cyan-200">6 Point Scoring</Badge>
+                              </div>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      </DialogTrigger>
+                    </Dialog>
+
+                    {/* Data Protection Audit */}
+                    <Dialog open={dataProtectionAuditOpen} onOpenChange={setDataProtectionAuditOpen}>
+                      <DialogTrigger asChild>
+                        <Card className="cursor-pointer hover:shadow-md transition-shadow border-2 border-violet-200 dark:border-violet-800 bg-violet-50 dark:bg-violet-950/20">
+                          <CardContent className="p-6">
+                            <div className="flex items-start space-x-3">
+                              <div className="p-2 rounded-lg bg-violet-100 dark:bg-violet-900 text-violet-600 dark:text-violet-400">
+                                <FileWarning className="h-5 w-5" />
+                              </div>
+                              <div className="flex-1">
+                                <h3 className="font-semibold text-violet-900 dark:text-violet-100">Data Protection / GDPR</h3>
+                                <p className="text-sm text-violet-700 dark:text-violet-300 mt-1">Privacy policy, consent, SAR, breach procedures</p>
+                                <Badge className="mt-2 bg-violet-200 text-violet-800 dark:bg-violet-800 dark:text-violet-200">6 Point Scoring</Badge>
+                              </div>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      </DialogTrigger>
+                    </Dialog>
+
+                    {/* Financial Controls Audit */}
+                    <Dialog open={financialControlsAuditOpen} onOpenChange={setFinancialControlsAuditOpen}>
+                      <DialogTrigger asChild>
+                        <Card className="cursor-pointer hover:shadow-md transition-shadow border-2 border-emerald-200 dark:border-emerald-800 bg-emerald-50 dark:bg-emerald-950/20">
+                          <CardContent className="p-6">
+                            <div className="flex items-start space-x-3">
+                              <div className="p-2 rounded-lg bg-emerald-100 dark:bg-emerald-900 text-emerald-600 dark:text-emerald-400">
+                                <DollarSign className="h-5 w-5" />
+                              </div>
+                              <div className="flex-1">
+                                <h3 className="font-semibold text-emerald-900 dark:text-emerald-100">Financial Controls</h3>
+                                <p className="text-sm text-emerald-700 dark:text-emerald-300 mt-1">Payments, reconciliations, expense controls</p>
+                                <Badge className="mt-2 bg-emerald-200 text-emerald-800 dark:bg-emerald-800 dark:text-emerald-200">6 Point Scoring</Badge>
+                              </div>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      </DialogTrigger>
+                    </Dialog>
+
+                    {/* Premises Audit */}
+                    <Dialog open={premisesAuditOpen} onOpenChange={setPremisesAuditOpen}>
+                      <DialogTrigger asChild>
+                        <Card className="cursor-pointer hover:shadow-md transition-shadow border-2 border-rose-200 dark:border-rose-800 bg-rose-50 dark:bg-rose-950/20">
+                          <CardContent className="p-6">
+                            <div className="flex items-start space-x-3">
+                              <div className="p-2 rounded-lg bg-rose-100 dark:bg-rose-900 text-rose-600 dark:text-rose-400">
+                                <Home className="h-5 w-5" />
+                              </div>
+                              <div className="flex-1">
+                                <h3 className="font-semibold text-rose-900 dark:text-rose-100">Health & Safety Premises</h3>
+                                <p className="text-sm text-rose-700 dark:text-rose-300 mt-1">Fire, PAT, legionella, security, accessibility</p>
+                                <Badge className="mt-2 bg-rose-200 text-rose-800 dark:bg-rose-800 dark:text-rose-200">6 Point Scoring</Badge>
+                              </div>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      </DialogTrigger>
+                    </Dialog>
+                  </div>
+                </TabsContent>
+              </Tabs>
+
+              {/* DIALOG CONTENTS - All audit form dialogs are rendered below (controlled by state, triggers in tabs above) */}
+              
+              {/* Insurance Audit Dialog Content */}
+              <Dialog open={insuranceAuditOpen} onOpenChange={setInsuranceAuditOpen}>
                   <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
                     <DialogHeader>
                       <DialogTitle className="flex items-center gap-2">
@@ -1928,28 +2519,178 @@ Delivering outstanding healthcare across Devon & Cornwall`;
                   </DialogContent>
                 </Dialog>
                 
+                {/* Business Continuity Audit Dialog Content */}
+                <Dialog open={businessContinuityAuditOpen} onOpenChange={setBusinessContinuityAuditOpen}>
+                  <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+                    <DialogHeader>
+                      <DialogTitle className="flex items-center gap-2"><ShieldCheck className="h-5 w-5 text-amber-600" />Business Continuity Audit</DialogTitle>
+                      <DialogDescription>Comprehensive audit of business continuity planning and disaster recovery</DialogDescription>
+                    </DialogHeader>
+                    <Form {...businessContinuityAuditForm}>
+                      <form onSubmit={businessContinuityAuditForm.handleSubmit((data) => submitGenericAudit("Business Continuity", "business_continuity", "effective", data, setBusinessContinuityAuditOpen, businessContinuityAuditForm))} className="space-y-4">
+                        <Card className="border-amber-200"><CardHeader className="pb-3"><CardTitle className="text-lg">Business Continuity Plan</CardTitle></CardHeader>
+                          <CardContent className="space-y-4">
+                            <FormField control={businessContinuityAuditForm.control} name="bcpInPlace" render={({ field }) => (<FormItem><FormLabel>Is a business continuity plan in place?</FormLabel><FormControl><Select onValueChange={field.onChange} defaultValue={field.value}><SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger><SelectContent><SelectItem value="yes">Yes</SelectItem><SelectItem value="partial">Partial</SelectItem><SelectItem value="no">No</SelectItem></SelectContent></Select></FormControl><FormMessage /></FormItem>)} />
+                            <FormField control={businessContinuityAuditForm.control} name="bcpDetails" render={({ field }) => (<FormItem><FormLabel>Evidence:</FormLabel><FormControl><Textarea {...field} rows={2} /></FormControl><FormMessage /></FormItem>)} />
+                          </CardContent>
+                        </Card>
+                        <Card className="border-amber-200"><CardHeader className="pb-3"><CardTitle className="text-lg">Staff Training & Awareness</CardTitle></CardHeader>
+                          <CardContent className="space-y-4">
+                            <FormField control={businessContinuityAuditForm.control} name="staffAware" render={({ field }) => (<FormItem><FormLabel>Are staff aware of their roles in emergencies?</FormLabel><FormControl><Select onValueChange={field.onChange} defaultValue={field.value}><SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger><SelectContent><SelectItem value="yes">Yes</SelectItem><SelectItem value="partial">Partial</SelectItem><SelectItem value="no">No</SelectItem></SelectContent></Select></FormControl><FormMessage /></FormItem>)} />
+                            <FormField control={businessContinuityAuditForm.control} name="staffTrainingDetails" render={({ field }) => (<FormItem><FormLabel>Evidence:</FormLabel><FormControl><Textarea {...field} rows={2} /></FormControl><FormMessage /></FormItem>)} />
+                          </CardContent>
+                        </Card>
+                        <Card className="border-amber-200"><CardHeader className="pb-3"><CardTitle className="text-lg">Testing & Review</CardTitle></CardHeader>
+                          <CardContent className="space-y-4">
+                            <FormField control={businessContinuityAuditForm.control} name="planTested" render={({ field }) => (<FormItem><FormLabel>Has the plan been tested within the last 12 months?</FormLabel><FormControl><Select onValueChange={field.onChange} defaultValue={field.value}><SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger><SelectContent><SelectItem value="yes">Yes</SelectItem><SelectItem value="partial">Partial</SelectItem><SelectItem value="no">No</SelectItem></SelectContent></Select></FormControl><FormMessage /></FormItem>)} />
+                            <FormField control={businessContinuityAuditForm.control} name="testingDetails" render={({ field }) => (<FormItem><FormLabel>Evidence:</FormLabel><FormControl><Textarea {...field} rows={2} /></FormControl><FormMessage /></FormItem>)} />
+                          </CardContent>
+                        </Card>
+                        <Card className="border-blue-200 bg-blue-50 dark:bg-blue-950/20"><CardHeader className="pb-3"><CardTitle className="text-lg">Audit Summary</CardTitle></CardHeader>
+                          <CardContent className="space-y-4">
+                            <FormField control={businessContinuityAuditForm.control} name="score" render={({ field }) => (<FormItem><FormLabel>Overall Score (0-6):</FormLabel><FormControl><Input type="number" min="0" max="6" {...field} /></FormControl><FormMessage /></FormItem>)} />
+                            <FormField control={businessContinuityAuditForm.control} name="areasOfStrength" render={({ field }) => (<FormItem><FormLabel>Areas of Strength:</FormLabel><FormControl><Textarea {...field} rows={2} /></FormControl><FormMessage /></FormItem>)} />
+                            <FormField control={businessContinuityAuditForm.control} name="areasForImprovement" render={({ field }) => (<FormItem><FormLabel>Areas for Improvement:</FormLabel><FormControl><Textarea {...field} rows={2} /></FormControl><FormMessage /></FormItem>)} />
+                            <FormField control={businessContinuityAuditForm.control} name="actions" render={({ field }) => (<FormItem><FormLabel>Required Actions:</FormLabel><FormControl><Textarea {...field} rows={3} /></FormControl><FormMessage /></FormItem>)} />
+                          </CardContent>
+                        </Card>
+                        <div className="flex justify-end gap-2"><Button type="button" variant="outline" onClick={() => setBusinessContinuityAuditOpen(false)}>Cancel</Button><Button type="submit" disabled={genericAuditMutation.isPending} className="bg-amber-600 hover:bg-amber-700">{genericAuditMutation.isPending ? "Saving..." : "Save Audit"}</Button></div>
+                      </form>
+                    </Form>
+                  </DialogContent>
+                </Dialog>
+
+                {/* Data Protection / GDPR Audit Dialog Content */}
+                <Dialog open={dataProtectionAuditOpen} onOpenChange={setDataProtectionAuditOpen}>
+                  <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+                    <DialogHeader>
+                      <DialogTitle className="flex items-center gap-2"><Lock className="h-5 w-5 text-purple-600" />Data Protection / GDPR Audit</DialogTitle>
+                      <DialogDescription>Comprehensive audit of data protection policies and GDPR compliance</DialogDescription>
+                    </DialogHeader>
+                    <Form {...dataProtectionAuditForm}>
+                      <form onSubmit={dataProtectionAuditForm.handleSubmit((data) => submitGenericAudit("Data Protection / GDPR", "data_protection", "effective", data, setDataProtectionAuditOpen, dataProtectionAuditForm))} className="space-y-4">
+                        <Card className="border-purple-200"><CardHeader className="pb-3"><CardTitle className="text-lg">Data Protection Policies</CardTitle></CardHeader>
+                          <CardContent className="space-y-4">
+                            <FormField control={dataProtectionAuditForm.control} name="policiesInPlace" render={({ field }) => (<FormItem><FormLabel>Are comprehensive data protection policies in place?</FormLabel><FormControl><Select onValueChange={field.onChange} defaultValue={field.value}><SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger><SelectContent><SelectItem value="yes">Yes</SelectItem><SelectItem value="partial">Partial</SelectItem><SelectItem value="no">No</SelectItem></SelectContent></Select></FormControl><FormMessage /></FormItem>)} />
+                            <FormField control={dataProtectionAuditForm.control} name="policiesDetails" render={({ field }) => (<FormItem><FormLabel>Evidence:</FormLabel><FormControl><Textarea {...field} rows={2} /></FormControl><FormMessage /></FormItem>)} />
+                          </CardContent>
+                        </Card>
+                        <Card className="border-purple-200"><CardHeader className="pb-3"><CardTitle className="text-lg">Data Security</CardTitle></CardHeader>
+                          <CardContent className="space-y-4">
+                            <FormField control={dataProtectionAuditForm.control} name="dataSecure" render={({ field }) => (<FormItem><FormLabel>Is personal data stored securely (encryption, access controls)?</FormLabel><FormControl><Select onValueChange={field.onChange} defaultValue={field.value}><SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger><SelectContent><SelectItem value="yes">Yes</SelectItem><SelectItem value="partial">Partial</SelectItem><SelectItem value="no">No</SelectItem></SelectContent></Select></FormControl><FormMessage /></FormItem>)} />
+                            <FormField control={dataProtectionAuditForm.control} name="securityDetails" render={({ field }) => (<FormItem><FormLabel>Evidence:</FormLabel><FormControl><Textarea {...field} rows={2} /></FormControl><FormMessage /></FormItem>)} />
+                          </CardContent>
+                        </Card>
+                        <Card className="border-purple-200"><CardHeader className="pb-3"><CardTitle className="text-lg">Staff Training</CardTitle></CardHeader>
+                          <CardContent className="space-y-4">
+                            <FormField control={dataProtectionAuditForm.control} name="staffTrained" render={({ field }) => (<FormItem><FormLabel>Have all staff completed GDPR training?</FormLabel><FormControl><Select onValueChange={field.onChange} defaultValue={field.value}><SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger><SelectContent><SelectItem value="yes">Yes</SelectItem><SelectItem value="partial">Partial</SelectItem><SelectItem value="no">No</SelectItem></SelectContent></Select></FormControl><FormMessage /></FormItem>)} />
+                            <FormField control={dataProtectionAuditForm.control} name="trainingDetails" render={({ field }) => (<FormItem><FormLabel>Evidence:</FormLabel><FormControl><Textarea {...field} rows={2} /></FormControl><FormMessage /></FormItem>)} />
+                          </CardContent>
+                        </Card>
+                        <Card className="border-blue-200 bg-blue-50 dark:bg-blue-950/20"><CardHeader className="pb-3"><CardTitle className="text-lg">Audit Summary</CardTitle></CardHeader>
+                          <CardContent className="space-y-4">
+                            <FormField control={dataProtectionAuditForm.control} name="score" render={({ field }) => (<FormItem><FormLabel>Overall Score (0-6):</FormLabel><FormControl><Input type="number" min="0" max="6" {...field} /></FormControl><FormMessage /></FormItem>)} />
+                            <FormField control={dataProtectionAuditForm.control} name="areasOfStrength" render={({ field }) => (<FormItem><FormLabel>Areas of Strength:</FormLabel><FormControl><Textarea {...field} rows={2} /></FormControl><FormMessage /></FormItem>)} />
+                            <FormField control={dataProtectionAuditForm.control} name="areasForImprovement" render={({ field }) => (<FormItem><FormLabel>Areas for Improvement:</FormLabel><FormControl><Textarea {...field} rows={2} /></FormControl><FormMessage /></FormItem>)} />
+                            <FormField control={dataProtectionAuditForm.control} name="actions" render={({ field }) => (<FormItem><FormLabel>Required Actions:</FormLabel><FormControl><Textarea {...field} rows={3} /></FormControl><FormMessage /></FormItem>)} />
+                          </CardContent>
+                        </Card>
+                        <div className="flex justify-end gap-2"><Button type="button" variant="outline" onClick={() => setDataProtectionAuditOpen(false)}>Cancel</Button><Button type="submit" disabled={genericAuditMutation.isPending} className="bg-purple-600 hover:bg-purple-700">{genericAuditMutation.isPending ? "Saving..." : "Save Audit"}</Button></div>
+                      </form>
+                    </Form>
+                  </DialogContent>
+                </Dialog>
+
+                {/* Financial Controls Audit Dialog Content */}
+                <Dialog open={financialControlsAuditOpen} onOpenChange={setFinancialControlsAuditOpen}>
+                  <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+                    <DialogHeader>
+                      <DialogTitle className="flex items-center gap-2"><DollarSign className="h-5 w-5 text-emerald-600" />Financial Controls Audit</DialogTitle>
+                      <DialogDescription>Comprehensive audit of financial procedures and controls</DialogDescription>
+                    </DialogHeader>
+                    <Form {...financialControlsAuditForm}>
+                      <form onSubmit={financialControlsAuditForm.handleSubmit((data) => submitGenericAudit("Financial Controls", "financial_controls", "effective", data, setFinancialControlsAuditOpen, financialControlsAuditForm))} className="space-y-4">
+                        <Card className="border-emerald-200"><CardHeader className="pb-3"><CardTitle className="text-lg">Payment Procedures</CardTitle></CardHeader>
+                          <CardContent className="space-y-4">
+                            <FormField control={financialControlsAuditForm.control} name="paymentProceduresInPlace" render={({ field }) => (<FormItem><FormLabel>Are robust payment approval procedures in place?</FormLabel><FormControl><Select onValueChange={field.onChange} defaultValue={field.value}><SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger><SelectContent><SelectItem value="yes">Yes</SelectItem><SelectItem value="partial">Partial</SelectItem><SelectItem value="no">No</SelectItem></SelectContent></Select></FormControl><FormMessage /></FormItem>)} />
+                            <FormField control={financialControlsAuditForm.control} name="paymentDetails" render={({ field }) => (<FormItem><FormLabel>Evidence:</FormLabel><FormControl><Textarea {...field} rows={2} /></FormControl><FormMessage /></FormItem>)} />
+                          </CardContent>
+                        </Card>
+                        <Card className="border-emerald-200"><CardHeader className="pb-3"><CardTitle className="text-lg">Reconciliations</CardTitle></CardHeader>
+                          <CardContent className="space-y-4">
+                            <FormField control={financialControlsAuditForm.control} name="reconciliationsComplete" render={({ field }) => (<FormItem><FormLabel>Are bank and account reconciliations completed monthly?</FormLabel><FormControl><Select onValueChange={field.onChange} defaultValue={field.value}><SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger><SelectContent><SelectItem value="yes">Yes</SelectItem><SelectItem value="partial">Partial</SelectItem><SelectItem value="no">No</SelectItem></SelectContent></Select></FormControl><FormMessage /></FormItem>)} />
+                            <FormField control={financialControlsAuditForm.control} name="reconciliationDetails" render={({ field }) => (<FormItem><FormLabel>Evidence:</FormLabel><FormControl><Textarea {...field} rows={2} /></FormControl><FormMessage /></FormItem>)} />
+                          </CardContent>
+                        </Card>
+                        <Card className="border-emerald-200"><CardHeader className="pb-3"><CardTitle className="text-lg">Expense Controls</CardTitle></CardHeader>
+                          <CardContent className="space-y-4">
+                            <FormField control={financialControlsAuditForm.control} name="expenseControlsInPlace" render={({ field }) => (<FormItem><FormLabel>Are expense controls and approval limits in place?</FormLabel><FormControl><Select onValueChange={field.onChange} defaultValue={field.value}><SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger><SelectContent><SelectItem value="yes">Yes</SelectItem><SelectItem value="partial">Partial</SelectItem><SelectItem value="no">No</SelectItem></SelectContent></Select></FormControl><FormMessage /></FormItem>)} />
+                            <FormField control={financialControlsAuditForm.control} name="expenseDetails" render={({ field }) => (<FormItem><FormLabel>Evidence:</FormLabel><FormControl><Textarea {...field} rows={2} /></FormControl><FormMessage /></FormItem>)} />
+                          </CardContent>
+                        </Card>
+                        <Card className="border-blue-200 bg-blue-50 dark:bg-blue-950/20"><CardHeader className="pb-3"><CardTitle className="text-lg">Audit Summary</CardTitle></CardHeader>
+                          <CardContent className="space-y-4">
+                            <FormField control={financialControlsAuditForm.control} name="score" render={({ field }) => (<FormItem><FormLabel>Overall Score (0-6):</FormLabel><FormControl><Input type="number" min="0" max="6" {...field} /></FormControl><FormMessage /></FormItem>)} />
+                            <FormField control={financialControlsAuditForm.control} name="areasOfStrength" render={({ field }) => (<FormItem><FormLabel>Areas of Strength:</FormLabel><FormControl><Textarea {...field} rows={2} /></FormControl><FormMessage /></FormItem>)} />
+                            <FormField control={financialControlsAuditForm.control} name="areasForImprovement" render={({ field }) => (<FormItem><FormLabel>Areas for Improvement:</FormLabel><FormControl><Textarea {...field} rows={2} /></FormControl><FormMessage /></FormItem>)} />
+                            <FormField control={financialControlsAuditForm.control} name="actions" render={({ field }) => (<FormItem><FormLabel>Required Actions:</FormLabel><FormControl><Textarea {...field} rows={3} /></FormControl><FormMessage /></FormItem>)} />
+                          </CardContent>
+                        </Card>
+                        <div className="flex justify-end gap-2"><Button type="button" variant="outline" onClick={() => setFinancialControlsAuditOpen(false)}>Cancel</Button><Button type="submit" disabled={genericAuditMutation.isPending} className="bg-emerald-600 hover:bg-emerald-700">{genericAuditMutation.isPending ? "Saving..." : "Save Audit"}</Button></div>
+                      </form>
+                    </Form>
+                  </DialogContent>
+                </Dialog>
+
+                {/* Premises Audit Dialog Content */}
+                <Dialog open={premisesAuditOpen} onOpenChange={setPremisesAuditOpen}>
+                  <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+                    <DialogHeader>
+                      <DialogTitle className="flex items-center gap-2"><Home className="h-5 w-5 text-rose-600" />Health & Safety Premises Audit</DialogTitle>
+                      <DialogDescription>Comprehensive audit of premises safety and compliance</DialogDescription>
+                    </DialogHeader>
+                    <Form {...premisesAuditForm}>
+                      <form onSubmit={premisesAuditForm.handleSubmit((data) => submitGenericAudit("Health & Safety Premises", "premises", "safe", data, setPremisesAuditOpen, premisesAuditForm))} className="space-y-4">
+                        <Card className="border-rose-200"><CardHeader className="pb-3"><CardTitle className="text-lg">Fire Safety</CardTitle></CardHeader>
+                          <CardContent className="space-y-4">
+                            <FormField control={premisesAuditForm.control} name="fireSafetyCompliant" render={({ field }) => (<FormItem><FormLabel>Is fire safety equipment maintained and staff trained?</FormLabel><FormControl><Select onValueChange={field.onChange} defaultValue={field.value}><SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger><SelectContent><SelectItem value="yes">Yes</SelectItem><SelectItem value="partial">Partial</SelectItem><SelectItem value="no">No</SelectItem></SelectContent></Select></FormControl><FormMessage /></FormItem>)} />
+                            <FormField control={premisesAuditForm.control} name="fireSafetyDetails" render={({ field }) => (<FormItem><FormLabel>Evidence:</FormLabel><FormControl><Textarea {...field} rows={2} /></FormControl><FormMessage /></FormItem>)} />
+                          </CardContent>
+                        </Card>
+                        <Card className="border-rose-200"><CardHeader className="pb-3"><CardTitle className="text-lg">PAT Testing</CardTitle></CardHeader>
+                          <CardContent className="space-y-4">
+                            <FormField control={premisesAuditForm.control} name="patTestingComplete" render={({ field }) => (<FormItem><FormLabel>Is PAT testing up to date for all portable equipment?</FormLabel><FormControl><Select onValueChange={field.onChange} defaultValue={field.value}><SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger><SelectContent><SelectItem value="yes">Yes</SelectItem><SelectItem value="partial">Partial</SelectItem><SelectItem value="no">No</SelectItem></SelectContent></Select></FormControl><FormMessage /></FormItem>)} />
+                            <FormField control={premisesAuditForm.control} name="patTestingDetails" render={({ field }) => (<FormItem><FormLabel>Evidence:</FormLabel><FormControl><Textarea {...field} rows={2} /></FormControl><FormMessage /></FormItem>)} />
+                          </CardContent>
+                        </Card>
+                        <Card className="border-rose-200"><CardHeader className="pb-3"><CardTitle className="text-lg">Legionella Assessment</CardTitle></CardHeader>
+                          <CardContent className="space-y-4">
+                            <FormField control={premisesAuditForm.control} name="legionellaCompliant" render={({ field }) => (<FormItem><FormLabel>Is legionella risk assessment and monitoring in place?</FormLabel><FormControl><Select onValueChange={field.onChange} defaultValue={field.value}><SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger><SelectContent><SelectItem value="yes">Yes</SelectItem><SelectItem value="partial">Partial</SelectItem><SelectItem value="no">No</SelectItem></SelectContent></Select></FormControl><FormMessage /></FormItem>)} />
+                            <FormField control={premisesAuditForm.control} name="legionellaDetails" render={({ field }) => (<FormItem><FormLabel>Evidence:</FormLabel><FormControl><Textarea {...field} rows={2} /></FormControl><FormMessage /></FormItem>)} />
+                          </CardContent>
+                        </Card>
+                        <Card className="border-rose-200"><CardHeader className="pb-3"><CardTitle className="text-lg">Security & Accessibility</CardTitle></CardHeader>
+                          <CardContent className="space-y-4">
+                            <FormField control={premisesAuditForm.control} name="securityAdequate" render={({ field }) => (<FormItem><FormLabel>Are security measures and accessibility provisions adequate?</FormLabel><FormControl><Select onValueChange={field.onChange} defaultValue={field.value}><SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger><SelectContent><SelectItem value="yes">Yes</SelectItem><SelectItem value="partial">Partial</SelectItem><SelectItem value="no">No</SelectItem></SelectContent></Select></FormControl><FormMessage /></FormItem>)} />
+                            <FormField control={premisesAuditForm.control} name="securityDetails" render={({ field }) => (<FormItem><FormLabel>Evidence:</FormLabel><FormControl><Textarea {...field} rows={2} /></FormControl><FormMessage /></FormItem>)} />
+                          </CardContent>
+                        </Card>
+                        <Card className="border-blue-200 bg-blue-50 dark:bg-blue-950/20"><CardHeader className="pb-3"><CardTitle className="text-lg">Audit Summary</CardTitle></CardHeader>
+                          <CardContent className="space-y-4">
+                            <FormField control={premisesAuditForm.control} name="score" render={({ field }) => (<FormItem><FormLabel>Overall Score (0-6):</FormLabel><FormControl><Input type="number" min="0" max="6" {...field} /></FormControl><FormMessage /></FormItem>)} />
+                            <FormField control={premisesAuditForm.control} name="areasOfStrength" render={({ field }) => (<FormItem><FormLabel>Areas of Strength:</FormLabel><FormControl><Textarea {...field} rows={2} /></FormControl><FormMessage /></FormItem>)} />
+                            <FormField control={premisesAuditForm.control} name="areasForImprovement" render={({ field }) => (<FormItem><FormLabel>Areas for Improvement:</FormLabel><FormControl><Textarea {...field} rows={2} /></FormControl><FormMessage /></FormItem>)} />
+                            <FormField control={premisesAuditForm.control} name="actions" render={({ field }) => (<FormItem><FormLabel>Required Actions:</FormLabel><FormControl><Textarea {...field} rows={3} /></FormControl><FormMessage /></FormItem>)} />
+                          </CardContent>
+                        </Card>
+                        <div className="flex justify-end gap-2"><Button type="button" variant="outline" onClick={() => setPremisesAuditOpen(false)}>Cancel</Button><Button type="submit" disabled={genericAuditMutation.isPending} className="bg-rose-600 hover:bg-rose-700">{genericAuditMutation.isPending ? "Saving..." : "Save Audit"}</Button></div>
+                      </form>
+                    </Form>
+                  </DialogContent>
+                </Dialog>
+                
                 {/* Regulation 12 - Safe Care and Treatment */}
                 <Dialog open={safeCareAuditOpen} onOpenChange={setSafeCareAuditOpen}>
-                  <DialogTrigger asChild>
-                    <Card className="cursor-pointer hover:shadow-md transition-shadow border-2 border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-950/20">
-                      <CardContent className="p-6">
-                        <div className="flex items-start space-x-3">
-                          <div className="p-2 rounded-lg bg-red-100 dark:bg-red-900 text-red-600 dark:text-red-400">
-                            <Shield className="h-5 w-5" />
-                          </div>
-                          <div className="flex-1">
-                            <h3 className="font-semibold text-red-900 dark:text-red-100">Regulation 12: Safe Care</h3>
-                            <p className="text-sm text-red-700 dark:text-red-300 mt-1">
-                              Safe care and treatment assessment
-                            </p>
-                            <Badge className="mt-2 bg-red-200 text-red-800 dark:bg-red-800 dark:text-red-200">
-                              Key Question: Safe
-                            </Badge>
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  </DialogTrigger>
                   <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
                     <DialogHeader>
                       <DialogTitle className="flex items-center gap-2">
@@ -2180,26 +2921,6 @@ Delivering outstanding healthcare across Devon & Cornwall`;
 
                 {/* Regulation 13 - Safeguarding */}
                 <Dialog open={safeguardingAuditOpen} onOpenChange={setSafeguardingAuditOpen}>
-                  <DialogTrigger asChild>
-                    <Card className="cursor-pointer hover:shadow-md transition-shadow border-2 border-purple-200 dark:border-purple-800 bg-purple-50 dark:bg-purple-950/20">
-                      <CardContent className="p-6">
-                        <div className="flex items-start space-x-3">
-                          <div className="p-2 rounded-lg bg-purple-100 dark:bg-purple-900 text-purple-600 dark:text-purple-400">
-                            <Users className="h-5 w-5" />
-                          </div>
-                          <div className="flex-1">
-                            <h3 className="font-semibold text-purple-900 dark:text-purple-100">Regulation 13: Safeguarding</h3>
-                            <p className="text-sm text-purple-700 dark:text-purple-300 mt-1">
-                              Safeguarding service users from abuse
-                            </p>
-                            <Badge className="mt-2 bg-purple-200 text-purple-800 dark:bg-purple-800 dark:text-purple-200">
-                              Key Question: Safe
-                            </Badge>
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  </DialogTrigger>
                   <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
                     <DialogHeader>
                       <DialogTitle className="flex items-center gap-2">
@@ -2310,26 +3031,6 @@ Delivering outstanding healthcare across Devon & Cornwall`;
 
                 {/* Regulation 17 - Good Governance */}
                 <Dialog open={governanceAuditOpen} onOpenChange={setGovernanceAuditOpen}>
-                  <DialogTrigger asChild>
-                    <Card className="cursor-pointer hover:shadow-md transition-shadow border-2 border-blue-200 dark:border-blue-800 bg-blue-50 dark:bg-blue-950/20">
-                      <CardContent className="p-6">
-                        <div className="flex items-start space-x-3">
-                          <div className="p-2 rounded-lg bg-blue-100 dark:bg-blue-900 text-blue-600 dark:text-blue-400">
-                            <ClipboardCheck className="h-5 w-5" />
-                          </div>
-                          <div className="flex-1">
-                            <h3 className="font-semibold text-blue-900 dark:text-blue-100">Regulation 17: Governance</h3>
-                            <p className="text-sm text-blue-700 dark:text-blue-300 mt-1">
-                              Good governance and quality assurance
-                            </p>
-                            <Badge className="mt-2 bg-blue-200 text-blue-800 dark:bg-blue-800 dark:text-blue-200">
-                              Key Question: Well-Led
-                            </Badge>
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  </DialogTrigger>
                   <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
                     <DialogHeader>
                       <DialogTitle className="flex items-center gap-2">
@@ -2424,26 +3125,6 @@ Delivering outstanding healthcare across Devon & Cornwall`;
 
                 {/* Regulation 18 - Staffing */}
                 <Dialog open={staffingAuditOpen} onOpenChange={setStaffingAuditOpen}>
-                  <DialogTrigger asChild>
-                    <Card className="cursor-pointer hover:shadow-md transition-shadow border-2 border-green-200 dark:border-green-800 bg-green-50 dark:bg-green-950/20">
-                      <CardContent className="p-6">
-                        <div className="flex items-start space-x-3">
-                          <div className="p-2 rounded-lg bg-green-100 dark:bg-green-900 text-green-600 dark:text-green-400">
-                            <Users className="h-5 w-5" />
-                          </div>
-                          <div className="flex-1">
-                            <h3 className="font-semibold text-green-900 dark:text-green-100">Regulation 18: Staffing</h3>
-                            <p className="text-sm text-green-700 dark:text-green-300 mt-1">
-                              Sufficient staff with appropriate skills
-                            </p>
-                            <Badge className="mt-2 bg-green-200 text-green-800 dark:bg-green-800 dark:text-green-200">
-                              Key Question: Effective
-                            </Badge>
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  </DialogTrigger>
                   <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
                     <DialogHeader>
                       <DialogTitle className="flex items-center gap-2"><Users className="h-5 w-5 text-green-600" />Regulation 18: Staffing</DialogTitle>
@@ -2503,26 +3184,6 @@ Delivering outstanding healthcare across Devon & Cornwall`;
 
                 {/* Regulation 19 - Fit and Proper Persons */}
                 <Dialog open={fitProperPersonsAuditOpen} onOpenChange={setFitProperPersonsAuditOpen}>
-                  <DialogTrigger asChild>
-                    <Card className="cursor-pointer hover:shadow-md transition-shadow border-2 border-teal-200 dark:border-teal-800 bg-teal-50 dark:bg-teal-950/20">
-                      <CardContent className="p-6">
-                        <div className="flex items-start space-x-3">
-                          <div className="p-2 rounded-lg bg-teal-100 dark:bg-teal-900 text-teal-600 dark:text-teal-400">
-                            <Award className="h-5 w-5" />
-                          </div>
-                          <div className="flex-1">
-                            <h3 className="font-semibold text-teal-900 dark:text-teal-100">Regulation 19: Fit & Proper</h3>
-                            <p className="text-sm text-teal-700 dark:text-teal-300 mt-1">
-                              Fit and proper persons employed
-                            </p>
-                            <Badge className="mt-2 bg-teal-200 text-teal-800 dark:bg-teal-800 dark:text-teal-200">
-                              Key Question: Safe
-                            </Badge>
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  </DialogTrigger>
                   <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
                     <DialogHeader><DialogTitle className="flex items-center gap-2"><Award className="h-5 w-5 text-teal-600" />Regulation 19: Fit and Proper Persons Employed</DialogTitle><DialogDescription>Ensuring robust recruitment and employment processes</DialogDescription></DialogHeader>
                     <Form {...fitProperPersonsAuditForm}>
@@ -2585,26 +3246,6 @@ Delivering outstanding healthcare across Devon & Cornwall`;
 
                 {/* Regulation 12A - Infection Control (IPC) */}
                 <Dialog open={infectionControlAuditOpen} onOpenChange={setInfectionControlAuditOpen}>
-                  <DialogTrigger asChild>
-                    <Card className="cursor-pointer hover:shadow-md transition-shadow border-2 border-pink-200 dark:border-pink-800 bg-pink-50 dark:bg-pink-950/20">
-                      <CardContent className="p-6">
-                        <div className="flex items-start space-x-3">
-                          <div className="p-2 rounded-lg bg-pink-100 dark:bg-pink-900 text-pink-600 dark:text-pink-400">
-                            <Shield className="h-5 w-5" />
-                          </div>
-                          <div className="flex-1">
-                            <h3 className="font-semibold text-pink-900 dark:text-pink-100">Infection Control (IPC)</h3>
-                            <p className="text-sm text-pink-700 dark:text-pink-300 mt-1">
-                              Infection prevention and control
-                            </p>
-                            <Badge className="mt-2 bg-pink-200 text-pink-800 dark:bg-pink-800 dark:text-pink-200">
-                              Key Question: Safe
-                            </Badge>
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  </DialogTrigger>
                   <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
                     <DialogHeader><DialogTitle className="flex items-center gap-2"><Shield className="h-5 w-5 text-pink-600" />Infection Prevention and Control Audit</DialogTitle><DialogDescription>Comprehensive IPC compliance assessment</DialogDescription></DialogHeader>
                     <Form {...infectionControlAuditForm}>
@@ -2667,26 +3308,6 @@ Delivering outstanding healthcare across Devon & Cornwall`;
 
                 {/* Regulation 9 - Person-Centred Care */}
                 <Dialog open={personCentredCareAuditOpen} onOpenChange={setPersonCentredCareAuditOpen}>
-                  <DialogTrigger asChild>
-                    <Card className="cursor-pointer hover:shadow-md transition-shadow border-2 border-amber-200 dark:border-amber-800 bg-amber-50 dark:bg-amber-950/20">
-                      <CardContent className="p-6">
-                        <div className="flex items-start space-x-3">
-                          <div className="p-2 rounded-lg bg-amber-100 dark:bg-amber-900 text-amber-600 dark:text-amber-400">
-                            <Users className="h-5 w-5" />
-                          </div>
-                          <div className="flex-1">
-                            <h3 className="font-semibold text-amber-900 dark:text-amber-100">Regulation 9: Person-Centred</h3>
-                            <p className="text-sm text-amber-700 dark:text-amber-300 mt-1">
-                              Person-centred care assessment
-                            </p>
-                            <Badge className="mt-2 bg-amber-200 text-amber-800 dark:bg-amber-800 dark:text-amber-200">
-                              Key Question: Caring
-                            </Badge>
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  </DialogTrigger>
                   <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
                     <DialogHeader><DialogTitle className="flex items-center gap-2"><Users className="h-5 w-5 text-amber-600" />Regulation 9: Person-Centred Care</DialogTitle><DialogDescription>Care appropriate to needs and preferences</DialogDescription></DialogHeader>
                     <Form {...personCentredCareAuditForm}>
@@ -2743,26 +3364,6 @@ Delivering outstanding healthcare across Devon & Cornwall`;
 
                 {/* Regulation 16 - Complaints */}
                 <Dialog open={complaintsAuditOpen} onOpenChange={setComplaintsAuditOpen}>
-                  <DialogTrigger asChild>
-                    <Card className="cursor-pointer hover:shadow-md transition-shadow border-2 border-indigo-200 dark:border-indigo-800 bg-indigo-50 dark:bg-indigo-950/20">
-                      <CardContent className="p-6">
-                        <div className="flex items-start space-x-3">
-                          <div className="p-2 rounded-lg bg-indigo-100 dark:bg-indigo-900 text-indigo-600 dark:text-indigo-400">
-                            <MessageSquare className="h-5 w-5" />
-                          </div>
-                          <div className="flex-1">
-                            <h3 className="font-semibold text-indigo-900 dark:text-indigo-100">Regulation 16: Complaints</h3>
-                            <p className="text-sm text-indigo-700 dark:text-indigo-300 mt-1">
-                              Receiving and acting on complaints
-                            </p>
-                            <Badge className="mt-2 bg-indigo-200 text-indigo-800 dark:bg-indigo-800 dark:text-indigo-200">
-                              Key Question: Responsive
-                            </Badge>
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  </DialogTrigger>
                   <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
                     <DialogHeader><DialogTitle className="flex items-center gap-2"><MessageSquare className="h-5 w-5 text-indigo-600" />Regulation 16: Complaints Handling</DialogTitle><DialogDescription>Receiving and acting on complaints</DialogDescription></DialogHeader>
                     <Form {...complaintsAuditForm}>
@@ -2816,7 +3417,6 @@ Delivering outstanding healthcare across Devon & Cornwall`;
                     </Form>
                   </DialogContent>
                 </Dialog>
-              </div>
             </CardContent>
           </Card>
 
