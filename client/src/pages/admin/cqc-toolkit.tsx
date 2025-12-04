@@ -19,7 +19,7 @@ import { Plus, FileCheck, Shield, Users, Clock, AlertTriangle, CheckCircle, XCir
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { DashboardModal } from '@uppy/react';
-import type { CqcAudit, CqcAuditCategory, CqcQualityStatement, CqcEvidenceCategory, CqcAuditEvidence, CqcQualityAssessment, CqcComplianceRecord, InsertCqcAudit, InsertCqcComplianceRecord, KnowledgeQuestionnaire, InsertKnowledgeQuestionnaire, KnowledgeQuestion, InsertKnowledgeQuestion, KnowledgeSession, KnowledgeAction } from "@shared/schema";
+import type { CqcAudit, CqcAuditCategory, CqcQualityStatement, CqcEvidenceCategory, CqcAuditEvidence, CqcQualityAssessment, CqcComplianceRecord, InsertCqcAudit, InsertCqcComplianceRecord, KnowledgeQuestionnaire, InsertKnowledgeQuestionnaire, KnowledgeQuestion, InsertKnowledgeQuestion, KnowledgeSession, KnowledgeAction, ServiceImprovementPlanItem } from "@shared/schema";
 import { insertCqcAuditSchema, insertCqcComplianceRecordSchema, insertKnowledgeQuestionnaireSchema, insertKnowledgeQuestionSchema } from "@shared/schema";
 
 // Extended form schemas based on shared insert schemas
@@ -360,6 +360,19 @@ const trainingCompetencyAuditSchema = z.object({
   actions: z.string().min(1, "Actions are required"),
 });
 
+// Service Improvement Plan (SIP) form schema
+const sipFormSchema = z.object({
+  description: z.string().min(1, "Description is required"),
+  priority: z.enum(["must_do", "should_do"]),
+  cqcDomain: z.string().optional(),
+  serviceArea: z.string().optional(),
+  responsibility: z.string().optional(),
+  targetDate: z.string().optional(),
+  evidence: z.string().optional(),
+});
+
+type SipFormData = z.infer<typeof sipFormSchema>;
+
 type CreateAuditFormData = z.infer<typeof createAuditSchema>;
 type CreateComplianceRecordFormData = z.infer<typeof createComplianceRecordSchema>;
 type CreateKnowledgeQuestionnaireFormData = z.infer<typeof createKnowledgeQuestionnaireSchema>;
@@ -430,6 +443,10 @@ export default function CqcToolkit() {
   const [dataProtectionAuditOpen, setDataProtectionAuditOpen] = useState(false);
   const [financialControlsAuditOpen, setFinancialControlsAuditOpen] = useState(false);
   const [premisesAuditOpen, setPremisesAuditOpen] = useState(false);
+  // Service Improvement Plan (SIP) States
+  const [sipDialogOpen, setSipDialogOpen] = useState(false);
+  const [editingSipItem, setEditingSipItem] = useState<ServiceImprovementPlanItem | null>(null);
+  const [sipFilter, setSipFilter] = useState<{ status?: string; priority?: string }>({});
   // Audit forms tab state
   const [auditFormsTab, setAuditFormsTab] = useState("cqc");
   const [selectedEvidenceFiles, setSelectedEvidenceFiles] = useState<File[]>([]);
@@ -483,6 +500,21 @@ export default function CqcToolkit() {
 
   const { data: cqcQualityAssessments = [], isLoading: qualityAssessmentsLoading } = useQuery<CqcQualityAssessment[]>({
     queryKey: ["/api/cqc/quality-assessments"],
+  });
+
+  // Service Improvement Plan queries
+  const sipQueryParams = new URLSearchParams();
+  if (sipFilter.status) sipQueryParams.append('status', sipFilter.status);
+  if (sipFilter.priority) sipQueryParams.append('priority', sipFilter.priority);
+  const sipQueryString = sipQueryParams.toString() ? `?${sipQueryParams.toString()}` : '';
+  
+  const { data: sipItems = [], isLoading: sipItemsLoading, error: sipItemsError } = useQuery<ServiceImprovementPlanItem[]>({
+    queryKey: ["/api/admin/sip", sipFilter],
+    queryFn: async () => {
+      const response = await fetch(`/api/admin/sip${sipQueryString}`, { credentials: 'include' });
+      if (!response.ok) throw new Error('Failed to fetch SIP items');
+      return response.json();
+    },
   });
 
   // CQC Evidence upload mutation
@@ -590,6 +622,71 @@ export default function CqcToolkit() {
     onError: (error: Error) => {
       console.error('Create question error:', error);
       toast({ title: "Error", description: error.message || "Failed to create question", variant: "destructive" });
+    },
+  });
+
+  // Service Improvement Plan mutations
+  const createSipMutation = useMutation({
+    mutationFn: async (data: SipFormData): Promise<ServiceImprovementPlanItem> => {
+      const response = await apiRequest('POST', '/api/admin/sip', data);
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/sip"] });
+      setSipDialogOpen(false);
+      sipForm.reset();
+      toast({ title: "Success", description: "Improvement item added to plan" });
+    },
+    onError: (error: Error) => {
+      console.error('Create SIP item error:', error);
+      toast({ title: "Error", description: error.message || "Failed to add improvement item", variant: "destructive" });
+    },
+  });
+
+  const updateSipMutation = useMutation({
+    mutationFn: async ({ id, data }: { id: string; data: Partial<SipFormData> }): Promise<ServiceImprovementPlanItem> => {
+      const response = await apiRequest('PUT', `/api/admin/sip/${id}`, data);
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/sip"] });
+      setSipDialogOpen(false);
+      setEditingSipItem(null);
+      sipForm.reset();
+      toast({ title: "Success", description: "Improvement item updated" });
+    },
+    onError: (error: Error) => {
+      console.error('Update SIP item error:', error);
+      toast({ title: "Error", description: error.message || "Failed to update improvement item", variant: "destructive" });
+    },
+  });
+
+  const completeSipMutation = useMutation({
+    mutationFn: async (id: string): Promise<ServiceImprovementPlanItem> => {
+      const response = await apiRequest('PUT', `/api/admin/sip/${id}/complete`, {});
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/sip"] });
+      toast({ title: "Success", description: "Improvement item marked as completed" });
+    },
+    onError: (error: Error) => {
+      console.error('Complete SIP item error:', error);
+      toast({ title: "Error", description: error.message || "Failed to complete improvement item", variant: "destructive" });
+    },
+  });
+
+  const deleteSipMutation = useMutation({
+    mutationFn: async (id: string): Promise<void> => {
+      await apiRequest('DELETE', `/api/admin/sip/${id}`);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/sip"] });
+      toast({ title: "Success", description: "Improvement item deleted" });
+    },
+    onError: (error: Error) => {
+      console.error('Delete SIP item error:', error);
+      toast({ title: "Error", description: error.message || "Failed to delete improvement item", variant: "destructive" });
     },
   });
 
@@ -724,6 +821,25 @@ export default function CqcToolkit() {
     }
   };
 
+  // Helper function to add audit findings to Service Improvement Plan
+  const addToSip = (description: string, auditType: string, cqcDomain: string, priority: "must_do" | "should_do" = "should_do") => {
+    if (!description || description.trim() === "") {
+      toast({ title: "Cannot add to SIP", description: "Please enter the areas for improvement first", variant: "destructive" });
+      return;
+    }
+    sipForm.reset({
+      description: description.trim(),
+      priority,
+      cqcDomain,
+      serviceArea: auditType,
+      responsibility: "",
+      targetDate: "",
+      evidence: "",
+    });
+    setActiveTab("sip");
+    setSipDialogOpen(true);
+  };
+
   // Forms
   const auditForm = useForm({
     resolver: zodResolver(createAuditSchema),
@@ -784,6 +900,19 @@ export default function CqcToolkit() {
       points: 1,
       sortOrder: 0,
       isRequired: true,
+    },
+  });
+
+  const sipForm = useForm<SipFormData>({
+    resolver: zodResolver(sipFormSchema),
+    defaultValues: {
+      description: "",
+      priority: "should_do",
+      cqcDomain: "",
+      serviceArea: "",
+      responsibility: "",
+      targetDate: "",
+      evidence: "",
     },
   });
 
@@ -1757,9 +1886,9 @@ Delivering outstanding healthcare across Devon & Cornwall`;
             <Brain className="w-4 h-4 mr-2" />
             Staff Knowledge
           </TabsTrigger>
-          <TabsTrigger value="reports" data-testid="tab-reports">
-            <Download className="w-4 h-4 mr-2" />
-            Reports
+          <TabsTrigger value="sip" data-testid="tab-sip">
+            <ClipboardCheck className="w-4 h-4 mr-2" />
+            Service Improvement Plan
           </TabsTrigger>
         </TabsList>
 
@@ -2724,7 +2853,7 @@ Delivering outstanding healthcare across Devon & Cornwall`;
                           <CardContent className="space-y-4">
                             <FormField control={businessContinuityAuditForm.control} name="score" render={({ field }) => (<FormItem><FormLabel>Overall Score (0-6):</FormLabel><FormControl><Input type="number" min="0" max="6" {...field} /></FormControl><FormMessage /></FormItem>)} />
                             <FormField control={businessContinuityAuditForm.control} name="areasOfStrength" render={({ field }) => (<FormItem><FormLabel>Areas of Strength:</FormLabel><FormControl><Textarea {...field} rows={2} /></FormControl><FormMessage /></FormItem>)} />
-                            <FormField control={businessContinuityAuditForm.control} name="areasForImprovement" render={({ field }) => (<FormItem><FormLabel>Areas for Improvement:</FormLabel><FormControl><Textarea {...field} rows={2} /></FormControl><FormMessage /></FormItem>)} />
+                            <FormField control={businessContinuityAuditForm.control} name="areasForImprovement" render={({ field }) => (<FormItem><FormLabel className="flex items-center justify-between">Areas for Improvement: <Button type="button" variant="outline" size="sm" onClick={() => addToSip(businessContinuityAuditForm.getValues("areasForImprovement") || "", "Business Continuity", "effective")} data-testid="button-add-to-sip-bc"><ClipboardCheck className="h-3 w-3 mr-1" />Add to SIP</Button></FormLabel><FormControl><Textarea {...field} rows={2} /></FormControl><FormMessage /></FormItem>)} />
                             <FormField control={businessContinuityAuditForm.control} name="actions" render={({ field }) => (<FormItem><FormLabel>Required Actions:</FormLabel><FormControl><Textarea {...field} rows={3} /></FormControl><FormMessage /></FormItem>)} />
                           </CardContent>
                         </Card>
@@ -2765,7 +2894,7 @@ Delivering outstanding healthcare across Devon & Cornwall`;
                           <CardContent className="space-y-4">
                             <FormField control={dataProtectionAuditForm.control} name="score" render={({ field }) => (<FormItem><FormLabel>Overall Score (0-6):</FormLabel><FormControl><Input type="number" min="0" max="6" {...field} /></FormControl><FormMessage /></FormItem>)} />
                             <FormField control={dataProtectionAuditForm.control} name="areasOfStrength" render={({ field }) => (<FormItem><FormLabel>Areas of Strength:</FormLabel><FormControl><Textarea {...field} rows={2} /></FormControl><FormMessage /></FormItem>)} />
-                            <FormField control={dataProtectionAuditForm.control} name="areasForImprovement" render={({ field }) => (<FormItem><FormLabel>Areas for Improvement:</FormLabel><FormControl><Textarea {...field} rows={2} /></FormControl><FormMessage /></FormItem>)} />
+                            <FormField control={dataProtectionAuditForm.control} name="areasForImprovement" render={({ field }) => (<FormItem><FormLabel className="flex items-center justify-between">Areas for Improvement: <Button type="button" variant="outline" size="sm" onClick={() => addToSip(dataProtectionAuditForm.getValues("areasForImprovement") || "", "Data Protection", "well_led")} data-testid="button-add-to-sip-dp"><ClipboardCheck className="h-3 w-3 mr-1" />Add to SIP</Button></FormLabel><FormControl><Textarea {...field} rows={2} /></FormControl><FormMessage /></FormItem>)} />
                             <FormField control={dataProtectionAuditForm.control} name="actions" render={({ field }) => (<FormItem><FormLabel>Required Actions:</FormLabel><FormControl><Textarea {...field} rows={3} /></FormControl><FormMessage /></FormItem>)} />
                           </CardContent>
                         </Card>
@@ -2806,7 +2935,7 @@ Delivering outstanding healthcare across Devon & Cornwall`;
                           <CardContent className="space-y-4">
                             <FormField control={financialControlsAuditForm.control} name="score" render={({ field }) => (<FormItem><FormLabel>Overall Score (0-6):</FormLabel><FormControl><Input type="number" min="0" max="6" {...field} /></FormControl><FormMessage /></FormItem>)} />
                             <FormField control={financialControlsAuditForm.control} name="areasOfStrength" render={({ field }) => (<FormItem><FormLabel>Areas of Strength:</FormLabel><FormControl><Textarea {...field} rows={2} /></FormControl><FormMessage /></FormItem>)} />
-                            <FormField control={financialControlsAuditForm.control} name="areasForImprovement" render={({ field }) => (<FormItem><FormLabel>Areas for Improvement:</FormLabel><FormControl><Textarea {...field} rows={2} /></FormControl><FormMessage /></FormItem>)} />
+                            <FormField control={financialControlsAuditForm.control} name="areasForImprovement" render={({ field }) => (<FormItem><FormLabel className="flex items-center justify-between">Areas for Improvement: <Button type="button" variant="outline" size="sm" onClick={() => addToSip(financialControlsAuditForm.getValues("areasForImprovement") || "", "Financial Controls", "well_led")} data-testid="button-add-to-sip-fc"><ClipboardCheck className="h-3 w-3 mr-1" />Add to SIP</Button></FormLabel><FormControl><Textarea {...field} rows={2} /></FormControl><FormMessage /></FormItem>)} />
                             <FormField control={financialControlsAuditForm.control} name="actions" render={({ field }) => (<FormItem><FormLabel>Required Actions:</FormLabel><FormControl><Textarea {...field} rows={3} /></FormControl><FormMessage /></FormItem>)} />
                           </CardContent>
                         </Card>
@@ -2853,7 +2982,7 @@ Delivering outstanding healthcare across Devon & Cornwall`;
                           <CardContent className="space-y-4">
                             <FormField control={premisesAuditForm.control} name="score" render={({ field }) => (<FormItem><FormLabel>Overall Score (0-6):</FormLabel><FormControl><Input type="number" min="0" max="6" {...field} /></FormControl><FormMessage /></FormItem>)} />
                             <FormField control={premisesAuditForm.control} name="areasOfStrength" render={({ field }) => (<FormItem><FormLabel>Areas of Strength:</FormLabel><FormControl><Textarea {...field} rows={2} /></FormControl><FormMessage /></FormItem>)} />
-                            <FormField control={premisesAuditForm.control} name="areasForImprovement" render={({ field }) => (<FormItem><FormLabel>Areas for Improvement:</FormLabel><FormControl><Textarea {...field} rows={2} /></FormControl><FormMessage /></FormItem>)} />
+                            <FormField control={premisesAuditForm.control} name="areasForImprovement" render={({ field }) => (<FormItem><FormLabel className="flex items-center justify-between">Areas for Improvement: <Button type="button" variant="outline" size="sm" onClick={() => addToSip(premisesAuditForm.getValues("areasForImprovement") || "", "Premises & Equipment", "safe")} data-testid="button-add-to-sip-premises"><ClipboardCheck className="h-3 w-3 mr-1" />Add to SIP</Button></FormLabel><FormControl><Textarea {...field} rows={2} /></FormControl><FormMessage /></FormItem>)} />
                             <FormField control={premisesAuditForm.control} name="actions" render={({ field }) => (<FormItem><FormLabel>Required Actions:</FormLabel><FormControl><Textarea {...field} rows={3} /></FormControl><FormMessage /></FormItem>)} />
                           </CardContent>
                         </Card>
@@ -4395,66 +4524,380 @@ Delivering outstanding healthcare across Devon & Cornwall`;
           </Card>
         </TabsContent>
 
-        <TabsContent value="reports" className="space-y-6">
+        <TabsContent value="sip" className="space-y-6">
           <Card>
             <CardHeader>
-              <CardTitle>CQC Compliance Reports</CardTitle>
-              <CardDescription>Generate comprehensive reports for CQC compliance and audit purposes</CardDescription>
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle className="flex items-center gap-2">
+                    <ClipboardCheck className="h-5 w-5 text-blue-600" />
+                    Service Improvement Plan (SIP)
+                  </CardTitle>
+                  <CardDescription>Track and manage required improvements from audits and inspections. This is a live document used to demonstrate continuous improvement to CQC.</CardDescription>
+                </div>
+                <Dialog open={sipDialogOpen} onOpenChange={(open) => {
+                  setSipDialogOpen(open);
+                  if (!open) {
+                    setEditingSipItem(null);
+                    sipForm.reset();
+                  }
+                }}>
+                  <DialogTrigger asChild>
+                    <Button data-testid="button-add-sip-item">
+                      <Plus className="w-4 h-4 mr-2" />
+                      Add Improvement
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent className="max-w-2xl">
+                    <DialogHeader>
+                      <DialogTitle>{editingSipItem ? "Edit Improvement Item" : "Add Improvement Item"}</DialogTitle>
+                      <DialogDescription>
+                        {editingSipItem ? "Update this improvement item" : "Add a new item to the Service Improvement Plan"}
+                      </DialogDescription>
+                    </DialogHeader>
+                    <Form {...sipForm}>
+                      <form onSubmit={sipForm.handleSubmit((data) => {
+                        if (editingSipItem) {
+                          updateSipMutation.mutate({ id: editingSipItem.id, data });
+                        } else {
+                          createSipMutation.mutate(data);
+                        }
+                      })} className="space-y-4">
+                        <FormField
+                          control={sipForm.control}
+                          name="description"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Description *</FormLabel>
+                              <FormControl>
+                                <Textarea 
+                                  placeholder="Describe the improvement required..."
+                                  className="min-h-[100px]"
+                                  {...field}
+                                  data-testid="input-sip-description"
+                                />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        <div className="grid grid-cols-2 gap-4">
+                          <FormField
+                            control={sipForm.control}
+                            name="priority"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Priority *</FormLabel>
+                                <Select onValueChange={field.onChange} value={field.value}>
+                                  <FormControl>
+                                    <SelectTrigger data-testid="select-sip-priority">
+                                      <SelectValue placeholder="Select priority" />
+                                    </SelectTrigger>
+                                  </FormControl>
+                                  <SelectContent>
+                                    <SelectItem value="must_do">Must Do (High Priority)</SelectItem>
+                                    <SelectItem value="should_do">Should Do (Lower Priority)</SelectItem>
+                                  </SelectContent>
+                                </Select>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                          <FormField
+                            control={sipForm.control}
+                            name="cqcDomain"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>CQC Domain</FormLabel>
+                                <Select onValueChange={field.onChange} value={field.value || ""}>
+                                  <FormControl>
+                                    <SelectTrigger data-testid="select-sip-cqc-domain">
+                                      <SelectValue placeholder="Select domain" />
+                                    </SelectTrigger>
+                                  </FormControl>
+                                  <SelectContent>
+                                    <SelectItem value="safe">Safe</SelectItem>
+                                    <SelectItem value="effective">Effective</SelectItem>
+                                    <SelectItem value="caring">Caring</SelectItem>
+                                    <SelectItem value="responsive">Responsive</SelectItem>
+                                    <SelectItem value="well_led">Well-Led</SelectItem>
+                                  </SelectContent>
+                                </Select>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                        </div>
+                        <div className="grid grid-cols-2 gap-4">
+                          <FormField
+                            control={sipForm.control}
+                            name="serviceArea"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Service Area</FormLabel>
+                                <FormControl>
+                                  <Input 
+                                    placeholder="e.g., Medication Management"
+                                    {...field}
+                                    data-testid="input-sip-service-area"
+                                  />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                          <FormField
+                            control={sipForm.control}
+                            name="responsibility"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Responsible Person</FormLabel>
+                                <FormControl>
+                                  <Input 
+                                    placeholder="e.g., Service Manager"
+                                    {...field}
+                                    data-testid="input-sip-responsibility"
+                                  />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                        </div>
+                        <div className="grid grid-cols-2 gap-4">
+                          <FormField
+                            control={sipForm.control}
+                            name="targetDate"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Target Date</FormLabel>
+                                <FormControl>
+                                  <Input 
+                                    type="date"
+                                    {...field}
+                                    data-testid="input-sip-target-date"
+                                  />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                        </div>
+                        <FormField
+                          control={sipForm.control}
+                          name="evidence"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Evidence / Notes</FormLabel>
+                              <FormControl>
+                                <Textarea 
+                                  placeholder="Document evidence of improvement or progress notes..."
+                                  {...field}
+                                  data-testid="input-sip-evidence"
+                                />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        <div className="flex justify-end gap-2">
+                          <Button type="button" variant="outline" onClick={() => setSipDialogOpen(false)}>
+                            Cancel
+                          </Button>
+                          <Button 
+                            type="submit" 
+                            disabled={createSipMutation.isPending || updateSipMutation.isPending}
+                            data-testid="button-submit-sip"
+                          >
+                            {createSipMutation.isPending || updateSipMutation.isPending ? "Saving..." : editingSipItem ? "Update" : "Add to Plan"}
+                          </Button>
+                        </div>
+                      </form>
+                    </Form>
+                  </DialogContent>
+                </Dialog>
+              </div>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="text-lg">Audit Summary Report</CardTitle>
-                    <CardDescription>Comprehensive overview of all audits and findings</CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <Button className="w-full" data-testid="button-generate-audit-report">
-                      <Download className="w-4 h-4 mr-2" />
-                      Generate Audit Report
-                    </Button>
-                  </CardContent>
-                </Card>
-                
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="text-lg">Compliance Dashboard</CardTitle>
-                    <CardDescription>Staff compliance status and expiry tracking</CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <Button className="w-full" data-testid="button-generate-compliance-report">
-                      <Download className="w-4 h-4 mr-2" />
-                      Generate Compliance Report
-                    </Button>
-                  </CardContent>
-                </Card>
-                
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="text-lg">CQC Readiness Report</CardTitle>
-                    <CardDescription>Assessment of CQC inspection readiness</CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <Button className="w-full" data-testid="button-generate-readiness-report">
-                      <Download className="w-4 h-4 mr-2" />
-                      Generate Readiness Report
-                    </Button>
-                  </CardContent>
-                </Card>
-                
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="text-lg">Staff Training Matrix</CardTitle>
-                    <CardDescription>Complete training and qualification tracking</CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <Button className="w-full" data-testid="button-generate-training-report">
-                      <Download className="w-4 h-4 mr-2" />
-                      Generate Training Matrix
-                    </Button>
-                  </CardContent>
-                </Card>
+              {/* Summary Stats */}
+              <div className="grid grid-cols-4 gap-4 mb-6">
+                <div className="text-center p-4 bg-blue-50 dark:bg-blue-950 rounded-lg">
+                  <div className="text-2xl font-bold text-blue-600" data-testid="stat-sip-total">{sipItems.length}</div>
+                  <div className="text-sm text-muted-foreground">Total Items</div>
+                </div>
+                <div className="text-center p-4 bg-red-50 dark:bg-red-950 rounded-lg">
+                  <div className="text-2xl font-bold text-red-600" data-testid="stat-sip-must-do">
+                    {sipItems.filter(i => i.priority === 'must_do' && i.status !== 'completed').length}
+                  </div>
+                  <div className="text-sm text-muted-foreground">Must Do</div>
+                </div>
+                <div className="text-center p-4 bg-yellow-50 dark:bg-yellow-950 rounded-lg">
+                  <div className="text-2xl font-bold text-yellow-600" data-testid="stat-sip-in-progress">
+                    {sipItems.filter(i => i.status === 'in_progress').length}
+                  </div>
+                  <div className="text-sm text-muted-foreground">In Progress</div>
+                </div>
+                <div className="text-center p-4 bg-green-50 dark:bg-green-950 rounded-lg">
+                  <div className="text-2xl font-bold text-green-600" data-testid="stat-sip-completed">
+                    {sipItems.filter(i => i.status === 'completed').length}
+                  </div>
+                  <div className="text-sm text-muted-foreground">Completed</div>
+                </div>
               </div>
+
+              {/* Filter Controls */}
+              <div className="flex gap-4 mb-4">
+                <Select 
+                  value={sipFilter.status || "all"} 
+                  onValueChange={(v) => setSipFilter(prev => ({ ...prev, status: v === "all" ? undefined : v }))}
+                >
+                  <SelectTrigger className="w-[180px]" data-testid="filter-sip-status">
+                    <SelectValue placeholder="Filter by status" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Statuses</SelectItem>
+                    <SelectItem value="open">Open</SelectItem>
+                    <SelectItem value="in_progress">In Progress</SelectItem>
+                    <SelectItem value="completed">Completed</SelectItem>
+                  </SelectContent>
+                </Select>
+                <Select 
+                  value={sipFilter.priority || "all"} 
+                  onValueChange={(v) => setSipFilter(prev => ({ ...prev, priority: v === "all" ? undefined : v }))}
+                >
+                  <SelectTrigger className="w-[180px]" data-testid="filter-sip-priority">
+                    <SelectValue placeholder="Filter by priority" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Priorities</SelectItem>
+                    <SelectItem value="must_do">Must Do</SelectItem>
+                    <SelectItem value="should_do">Should Do</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* SIP Items List */}
+              {sipItemsError ? (
+                <div className="text-center py-12 text-red-500">
+                  <AlertTriangle className="h-12 w-12 mx-auto mb-4" />
+                  <p>Failed to load improvement items</p>
+                  <p className="text-sm text-muted-foreground">Please try refreshing the page</p>
+                </div>
+              ) : sipItemsLoading ? (
+                <div className="space-y-4">
+                  {[1, 2, 3].map(i => <Skeleton key={i} className="h-24 w-full" />)}
+                </div>
+              ) : sipItems.length === 0 ? (
+                <div className="text-center py-12 text-muted-foreground">
+                  <ClipboardCheck className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                  <p>No improvement items yet</p>
+                  <p className="text-sm">Add items from audit findings or click "Add Improvement" above</p>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {sipItems.map((item) => (
+                    <Card key={item.id} className={`border-l-4 ${
+                      item.status === 'completed' ? 'border-l-green-500 bg-green-50/50 dark:bg-green-950/20' :
+                      item.priority === 'must_do' ? 'border-l-red-500' : 'border-l-yellow-500'
+                    }`} data-testid={`sip-item-${item.id}`}>
+                      <CardContent className="pt-4">
+                        <div className="flex items-start justify-between gap-4">
+                          <div className="flex-1">
+                            <div className="flex items-center gap-2 mb-2">
+                              <Badge variant={item.priority === 'must_do' ? 'destructive' : 'secondary'}>
+                                {item.priority === 'must_do' ? 'Must Do' : 'Should Do'}
+                              </Badge>
+                              <Badge variant={
+                                item.status === 'completed' ? 'default' :
+                                item.status === 'in_progress' ? 'secondary' : 'outline'
+                              } className={item.status === 'completed' ? 'bg-green-600' : ''}>
+                                {item.status === 'completed' ? 'Completed' :
+                                 item.status === 'in_progress' ? 'In Progress' : 'Open'}
+                              </Badge>
+                              {item.cqcDomain && (
+                                <Badge variant="outline" className="capitalize">
+                                  {item.cqcDomain.replace('_', '-')}
+                                </Badge>
+                              )}
+                              <span className="text-xs text-muted-foreground font-mono">
+                                {item.referenceNumber}
+                              </span>
+                            </div>
+                            <p className="text-sm mb-2">{item.description}</p>
+                            <div className="flex flex-wrap gap-4 text-xs text-muted-foreground">
+                              {item.serviceArea && (
+                                <span>Area: {item.serviceArea}</span>
+                              )}
+                              {item.responsibility && (
+                                <span>Owner: {item.responsibility}</span>
+                              )}
+                              {item.targetDate && (
+                                <span className="flex items-center gap-1">
+                                  <Calendar className="h-3 w-3" />
+                                  Target: {new Date(item.targetDate).toLocaleDateString('en-GB')}
+                                </span>
+                              )}
+                              {item.completedDate && (
+                                <span className="flex items-center gap-1 text-green-600">
+                                  <CheckCircle className="h-3 w-3" />
+                                  Completed: {new Date(item.completedDate).toLocaleDateString('en-GB')}
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                          <div className="flex gap-2">
+                            {item.status !== 'completed' && (
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => completeSipMutation.mutate(item.id)}
+                                disabled={completeSipMutation.isPending}
+                                data-testid={`button-complete-sip-${item.id}`}
+                              >
+                                <CheckCircle className="h-4 w-4 mr-1" />
+                                Complete
+                              </Button>
+                            )}
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => {
+                                setEditingSipItem(item);
+                                sipForm.reset({
+                                  description: item.description,
+                                  priority: item.priority as "must_do" | "should_do",
+                                  cqcDomain: item.cqcDomain || "",
+                                  serviceArea: item.serviceArea || "",
+                                  responsibility: item.responsibility || "",
+                                  targetDate: item.targetDate ? new Date(item.targetDate).toISOString().split('T')[0] : "",
+                                  evidence: item.evidence || "",
+                                });
+                                setSipDialogOpen(true);
+                              }}
+                              data-testid={`button-edit-sip-${item.id}`}
+                            >
+                              <Edit className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => {
+                                if (confirm("Are you sure you want to delete this improvement item?")) {
+                                  deleteSipMutation.mutate(item.id);
+                                }
+                              }}
+                              disabled={deleteSipMutation.isPending}
+                              data-testid={`button-delete-sip-${item.id}`}
+                            >
+                              <Trash2 className="h-4 w-4 text-red-500" />
+                            </Button>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              )}
             </CardContent>
           </Card>
         </TabsContent>
