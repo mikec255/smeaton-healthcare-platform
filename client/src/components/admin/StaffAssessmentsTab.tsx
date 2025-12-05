@@ -226,348 +226,141 @@ export function StaffAssessmentsTab({ branch }: StaffAssessmentsTabProps) {
         <div>
           <h2 className="text-2xl font-bold tracking-tight">Staff Knowledge Assessments</h2>
           <p className="text-muted-foreground">
-            Create unique assessment links for {branch} branch staff
+            Assessment links for {branch} staff
           </p>
         </div>
-        <Dialog open={createLinkOpen} onOpenChange={setCreateLinkOpen}>
-          <DialogTrigger asChild>
-            <Button data-testid="button-create-assessment-link">
-              <Plus className="mr-2 h-4 w-4" />
-              Create Assessment Link
-            </Button>
-          </DialogTrigger>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Create Assessment Link</DialogTitle>
-              <DialogDescription>
-                Create a unique shareable link for staff to complete an assessment
-              </DialogDescription>
-            </DialogHeader>
-            <Form {...linkForm}>
-              <form onSubmit={linkForm.handleSubmit((data) => createLinkMutation.mutate(data))} className="space-y-4">
-                <FormField
-                  control={linkForm.control}
-                  name="topicId"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Assessment Topic</FormLabel>
-                      <Select onValueChange={field.onChange} value={field.value}>
-                        <FormControl>
-                          <SelectTrigger data-testid="select-topic">
-                            <SelectValue placeholder="Select an assessment topic" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          {topics.filter(t => t.isActive).map((topic) => (
-                            <SelectItem key={topic.id} value={topic.id}>
-                              {topic.title}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={linkForm.control}
-                  name="branch"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Branch</FormLabel>
-                      <Select onValueChange={field.onChange} value={field.value}>
-                        <FormControl>
-                          <SelectTrigger data-testid="select-branch">
-                            <SelectValue placeholder="Select branch" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          <SelectItem value="Plymouth">Plymouth</SelectItem>
-                          <SelectItem value="Truro">Truro</SelectItem>
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <div className="flex justify-end gap-2">
-                  <Button type="button" variant="outline" onClick={() => setCreateLinkOpen(false)}>
-                    Cancel
-                  </Button>
-                  <Button type="submit" disabled={createLinkMutation.isPending}>
-                    {createLinkMutation.isPending ? "Creating..." : "Create Link"}
-                  </Button>
-                </div>
-              </form>
-            </Form>
-          </DialogContent>
-        </Dialog>
+        {topics.filter(t => t.isActive && !branchLinks.some(l => l.topicId === t.id)).length > 0 && (
+          <Dialog open={createLinkOpen} onOpenChange={setCreateLinkOpen}>
+            <DialogTrigger asChild>
+              <Button data-testid="button-create-assessment-link">
+                <Plus className="mr-2 h-4 w-4" />
+                Create Link
+              </Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Create Assessment Link</DialogTitle>
+                <DialogDescription>
+                  Create a shareable link for staff to complete an assessment
+                </DialogDescription>
+              </DialogHeader>
+              <Form {...linkForm}>
+                <form onSubmit={linkForm.handleSubmit((data) => createLinkMutation.mutate(data))} className="space-y-4">
+                  <FormField
+                    control={linkForm.control}
+                    name="topicId"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Assessment</FormLabel>
+                        <Select onValueChange={field.onChange} value={field.value}>
+                          <FormControl>
+                            <SelectTrigger data-testid="select-topic">
+                              <SelectValue placeholder="Select an assessment" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            {topics.filter(t => t.isActive && !branchLinks.some(l => l.topicId === t.id)).map((topic) => (
+                              <SelectItem key={topic.id} value={topic.id}>
+                                {topic.title}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <input type="hidden" {...linkForm.register('branch')} />
+                  <div className="flex justify-end gap-2">
+                    <Button type="button" variant="outline" onClick={() => setCreateLinkOpen(false)}>
+                      Cancel
+                    </Button>
+                    <Button type="submit" disabled={createLinkMutation.isPending}>
+                      {createLinkMutation.isPending ? "Creating..." : "Create"}
+                    </Button>
+                  </div>
+                </form>
+              </Form>
+            </DialogContent>
+          </Dialog>
+        )}
       </div>
 
-      {/* Stats Overview */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+      {/* Assessment Links - Simple list */}
+      {branchLinks.length === 0 ? (
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Active Topics</CardTitle>
-            <Brain className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{topics.filter(t => t.isActive).length}</div>
-            <p className="text-xs text-muted-foreground">Assessment topics available</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Branch Links</CardTitle>
-            <LinkIcon className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{branchLinks.filter(l => l.isActive).length}</div>
-            <p className="text-xs text-muted-foreground">Active links for {branch}</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Responses</CardTitle>
-            <Users className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{branchResponses.length}</div>
-            <p className="text-xs text-muted-foreground">Assessments completed</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Pass Rate</CardTitle>
-            <BarChart3 className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              {branchResponses.length > 0
-                ? Math.round((branchResponses.filter(r => r.passed).length / branchResponses.length) * 100)
-                : 0}%
-            </div>
-            <p className="text-xs text-muted-foreground">Overall pass rate</p>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Available Topics */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Brain className="h-5 w-5" />
-            Available Assessment Topics
-          </CardTitle>
-          <CardDescription>
-            Assessment topics that can be assigned to staff
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          {topics.length === 0 ? (
-            <div className="text-center py-8 text-muted-foreground">
-              <Brain className="h-12 w-12 mx-auto mb-4 opacity-50" />
-              <p>No assessment topics available yet.</p>
-            </div>
-          ) : (
-            <div className="space-y-3">
-              {topics.map((topic) => {
-                const stats = getStatsForTopic(topic.id);
-                const hasLinkForBranch = branchLinks.some(l => l.topicId === topic.id);
-                
-                return (
-                  <Card key={topic.id} className={`border ${topic.isActive ? 'border-green-200 bg-green-50/50 dark:border-green-900 dark:bg-green-950/20' : 'border-gray-200 bg-gray-50/50 dark:border-gray-800 dark:bg-gray-900/20'}`}>
-                    <CardContent className="pt-4">
-                      <div className="flex items-start justify-between">
-                        <div className="flex-1">
-                          <div className="flex items-center gap-2 mb-2">
-                            <h4 className="font-semibold">{topic.title}</h4>
-                            <Badge variant={topic.isActive ? "default" : "secondary"}>
-                              {topic.isActive ? "Active" : "Inactive"}
-                            </Badge>
-                            {hasLinkForBranch && (
-                              <Badge variant="outline" className="border-blue-500 text-blue-600">
-                                Link Created
-                              </Badge>
-                            )}
-                          </div>
-                          <p className="text-sm text-muted-foreground mb-2">
-                            {topic.description}
-                          </p>
-                          <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                            <span>Passing Score: {topic.passingScore}%</span>
-                            <span>Questions: {Array.isArray(topic.questions) ? topic.questions.length : 0}</span>
-                            {stats.totalResponses > 0 && (
-                              <>
-                                <span className="flex items-center gap-1">
-                                  <Users className="h-4 w-4" />
-                                  {stats.totalResponses} responses
-                                </span>
-                                <span className="flex items-center gap-1">
-                                  <BarChart3 className="h-4 w-4" />
-                                  {stats.avgScore}% avg score
-                                </span>
-                              </>
-                            )}
-                          </div>
-                        </div>
-                        {!hasLinkForBranch && topic.isActive && (
-                          <Button
-                            size="sm"
-                            onClick={() => {
-                              linkForm.setValue('topicId', topic.id);
-                              linkForm.setValue('branch', branch);
-                              setCreateLinkOpen(true);
-                            }}
-                            data-testid={`button-create-link-${topic.id}`}
-                          >
-                            <Plus className="h-4 w-4 mr-1" />
-                            Create Link
-                          </Button>
-                        )}
-                      </div>
-                    </CardContent>
-                  </Card>
-                );
-              })}
-            </div>
-          )}
-        </CardContent>
-      </Card>
-
-      {/* Assessment Links */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <LinkIcon className="h-5 w-5" />
-            Assessment Links for {branch}
-          </CardTitle>
-          <CardDescription>
-            Manage unique shareable links for staff assessments
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          {branchLinks.length === 0 ? (
-            <div className="text-center py-8 text-muted-foreground">
+          <CardContent className="py-12">
+            <div className="text-center text-muted-foreground">
               <Brain className="h-12 w-12 mx-auto mb-4 opacity-50" />
               <p>No assessment links created for {branch} yet.</p>
-              <p className="text-sm">Click "Create Assessment Link" to get started.</p>
+              {topics.filter(t => t.isActive).length > 0 && (
+                <p className="text-sm mt-2">Click "Create Link" to get started.</p>
+              )}
             </div>
-          ) : (
-            <div className="space-y-4">
-              {branchLinks.map((link) => {
-                const topic = getTopicById(link.topicId);
-                const linkResponses = getResponsesForLink(link.id);
-                const passedCount = linkResponses.filter(r => r.passed).length;
+          </CardContent>
+        </Card>
+      ) : (
+        <div className="space-y-4">
+          {branchLinks.map((link) => {
+            const topic = getTopicById(link.topicId);
+            const linkResponses = getResponsesForLink(link.id);
 
-                return (
-                  <Card key={link.id} className={`border ${link.isActive ? 'border-green-200 bg-green-50/50 dark:border-green-900 dark:bg-green-950/20' : 'border-gray-200 bg-gray-50/50 dark:border-gray-800 dark:bg-gray-900/20'}`}>
-                    <CardContent className="pt-4">
-                      <div className="flex items-start justify-between">
-                        <div className="flex-1">
-                          <div className="flex items-center gap-2 mb-2">
-                            <h4 className="font-semibold">{topic?.title || "Unknown Topic"}</h4>
-                            <Badge variant={link.isActive ? "default" : "secondary"}>
-                              {link.isActive ? "Active" : "Inactive"}
-                            </Badge>
-                          </div>
-                          <p className="text-sm text-muted-foreground mb-2">
-                            {topic?.description || "No description available"}
-                          </p>
-                          <div className="flex items-center gap-4 text-sm">
-                            <span className="flex items-center gap-1">
-                              <Users className="h-4 w-4" />
-                              {linkResponses.length} responses
-                            </span>
-                            <span className="flex items-center gap-1">
-                              <CheckCircle className="h-4 w-4 text-green-500" />
-                              {passedCount} passed
-                            </span>
-                            {linkResponses.length > 0 && (
-                              <span className="flex items-center gap-1">
-                                <BarChart3 className="h-4 w-4" />
-                                {Math.round((passedCount / linkResponses.length) * 100)}% pass rate
-                              </span>
-                            )}
-                          </div>
-                          <div className="mt-3 p-2 bg-white dark:bg-gray-800 rounded border text-xs font-mono break-all">
-                            {window.location.origin}/assessments/{link.token}
-                          </div>
-                        </div>
-                        <div className="flex flex-col gap-2 ml-4">
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => copyToClipboard(link)}
-                            data-testid={`button-copy-link-${link.id}`}
-                          >
-                            <Copy className="h-4 w-4 mr-1" />
-                            Copy
-                          </Button>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => window.open(`/assessments/${link.token}`, '_blank')}
-                            data-testid={`button-preview-link-${link.id}`}
-                          >
-                            <ExternalLink className="h-4 w-4 mr-1" />
-                            Open
-                          </Button>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => {
-                              setSelectedLinkForResponses(link);
-                              setViewResponsesOpen(true);
-                            }}
-                            data-testid={`button-view-responses-${link.id}`}
-                          >
-                            <Eye className="h-4 w-4 mr-1" />
-                            View
-                          </Button>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => regenerateTokenMutation.mutate(link.id)}
-                            disabled={regenerateTokenMutation.isPending}
-                            data-testid={`button-regenerate-token-${link.id}`}
-                          >
-                            <RefreshCw className="h-4 w-4 mr-1" />
-                            Regenerate
-                          </Button>
-                          <div className="flex items-center gap-2">
-                            <Switch
-                              checked={link.isActive ?? true}
-                              onCheckedChange={(checked) =>
-                                toggleLinkActiveMutation.mutate({ linkId: link.id, isActive: checked })
-                              }
-                              data-testid={`switch-link-active-${link.id}`}
-                            />
-                            <span className="text-xs">{link.isActive ? "Active" : "Inactive"}</span>
-                          </div>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => {
-                              if (confirm("Are you sure you want to delete this assessment link? All responses will also be deleted.")) {
-                                deleteLinkMutation.mutate(link.id);
-                              }
-                            }}
-                            disabled={deleteLinkMutation.isPending}
-                            data-testid={`button-delete-link-${link.id}`}
-                          >
-                            <Trash2 className="h-4 w-4 text-red-500" />
-                          </Button>
-                        </div>
+            return (
+              <Card key={link.id}>
+                <CardContent className="pt-6">
+                  <div className="flex items-center justify-between">
+                    <div className="flex-1">
+                      <h3 className="font-semibold text-lg">{topic?.title || "Unknown Topic"}</h3>
+                      <div className="mt-2 p-3 bg-muted rounded-lg font-mono text-sm break-all">
+                        {window.location.origin}/assessments/{link.token}
                       </div>
-                    </CardContent>
-                  </Card>
-                );
-              })}
-            </div>
-          )}
-        </CardContent>
-      </Card>
+                      <div className="flex items-center gap-4 mt-3 text-sm text-muted-foreground">
+                        <span>{linkResponses.length} responses</span>
+                        <span>{linkResponses.filter(r => r.passed).length} passed</span>
+                      </div>
+                    </div>
+                    <div className="flex gap-2 ml-4">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => copyToClipboard(link)}
+                        data-testid={`button-copy-link-${link.id}`}
+                      >
+                        <Copy className="h-4 w-4 mr-1" />
+                        Copy
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => {
+                          setSelectedLinkForResponses(link);
+                          setViewResponsesOpen(true);
+                        }}
+                        data-testid={`button-view-responses-${link.id}`}
+                      >
+                        <Eye className="h-4 w-4 mr-1" />
+                        Responses
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => {
+                          if (confirm("Delete this assessment link and all responses?")) {
+                            deleteLinkMutation.mutate(link.id);
+                          }
+                        }}
+                        data-testid={`button-delete-link-${link.id}`}
+                      >
+                        <Trash2 className="h-4 w-4 text-red-500" />
+                      </Button>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            );
+          })}
+        </div>
+      )}
 
       {/* View Responses Dialog */}
       <Dialog open={viewResponsesOpen} onOpenChange={setViewResponsesOpen}>
