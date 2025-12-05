@@ -21,7 +21,7 @@ import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { DashboardModal } from '@uppy/react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell, PieChart, Pie } from "recharts";
-import type { CqcAudit, CqcAuditCategory, CqcQualityStatement, CqcEvidenceCategory, CqcAuditEvidence, CqcQualityAssessment, CqcComplianceRecord, InsertCqcAudit, InsertCqcComplianceRecord, KnowledgeQuestionnaire, InsertKnowledgeQuestionnaire, KnowledgeQuestion, InsertKnowledgeQuestion, KnowledgeSession, KnowledgeAction, ServiceImprovementPlanItem } from "@shared/schema";
+import type { CqcAudit, CqcAuditCategory, CqcQualityStatement, CqcEvidenceCategory, CqcAuditEvidence, CqcQualityAssessment, CqcComplianceRecord, InsertCqcAudit, InsertCqcComplianceRecord, KnowledgeQuestionnaire, InsertKnowledgeQuestionnaire, KnowledgeQuestion, InsertKnowledgeQuestion, KnowledgeSession, KnowledgeAction, ServiceImprovementPlanItem, AuditScheduleSettings } from "@shared/schema";
 import { insertCqcAuditSchema, insertCqcComplianceRecordSchema, insertKnowledgeQuestionnaireSchema, insertKnowledgeQuestionSchema } from "@shared/schema";
 
 // Extended form schemas based on shared insert schemas
@@ -1322,6 +1322,31 @@ export default function CqcToolkit() {
       const response = await fetch(`/api/admin/sip${sipQueryString}`, { credentials: 'include' });
       if (!response.ok) throw new Error('Failed to fetch SIP items');
       return response.json();
+    },
+  });
+
+  // Audit Schedule Settings query - for matrix frequency management
+  const { data: auditScheduleSettings = [], isLoading: scheduleSettingsLoading } = useQuery<AuditScheduleSettings[]>({
+    queryKey: ["/api/cqc/audit-schedules", selectedBranch],
+    queryFn: async () => {
+      const response = await fetch(`/api/cqc/audit-schedules?branch=${encodeURIComponent(selectedBranch)}`, { credentials: 'include' });
+      if (!response.ok) throw new Error('Failed to fetch audit schedules');
+      return response.json();
+    },
+  });
+
+  // Mutation for updating audit schedule settings
+  const updateAuditScheduleMutation = useMutation({
+    mutationFn: async (data: { category: string; frequency: string; branch: string }) => {
+      const response = await apiRequest('POST', '/api/cqc/audit-schedules', data);
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/cqc/audit-schedules", selectedBranch] });
+      toast({ title: "Success", description: "Audit frequency updated" });
+    },
+    onError: (error: Error) => {
+      toast({ title: "Error", description: error.message || "Failed to update frequency", variant: "destructive" });
     },
   });
 
@@ -2902,33 +2927,62 @@ Delivering outstanding healthcare across Devon & Cornwall`;
 
                     {/* Data Rows - Filtered by Frequency */}
                     {(() => {
-                      const frequencyMapping: Record<string, string[]> = {
-                        weekly: ['medication_management', 'infection_control'],
-                        fortnightly: ['care_planning', 'risk_assessment'],
-                        monthly: ['staff_supervision', 'health_safety', 'safeguarding', 'complaints_feedback'],
-                        quarterly: ['training_development', 'quality_assurance', 'environment'],
-                        biannually: ['governance', 'policies_procedures'],
-                        annually: auditCategories
-                          .filter(c => !['medication_management', 'infection_control', 'care_planning', 'risk_assessment', 'staff_supervision', 'health_safety', 'safeguarding', 'complaints_feedback', 'training_development', 'quality_assurance', 'environment', 'governance', 'policies_procedures'].includes(c.key))
-                          .map(c => c.key),
+                      const defaultFrequencies: Record<string, string> = {
+                        medication_management: 'weekly',
+                        infection_control: 'weekly',
+                        care_planning: 'fortnightly',
+                        risk_assessment: 'fortnightly',
+                        staff_supervision: 'monthly',
+                        health_safety: 'monthly',
+                        safeguarding: 'monthly',
+                        complaints_feedback: 'monthly',
+                        training_development: 'quarterly',
+                        quality_assurance: 'quarterly',
+                        environment: 'quarterly',
+                        governance: 'biannually',
+                        policies_procedures: 'biannually',
+                      };
+
+                      const getCategoryFrequency = (categoryKey: string): string => {
+                        const setting = auditScheduleSettings.find(s => s.category === categoryKey);
+                        return setting?.frequency || defaultFrequencies[categoryKey] || 'annually';
                       };
 
                       const getFrequencyLabel = (categoryKey: string) => {
-                        if (frequencyMapping.weekly.includes(categoryKey)) return 'Weekly';
-                        if (frequencyMapping.fortnightly.includes(categoryKey)) return 'Fortnightly';
-                        if (frequencyMapping.monthly.includes(categoryKey)) return 'Monthly';
-                        if (frequencyMapping.quarterly.includes(categoryKey)) return 'Quarterly';
-                        if (frequencyMapping.biannually.includes(categoryKey)) return 'Bi-Annually';
-                        return 'Annually';
+                        const frequency = getCategoryFrequency(categoryKey);
+                        switch (frequency) {
+                          case 'weekly': return 'Weekly';
+                          case 'fortnightly': return 'Fortnightly';
+                          case 'monthly': return 'Monthly';
+                          case 'quarterly': return 'Quarterly';
+                          case 'biannually': return 'Bi-Annually';
+                          case 'annually': return 'Annually';
+                          default: return 'Annually';
+                        }
                       };
 
                       const filteredCategories = matrixFrequencyFilter === 'all' 
                         ? auditCategories 
-                        : auditCategories.filter(cat => frequencyMapping[matrixFrequencyFilter]?.includes(cat.key));
+                        : auditCategories.filter(cat => getCategoryFrequency(cat.key) === matrixFrequencyFilter);
 
                       return filteredCategories.map((cat) => {
                         const categoryAudits = audits.filter(a => a.category === cat.key);
                         const currentYear = new Date().getFullYear();
+                        const categoryFrequency = getCategoryFrequency(cat.key);
+
+                        const getScheduledMonthsForFrequency = (frequency: string): number[] => {
+                          switch (frequency) {
+                            case 'weekly': return [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11];
+                            case 'fortnightly': return [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11];
+                            case 'monthly': return [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11];
+                            case 'quarterly': return [2, 5, 8, 11];
+                            case 'biannually': return [5, 11];
+                            case 'annually': return [11];
+                            default: return [11];
+                          }
+                        };
+
+                        const scheduledMonths = getScheduledMonthsForFrequency(categoryFrequency);
 
                         const getMonthStatus = (monthIndex: number) => {
                           const monthStart = new Date(currentYear, monthIndex, 1);
@@ -2936,37 +2990,30 @@ Delivering outstanding healthcare across Devon & Cornwall`;
                           const today = new Date();
                           const fourteenDaysFromNow = new Date(today.getTime() + 14 * 24 * 60 * 60 * 1000);
 
-                          const auditInMonth = categoryAudits.find(a => {
+                          const completedAuditInMonth = categoryAudits.find(a => {
                             const auditDate = new Date(a.auditDate);
-                            return auditDate >= monthStart && auditDate <= monthEnd;
+                            return auditDate >= monthStart && auditDate <= monthEnd && a.status === 'completed';
                           });
 
-                          if (auditInMonth && auditInMonth.status === 'completed') {
-                            return { status: 'completed', date: auditInMonth.auditDate };
+                          if (completedAuditInMonth) {
+                            return { status: 'completed', date: completedAuditInMonth.auditDate };
                           }
 
-                          const scheduledAudit = categoryAudits.find(a => {
-                            const nextDue = a.nextAuditDue ? new Date(a.nextAuditDue) : null;
-                            return nextDue && nextDue >= monthStart && nextDue <= monthEnd;
-                          });
+                          const isScheduledMonth = scheduledMonths.includes(monthIndex);
 
-                          if (scheduledAudit && scheduledAudit.nextAuditDue) {
-                            const dueDate = new Date(scheduledAudit.nextAuditDue);
-                            if (dueDate < today) {
-                              return { status: 'overdue', date: scheduledAudit.nextAuditDue };
+                          if (isScheduledMonth) {
+                            if (monthEnd < today) {
+                              return { status: 'overdue', date: null };
                             }
-                            if (dueDate <= fourteenDaysFromNow) {
-                              return { status: 'due_soon', date: scheduledAudit.nextAuditDue };
+                            if (monthStart <= fourteenDaysFromNow && monthEnd >= today) {
+                              return { status: 'due_soon', date: null };
                             }
-                            return { status: 'scheduled', date: scheduledAudit.nextAuditDue };
-                          }
-
-                          if (monthEnd < today && !auditInMonth) {
-                            const wasScheduled = categoryAudits.some(a => {
-                              const nextDue = a.nextAuditDue ? new Date(a.nextAuditDue) : null;
-                              return nextDue && nextDue >= monthStart && nextDue <= monthEnd;
-                            });
-                            if (wasScheduled) return { status: 'overdue', date: null };
+                            if (monthStart > today) {
+                              return { status: 'scheduled', date: null };
+                            }
+                            if (monthIndex === today.getMonth()) {
+                              return { status: 'due_soon', date: null };
+                            }
                           }
 
                           return { status: 'not_scheduled', date: null };
