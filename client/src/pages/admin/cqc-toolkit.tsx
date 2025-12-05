@@ -2864,9 +2864,9 @@ Delivering outstanding healthcare across Devon & Cornwall`;
               <div className="relative max-h-[60vh] overflow-hidden">
                 <div className="overflow-x-auto overflow-y-auto max-h-[calc(60vh-20px)]">
                   <div 
-                    className="grid min-w-fit"
+                    className="grid w-full"
                     style={{ 
-                      gridTemplateColumns: '260px repeat(12, 80px)',
+                      gridTemplateColumns: '220px repeat(12, 1fr)',
                       gap: 0
                     }}
                   >
