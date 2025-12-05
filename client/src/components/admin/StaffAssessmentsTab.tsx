@@ -40,11 +40,21 @@ export function StaffAssessmentsTab({ branch }: StaffAssessmentsTabProps) {
   });
 
   const { data: links = [], isLoading: linksLoading } = useQuery<StaffAssessmentLink[]>({
-    queryKey: ["/api/staff-assessment-links", { branch }],
+    queryKey: ["/api/staff-assessment-links", branch],
+    queryFn: async () => {
+      const response = await fetch(`/api/staff-assessment-links?branch=${encodeURIComponent(branch)}`);
+      if (!response.ok) throw new Error("Failed to fetch links");
+      return response.json();
+    },
   });
 
   const { data: responses = [], isLoading: responsesLoading } = useQuery<StaffAssessmentResponse[]>({
-    queryKey: ["/api/staff-assessment-responses", { branch }],
+    queryKey: ["/api/staff-assessment-responses", branch],
+    queryFn: async () => {
+      const response = await fetch(`/api/staff-assessment-responses?branch=${encodeURIComponent(branch)}`);
+      if (!response.ok) throw new Error("Failed to fetch responses");
+      return response.json();
+    },
   });
 
   const linkForm = useForm<z.infer<typeof createLinkSchema>>({
