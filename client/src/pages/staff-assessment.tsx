@@ -23,6 +23,7 @@ interface AssessmentQuestion {
   id: string;
   text: string;
   type: "scored" | "agreement" | "training" | "text";
+  section?: string;
   isScored?: boolean;
   points?: number;
   options?: string[];
@@ -164,8 +165,16 @@ export default function StaffAssessment() {
       if (q.isScored && q.points && q.points > 0) {
         maxScore += q.points;
         const answer = answers[q.id];
-        if (answer === 'Yes' || answer === 'yes') {
-          totalScore += q.points;
+        // For text questions, award points if they provided a substantive answer
+        if (q.type === 'text') {
+          if (answer && answer.trim().length >= 10) {
+            totalScore += q.points;
+          }
+        } else {
+          // For Yes/No questions
+          if (answer === 'Yes' || answer === 'yes') {
+            totalScore += q.points;
+          }
         }
       }
     });
@@ -350,7 +359,15 @@ export default function StaffAssessment() {
               </span>
             </div>
             <Progress value={progress} className="mb-4" />
+            {currentQuestion.section && (
+              <Badge className="mb-2 bg-pink-100 text-pink-800 dark:bg-pink-900 dark:text-pink-200">
+                {currentQuestion.section}
+              </Badge>
+            )}
             <CardTitle className="text-lg">{currentQuestion.text}</CardTitle>
+            {currentQuestion.isScored && currentQuestion.points && currentQuestion.points > 0 && (
+              <p className="text-sm text-muted-foreground mt-1">({currentQuestion.points} Point)</p>
+            )}
           </CardHeader>
           <CardContent className="space-y-4">
             {currentQuestion.type === "scored" && currentQuestion.options && (
@@ -393,23 +410,23 @@ export default function StaffAssessment() {
               </RadioGroup>
             )}
 
-            {currentQuestion.type === "training" && (
+            {currentQuestion.type === "training" && currentQuestion.options && (
               <RadioGroup
                 value={answers[currentQuestion.id] || ""}
                 onValueChange={(value) => handleAnswer(currentQuestion.id, value)}
               >
-                <div className="flex items-start space-x-3 p-3 rounded-lg hover:bg-muted/50 transition-colors">
-                  <RadioGroupItem value="yes" id="training-yes" data-testid="radio-training-yes" />
-                  <Label htmlFor="training-yes" className="flex-1 cursor-pointer">
-                    Yes, I would like further training in this area
-                  </Label>
-                </div>
-                <div className="flex items-start space-x-3 p-3 rounded-lg hover:bg-muted/50 transition-colors">
-                  <RadioGroupItem value="no" id="training-no" data-testid="radio-training-no" />
-                  <Label htmlFor="training-no" className="flex-1 cursor-pointer">
-                    No, I feel confident in this area
-                  </Label>
-                </div>
+                {currentQuestion.options.map((option, idx) => (
+                  <div key={idx} className="flex items-start space-x-3 p-3 rounded-lg hover:bg-muted/50 transition-colors">
+                    <RadioGroupItem
+                      value={option}
+                      id={`training-${idx}`}
+                      data-testid={`radio-training-${idx}`}
+                    />
+                    <Label htmlFor={`training-${idx}`} className="flex-1 cursor-pointer">
+                      {option}
+                    </Label>
+                  </div>
+                ))}
               </RadioGroup>
             )}
 

@@ -5099,118 +5099,145 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const existingDignity = existingTopics.find(t => t.slug === 'dignity-person-centred-care');
       
       if (existingDignity) {
-        return res.json({ message: "Dignity & Person Centred Care assessment already exists", id: existingDignity.id });
+        // Delete the existing one so we can recreate with correct questions
+        await storage.deleteStaffAssessmentTopic(existingDignity.id);
       }
       
-      // Create the Dignity & Person Centred Care assessment topic
+      // Create the Dignity & Person Centred Care assessment topic matching the PDF form
       const dignityAssessment = await storage.createStaffAssessmentTopic({
         title: "Dignity & Person Centred Care",
         slug: "dignity-person-centred-care",
-        description: "Knowledge assessment covering dignity, person-centred care, and CQC Regulation 10 requirements for health and social care staff.",
-        introduction: "This assessment will evaluate your understanding of dignity and person-centred care principles. Please answer all questions honestly - this is designed to identify training needs and support your professional development.",
+        description: "Staff Knowledge Q&As are randomised question-and-answer checks carried out with employees to test their understanding of key policies, procedures, and regulatory requirements.",
+        introduction: "Staff Knowledge Q&As are carried out to confirm that staff can demonstrate knowledge of essential areas such as safeguarding, incident reporting, health and safety, and the CQC Fundamental Standards. This approach demonstrates compliance with Regulation 18 (Staffing) and Regulation 19 (Fit and Proper Persons Employed). It is important that you answer honestly - these checks are not designed as punishment, but as an opportunity to identify areas where further support or training may be helpful.",
         passingScore: 70,
         isActive: true,
         questions: [
           {
             id: "q1",
-            text: "I have access to the 'Dignity Do's' and understand the ten specific care challenges that must be met.",
-            type: "scored",
-            isScored: true,
-            points: 1,
-            options: ["Yes", "No", "Partially"]
+            text: "Do you agree to take part, ensuring honesty throughout?",
+            type: "agreement",
+            section: "Consent",
+            isScored: false,
+            points: 0,
+            options: ["Yes", "No"],
+            required: true
           },
           {
             id: "q2",
-            text: "I always respect individual needs when using people's preferred names and titles.",
-            type: "scored",
-            isScored: true,
-            points: 1,
-            options: ["Yes", "No", "Partially"]
+            text: "Do you understand why you have been asked to complete a Staff Knowledge Q&A?",
+            type: "agreement",
+            section: "Consent",
+            isScored: false,
+            points: 0,
+            options: ["Yes", "No"],
+            required: true
           },
           {
             id: "q3",
-            text: "I always offer privacy when delivering personal care, and use privacy screens.",
-            type: "scored",
-            isScored: true,
-            points: 1,
-            options: ["Yes", "No", "Partially"]
+            text: "Do you understand that you do not have to complete this in your own time?",
+            type: "agreement",
+            section: "Consent",
+            isScored: false,
+            points: 0,
+            options: ["Yes", "No"],
+            required: true
           },
           {
             id: "q4",
-            text: "I always knock on doors and wait before entering to respect individual's privacy.",
-            type: "scored",
+            text: "What does \"person-centred care\" mean?",
+            type: "text",
+            section: "Your Understanding",
             isScored: true,
             points: 1,
-            options: ["Yes", "No", "Partially"]
+            required: true
           },
           {
             id: "q5",
-            text: "I always respect the individual's right to maintain personal dignity, including modesty.",
-            type: "scored",
+            text: "Why is dignity important in the care we provide?",
+            type: "text",
+            section: "Your Understanding",
             isScored: true,
             points: 1,
-            options: ["Yes", "No", "Partially"]
+            required: true
           },
           {
             id: "q6",
-            text: "I take care not to draw attention to aspects of their appearance that may give rise to stigmatisation.",
-            type: "scored",
+            text: "How does person-centred care make a difference to the daily lives of the people we support?",
+            type: "text",
+            section: "Your Understanding",
             isScored: true,
             points: 1,
-            options: ["Yes", "No", "Partially"]
+            required: true
           },
           {
             id: "q7",
-            text: "I take care not to draw attention to individual specific needs or conditions that may give rise to stigmatisation.",
-            type: "scored",
+            text: "Give an example of how you promote a customer's dignity during personal care.",
+            type: "text",
+            section: "Practical Application",
             isScored: true,
             points: 1,
-            options: ["Yes", "No", "Partially"]
+            required: true
           },
           {
             id: "q8",
-            text: "I encourage individual choice and participation in decision-making about their care and support.",
-            type: "scored",
+            text: "How do you support independence?",
+            type: "text",
+            section: "Practical Application",
             isScored: true,
             points: 1,
-            options: ["Yes", "No", "Partially"]
+            required: true
           },
           {
             id: "q9",
-            text: "I understand how person-centred care differs from task-centred care.",
-            type: "scored",
+            text: "Describe one way you can respect a customer's privacy in their own home.",
+            type: "text",
+            section: "Practical Application",
             isScored: true,
             points: 1,
-            options: ["Yes", "No", "Partially"]
+            required: true
           },
           {
             id: "q10",
-            text: "I understand and support individual's rights to independence and autonomy.",
-            type: "agreement",
-            isScored: false,
-            points: 0,
-            options: ["Strongly Agree", "Agree", "Neutral", "Disagree", "Strongly Disagree"]
+            text: "If a customer refuses care, what steps should you take?",
+            type: "text",
+            section: "Scenarios",
+            isScored: true,
+            points: 1,
+            required: true
           },
           {
             id: "q11",
-            text: "I support people to maintain and develop relationships with friends, family, carers and advocates.",
-            type: "agreement",
-            isScored: false,
-            points: 0,
-            options: ["Strongly Agree", "Agree", "Neutral", "Disagree", "Strongly Disagree"]
+            text: "What should you do if a colleague speaks to a customer in a way that you feel is undignified?",
+            type: "text",
+            section: "Scenarios",
+            isScored: true,
+            points: 1,
+            required: true
           },
           {
             id: "q12",
-            text: "Would you like further training or support on Dignity & Person Centred Care?",
-            type: "training",
-            isScored: false,
-            points: 0,
-            options: ["Yes", "No"]
+            text: "During a busy shift, you notice a colleague rushing through care tasks without speaking to the customer. What would you do?",
+            type: "text",
+            section: "Scenarios",
+            isScored: true,
+            points: 1,
+            required: true
           },
           {
             id: "q13",
-            text: "Please provide any additional comments or feedback about this assessment or the topic.",
+            text: "Do you feel that you would benefit from further training?",
+            type: "training",
+            section: "Almost Finished",
+            isScored: false,
+            points: 0,
+            options: ["Yes", "No", "I don't know"],
+            required: true
+          },
+          {
+            id: "q14",
+            text: "Further Comments (Please provide Feedback here)",
             type: "text",
+            section: "Almost Finished",
             isScored: false,
             points: 0,
             required: false
