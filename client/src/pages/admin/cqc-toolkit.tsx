@@ -24,6 +24,7 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContaine
 import type { CqcAudit, CqcAuditCategory, CqcQualityStatement, CqcEvidenceCategory, CqcAuditEvidence, CqcQualityAssessment, CqcComplianceRecord, InsertCqcAudit, InsertCqcComplianceRecord, KnowledgeQuestionnaire, InsertKnowledgeQuestionnaire, KnowledgeQuestion, InsertKnowledgeQuestion, KnowledgeSession, KnowledgeAction, ServiceImprovementPlanItem, AuditScheduleSettings } from "@shared/schema";
 import { insertCqcAuditSchema, insertCqcComplianceRecordSchema, insertKnowledgeQuestionnaireSchema, insertKnowledgeQuestionSchema } from "@shared/schema";
 import { CategoryAuditFormDialog } from "@/components/admin/CategoryAuditFormDialog";
+import { StaffAssessmentsTab } from "@/components/admin/StaffAssessmentsTab";
 
 // Extended form schemas based on shared insert schemas
 // Note: auditorId is handled server-side from authenticated session
@@ -2352,7 +2353,7 @@ Delivering outstanding healthcare across Devon & Cornwall`;
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-        <TabsList className="grid w-full grid-cols-5">
+        <TabsList className="grid w-full grid-cols-6">
           <TabsTrigger value="dashboard" data-testid="tab-dashboard">
             <Shield className="w-4 h-4 mr-2" />
             Dashboard
@@ -2365,9 +2366,13 @@ Delivering outstanding healthcare across Devon & Cornwall`;
             <Brain className="w-4 h-4 mr-2" />
             Staff Knowledge
           </TabsTrigger>
+          <TabsTrigger value="assessments" data-testid="tab-assessments">
+            <Award className="w-4 h-4 mr-2" />
+            Staff Assessments
+          </TabsTrigger>
           <TabsTrigger value="sip" data-testid="tab-sip">
             <ClipboardCheck className="w-4 h-4 mr-2" />
-            Service Improvement Plan
+            SIP
           </TabsTrigger>
           <TabsTrigger value="feedback" data-testid="tab-feedback">
             <MessageSquare className="w-4 h-4 mr-2" />
@@ -4999,6 +5004,11 @@ Delivering outstanding healthcare across Devon & Cornwall`;
               )}
             </CardContent>
           </Card>
+        </TabsContent>
+
+        {/* Staff Assessments Tab */}
+        <TabsContent value="assessments" className="space-y-6">
+          <StaffAssessmentsTab branch={selectedBranch} />
         </TabsContent>
 
         {/* Feedback Collection Tab */}
