@@ -557,6 +557,7 @@ export const insertAuditLogSchema = createInsertSchema(auditLogs).omit({
 export const cqcAudits = pgTable("cqc_audits", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   title: text("title").notNull(),
+  branch: text("branch").notNull().default("Plymouth"), // Plymouth, Truro
   auditType: text("audit_type").notNull(), // single_assessment, targeted_inspection, comprehensive_inspection
   category: text("category").notNull(), // insurance, safeguarding, health_safety, etc.
   serviceType: text("service_type").notNull(), // domiciliary_care, residential_care, supported_living, community_health
@@ -662,6 +663,7 @@ export const cqcQualityAssessments = pgTable("cqc_quality_assessments", {
 
 export const cqcComplianceRecords = pgTable("cqc_compliance_records", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  branch: text("branch").notNull().default("Plymouth"), // Plymouth, Truro
   staffId: text("staff_id"), // If related to specific staff member
   staffName: text("staff_name"), // Name of staff member
   recordType: text("record_type").notNull(), // dbs_check, training_record, supervision_record, reference_check, professional_registration
@@ -1254,6 +1256,7 @@ export type SubmitReferenceForm = z.infer<typeof submitReferenceFormSchema>;
 export const serviceImprovementPlanItems = pgTable("service_improvement_plan_items", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   referenceNumber: text("reference_number").notNull(), // Auto-generated: SIP-2024-001
+  branch: text("branch").notNull().default("Plymouth"), // Plymouth, Truro
   
   // Core Details
   title: text("title").notNull(),
