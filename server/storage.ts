@@ -1,7 +1,7 @@
-import { type User, type InsertUser, type Job, type InsertJob, type Application, type InsertApplication, type ContactSubmission, type InsertContactSubmission, type Feedback, type InsertFeedback, type Newsletter, type InsertNewsletter, type NewsletterBlock, type InsertNewsletterBlock, type Template, type InsertTemplate, type Subscriber, type InsertSubscriber, type Campaign, type InsertCampaign, type Delivery, type InsertDelivery, type BlogCategory, type InsertBlogCategory, type BlogPost, type InsertBlogPost, type AuditLog, type InsertAuditLog, type CqcAudit, type InsertCqcAudit, type CqcAuditCategory, type InsertCqcAuditCategory, type CqcQualityStatement, type InsertCqcQualityStatement, type CqcEvidenceCategory, type InsertCqcEvidenceCategory, type CqcAuditEvidence, type InsertCqcAuditEvidence, type CqcQualityAssessment, type InsertCqcQualityAssessment, type CqcComplianceRecord, type InsertCqcComplianceRecord, type CqcChecklistItem, type InsertCqcChecklistItem, type CqcAuditResponse, type InsertCqcAuditResponse, type KnowledgeQuestionnaire, type InsertKnowledgeQuestionnaire, type KnowledgeQuestion, type InsertKnowledgeQuestion, type KnowledgeSession, type InsertKnowledgeSession, type KnowledgeResponse, type InsertKnowledgeResponse, type KnowledgeAction, type InsertKnowledgeAction, type RecruitmentApplication, type InsertRecruitmentApplication, type ProfessionalReference, type InsertProfessionalReference, type FinanceReport, type InsertFinanceReport, type Client, type InsertClient, type Visit, type InsertVisit, type Run, type InsertRun, type RunStop, type InsertRunStop, type Geocode, type InsertGeocode, type ReferenceRequest, type InsertReferenceRequest, type ServiceImprovementPlanItem, type InsertServiceImprovementPlanItem, type UpdateServiceImprovementPlanItem, type CqcFeedbackCampaign, type InsertCqcFeedbackCampaign, type UpdateCqcFeedbackCampaign, type CqcFeedbackResponse, type InsertCqcFeedbackResponse, type AuditScheduleSettings, type InsertAuditScheduleSettings, type CqcAuditFormTemplate, type InsertCqcAuditFormTemplate, type CqcAuditFormItem, type InsertCqcAuditFormItem, type CqcAuditFormSubmission, type InsertCqcAuditFormSubmission, type CqcAuditFormItemResponse, type InsertCqcAuditFormItemResponse, type CqcAuditFormEvidenceFile, type InsertCqcAuditFormEvidenceFile } from "@shared/schema";
+import { type User, type InsertUser, type Job, type InsertJob, type Application, type InsertApplication, type ContactSubmission, type InsertContactSubmission, type Feedback, type InsertFeedback, type Newsletter, type InsertNewsletter, type NewsletterBlock, type InsertNewsletterBlock, type Template, type InsertTemplate, type Subscriber, type InsertSubscriber, type Campaign, type InsertCampaign, type Delivery, type InsertDelivery, type BlogCategory, type InsertBlogCategory, type BlogPost, type InsertBlogPost, type AuditLog, type InsertAuditLog, type CqcAudit, type InsertCqcAudit, type CqcAuditCategory, type InsertCqcAuditCategory, type CqcQualityStatement, type InsertCqcQualityStatement, type CqcEvidenceCategory, type InsertCqcEvidenceCategory, type CqcAuditEvidence, type InsertCqcAuditEvidence, type CqcQualityAssessment, type InsertCqcQualityAssessment, type CqcComplianceRecord, type InsertCqcComplianceRecord, type CqcChecklistItem, type InsertCqcChecklistItem, type CqcAuditResponse, type InsertCqcAuditResponse, type KnowledgeQuestionnaire, type InsertKnowledgeQuestionnaire, type KnowledgeQuestion, type InsertKnowledgeQuestion, type KnowledgeSession, type InsertKnowledgeSession, type KnowledgeResponse, type InsertKnowledgeResponse, type KnowledgeAction, type InsertKnowledgeAction, type RecruitmentApplication, type InsertRecruitmentApplication, type ProfessionalReference, type InsertProfessionalReference, type FinanceReport, type InsertFinanceReport, type Client, type InsertClient, type Visit, type InsertVisit, type Run, type InsertRun, type RunStop, type InsertRunStop, type Geocode, type InsertGeocode, type ReferenceRequest, type InsertReferenceRequest, type ServiceImprovementPlanItem, type InsertServiceImprovementPlanItem, type UpdateServiceImprovementPlanItem, type CqcFeedbackCampaign, type InsertCqcFeedbackCampaign, type UpdateCqcFeedbackCampaign, type CqcFeedbackResponse, type InsertCqcFeedbackResponse, type AuditScheduleSettings, type InsertAuditScheduleSettings, type StaffAssessmentTopic, type InsertStaffAssessmentTopic, type StaffAssessmentLink, type InsertStaffAssessmentLink, type StaffAssessmentResponse, type InsertStaffAssessmentResponse, type CqcAuditFormTemplate, type InsertCqcAuditFormTemplate, type CqcAuditFormItem, type InsertCqcAuditFormItem, type CqcAuditFormSubmission, type InsertCqcAuditFormSubmission, type CqcAuditFormItemResponse, type InsertCqcAuditFormItemResponse, type CqcAuditFormEvidenceFile, type InsertCqcAuditFormEvidenceFile } from "@shared/schema";
 import { randomUUID } from "crypto";
 import { db } from "./db";
-import { users, jobs, applications, contactSubmissions, blogCategories, blogPosts, auditLogs, cqcAudits, cqcAuditCategories, cqcQualityStatements, cqcEvidenceCategories, cqcAuditEvidence, cqcQualityAssessments, cqcComplianceRecords, knowledgeQuestionnaires, knowledgeQuestions, knowledgeSessions, knowledgeResponses, knowledgeActions, recruitmentApplications, professionalReferences, financeReports, clients, visits, runs, runStops, geocodeCache, referenceRequests, serviceImprovementPlanItems, cqcFeedbackCampaigns, cqcFeedbackResponses, auditScheduleSettings, cqcAuditFormTemplates, cqcAuditFormItems, cqcAuditFormSubmissions, cqcAuditFormItemResponses, cqcAuditFormEvidenceFiles } from "@shared/schema";
+import { users, jobs, applications, contactSubmissions, blogCategories, blogPosts, auditLogs, cqcAudits, cqcAuditCategories, cqcQualityStatements, cqcEvidenceCategories, cqcAuditEvidence, cqcQualityAssessments, cqcComplianceRecords, knowledgeQuestionnaires, knowledgeQuestions, knowledgeSessions, knowledgeResponses, knowledgeActions, recruitmentApplications, professionalReferences, financeReports, clients, visits, runs, runStops, geocodeCache, referenceRequests, serviceImprovementPlanItems, cqcFeedbackCampaigns, cqcFeedbackResponses, auditScheduleSettings, cqcAuditFormTemplates, cqcAuditFormItems, cqcAuditFormSubmissions, cqcAuditFormItemResponses, cqcAuditFormEvidenceFiles, staffAssessmentTopics, staffAssessmentLinks, staffAssessmentResponses } from "@shared/schema";
 import { eq, and, desc } from "drizzle-orm";
 import bcrypt from "bcryptjs";
 
@@ -358,6 +358,35 @@ export interface IStorage {
   getCqcAuditFormEvidenceFile(id: string): Promise<CqcAuditFormEvidenceFile | undefined>;
   createCqcAuditFormEvidenceFile(file: InsertCqcAuditFormEvidenceFile): Promise<CqcAuditFormEvidenceFile>;
   deleteCqcAuditFormEvidenceFile(id: string): Promise<boolean>;
+  
+  // Staff Assessment Topics
+  getAllStaffAssessmentTopics(filters?: { isActive?: boolean }): Promise<StaffAssessmentTopic[]>;
+  getStaffAssessmentTopic(id: string): Promise<StaffAssessmentTopic | undefined>;
+  getStaffAssessmentTopicBySlug(slug: string): Promise<StaffAssessmentTopic | undefined>;
+  createStaffAssessmentTopic(topic: InsertStaffAssessmentTopic): Promise<StaffAssessmentTopic>;
+  updateStaffAssessmentTopic(id: string, updates: Partial<InsertStaffAssessmentTopic>): Promise<StaffAssessmentTopic | undefined>;
+  deleteStaffAssessmentTopic(id: string): Promise<boolean>;
+  
+  // Staff Assessment Links (Branch-specific)
+  getAllStaffAssessmentLinks(filters?: { topicId?: string; branch?: string; isActive?: boolean }): Promise<StaffAssessmentLink[]>;
+  getStaffAssessmentLink(id: string): Promise<StaffAssessmentLink | undefined>;
+  getStaffAssessmentLinkByToken(token: string): Promise<StaffAssessmentLink | undefined>;
+  createStaffAssessmentLink(link: InsertStaffAssessmentLink): Promise<StaffAssessmentLink>;
+  updateStaffAssessmentLink(id: string, updates: Partial<InsertStaffAssessmentLink>): Promise<StaffAssessmentLink | undefined>;
+  deleteStaffAssessmentLink(id: string): Promise<boolean>;
+  regenerateStaffAssessmentLinkToken(id: string): Promise<StaffAssessmentLink | undefined>;
+  
+  // Staff Assessment Responses
+  getAllStaffAssessmentResponses(filters?: { topicId?: string; branch?: string; linkId?: string }): Promise<StaffAssessmentResponse[]>;
+  getStaffAssessmentResponse(id: string): Promise<StaffAssessmentResponse | undefined>;
+  createStaffAssessmentResponse(response: InsertStaffAssessmentResponse): Promise<StaffAssessmentResponse>;
+  deleteStaffAssessmentResponse(id: string): Promise<boolean>;
+  getStaffAssessmentStats(topicId: string, branch?: string): Promise<{
+    totalResponses: number;
+    averageScore: number;
+    passRate: number;
+    trainingNeededCount: number;
+  }>;
 }
 
 export class MemStorage implements IStorage {
@@ -4305,6 +4334,168 @@ export class DrizzleStorage implements IStorage {
       .where(eq(cqcAuditFormEvidenceFiles.id, id))
       .returning();
     return result.length > 0;
+  }
+
+  // Staff Assessment Topics
+  async getAllStaffAssessmentTopics(filters?: { isActive?: boolean }): Promise<StaffAssessmentTopic[]> {
+    const conditions = [];
+    if (filters?.isActive !== undefined) conditions.push(eq(staffAssessmentTopics.isActive, filters.isActive));
+    
+    const query = conditions.length > 0
+      ? db.select().from(staffAssessmentTopics).where(and(...conditions)).orderBy(staffAssessmentTopics.title)
+      : db.select().from(staffAssessmentTopics).orderBy(staffAssessmentTopics.title);
+    
+    return await query;
+  }
+
+  async getStaffAssessmentTopic(id: string): Promise<StaffAssessmentTopic | undefined> {
+    const result = await db.select().from(staffAssessmentTopics)
+      .where(eq(staffAssessmentTopics.id, id))
+      .limit(1);
+    return result[0];
+  }
+
+  async getStaffAssessmentTopicBySlug(slug: string): Promise<StaffAssessmentTopic | undefined> {
+    const result = await db.select().from(staffAssessmentTopics)
+      .where(eq(staffAssessmentTopics.slug, slug))
+      .limit(1);
+    return result[0];
+  }
+
+  async createStaffAssessmentTopic(topic: InsertStaffAssessmentTopic): Promise<StaffAssessmentTopic> {
+    const result = await db.insert(staffAssessmentTopics).values(topic).returning();
+    return result[0];
+  }
+
+  async updateStaffAssessmentTopic(id: string, updates: Partial<InsertStaffAssessmentTopic>): Promise<StaffAssessmentTopic | undefined> {
+    const result = await db.update(staffAssessmentTopics)
+      .set({ ...updates, updatedAt: new Date() })
+      .where(eq(staffAssessmentTopics.id, id))
+      .returning();
+    return result[0];
+  }
+
+  async deleteStaffAssessmentTopic(id: string): Promise<boolean> {
+    const result = await db.delete(staffAssessmentTopics)
+      .where(eq(staffAssessmentTopics.id, id))
+      .returning();
+    return result.length > 0;
+  }
+
+  // Staff Assessment Links (Branch-specific)
+  async getAllStaffAssessmentLinks(filters?: { topicId?: string; branch?: string; isActive?: boolean }): Promise<StaffAssessmentLink[]> {
+    const conditions = [];
+    if (filters?.topicId) conditions.push(eq(staffAssessmentLinks.topicId, filters.topicId));
+    if (filters?.branch) conditions.push(eq(staffAssessmentLinks.branch, filters.branch));
+    if (filters?.isActive !== undefined) conditions.push(eq(staffAssessmentLinks.isActive, filters.isActive));
+    
+    const query = conditions.length > 0
+      ? db.select().from(staffAssessmentLinks).where(and(...conditions)).orderBy(staffAssessmentLinks.branch)
+      : db.select().from(staffAssessmentLinks).orderBy(staffAssessmentLinks.branch);
+    
+    return await query;
+  }
+
+  async getStaffAssessmentLink(id: string): Promise<StaffAssessmentLink | undefined> {
+    const result = await db.select().from(staffAssessmentLinks)
+      .where(eq(staffAssessmentLinks.id, id))
+      .limit(1);
+    return result[0];
+  }
+
+  async getStaffAssessmentLinkByToken(token: string): Promise<StaffAssessmentLink | undefined> {
+    const result = await db.select().from(staffAssessmentLinks)
+      .where(eq(staffAssessmentLinks.token, token))
+      .limit(1);
+    return result[0];
+  }
+
+  async createStaffAssessmentLink(link: InsertStaffAssessmentLink): Promise<StaffAssessmentLink> {
+    const result = await db.insert(staffAssessmentLinks).values(link).returning();
+    return result[0];
+  }
+
+  async updateStaffAssessmentLink(id: string, updates: Partial<InsertStaffAssessmentLink>): Promise<StaffAssessmentLink | undefined> {
+    const result = await db.update(staffAssessmentLinks)
+      .set({ ...updates, updatedAt: new Date() })
+      .where(eq(staffAssessmentLinks.id, id))
+      .returning();
+    return result[0];
+  }
+
+  async deleteStaffAssessmentLink(id: string): Promise<boolean> {
+    const result = await db.delete(staffAssessmentLinks)
+      .where(eq(staffAssessmentLinks.id, id))
+      .returning();
+    return result.length > 0;
+  }
+
+  async regenerateStaffAssessmentLinkToken(id: string): Promise<StaffAssessmentLink | undefined> {
+    const newToken = randomUUID().replace(/-/g, '').substring(0, 16);
+    const result = await db.update(staffAssessmentLinks)
+      .set({ token: newToken, updatedAt: new Date() })
+      .where(eq(staffAssessmentLinks.id, id))
+      .returning();
+    return result[0];
+  }
+
+  // Staff Assessment Responses
+  async getAllStaffAssessmentResponses(filters?: { topicId?: string; branch?: string; linkId?: string }): Promise<StaffAssessmentResponse[]> {
+    const conditions = [];
+    if (filters?.topicId) conditions.push(eq(staffAssessmentResponses.topicId, filters.topicId));
+    if (filters?.branch) conditions.push(eq(staffAssessmentResponses.branch, filters.branch));
+    if (filters?.linkId) conditions.push(eq(staffAssessmentResponses.linkId, filters.linkId));
+    
+    const query = conditions.length > 0
+      ? db.select().from(staffAssessmentResponses).where(and(...conditions)).orderBy(desc(staffAssessmentResponses.completedAt))
+      : db.select().from(staffAssessmentResponses).orderBy(desc(staffAssessmentResponses.completedAt));
+    
+    return await query;
+  }
+
+  async getStaffAssessmentResponse(id: string): Promise<StaffAssessmentResponse | undefined> {
+    const result = await db.select().from(staffAssessmentResponses)
+      .where(eq(staffAssessmentResponses.id, id))
+      .limit(1);
+    return result[0];
+  }
+
+  async createStaffAssessmentResponse(response: InsertStaffAssessmentResponse): Promise<StaffAssessmentResponse> {
+    const result = await db.insert(staffAssessmentResponses).values(response).returning();
+    return result[0];
+  }
+
+  async deleteStaffAssessmentResponse(id: string): Promise<boolean> {
+    const result = await db.delete(staffAssessmentResponses)
+      .where(eq(staffAssessmentResponses.id, id))
+      .returning();
+    return result.length > 0;
+  }
+
+  async getStaffAssessmentStats(topicId: string, branch?: string): Promise<{
+    totalResponses: number;
+    averageScore: number;
+    passRate: number;
+    trainingNeededCount: number;
+  }> {
+    const conditions = [eq(staffAssessmentResponses.topicId, topicId)];
+    if (branch) conditions.push(eq(staffAssessmentResponses.branch, branch));
+    
+    const responses = await db.select().from(staffAssessmentResponses)
+      .where(and(...conditions));
+    
+    if (responses.length === 0) {
+      return { totalResponses: 0, averageScore: 0, passRate: 0, trainingNeededCount: 0 };
+    }
+    
+    const totalResponses = responses.length;
+    const totalScore = responses.reduce((sum, r) => sum + (r.percentageScore || 0), 0);
+    const averageScore = Math.round(totalScore / totalResponses);
+    const passedCount = responses.filter(r => r.passed).length;
+    const passRate = Math.round((passedCount / totalResponses) * 100);
+    const trainingNeededCount = responses.filter(r => r.needsFurtherTraining === 'yes').length;
+    
+    return { totalResponses, averageScore, passRate, trainingNeededCount };
   }
 }
 
