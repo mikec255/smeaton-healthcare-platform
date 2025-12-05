@@ -130,7 +130,7 @@ export interface IStorage {
   getAuditLogsByResourceId(resourceId: string): Promise<AuditLog[]>;
   
   // CQC Audit Management
-  getAllCqcAudits(filters?: { auditType?: string; status?: string; auditorId?: string }): Promise<CqcAudit[]>;
+  getAllCqcAudits(filters?: { auditType?: string; status?: string; auditorId?: string; branch?: string }): Promise<CqcAudit[]>;
   getCqcAudit(id: string): Promise<CqcAudit | undefined>;
   createCqcAudit(audit: InsertCqcAudit): Promise<CqcAudit>;
   updateCqcAudit(id: string, updates: Partial<InsertCqcAudit>): Promise<CqcAudit | undefined>;
@@ -158,7 +158,7 @@ export interface IStorage {
   deleteCqcAuditResponse(id: string): Promise<boolean>;
   
   // CQC Compliance Records
-  getAllCqcComplianceRecords(filters?: { staffId?: string; recordType?: string; status?: string }): Promise<CqcComplianceRecord[]>;
+  getAllCqcComplianceRecords(filters?: { staffId?: string; recordType?: string; status?: string; branch?: string }): Promise<CqcComplianceRecord[]>;
   getCqcComplianceRecord(id: string): Promise<CqcComplianceRecord | undefined>;
   createCqcComplianceRecord(record: InsertCqcComplianceRecord): Promise<CqcComplianceRecord>;
   updateCqcComplianceRecord(id: string, updates: Partial<InsertCqcComplianceRecord>): Promise<CqcComplianceRecord | undefined>;
@@ -284,7 +284,7 @@ export interface IStorage {
   deleteReferenceRequest(id: string): Promise<boolean>;
   
   // Service Improvement Plan (SIP)
-  getAllServiceImprovementPlanItems(filters?: { status?: string; priority?: string; cqcDomain?: string }): Promise<ServiceImprovementPlanItem[]>;
+  getAllServiceImprovementPlanItems(filters?: { status?: string; priority?: string; cqcDomain?: string; branch?: string }): Promise<ServiceImprovementPlanItem[]>;
   getServiceImprovementPlanItem(id: string): Promise<ServiceImprovementPlanItem | undefined>;
   createServiceImprovementPlanItem(item: InsertServiceImprovementPlanItem): Promise<ServiceImprovementPlanItem>;
   updateServiceImprovementPlanItem(id: string, updates: UpdateServiceImprovementPlanItem): Promise<ServiceImprovementPlanItem | undefined>;
@@ -1372,7 +1372,7 @@ export class MemStorage implements IStorage {
   }
 
   // CQC Audit Management Methods
-  async getAllCqcAudits(filters?: { auditType?: string; status?: string; auditorId?: string }): Promise<CqcAudit[]> {
+  async getAllCqcAudits(filters?: { auditType?: string; status?: string; auditorId?: string; branch?: string }): Promise<CqcAudit[]> {
     let audits = Array.from(this.cqcAudits.values());
     
     if (filters?.auditType) {
@@ -1383,6 +1383,9 @@ export class MemStorage implements IStorage {
     }
     if (filters?.auditorId) {
       audits = audits.filter(audit => audit.auditorId === filters.auditorId);
+    }
+    if (filters?.branch) {
+      audits = audits.filter(audit => audit.branch === filters.branch);
     }
     
     return audits.sort((a, b) => (b.createdAt?.getTime() || 0) - (a.createdAt?.getTime() || 0));
@@ -1569,7 +1572,7 @@ export class MemStorage implements IStorage {
   }
 
   // CQC Compliance Records Methods
-  async getAllCqcComplianceRecords(filters?: { staffId?: string; recordType?: string; status?: string }): Promise<CqcComplianceRecord[]> {
+  async getAllCqcComplianceRecords(filters?: { staffId?: string; recordType?: string; status?: string; branch?: string }): Promise<CqcComplianceRecord[]> {
     let records = Array.from(this.cqcComplianceRecords.values());
     
     if (filters?.staffId) {
@@ -1580,6 +1583,9 @@ export class MemStorage implements IStorage {
     }
     if (filters?.status) {
       records = records.filter(record => record.status === filters.status);
+    }
+    if (filters?.branch) {
+      records = records.filter(record => record.branch === filters.branch);
     }
     
     return records.sort((a, b) => (b.createdAt?.getTime() || 0) - (a.createdAt?.getTime() || 0));
@@ -1937,11 +1943,12 @@ export class MemStorage implements IStorage {
   }
 
   // Service Improvement Plan (SIP) - MemStorage implementations
-  async getAllServiceImprovementPlanItems(filters?: { status?: string; priority?: string; cqcDomain?: string }): Promise<ServiceImprovementPlanItem[]> {
+  async getAllServiceImprovementPlanItems(filters?: { status?: string; priority?: string; cqcDomain?: string; branch?: string }): Promise<ServiceImprovementPlanItem[]> {
     let items = Array.from(this.sipItems.values());
     if (filters?.status) items = items.filter(i => i.status === filters.status);
     if (filters?.priority) items = items.filter(i => i.priority === filters.priority);
     if (filters?.cqcDomain) items = items.filter(i => i.cqcDomain === filters.cqcDomain);
+    if (filters?.branch) items = items.filter(i => i.branch === filters.branch);
     return items.sort((a, b) => new Date(b.createdAt!).getTime() - new Date(a.createdAt!).getTime());
   }
 
@@ -2606,7 +2613,7 @@ export class DrizzleStorage implements IStorage {
   }
 
   // CQC Audit Management Methods
-  async getAllCqcAudits(filters?: { auditType?: string; status?: string; auditorId?: string }): Promise<CqcAudit[]> {
+  async getAllCqcAudits(filters?: { auditType?: string; status?: string; auditorId?: string; branch?: string }): Promise<CqcAudit[]> {
     let query = db.select().from(cqcAudits);
     
     if (filters) {
@@ -2620,6 +2627,9 @@ export class DrizzleStorage implements IStorage {
       }
       if (filters.auditorId) {
         conditions.push(eq(cqcAudits.auditorId, filters.auditorId));
+      }
+      if (filters.branch) {
+        conditions.push(eq(cqcAudits.branch, filters.branch));
       }
       
       if (conditions.length > 0) {
@@ -2766,7 +2776,7 @@ export class DrizzleStorage implements IStorage {
   }
 
   // CQC Compliance Records Methods
-  async getAllCqcComplianceRecords(filters?: { staffId?: string; recordType?: string; status?: string }): Promise<CqcComplianceRecord[]> {
+  async getAllCqcComplianceRecords(filters?: { staffId?: string; recordType?: string; status?: string; branch?: string }): Promise<CqcComplianceRecord[]> {
     let query = db.select().from(cqcComplianceRecords);
     
     if (filters) {
@@ -2780,6 +2790,9 @@ export class DrizzleStorage implements IStorage {
       }
       if (filters.status) {
         conditions.push(eq(cqcComplianceRecords.status, filters.status));
+      }
+      if (filters.branch) {
+        conditions.push(eq(cqcComplianceRecords.branch, filters.branch));
       }
       
       if (conditions.length > 0) {
@@ -3446,13 +3459,14 @@ export class DrizzleStorage implements IStorage {
   }
 
   // Service Improvement Plan (SIP) - DatabaseStorage implementations
-  async getAllServiceImprovementPlanItems(filters?: { status?: string; priority?: string; cqcDomain?: string }): Promise<ServiceImprovementPlanItem[]> {
+  async getAllServiceImprovementPlanItems(filters?: { status?: string; priority?: string; cqcDomain?: string; branch?: string }): Promise<ServiceImprovementPlanItem[]> {
     let query = db.select().from(serviceImprovementPlanItems);
     
     const conditions = [];
     if (filters?.status) conditions.push(eq(serviceImprovementPlanItems.status, filters.status));
     if (filters?.priority) conditions.push(eq(serviceImprovementPlanItems.priority, filters.priority));
     if (filters?.cqcDomain) conditions.push(eq(serviceImprovementPlanItems.cqcDomain, filters.cqcDomain));
+    if (filters?.branch) conditions.push(eq(serviceImprovementPlanItems.branch, filters.branch));
     
     if (conditions.length > 0) {
       query = query.where(and(...conditions));
