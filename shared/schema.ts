@@ -763,6 +763,84 @@ export const knowledgeActions = pgTable("knowledge_actions", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
+// Staff Assessment Topics - Branch-specific knowledge assessments with unique links
+export interface AssessmentQuestion {
+  id: string;
+  section: string; // "your_understanding", "practical_application", "scenarios", "confirmation", "final"
+  questionText: string;
+  questionType: "text" | "yes_no" | "multiple_choice";
+  options?: string[];
+  isRequired: boolean;
+  isScored: boolean;
+  points: number;
+  order: number;
+}
+
+export const staffAssessmentTopics = pgTable("staff_assessment_topics", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  title: text("title").notNull(),
+  slug: text("slug").notNull().unique(), // URL-friendly slug e.g. "dignity-person-centred-care"
+  description: text("description").notNull(),
+  introduction: text("introduction"), // Intro text explaining purpose of the assessment
+  questions: json("questions").$type<AssessmentQuestion[]>().notNull(),
+  totalPoints: integer("total_points").default(0), // Total possible points
+  passingScore: integer("passing_score").default(70), // Percentage required to pass
+  isActive: boolean("is_active").default(true),
+  createdBy: varchar("created_by").references(() => users.id),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Branch-specific links for each assessment topic
+export const staffAssessmentLinks = pgTable("staff_assessment_links", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  topicId: varchar("topic_id").references(() => staffAssessmentTopics.id, { onDelete: "cascade" }).notNull(),
+  branch: text("branch").notNull(), // Plymouth, Truro
+  token: text("token").notNull().unique(), // Unique URL token for this branch/topic combination
+  isActive: boolean("is_active").default(true),
+  createdBy: varchar("created_by").references(() => users.id),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+}, (table) => ({
+  uniqueBranchTopic: unique().on(table.topicId, table.branch), // Only one link per branch per topic
+}));
+
+// Responses from staff completing assessments
+export const staffAssessmentResponses = pgTable("staff_assessment_responses", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  linkId: varchar("link_id").references(() => staffAssessmentLinks.id, { onDelete: "cascade" }).notNull(),
+  topicId: varchar("topic_id").references(() => staffAssessmentTopics.id).notNull(),
+  branch: text("branch").notNull(), // Denormalized for easy filtering
+  
+  // Respondent information
+  staffName: text("staff_name").notNull(),
+  jobTitle: text("job_title").notNull(),
+  
+  // Answers stored as JSON object { questionId: answer }
+  answers: json("answers").$type<Record<string, string>>().notNull(),
+  
+  // Scoring
+  totalScore: integer("total_score").default(0),
+  maxScore: integer("max_score").default(0),
+  percentageScore: integer("percentage_score").default(0),
+  passed: boolean("passed").default(false),
+  
+  // Training needs
+  needsFurtherTraining: text("needs_further_training"), // "yes", "no", "i_dont_know"
+  feedback: text("feedback"), // Additional feedback/comments
+  
+  // Confirmation flags
+  agreedToParticipate: boolean("agreed_to_participate").default(false),
+  understandsPurpose: boolean("understands_purpose").default(false),
+  understandsOwnTime: boolean("understands_own_time").default(false),
+  
+  // Metadata
+  completedAt: timestamp("completed_at").defaultNow(),
+  ipAddress: text("ip_address"),
+  userAgent: text("user_agent"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
 // Full Recruitment Applications (separate from job-specific pre-screening applications)
 export const recruitmentApplications = pgTable("recruitment_applications", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
@@ -1625,3 +1703,30 @@ export type InsertCqcAuditFormItemResponse = z.infer<typeof insertCqcAuditFormIt
 export type CqcAuditFormItemResponse = typeof cqcAuditFormItemResponses.$inferSelect;
 export type InsertCqcAuditFormEvidenceFile = z.infer<typeof insertCqcAuditFormEvidenceFileSchema>;
 export type CqcAuditFormEvidenceFile = typeof cqcAuditFormEvidenceFiles.$inferSelect;
+
+// Staff Assessment Insert Schemas
+export const insertStaffAssessmentTopicSchema = createInsertSchema(staffAssessmentTopics).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertStaffAssessmentLinkSchema = createInsertSchema(staffAssessmentLinks).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertStaffAssessmentResponseSchema = createInsertSchema(staffAssessmentResponses).omit({
+  id: true,
+  createdAt: true,
+  completedAt: true,
+});
+
+// Staff Assessment Types
+export type InsertStaffAssessmentTopic = z.infer<typeof insertStaffAssessmentTopicSchema>;
+export type StaffAssessmentTopic = typeof staffAssessmentTopics.$inferSelect;
+export type InsertStaffAssessmentLink = z.infer<typeof insertStaffAssessmentLinkSchema>;
+export type StaffAssessmentLink = typeof staffAssessmentLinks.$inferSelect;
+export type InsertStaffAssessmentResponse = z.infer<typeof insertStaffAssessmentResponseSchema>;
+export type StaffAssessmentResponse = typeof staffAssessmentResponses.$inferSelect;
