@@ -169,18 +169,7 @@ type BusinessContinuityAuditFormData = z.infer<typeof businessContinuityAuditSch
 type DataProtectionAuditFormData = z.infer<typeof dataProtectionAuditSchema>;
 type FinancialControlsAuditFormData = z.infer<typeof financialControlsAuditSchema>;
 type PremisesAuditFormData = z.infer<typeof premisesAuditSchema>;
-type MedicationManagementAuditFormData = z.infer<typeof medicationManagementAuditSchema>;
-type CarePlanningAuditFormData = z.infer<typeof carePlanningAuditSchema>;
-type TrainingCompetencyAuditFormData = z.infer<typeof trainingCompetencyAuditSchema>;
-type SafeCareAuditFormData = z.infer<typeof safeCareAuditSchema>;
-type SafeguardingAuditFormData = z.infer<typeof safeguardingAuditSchema>;
-type GovernanceAuditFormData = z.infer<typeof governanceAuditSchema>;
 type StatementOfPurposeAuditFormData = z.infer<typeof statementOfPurposeAuditSchema>;
-type StaffingAuditFormData = z.infer<typeof staffingAuditSchema>;
-type FitProperPersonsAuditFormData = z.infer<typeof fitProperPersonsAuditSchema>;
-type InfectionControlAuditFormData = z.infer<typeof infectionControlAuditSchema>;
-type PersonCentredCareAuditFormData = z.infer<typeof personCentredCareAuditSchema>;
-type ComplaintsAuditFormData = z.infer<typeof complaintsAuditSchema>;
 
 // Icon mapping for evidence categories
 const EVIDENCE_CATEGORY_ICONS: Record<string, any> = {
@@ -1003,19 +992,7 @@ export default function CqcToolkit() {
   const [qrCodeDataUrl, setQrCodeDataUrl] = useState<string | null>(null);
   // CQC Regulation Audit States
   const [insuranceAuditOpen, setInsuranceAuditOpen] = useState(false);
-  const [safeCareAuditOpen, setSafeCareAuditOpen] = useState(false);
-  const [safeguardingAuditOpen, setSafeguardingAuditOpen] = useState(false);
-  const [governanceAuditOpen, setGovernanceAuditOpen] = useState(false);
   const [statementOfPurposeAuditOpen, setStatementOfPurposeAuditOpen] = useState(false);
-  const [staffingAuditOpen, setStaffingAuditOpen] = useState(false);
-  const [fitProperPersonsAuditOpen, setFitProperPersonsAuditOpen] = useState(false);
-  const [infectionControlAuditOpen, setInfectionControlAuditOpen] = useState(false);
-  const [personCentredCareAuditOpen, setPersonCentredCareAuditOpen] = useState(false);
-  const [complaintsAuditOpen, setComplaintsAuditOpen] = useState(false);
-  // Regulation sub-audit states
-  const [medicationManagementAuditOpen, setMedicationManagementAuditOpen] = useState(false);
-  const [carePlanningAuditOpen, setCarePlanningAuditOpen] = useState(false);
-  const [trainingCompetencyAuditOpen, setTrainingCompetencyAuditOpen] = useState(false);
   // Business Audit States
   const [businessContinuityAuditOpen, setBusinessContinuityAuditOpen] = useState(false);
   const [dataProtectionAuditOpen, setDataProtectionAuditOpen] = useState(false);
@@ -1616,76 +1593,6 @@ export default function CqcToolkit() {
     },
   });
 
-  const safeCareAuditForm = useForm<SafeCareAuditFormData>({
-    resolver: zodResolver(safeCareAuditSchema),
-    defaultValues: {
-      riskAssessmentsComplete: "",
-      riskAssessmentDetails: "",
-      medicationManagementSafe: "",
-      medicationDetails: "",
-      incidentReportingEffective: "",
-      incidentDetails: "",
-      equipmentSafe: "",
-      equipmentDetails: "",
-      infectionControlMeasures: "",
-      infectionControlDetails: "",
-      staffTrainedInSafety: "",
-      safetyTrainingDetails: "",
-      score: 0,
-      areasOfStrength: "",
-      areasForImprovement: "",
-      actions: "",
-    },
-  });
-
-  const safeguardingAuditForm = useForm<SafeguardingAuditFormData>({
-    resolver: zodResolver(safeguardingAuditSchema),
-    defaultValues: {
-      safeguardingPolicyInPlace: "",
-      policyDetails: "",
-      staffTrainedInSafeguarding: "",
-      trainingDetails: "",
-      safeguardingLeadIdentified: "",
-      leadDetails: "",
-      reportingProcessClear: "",
-      reportingDetails: "",
-      dbsChecksComplete: "",
-      dbsDetails: "",
-      concernsDocumented: "",
-      documentationDetails: "",
-      partnershipWithAuthorities: "",
-      partnershipDetails: "",
-      score: 0,
-      areasOfStrength: "",
-      areasForImprovement: "",
-      actions: "",
-    },
-  });
-
-  const governanceAuditForm = useForm<GovernanceAuditFormData>({
-    resolver: zodResolver(governanceAuditSchema),
-    defaultValues: {
-      qualityAssuranceSystemsInPlace: "",
-      qaDetails: "",
-      policiesUpToDate: "",
-      policyReviewDetails: "",
-      recordKeepingAccurate: "",
-      recordDetails: "",
-      riskManagementEffective: "",
-      riskManagementDetails: "",
-      auditScheduleMaintained: "",
-      auditDetails: "",
-      cqcNotificationsSubmitted: "",
-      notificationDetails: "",
-      leadershipOversight: "",
-      leadershipDetails: "",
-      score: 0,
-      areasOfStrength: "",
-      areasForImprovement: "",
-      actions: "",
-    },
-  });
-
   const statementOfPurposeAuditForm = useForm<StatementOfPurposeAuditFormData>({
     resolver: zodResolver(statementOfPurposeAuditSchema),
     defaultValues: {
@@ -1697,120 +1604,6 @@ export default function CqcToolkit() {
       uploadedFileName: "",
       uploadedFileData: "",
       notes: "",
-    },
-  });
-
-  const staffingAuditForm = useForm<StaffingAuditFormData>({
-    resolver: zodResolver(staffingAuditSchema),
-    defaultValues: {
-      sufficientStaffDeployed: "",
-      staffingLevelDetails: "",
-      staffQualifiedAndCompetent: "",
-      qualificationDetails: "",
-      supervisionProvided: "",
-      supervisionDetails: "",
-      trainingNeedsMet: "",
-      trainingDetails: "",
-      staffSupportedAndDeveloped: "",
-      supportDetails: "",
-      inductionProcessComplete: "",
-      inductionDetails: "",
-      score: 0,
-      areasOfStrength: "",
-      areasForImprovement: "",
-      actions: "",
-    },
-  });
-
-  const fitProperPersonsAuditForm = useForm<FitProperPersonsAuditFormData>({
-    resolver: zodResolver(fitProperPersonsAuditSchema),
-    defaultValues: {
-      recruitmentPolicySafe: "",
-      recruitmentDetails: "",
-      dbsChecksCompleted: "",
-      dbsCheckDetails: "",
-      referencesObtained: "",
-      referenceDetails: "",
-      professionalRegistrationChecked: "",
-      registrationDetails: "",
-      rightToWorkVerified: "",
-      rightToWorkDetails: "",
-      characterAssessmentComplete: "",
-      characterDetails: "",
-      ongoingMonitoring: "",
-      monitoringDetails: "",
-      score: 0,
-      areasOfStrength: "",
-      areasForImprovement: "",
-      actions: "",
-    },
-  });
-
-  const infectionControlAuditForm = useForm<InfectionControlAuditFormData>({
-    resolver: zodResolver(infectionControlAuditSchema),
-    defaultValues: {
-      ipcPolicyInPlace: "",
-      policyDetails: "",
-      ppeAvailableAndUsed: "",
-      ppeDetails: "",
-      handHygieneCompliance: "",
-      handHygieneDetails: "",
-      cleaningSchedulesMaintained: "",
-      cleaningDetails: "",
-      outbreakManagementPlan: "",
-      outbreakDetails: "",
-      staffTrainedInIpc: "",
-      ipcTrainingDetails: "",
-      wasteDisposalCompliant: "",
-      wasteDetails: "",
-      score: 0,
-      areasOfStrength: "",
-      areasForImprovement: "",
-      actions: "",
-    },
-  });
-
-  const personCentredCareAuditForm = useForm<PersonCentredCareAuditFormData>({
-    resolver: zodResolver(personCentredCareAuditSchema),
-    defaultValues: {
-      carePlansPersonalised: "",
-      carePlanDetails: "",
-      preferencesDocumented: "",
-      preferenceDetails: "",
-      serviceUserInvolved: "",
-      involvementDetails: "",
-      needsRegularlyReviewed: "",
-      reviewDetails: "",
-      choicesRespected: "",
-      choiceDetails: "",
-      culturalNeedsMet: "",
-      culturalDetails: "",
-      score: 0,
-      areasOfStrength: "",
-      areasForImprovement: "",
-      actions: "",
-    },
-  });
-
-  const complaintsAuditForm = useForm<ComplaintsAuditFormData>({
-    resolver: zodResolver(complaintsAuditSchema),
-    defaultValues: {
-      complaintsProcessAccessible: "",
-      processDetails: "",
-      complaintsInvestigated: "",
-      investigationDetails: "",
-      timelinessMet: "",
-      timelinessDetails: "",
-      learningFromComplaints: "",
-      learningDetails: "",
-      complainantsKeptInformed: "",
-      communicationDetails: "",
-      recordsWellMaintained: "",
-      recordsDetails: "",
-      score: 0,
-      areasOfStrength: "",
-      areasForImprovement: "",
-      actions: "",
     },
   });
 
@@ -1851,37 +1644,6 @@ export default function CqcToolkit() {
       fireRiskAssessment: "", fireDetails: "", patTesting: "", patDetails: "",
       legionellaAssessment: "", legionellaDetails: "", asbestosRegister: "", asbestosDetails: "",
       securityMeasures: "", securityDetails: "", accessibilityCompliance: "", accessibilityDetails: "",
-      score: 0, areasOfStrength: "", areasForImprovement: "", actions: "",
-    },
-  });
-
-  // === REGULATION SUB-AUDIT FORMS ===
-  const medicationManagementAuditForm = useForm<MedicationManagementAuditFormData>({
-    resolver: zodResolver(medicationManagementAuditSchema),
-    defaultValues: {
-      marChartsAccurate: "", marDetails: "", controlledDrugsSecure: "", controlledDetails: "",
-      medicationStorageSafe: "", storageDetails: "", administrationRecorded: "", administrationDetails: "",
-      medicationErrorsReported: "", errorDetails: "", staffCompetencyAssessed: "", competencyDetails: "",
-      score: 0, areasOfStrength: "", areasForImprovement: "", actions: "",
-    },
-  });
-
-  const carePlanningAuditForm = useForm<CarePlanningAuditFormData>({
-    resolver: zodResolver(carePlanningAuditSchema),
-    defaultValues: {
-      initialAssessmentComplete: "", assessmentDetails: "", carePlansPersonCentred: "", personCentredDetails: "",
-      regularReviewsConducted: "", reviewDetails: "", serviceUserInvolvement: "", involvementDetails: "",
-      familyInclusion: "", familyDetails: "", outcomesDocumented: "", outcomesDetails: "",
-      score: 0, areasOfStrength: "", areasForImprovement: "", actions: "",
-    },
-  });
-
-  const trainingCompetencyAuditForm = useForm<TrainingCompetencyAuditFormData>({
-    resolver: zodResolver(trainingCompetencyAuditSchema),
-    defaultValues: {
-      trainingMatrixMaintained: "", matrixDetails: "", mandatoryTrainingComplete: "", mandatoryDetails: "",
-      competencyAssessmentsComplete: "", competencyDetails: "", cpDevelopmentSupported: "", cpdDetails: "",
-      trainingNeedsIdentified: "", needsDetails: "", refresherTrainingScheduled: "", refresherDetails: "",
       score: 0, areasOfStrength: "", areasForImprovement: "", actions: "",
     },
   });
