@@ -5003,6 +5003,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         description: topic.description,
         introduction: topic.introduction,
         questions: topic.questions,
+        passingScore: topic.passingScore || 70,
         branch: link.branch,
         linkId: link.id
       });

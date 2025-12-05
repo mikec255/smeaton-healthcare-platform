@@ -35,6 +35,7 @@ interface AssessmentData {
   description: string;
   introduction: string;
   questions: AssessmentQuestion[];
+  passingScore: number;
   branch: string;
   linkId: string;
 }
@@ -125,7 +126,7 @@ export default function StaffAssessment() {
   }
 
   const questions = data.questions || [];
-  const passingPercentage = 70; // Default passing percentage
+  const passingPercentage = data.passingScore || 70;
 
   const handleStartAssessment = () => {
     if (!staffInfo.name.trim() || !staffInfo.jobTitle.trim()) {
