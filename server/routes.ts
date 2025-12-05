@@ -1832,6 +1832,134 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // ===== Audit Schedule Settings API =====
+
+  // Get all audit schedule settings
+  app.get("/api/cqc/audit-schedules", requireAdmin, async (req, res) => {
+    try {
+      const filters: { branch?: string } = {};
+      if (req.query.branch) filters.branch = req.query.branch as string;
+      
+      const settings = await storage.getAllAuditScheduleSettings(filters);
+      res.json(settings);
+    } catch (error) {
+      console.error("Error fetching audit schedules:", error);
+      res.status(500).json({ message: "Failed to fetch audit schedules" });
+    }
+  });
+
+  // Get schedule settings for a specific category
+  app.get("/api/cqc/audit-schedules/:category/:branch", requireAdmin, async (req, res) => {
+    try {
+      const settings = await storage.getAuditScheduleSettingsByCategory(
+        req.params.category,
+        req.params.branch
+      );
+      res.json(settings || null);
+    } catch (error) {
+      console.error("Error fetching audit schedule:", error);
+      res.status(500).json({ message: "Failed to fetch audit schedule" });
+    }
+  });
+
+  // Create or update audit schedule settings (upsert)
+  app.post("/api/cqc/audit-schedules", requireAdmin, async (req, res) => {
+    try {
+      const scheduleSchema = z.object({
+        branch: z.string().default("Plymouth"),
+        category: z.string().min(1, "Category is required"),
+        frequency: z.enum(["weekly", "fortnightly", "monthly", "quarterly", "biannually", "annually"]).default("monthly"),
+        startDate: z.string().optional().transform(v => v ? new Date(v) : undefined),
+        isActive: z.boolean().optional().default(true),
+        reminderDays: z.number().min(1).max(90).optional().default(14),
+      });
+
+      const validatedData = scheduleSchema.parse(req.body);
+      const settings = await storage.upsertAuditScheduleSettings(validatedData);
+      res.status(201).json(settings);
+    } catch (error) {
+      console.error("Error creating audit schedule:", error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid schedule data", errors: error.errors });
+      }
+      res.status(500).json({ message: "Failed to create audit schedule" });
+    }
+  });
+
+  // Update audit schedule settings
+  app.put("/api/cqc/audit-schedules/:id", requireAdmin, async (req, res) => {
+    try {
+      const updateSchema = z.object({
+        frequency: z.enum(["weekly", "fortnightly", "monthly", "quarterly", "biannually", "annually"]).optional(),
+        startDate: z.string().optional().transform(v => v ? new Date(v) : undefined),
+        isActive: z.boolean().optional(),
+        reminderDays: z.number().min(1).max(90).optional(),
+      });
+
+      const validatedData = updateSchema.parse(req.body);
+      const settings = await storage.updateAuditScheduleSettings(req.params.id, validatedData);
+      if (!settings) {
+        return res.status(404).json({ message: "Schedule settings not found" });
+      }
+      res.json(settings);
+    } catch (error) {
+      console.error("Error updating audit schedule:", error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid update data", errors: error.errors });
+      }
+      res.status(500).json({ message: "Failed to update audit schedule" });
+    }
+  });
+
+  // Delete audit schedule settings
+  app.delete("/api/cqc/audit-schedules/:id", requireAdmin, async (req, res) => {
+    try {
+      const deleted = await storage.deleteAuditScheduleSettings(req.params.id);
+      if (!deleted) {
+        return res.status(404).json({ message: "Schedule settings not found" });
+      }
+      res.json({ message: "Schedule settings deleted successfully" });
+    } catch (error) {
+      console.error("Error deleting audit schedule:", error);
+      res.status(500).json({ message: "Failed to delete audit schedule" });
+    }
+  });
+
+  // Bulk update audit schedules for a branch
+  app.post("/api/cqc/audit-schedules/bulk", requireAdmin, async (req, res) => {
+    try {
+      const bulkSchema = z.object({
+        branch: z.string().default("Plymouth"),
+        schedules: z.array(z.object({
+          category: z.string().min(1),
+          frequency: z.enum(["weekly", "fortnightly", "monthly", "quarterly", "biannually", "annually"]),
+          isActive: z.boolean().optional().default(true),
+        })),
+      });
+
+      const { branch, schedules } = bulkSchema.parse(req.body);
+      const results = [];
+      
+      for (const schedule of schedules) {
+        const settings = await storage.upsertAuditScheduleSettings({
+          branch,
+          category: schedule.category,
+          frequency: schedule.frequency,
+          isActive: schedule.isActive,
+        });
+        results.push(settings);
+      }
+      
+      res.status(201).json(results);
+    } catch (error) {
+      console.error("Error bulk updating audit schedules:", error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid bulk data", errors: error.errors });
+      }
+      res.status(500).json({ message: "Failed to bulk update audit schedules" });
+    }
+  });
+
   // Contact submissions API
   app.get("/api/contact-submissions", requireAdmin, async (req, res) => {
     try {
