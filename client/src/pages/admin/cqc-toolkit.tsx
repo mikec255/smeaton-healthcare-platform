@@ -1330,19 +1330,32 @@ export default function CqcToolkit() {
     queryKey: ["/api/cqc/audit-schedules", selectedBranch],
     queryFn: async () => {
       const response = await fetch(`/api/cqc/audit-schedules?branch=${encodeURIComponent(selectedBranch)}`, { credentials: 'include' });
-      if (!response.ok) throw new Error('Failed to fetch audit schedules');
+      if (!response.ok) {
+        if (response.status === 401) {
+          return [];
+        }
+        throw new Error('Failed to fetch audit schedules');
+      }
       return response.json();
     },
+    retry: 3,
+    retryDelay: 500,
   });
 
   // Mutation for updating audit schedule settings
   const updateAuditScheduleMutation = useMutation({
-    mutationFn: async (data: { category: string; frequency: string; branch: string }) => {
+    mutationFn: async (data: { category: string; frequency: string; branch: string }): Promise<AuditScheduleSettings> => {
       const response = await apiRequest('POST', '/api/cqc/audit-schedules', data);
       return response.json();
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/cqc/audit-schedules", selectedBranch] });
+    onSuccess: (newSettings) => {
+      queryClient.setQueryData<AuditScheduleSettings[]>(
+        ["/api/cqc/audit-schedules", selectedBranch],
+        (old = []) => {
+          const filtered = old.filter(s => s.category !== newSettings.category);
+          return [...filtered, newSettings];
+        }
+      );
       toast({ title: "Success", description: "Audit frequency updated" });
     },
     onError: (error: Error) => {
