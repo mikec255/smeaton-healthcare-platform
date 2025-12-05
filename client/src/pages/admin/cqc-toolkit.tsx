@@ -4647,6 +4647,183 @@ Delivering outstanding healthcare across Devon & Cornwall`;
                   </DialogContent>
                 </Dialog>
 
+                {/* Statement of Purpose Audit */}
+                <Dialog open={statementOfPurposeAuditOpen} onOpenChange={setStatementOfPurposeAuditOpen}>
+                  <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+                    <DialogHeader>
+                      <DialogTitle className="flex items-center gap-2">
+                        <FileText className="h-5 w-5 text-blue-600" />
+                        Statement of Purpose Audit
+                      </DialogTitle>
+                      <DialogDescription>Review and update your Statement of Purpose (SOP) documentation</DialogDescription>
+                    </DialogHeader>
+                    <Form {...statementOfPurposeAuditForm}>
+                      <form onSubmit={statementOfPurposeAuditForm.handleSubmit((data) => 
+                        submitGenericAudit("Statement of Purpose", "statement_of_purpose", "well_led", data, setStatementOfPurposeAuditOpen, statementOfPurposeAuditForm)
+                      )} className="space-y-6">
+                        <Card className="border-blue-200">
+                          <CardHeader className="pb-3">
+                            <CardTitle className="text-lg">SOP Review Dates</CardTitle>
+                          </CardHeader>
+                          <CardContent className="space-y-4">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                              <FormField control={statementOfPurposeAuditForm.control} name="lastReviewDate" render={({ field }) => (
+                                <FormItem>
+                                  <FormLabel>Date of Last SOP Review</FormLabel>
+                                  <FormControl>
+                                    <Input type="date" {...field} />
+                                  </FormControl>
+                                  <FormMessage />
+                                </FormItem>
+                              )} />
+                              <FormField control={statementOfPurposeAuditForm.control} name="newReviewDate" render={({ field }) => (
+                                <FormItem>
+                                  <FormLabel>Date of New SOP Review</FormLabel>
+                                  <FormControl>
+                                    <Input type="date" {...field} />
+                                  </FormControl>
+                                  <FormMessage />
+                                </FormItem>
+                              )} />
+                            </div>
+                          </CardContent>
+                        </Card>
+
+                        <Card className="border-blue-200">
+                          <CardHeader className="pb-3">
+                            <CardTitle className="text-lg">SOP Review Status</CardTitle>
+                          </CardHeader>
+                          <CardContent className="space-y-4">
+                            <FormField control={statementOfPurposeAuditForm.control} name="sopReviewed" render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Has the Statement of Purpose been reviewed?</FormLabel>
+                                <FormControl>
+                                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                    <SelectTrigger>
+                                      <SelectValue placeholder="Select" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                      <SelectItem value="yes">Yes - Reviewed and Up to Date</SelectItem>
+                                      <SelectItem value="partial">Partial - Review in Progress</SelectItem>
+                                      <SelectItem value="no">No - Not Yet Reviewed</SelectItem>
+                                    </SelectContent>
+                                  </Select>
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )} />
+                            <FormField control={statementOfPurposeAuditForm.control} name="sopChanges" render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Changes Made to SOP (if any)</FormLabel>
+                                <FormControl>
+                                  <Textarea {...field} rows={3} placeholder="Describe any changes made during this review..." />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )} />
+                          </CardContent>
+                        </Card>
+
+                        <Card className="border-blue-200">
+                          <CardHeader className="pb-3">
+                            <CardTitle className="text-lg">Review Date Confirmation</CardTitle>
+                          </CardHeader>
+                          <CardContent className="space-y-4">
+                            <FormField control={statementOfPurposeAuditForm.control} name="sopReviewDateUpdated" render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Has the latest review date been updated on the SOP document?</FormLabel>
+                                <FormControl>
+                                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                    <SelectTrigger>
+                                      <SelectValue placeholder="Select" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                      <SelectItem value="yes">Yes - Date Updated</SelectItem>
+                                      <SelectItem value="no">No - Date Not Yet Updated</SelectItem>
+                                    </SelectContent>
+                                  </Select>
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )} />
+                          </CardContent>
+                        </Card>
+
+                        <Card className="border-blue-200">
+                          <CardHeader className="pb-3">
+                            <CardTitle className="text-lg">Upload Latest SOP Version</CardTitle>
+                          </CardHeader>
+                          <CardContent className="space-y-4">
+                            <div className="space-y-2">
+                              <label className="text-sm font-medium">Upload SOP Document</label>
+                              <Input
+                                type="file"
+                                accept=".pdf,.doc,.docx"
+                                onChange={(e) => {
+                                  const file = e.target.files?.[0];
+                                  if (file) {
+                                    if (file.size > 10 * 1024 * 1024) {
+                                      toast({ title: "File too large", description: "Maximum file size is 10MB", variant: "destructive" });
+                                      return;
+                                    }
+                                    const reader = new FileReader();
+                                    reader.onload = () => {
+                                      const base64 = reader.result as string;
+                                      statementOfPurposeAuditForm.setValue("uploadedFileName", file.name);
+                                      statementOfPurposeAuditForm.setValue("uploadedFileData", base64);
+                                    };
+                                    reader.readAsDataURL(file);
+                                  }
+                                }}
+                              />
+                              <p className="text-xs text-muted-foreground">Accepted formats: PDF, Word documents (max 10MB)</p>
+                              {statementOfPurposeAuditForm.watch("uploadedFileName") && (
+                                <div className="flex items-center gap-2 p-2 bg-blue-50 dark:bg-blue-950/30 rounded-md">
+                                  <FileText className="h-4 w-4 text-blue-600" />
+                                  <span className="text-sm">{statementOfPurposeAuditForm.watch("uploadedFileName")}</span>
+                                  <Button
+                                    type="button"
+                                    variant="ghost"
+                                    size="sm"
+                                    className="ml-auto h-6 w-6 p-0"
+                                    onClick={() => {
+                                      statementOfPurposeAuditForm.setValue("uploadedFileName", "");
+                                      statementOfPurposeAuditForm.setValue("uploadedFileData", "");
+                                    }}
+                                  >
+                                    <X className="h-3 w-3" />
+                                  </Button>
+                                </div>
+                              )}
+                            </div>
+                          </CardContent>
+                        </Card>
+
+                        <Card className="border-blue-200">
+                          <CardHeader className="pb-3">
+                            <CardTitle className="text-lg">Additional Notes</CardTitle>
+                          </CardHeader>
+                          <CardContent>
+                            <FormField control={statementOfPurposeAuditForm.control} name="notes" render={({ field }) => (
+                              <FormItem>
+                                <FormControl>
+                                  <Textarea {...field} rows={3} placeholder="Any additional notes about the SOP review..." />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )} />
+                          </CardContent>
+                        </Card>
+
+                        <div className="flex justify-end gap-2">
+                          <Button type="button" variant="outline" onClick={() => setStatementOfPurposeAuditOpen(false)}>Cancel</Button>
+                          <Button type="submit" disabled={genericAuditMutation.isPending} className="bg-blue-600 hover:bg-blue-700">{genericAuditMutation.isPending ? "Saving..." : "Save Audit"}</Button>
+                        </div>
+                      </form>
+                    </Form>
+                  </DialogContent>
+                </Dialog>
+
                 {/* Regulation 18 - Staffing */}
                 <Dialog open={staffingAuditOpen} onOpenChange={setStaffingAuditOpen}>
                   <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
