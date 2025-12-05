@@ -1325,6 +1325,36 @@ export type InsertServiceImprovementPlanItem = z.infer<typeof insertServiceImpro
 export type UpdateServiceImprovementPlanItem = z.infer<typeof updateServiceImprovementPlanItemSchema>;
 export type ServiceImprovementPlanItem = typeof serviceImprovementPlanItems.$inferSelect;
 
+// Audit Schedule Settings - Configure how often each audit category should be completed
+export const auditScheduleSettings = pgTable("audit_schedule_settings", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  branch: text("branch").notNull().default("Plymouth"), // Plymouth, Truro
+  category: text("category").notNull(), // Matches audit categories: medication_management, infection_control, etc.
+  
+  // Frequency settings
+  frequency: text("frequency").notNull().default("monthly"), // weekly, fortnightly, monthly, quarterly, biannually, annually
+  
+  // Schedule details
+  startDate: timestamp("start_date"), // When the schedule starts
+  isActive: boolean("is_active").default(true), // Whether this schedule is active
+  
+  // Notification settings
+  reminderDays: integer("reminder_days").default(14), // Days before due to send reminder
+  
+  // Metadata
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const insertAuditScheduleSettingsSchema = createInsertSchema(auditScheduleSettings).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export type InsertAuditScheduleSettings = z.infer<typeof insertAuditScheduleSettingsSchema>;
+export type AuditScheduleSettings = typeof auditScheduleSettings.$inferSelect;
+
 // CQC Feedback Campaigns - For collecting structured feedback (C=Caring, S=Safe, P=People, F=Friends & Family)
 export const cqcFeedbackCampaigns = pgTable("cqc_feedback_campaigns", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
