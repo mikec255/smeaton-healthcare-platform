@@ -326,6 +326,89 @@ export function StaffAssessmentsTab({ branch }: StaffAssessmentsTabProps) {
         </Card>
       </div>
 
+      {/* Available Topics */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Brain className="h-5 w-5" />
+            Available Assessment Topics
+          </CardTitle>
+          <CardDescription>
+            Assessment topics that can be assigned to staff
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          {topics.length === 0 ? (
+            <div className="text-center py-8 text-muted-foreground">
+              <Brain className="h-12 w-12 mx-auto mb-4 opacity-50" />
+              <p>No assessment topics available yet.</p>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {topics.map((topic) => {
+                const stats = getStatsForTopic(topic.id);
+                const hasLinkForBranch = branchLinks.some(l => l.topicId === topic.id);
+                
+                return (
+                  <Card key={topic.id} className={`border ${topic.isActive ? 'border-green-200 bg-green-50/50 dark:border-green-900 dark:bg-green-950/20' : 'border-gray-200 bg-gray-50/50 dark:border-gray-800 dark:bg-gray-900/20'}`}>
+                    <CardContent className="pt-4">
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2 mb-2">
+                            <h4 className="font-semibold">{topic.title}</h4>
+                            <Badge variant={topic.isActive ? "default" : "secondary"}>
+                              {topic.isActive ? "Active" : "Inactive"}
+                            </Badge>
+                            {hasLinkForBranch && (
+                              <Badge variant="outline" className="border-blue-500 text-blue-600">
+                                Link Created
+                              </Badge>
+                            )}
+                          </div>
+                          <p className="text-sm text-muted-foreground mb-2">
+                            {topic.description}
+                          </p>
+                          <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                            <span>Passing Score: {topic.passingScore}%</span>
+                            <span>Questions: {Array.isArray(topic.questions) ? topic.questions.length : 0}</span>
+                            {stats.totalResponses > 0 && (
+                              <>
+                                <span className="flex items-center gap-1">
+                                  <Users className="h-4 w-4" />
+                                  {stats.totalResponses} responses
+                                </span>
+                                <span className="flex items-center gap-1">
+                                  <BarChart3 className="h-4 w-4" />
+                                  {stats.avgScore}% avg score
+                                </span>
+                              </>
+                            )}
+                          </div>
+                        </div>
+                        {!hasLinkForBranch && topic.isActive && (
+                          <Button
+                            size="sm"
+                            onClick={() => {
+                              linkForm.setValue('topicId', topic.id);
+                              linkForm.setValue('branch', branch);
+                              setCreateLinkOpen(true);
+                            }}
+                            data-testid={`button-create-link-${topic.id}`}
+                          >
+                            <Plus className="h-4 w-4 mr-1" />
+                            Create Link
+                          </Button>
+                        )}
+                      </div>
+                    </CardContent>
+                  </Card>
+                );
+              })}
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
       {/* Assessment Links */}
       <Card>
         <CardHeader>
