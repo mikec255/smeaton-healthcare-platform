@@ -2830,7 +2830,7 @@ Delivering outstanding healthcare across Devon & Cornwall`;
                 <CardTitle>Audit Compliance Matrix</CardTitle>
               </div>
               <CardDescription>
-                Visual overview of all audit areas with traffic light status indicators
+                Visual overview of all audit areas across the year with completion status
               </CardDescription>
             </CardHeader>
             <CardContent className="p-0">
@@ -2843,23 +2843,19 @@ Delivering outstanding healthcare across Devon & Cornwall`;
                   </span>
                   <div className="flex items-center gap-2">
                     <div className="w-4 h-4 rounded bg-green-500"></div>
-                    <span className="text-xs font-medium">Outstanding</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <div className="w-4 h-4 rounded bg-emerald-400"></div>
-                    <span className="text-xs font-medium">Good</span>
+                    <span className="text-xs font-medium">Completed</span>
                   </div>
                   <div className="flex items-center gap-2">
                     <div className="w-4 h-4 rounded bg-amber-500"></div>
-                    <span className="text-xs font-medium">Requires Improvement</span>
+                    <span className="text-xs font-medium">Due within 14 days</span>
                   </div>
                   <div className="flex items-center gap-2">
                     <div className="w-4 h-4 rounded bg-red-500"></div>
-                    <span className="text-xs font-medium">Inadequate</span>
+                    <span className="text-xs font-medium">Overdue</span>
                   </div>
                   <div className="flex items-center gap-2">
                     <div className="w-4 h-4 rounded bg-gray-300 dark:bg-gray-600"></div>
-                    <span className="text-xs font-medium">Not Assessed</span>
+                    <span className="text-xs font-medium">Not Scheduled</span>
                   </div>
                 </div>
               </div>
@@ -2870,47 +2866,92 @@ Delivering outstanding healthcare across Devon & Cornwall`;
                   <div 
                     className="grid min-w-fit"
                     style={{ 
-                      gridTemplateColumns: '260px repeat(5, 140px)',
+                      gridTemplateColumns: '260px repeat(12, 80px)',
                       gap: 0
                     }}
                   >
-                    {/* Header Row */}
+                    {/* Header Row - 12 Months */}
                     <div className="bg-blue-700 text-white font-semibold p-4 flex items-center sticky left-0 top-0 z-30 border-r-2 border-blue-800 shadow-md min-h-[56px]">
                       <span className="text-sm">Audit Area</span>
                     </div>
-                    {['Safe', 'Effective', 'Caring', 'Responsive', 'Well-Led'].map((heading) => (
+                    {['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'].map((month) => (
                       <div 
-                        key={heading}
-                        className="bg-blue-700 text-white font-semibold p-4 flex items-center justify-center text-center text-sm sticky top-0 z-20 border-b-2 border-blue-800 min-h-[56px]"
+                        key={month}
+                        className="bg-blue-700 text-white font-semibold p-3 flex items-center justify-center text-center text-xs sticky top-0 z-20 border-b-2 border-blue-800 min-h-[56px]"
                       >
-                        {heading}
+                        {month}
                       </div>
                     ))}
 
                     {/* Data Rows */}
                     {auditCategories.map((cat) => {
-                      const latestAudit = audits
-                        .filter(a => a.category === cat.key)
-                        .sort((a, b) => new Date(b.auditDate).getTime() - new Date(a.auditDate).getTime())[0];
+                      const categoryAudits = audits.filter(a => a.category === cat.key);
+                      const currentYear = new Date().getFullYear();
 
-                      const getStatusSquareClass = (rating: string | null | undefined) => {
-                        switch (rating) {
-                          case 'outstanding': return 'bg-green-500';
-                          case 'good': return 'bg-emerald-400';
-                          case 'requires_improvement': return 'bg-amber-500';
-                          case 'inadequate': return 'bg-red-500';
+                      const getMonthStatus = (monthIndex: number) => {
+                        const monthStart = new Date(currentYear, monthIndex, 1);
+                        const monthEnd = new Date(currentYear, monthIndex + 1, 0);
+                        const today = new Date();
+                        const fourteenDaysFromNow = new Date(today.getTime() + 14 * 24 * 60 * 60 * 1000);
+
+                        const auditInMonth = categoryAudits.find(a => {
+                          const auditDate = new Date(a.auditDate);
+                          return auditDate >= monthStart && auditDate <= monthEnd;
+                        });
+
+                        if (auditInMonth && auditInMonth.status === 'completed') {
+                          return { status: 'completed', date: auditInMonth.auditDate };
+                        }
+
+                        const scheduledAudit = categoryAudits.find(a => {
+                          const nextDue = a.nextAuditDue ? new Date(a.nextAuditDue) : null;
+                          return nextDue && nextDue >= monthStart && nextDue <= monthEnd;
+                        });
+
+                        if (scheduledAudit && scheduledAudit.nextAuditDue) {
+                          const dueDate = new Date(scheduledAudit.nextAuditDue);
+                          if (dueDate < today) {
+                            return { status: 'overdue', date: scheduledAudit.nextAuditDue };
+                          }
+                          if (dueDate <= fourteenDaysFromNow) {
+                            return { status: 'due_soon', date: scheduledAudit.nextAuditDue };
+                          }
+                          return { status: 'scheduled', date: scheduledAudit.nextAuditDue };
+                        }
+
+                        if (monthEnd < today && !auditInMonth) {
+                          const wasScheduled = categoryAudits.some(a => {
+                            const nextDue = a.nextAuditDue ? new Date(a.nextAuditDue) : null;
+                            return nextDue && nextDue >= monthStart && nextDue <= monthEnd;
+                          });
+                          if (wasScheduled) return { status: 'overdue', date: null };
+                        }
+
+                        return { status: 'not_scheduled', date: null };
+                      };
+
+                      const getStatusSquareClass = (status: string) => {
+                        switch (status) {
+                          case 'completed': return 'bg-green-500';
+                          case 'due_soon': return 'bg-amber-500';
+                          case 'overdue': return 'bg-red-500';
+                          case 'scheduled': return 'bg-gray-400 dark:bg-gray-500';
                           default: return 'bg-gray-300 dark:bg-gray-600';
                         }
                       };
 
-                      const ratings = ['safe', 'effective', 'caring', 'responsive', 'wellLed'];
-                      const getCategoryRating = (category: string, aspect: string) => {
-                        const catAudit = audits
-                          .filter(a => a.category === category)
-                          .sort((a, b) => new Date(b.auditDate).getTime() - new Date(a.auditDate).getTime())[0];
-                        if (!catAudit) return null;
-                        return catAudit.overallRating;
+                      const getStatusLabel = (status: string) => {
+                        switch (status) {
+                          case 'completed': return 'Completed';
+                          case 'due_soon': return 'Due within 14 days';
+                          case 'overdue': return 'Overdue';
+                          case 'scheduled': return 'Scheduled';
+                          default: return 'Not scheduled';
+                        }
                       };
+
+                      const latestAudit = categoryAudits
+                        .sort((a, b) => new Date(b.auditDate).getTime() - new Date(a.auditDate).getTime())[0];
 
                       return (
                         <Fragment key={cat.key}>
@@ -2926,30 +2967,28 @@ Delivering outstanding healthcare across Devon & Cornwall`;
                               <div className="min-w-0 flex-1">
                                 <div className="text-sm font-medium truncate">{cat.label}</div>
                                 <div className="text-xs text-muted-foreground">
-                                  {latestAudit ? formatAuditDate(latestAudit.auditDate) : "Not assessed"}
+                                  {latestAudit ? `Last: ${formatAuditDate(latestAudit.auditDate)}` : "Not assessed"}
                                 </div>
                               </div>
                             </div>
                           </div>
 
-                          {/* Status Cells */}
-                          {ratings.map((aspect) => (
-                            <div 
-                              key={`${cat.key}-${aspect}`}
-                              className="p-4 flex items-center justify-center bg-white dark:bg-gray-950 border-b border-r min-h-[56px]"
-                            >
+                          {/* Monthly Status Cells */}
+                          {Array.from({ length: 12 }, (_, monthIndex) => {
+                            const monthStatus = getMonthStatus(monthIndex);
+                            return (
                               <div 
-                                className={`w-5 h-5 rounded cursor-pointer transition-transform hover:scale-125 ${getStatusSquareClass(getCategoryRating(cat.key, aspect))}`}
-                                title={`${cat.label} - ${aspect}: ${getCategoryRating(cat.key, aspect)?.replace('_', ' ') || 'Not assessed'}`}
-                                data-testid={`audit-matrix-cell-${cat.key}-${aspect}`}
-                              />
-                              {latestAudit && (
-                                <span className="text-[10px] text-muted-foreground ml-2">
-                                  {new Date(latestAudit.auditDate).toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit' })}
-                                </span>
-                              )}
-                            </div>
-                          ))}
+                                key={`${cat.key}-month-${monthIndex}`}
+                                className="p-2 flex items-center justify-center bg-white dark:bg-gray-950 border-b border-r min-h-[56px]"
+                              >
+                                <div 
+                                  className={`w-5 h-5 rounded cursor-pointer transition-transform hover:scale-125 ${getStatusSquareClass(monthStatus.status)}`}
+                                  title={`${cat.label} - ${['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'][monthIndex]}: ${getStatusLabel(monthStatus.status)}${monthStatus.date ? ` (${formatAuditDate(monthStatus.date)})` : ''}`}
+                                  data-testid={`audit-matrix-cell-${cat.key}-${monthIndex}`}
+                                />
+                              </div>
+                            );
+                          })}
                         </Fragment>
                       );
                     })}
