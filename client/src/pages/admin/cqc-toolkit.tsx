@@ -1261,9 +1261,14 @@ export default function CqcToolkit() {
     queryKey: ["/api/cqc/audits", selectedBranch],
     queryFn: async () => {
       const response = await fetch(`/api/cqc/audits?branch=${encodeURIComponent(selectedBranch)}`, { credentials: 'include' });
-      if (!response.ok) throw new Error('Failed to fetch audits');
+      if (!response.ok) {
+        if (response.status === 401) return [];
+        throw new Error('Failed to fetch audits');
+      }
       return response.json();
     },
+    retry: 3,
+    retryDelay: 500,
   });
 
   const { data: categories = [], isLoading: categoriesLoading } = useQuery<CqcAuditCategory[]>({
