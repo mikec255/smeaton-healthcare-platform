@@ -1,7 +1,7 @@
-import { type User, type InsertUser, type Job, type InsertJob, type Application, type InsertApplication, type ContactSubmission, type InsertContactSubmission, type Feedback, type InsertFeedback, type Newsletter, type InsertNewsletter, type NewsletterBlock, type InsertNewsletterBlock, type Template, type InsertTemplate, type Subscriber, type InsertSubscriber, type Campaign, type InsertCampaign, type Delivery, type InsertDelivery, type BlogCategory, type InsertBlogCategory, type BlogPost, type InsertBlogPost, type AuditLog, type InsertAuditLog, type CqcAudit, type InsertCqcAudit, type CqcAuditCategory, type InsertCqcAuditCategory, type CqcQualityStatement, type InsertCqcQualityStatement, type CqcEvidenceCategory, type InsertCqcEvidenceCategory, type CqcAuditEvidence, type InsertCqcAuditEvidence, type CqcQualityAssessment, type InsertCqcQualityAssessment, type CqcComplianceRecord, type InsertCqcComplianceRecord, type CqcChecklistItem, type InsertCqcChecklistItem, type CqcAuditResponse, type InsertCqcAuditResponse, type KnowledgeQuestionnaire, type InsertKnowledgeQuestionnaire, type KnowledgeQuestion, type InsertKnowledgeQuestion, type KnowledgeSession, type InsertKnowledgeSession, type KnowledgeResponse, type InsertKnowledgeResponse, type KnowledgeAction, type InsertKnowledgeAction, type RecruitmentApplication, type InsertRecruitmentApplication, type ProfessionalReference, type InsertProfessionalReference, type FinanceReport, type InsertFinanceReport, type Client, type InsertClient, type Visit, type InsertVisit, type Run, type InsertRun, type RunStop, type InsertRunStop, type Geocode, type InsertGeocode, type ReferenceRequest, type InsertReferenceRequest, type ServiceImprovementPlanItem, type InsertServiceImprovementPlanItem, type UpdateServiceImprovementPlanItem, type CqcFeedbackCampaign, type InsertCqcFeedbackCampaign, type UpdateCqcFeedbackCampaign, type CqcFeedbackResponse, type InsertCqcFeedbackResponse } from "@shared/schema";
+import { type User, type InsertUser, type Job, type InsertJob, type Application, type InsertApplication, type ContactSubmission, type InsertContactSubmission, type Feedback, type InsertFeedback, type Newsletter, type InsertNewsletter, type NewsletterBlock, type InsertNewsletterBlock, type Template, type InsertTemplate, type Subscriber, type InsertSubscriber, type Campaign, type InsertCampaign, type Delivery, type InsertDelivery, type BlogCategory, type InsertBlogCategory, type BlogPost, type InsertBlogPost, type AuditLog, type InsertAuditLog, type CqcAudit, type InsertCqcAudit, type CqcAuditCategory, type InsertCqcAuditCategory, type CqcQualityStatement, type InsertCqcQualityStatement, type CqcEvidenceCategory, type InsertCqcEvidenceCategory, type CqcAuditEvidence, type InsertCqcAuditEvidence, type CqcQualityAssessment, type InsertCqcQualityAssessment, type CqcComplianceRecord, type InsertCqcComplianceRecord, type CqcChecklistItem, type InsertCqcChecklistItem, type CqcAuditResponse, type InsertCqcAuditResponse, type KnowledgeQuestionnaire, type InsertKnowledgeQuestionnaire, type KnowledgeQuestion, type InsertKnowledgeQuestion, type KnowledgeSession, type InsertKnowledgeSession, type KnowledgeResponse, type InsertKnowledgeResponse, type KnowledgeAction, type InsertKnowledgeAction, type RecruitmentApplication, type InsertRecruitmentApplication, type ProfessionalReference, type InsertProfessionalReference, type FinanceReport, type InsertFinanceReport, type Client, type InsertClient, type Visit, type InsertVisit, type Run, type InsertRun, type RunStop, type InsertRunStop, type Geocode, type InsertGeocode, type ReferenceRequest, type InsertReferenceRequest, type ServiceImprovementPlanItem, type InsertServiceImprovementPlanItem, type UpdateServiceImprovementPlanItem, type CqcFeedbackCampaign, type InsertCqcFeedbackCampaign, type UpdateCqcFeedbackCampaign, type CqcFeedbackResponse, type InsertCqcFeedbackResponse, type AuditScheduleSettings, type InsertAuditScheduleSettings } from "@shared/schema";
 import { randomUUID } from "crypto";
 import { db } from "./db";
-import { users, jobs, applications, contactSubmissions, blogCategories, blogPosts, auditLogs, cqcAudits, cqcAuditCategories, cqcQualityStatements, cqcEvidenceCategories, cqcAuditEvidence, cqcQualityAssessments, cqcComplianceRecords, knowledgeQuestionnaires, knowledgeQuestions, knowledgeSessions, knowledgeResponses, knowledgeActions, recruitmentApplications, professionalReferences, financeReports, clients, visits, runs, runStops, geocodeCache, referenceRequests, serviceImprovementPlanItems, cqcFeedbackCampaigns, cqcFeedbackResponses } from "@shared/schema";
+import { users, jobs, applications, contactSubmissions, blogCategories, blogPosts, auditLogs, cqcAudits, cqcAuditCategories, cqcQualityStatements, cqcEvidenceCategories, cqcAuditEvidence, cqcQualityAssessments, cqcComplianceRecords, knowledgeQuestionnaires, knowledgeQuestions, knowledgeSessions, knowledgeResponses, knowledgeActions, recruitmentApplications, professionalReferences, financeReports, clients, visits, runs, runStops, geocodeCache, referenceRequests, serviceImprovementPlanItems, cqcFeedbackCampaigns, cqcFeedbackResponses, auditScheduleSettings } from "@shared/schema";
 import { eq, and, desc } from "drizzle-orm";
 import bcrypt from "bcryptjs";
 
@@ -313,6 +313,15 @@ export interface IStorage {
     ratingDistribution: Record<number, number>;
     recommendPercentage: number;
   }>;
+  
+  // Audit Schedule Settings
+  getAllAuditScheduleSettings(filters?: { branch?: string }): Promise<AuditScheduleSettings[]>;
+  getAuditScheduleSettings(id: string): Promise<AuditScheduleSettings | undefined>;
+  getAuditScheduleSettingsByCategory(category: string, branch: string): Promise<AuditScheduleSettings | undefined>;
+  createAuditScheduleSettings(settings: InsertAuditScheduleSettings): Promise<AuditScheduleSettings>;
+  updateAuditScheduleSettings(id: string, updates: Partial<InsertAuditScheduleSettings>): Promise<AuditScheduleSettings | undefined>;
+  upsertAuditScheduleSettings(settings: InsertAuditScheduleSettings): Promise<AuditScheduleSettings>;
+  deleteAuditScheduleSettings(id: string): Promise<boolean>;
 }
 
 export class MemStorage implements IStorage {
@@ -2257,6 +2266,58 @@ export class MemStorage implements IStorage {
     };
   }
 
+  // Audit Schedule Settings (MemStorage stubs)
+  private auditScheduleSettingsMap: Map<string, AuditScheduleSettings> = new Map();
+
+  async getAllAuditScheduleSettings(filters?: { branch?: string }): Promise<AuditScheduleSettings[]> {
+    let settings = Array.from(this.auditScheduleSettingsMap.values());
+    if (filters?.branch) settings = settings.filter(s => s.branch === filters.branch);
+    return settings;
+  }
+
+  async getAuditScheduleSettings(id: string): Promise<AuditScheduleSettings | undefined> {
+    return this.auditScheduleSettingsMap.get(id);
+  }
+
+  async getAuditScheduleSettingsByCategory(category: string, branch: string): Promise<AuditScheduleSettings | undefined> {
+    return Array.from(this.auditScheduleSettingsMap.values()).find(s => s.category === category && s.branch === branch);
+  }
+
+  async createAuditScheduleSettings(settings: InsertAuditScheduleSettings): Promise<AuditScheduleSettings> {
+    const id = randomUUID();
+    const now = new Date();
+    const newSettings: AuditScheduleSettings = {
+      id,
+      isActive: true,
+      reminderDays: 14,
+      createdAt: now,
+      updatedAt: now,
+      ...settings,
+    };
+    this.auditScheduleSettingsMap.set(id, newSettings);
+    return newSettings;
+  }
+
+  async updateAuditScheduleSettings(id: string, updates: Partial<InsertAuditScheduleSettings>): Promise<AuditScheduleSettings | undefined> {
+    const existing = this.auditScheduleSettingsMap.get(id);
+    if (!existing) return undefined;
+    const updated: AuditScheduleSettings = { ...existing, ...updates, updatedAt: new Date() };
+    this.auditScheduleSettingsMap.set(id, updated);
+    return updated;
+  }
+
+  async upsertAuditScheduleSettings(settings: InsertAuditScheduleSettings): Promise<AuditScheduleSettings> {
+    const existing = await this.getAuditScheduleSettingsByCategory(settings.category, settings.branch);
+    if (existing) {
+      return (await this.updateAuditScheduleSettings(existing.id, settings))!;
+    }
+    return this.createAuditScheduleSettings(settings);
+  }
+
+  async deleteAuditScheduleSettings(id: string): Promise<boolean> {
+    return this.auditScheduleSettingsMap.delete(id);
+  }
+
 }
 
 // Database storage implementation using Drizzle ORM
@@ -3814,6 +3875,63 @@ export class DrizzleStorage implements IStorage {
       ratingDistribution,
       recommendPercentage: Math.round(recommendPercentage),
     };
+  }
+
+  // Audit Schedule Settings
+  async getAllAuditScheduleSettings(filters?: { branch?: string }): Promise<AuditScheduleSettings[]> {
+    const conditions = [];
+    if (filters?.branch) conditions.push(eq(auditScheduleSettings.branch, filters.branch));
+    
+    const query = conditions.length > 0
+      ? db.select().from(auditScheduleSettings).where(and(...conditions))
+      : db.select().from(auditScheduleSettings);
+    
+    return await query;
+  }
+
+  async getAuditScheduleSettings(id: string): Promise<AuditScheduleSettings | undefined> {
+    const result = await db.select().from(auditScheduleSettings)
+      .where(eq(auditScheduleSettings.id, id))
+      .limit(1);
+    return result[0];
+  }
+
+  async getAuditScheduleSettingsByCategory(category: string, branch: string): Promise<AuditScheduleSettings | undefined> {
+    const result = await db.select().from(auditScheduleSettings)
+      .where(and(
+        eq(auditScheduleSettings.category, category),
+        eq(auditScheduleSettings.branch, branch)
+      ))
+      .limit(1);
+    return result[0];
+  }
+
+  async createAuditScheduleSettings(settings: InsertAuditScheduleSettings): Promise<AuditScheduleSettings> {
+    const result = await db.insert(auditScheduleSettings).values(settings).returning();
+    return result[0];
+  }
+
+  async updateAuditScheduleSettings(id: string, updates: Partial<InsertAuditScheduleSettings>): Promise<AuditScheduleSettings | undefined> {
+    const result = await db.update(auditScheduleSettings)
+      .set({ ...updates, updatedAt: new Date() })
+      .where(eq(auditScheduleSettings.id, id))
+      .returning();
+    return result[0];
+  }
+
+  async upsertAuditScheduleSettings(settings: InsertAuditScheduleSettings): Promise<AuditScheduleSettings> {
+    const existing = await this.getAuditScheduleSettingsByCategory(settings.category, settings.branch);
+    if (existing) {
+      return (await this.updateAuditScheduleSettings(existing.id, settings))!;
+    }
+    return this.createAuditScheduleSettings(settings);
+  }
+
+  async deleteAuditScheduleSettings(id: string): Promise<boolean> {
+    const result = await db.delete(auditScheduleSettings)
+      .where(eq(auditScheduleSettings.id, id))
+      .returning();
+    return result.length > 0;
   }
 }
 
