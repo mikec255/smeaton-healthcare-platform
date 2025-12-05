@@ -1,7 +1,7 @@
-import { type User, type InsertUser, type Job, type InsertJob, type Application, type InsertApplication, type ContactSubmission, type InsertContactSubmission, type Feedback, type InsertFeedback, type Newsletter, type InsertNewsletter, type NewsletterBlock, type InsertNewsletterBlock, type Template, type InsertTemplate, type Subscriber, type InsertSubscriber, type Campaign, type InsertCampaign, type Delivery, type InsertDelivery, type BlogCategory, type InsertBlogCategory, type BlogPost, type InsertBlogPost, type AuditLog, type InsertAuditLog, type CqcAudit, type InsertCqcAudit, type CqcAuditCategory, type InsertCqcAuditCategory, type CqcQualityStatement, type InsertCqcQualityStatement, type CqcEvidenceCategory, type InsertCqcEvidenceCategory, type CqcAuditEvidence, type InsertCqcAuditEvidence, type CqcQualityAssessment, type InsertCqcQualityAssessment, type CqcComplianceRecord, type InsertCqcComplianceRecord, type CqcChecklistItem, type InsertCqcChecklistItem, type CqcAuditResponse, type InsertCqcAuditResponse, type KnowledgeQuestionnaire, type InsertKnowledgeQuestionnaire, type KnowledgeQuestion, type InsertKnowledgeQuestion, type KnowledgeSession, type InsertKnowledgeSession, type KnowledgeResponse, type InsertKnowledgeResponse, type KnowledgeAction, type InsertKnowledgeAction, type RecruitmentApplication, type InsertRecruitmentApplication, type ProfessionalReference, type InsertProfessionalReference, type FinanceReport, type InsertFinanceReport, type Client, type InsertClient, type Visit, type InsertVisit, type Run, type InsertRun, type RunStop, type InsertRunStop, type Geocode, type InsertGeocode, type ReferenceRequest, type InsertReferenceRequest, type ServiceImprovementPlanItem, type InsertServiceImprovementPlanItem, type UpdateServiceImprovementPlanItem } from "@shared/schema";
+import { type User, type InsertUser, type Job, type InsertJob, type Application, type InsertApplication, type ContactSubmission, type InsertContactSubmission, type Feedback, type InsertFeedback, type Newsletter, type InsertNewsletter, type NewsletterBlock, type InsertNewsletterBlock, type Template, type InsertTemplate, type Subscriber, type InsertSubscriber, type Campaign, type InsertCampaign, type Delivery, type InsertDelivery, type BlogCategory, type InsertBlogCategory, type BlogPost, type InsertBlogPost, type AuditLog, type InsertAuditLog, type CqcAudit, type InsertCqcAudit, type CqcAuditCategory, type InsertCqcAuditCategory, type CqcQualityStatement, type InsertCqcQualityStatement, type CqcEvidenceCategory, type InsertCqcEvidenceCategory, type CqcAuditEvidence, type InsertCqcAuditEvidence, type CqcQualityAssessment, type InsertCqcQualityAssessment, type CqcComplianceRecord, type InsertCqcComplianceRecord, type CqcChecklistItem, type InsertCqcChecklistItem, type CqcAuditResponse, type InsertCqcAuditResponse, type KnowledgeQuestionnaire, type InsertKnowledgeQuestionnaire, type KnowledgeQuestion, type InsertKnowledgeQuestion, type KnowledgeSession, type InsertKnowledgeSession, type KnowledgeResponse, type InsertKnowledgeResponse, type KnowledgeAction, type InsertKnowledgeAction, type RecruitmentApplication, type InsertRecruitmentApplication, type ProfessionalReference, type InsertProfessionalReference, type FinanceReport, type InsertFinanceReport, type Client, type InsertClient, type Visit, type InsertVisit, type Run, type InsertRun, type RunStop, type InsertRunStop, type Geocode, type InsertGeocode, type ReferenceRequest, type InsertReferenceRequest, type ServiceImprovementPlanItem, type InsertServiceImprovementPlanItem, type UpdateServiceImprovementPlanItem, type CqcFeedbackCampaign, type InsertCqcFeedbackCampaign, type UpdateCqcFeedbackCampaign, type CqcFeedbackResponse, type InsertCqcFeedbackResponse } from "@shared/schema";
 import { randomUUID } from "crypto";
 import { db } from "./db";
-import { users, jobs, applications, contactSubmissions, blogCategories, blogPosts, auditLogs, cqcAudits, cqcAuditCategories, cqcQualityStatements, cqcEvidenceCategories, cqcAuditEvidence, cqcQualityAssessments, cqcComplianceRecords, knowledgeQuestionnaires, knowledgeQuestions, knowledgeSessions, knowledgeResponses, knowledgeActions, recruitmentApplications, professionalReferences, financeReports, clients, visits, runs, runStops, geocodeCache, referenceRequests, serviceImprovementPlanItems } from "@shared/schema";
+import { users, jobs, applications, contactSubmissions, blogCategories, blogPosts, auditLogs, cqcAudits, cqcAuditCategories, cqcQualityStatements, cqcEvidenceCategories, cqcAuditEvidence, cqcQualityAssessments, cqcComplianceRecords, knowledgeQuestionnaires, knowledgeQuestions, knowledgeSessions, knowledgeResponses, knowledgeActions, recruitmentApplications, professionalReferences, financeReports, clients, visits, runs, runStops, geocodeCache, referenceRequests, serviceImprovementPlanItems, cqcFeedbackCampaigns, cqcFeedbackResponses } from "@shared/schema";
 import { eq, and, desc } from "drizzle-orm";
 import bcrypt from "bcryptjs";
 
@@ -291,6 +291,28 @@ export interface IStorage {
   completeServiceImprovementPlanItem(id: string, completedBy: string): Promise<ServiceImprovementPlanItem | undefined>;
   deleteServiceImprovementPlanItem(id: string): Promise<boolean>;
   getNextSipReferenceNumber(): Promise<string>;
+  
+  // CQC Feedback Campaigns
+  getAllCqcFeedbackCampaigns(filters?: { category?: string; status?: string; branch?: string }): Promise<CqcFeedbackCampaign[]>;
+  getCqcFeedbackCampaign(id: string): Promise<CqcFeedbackCampaign | undefined>;
+  getCqcFeedbackCampaignByToken(token: string): Promise<CqcFeedbackCampaign | undefined>;
+  createCqcFeedbackCampaign(campaign: InsertCqcFeedbackCampaign): Promise<CqcFeedbackCampaign>;
+  updateCqcFeedbackCampaign(id: string, updates: UpdateCqcFeedbackCampaign): Promise<CqcFeedbackCampaign | undefined>;
+  deleteCqcFeedbackCampaign(id: string): Promise<boolean>;
+  
+  // CQC Feedback Responses
+  getAllCqcFeedbackResponses(filters?: { campaignId?: string; branch?: string; source?: string; status?: string }): Promise<CqcFeedbackResponse[]>;
+  getCqcFeedbackResponse(id: string): Promise<CqcFeedbackResponse | undefined>;
+  createCqcFeedbackResponse(response: InsertCqcFeedbackResponse): Promise<CqcFeedbackResponse>;
+  updateCqcFeedbackResponse(id: string, updates: Partial<InsertCqcFeedbackResponse>): Promise<CqcFeedbackResponse | undefined>;
+  deleteCqcFeedbackResponse(id: string): Promise<boolean>;
+  getCqcFeedbackCampaignStats(campaignId: string): Promise<{
+    totalResponses: number;
+    averageRating: number;
+    npsScore: number;
+    ratingDistribution: Record<number, number>;
+    recommendPercentage: number;
+  }>;
 }
 
 export class MemStorage implements IStorage {
@@ -2109,6 +2131,132 @@ export class MemStorage implements IStorage {
     return false;
   }
 
+  // CQC Feedback Campaigns (MemStorage stubs)
+  private feedbackCampaigns: Map<string, CqcFeedbackCampaign> = new Map();
+  private feedbackResponses: Map<string, CqcFeedbackResponse> = new Map();
+
+  async getAllCqcFeedbackCampaigns(filters?: { category?: string; status?: string; branch?: string }): Promise<CqcFeedbackCampaign[]> {
+    let campaigns = Array.from(this.feedbackCampaigns.values());
+    if (filters?.category) campaigns = campaigns.filter(c => c.category === filters.category);
+    if (filters?.status) campaigns = campaigns.filter(c => c.status === filters.status);
+    if (filters?.branch) campaigns = campaigns.filter(c => c.branch === filters.branch);
+    return campaigns.sort((a, b) => new Date(b.createdAt!).getTime() - new Date(a.createdAt!).getTime());
+  }
+
+  async getCqcFeedbackCampaign(id: string): Promise<CqcFeedbackCampaign | undefined> {
+    return this.feedbackCampaigns.get(id);
+  }
+
+  async getCqcFeedbackCampaignByToken(token: string): Promise<CqcFeedbackCampaign | undefined> {
+    return Array.from(this.feedbackCampaigns.values()).find(c => c.linkToken === token);
+  }
+
+  async createCqcFeedbackCampaign(campaign: InsertCqcFeedbackCampaign): Promise<CqcFeedbackCampaign> {
+    const id = randomUUID();
+    const now = new Date();
+    const newCampaign: CqcFeedbackCampaign = {
+      id,
+      responseCount: 0,
+      createdAt: now,
+      updatedAt: now,
+      ...campaign,
+    };
+    this.feedbackCampaigns.set(id, newCampaign);
+    return newCampaign;
+  }
+
+  async updateCqcFeedbackCampaign(id: string, updates: UpdateCqcFeedbackCampaign): Promise<CqcFeedbackCampaign | undefined> {
+    const campaign = this.feedbackCampaigns.get(id);
+    if (!campaign) return undefined;
+    const updated = { ...campaign, ...updates, updatedAt: new Date() };
+    this.feedbackCampaigns.set(id, updated);
+    return updated;
+  }
+
+  async deleteCqcFeedbackCampaign(id: string): Promise<boolean> {
+    return this.feedbackCampaigns.delete(id);
+  }
+
+  async getAllCqcFeedbackResponses(filters?: { campaignId?: string; branch?: string; source?: string; status?: string }): Promise<CqcFeedbackResponse[]> {
+    let responses = Array.from(this.feedbackResponses.values());
+    if (filters?.campaignId) responses = responses.filter(r => r.campaignId === filters.campaignId);
+    if (filters?.branch) responses = responses.filter(r => r.branch === filters.branch);
+    if (filters?.source) responses = responses.filter(r => r.source === filters.source);
+    if (filters?.status) responses = responses.filter(r => r.status === filters.status);
+    return responses.sort((a, b) => new Date(b.createdAt!).getTime() - new Date(a.createdAt!).getTime());
+  }
+
+  async getCqcFeedbackResponse(id: string): Promise<CqcFeedbackResponse | undefined> {
+    return this.feedbackResponses.get(id);
+  }
+
+  async createCqcFeedbackResponse(response: InsertCqcFeedbackResponse): Promise<CqcFeedbackResponse> {
+    const id = randomUUID();
+    const now = new Date();
+    const newResponse: CqcFeedbackResponse = {
+      id,
+      createdAt: now,
+      ...response,
+    };
+    this.feedbackResponses.set(id, newResponse);
+    // Increment campaign response count
+    const campaign = this.feedbackCampaigns.get(response.campaignId);
+    if (campaign) {
+      campaign.responseCount = (campaign.responseCount || 0) + 1;
+      this.feedbackCampaigns.set(response.campaignId, campaign);
+    }
+    return newResponse;
+  }
+
+  async updateCqcFeedbackResponse(id: string, updates: Partial<InsertCqcFeedbackResponse>): Promise<CqcFeedbackResponse | undefined> {
+    const response = this.feedbackResponses.get(id);
+    if (!response) return undefined;
+    const updated = { ...response, ...updates };
+    this.feedbackResponses.set(id, updated);
+    return updated;
+  }
+
+  async deleteCqcFeedbackResponse(id: string): Promise<boolean> {
+    return this.feedbackResponses.delete(id);
+  }
+
+  async getCqcFeedbackCampaignStats(campaignId: string): Promise<{
+    totalResponses: number;
+    averageRating: number;
+    npsScore: number;
+    ratingDistribution: Record<number, number>;
+    recommendPercentage: number;
+  }> {
+    const responses = Array.from(this.feedbackResponses.values()).filter(r => r.campaignId === campaignId);
+    const ratingsWithValue = responses.filter(r => r.overallRating !== null && r.overallRating !== undefined);
+    const npsResponses = responses.filter(r => r.npsScore !== null && r.npsScore !== undefined);
+    const recommendResponses = responses.filter(r => r.wouldRecommend !== null && r.wouldRecommend !== undefined);
+    
+    const ratingDistribution: Record<number, number> = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 };
+    let totalRating = 0;
+    ratingsWithValue.forEach(r => {
+      const rating = r.overallRating!;
+      ratingDistribution[rating] = (ratingDistribution[rating] || 0) + 1;
+      totalRating += rating;
+    });
+    
+    // Calculate NPS: (Promoters - Detractors) / Total * 100
+    const promoters = npsResponses.filter(r => r.npsScore! >= 9).length;
+    const detractors = npsResponses.filter(r => r.npsScore! <= 6).length;
+    const npsScore = npsResponses.length > 0 ? ((promoters - detractors) / npsResponses.length) * 100 : 0;
+    
+    const recommendYes = recommendResponses.filter(r => r.wouldRecommend === true).length;
+    const recommendPercentage = recommendResponses.length > 0 ? (recommendYes / recommendResponses.length) * 100 : 0;
+    
+    return {
+      totalResponses: responses.length,
+      averageRating: ratingsWithValue.length > 0 ? totalRating / ratingsWithValue.length : 0,
+      npsScore: Math.round(npsScore),
+      ratingDistribution,
+      recommendPercentage: Math.round(recommendPercentage),
+    };
+  }
+
 }
 
 // Database storage implementation using Drizzle ORM
@@ -3537,6 +3685,135 @@ export class DrizzleStorage implements IStorage {
     const yearItems = allItems.filter(i => i.referenceNumber.includes(`SIP-${year}`));
     const nextNum = yearItems.length + 1;
     return `SIP-${year}-${String(nextNum).padStart(3, '0')}`;
+  }
+
+  // CQC Feedback Campaigns
+  async getAllCqcFeedbackCampaigns(filters?: { category?: string; status?: string; branch?: string }): Promise<CqcFeedbackCampaign[]> {
+    const conditions = [];
+    if (filters?.category) conditions.push(eq(cqcFeedbackCampaigns.category, filters.category));
+    if (filters?.status) conditions.push(eq(cqcFeedbackCampaigns.status, filters.status));
+    if (filters?.branch) conditions.push(eq(cqcFeedbackCampaigns.branch, filters.branch));
+    
+    const query = conditions.length > 0
+      ? db.select().from(cqcFeedbackCampaigns).where(and(...conditions)).orderBy(desc(cqcFeedbackCampaigns.createdAt))
+      : db.select().from(cqcFeedbackCampaigns).orderBy(desc(cqcFeedbackCampaigns.createdAt));
+    
+    return await query;
+  }
+
+  async getCqcFeedbackCampaign(id: string): Promise<CqcFeedbackCampaign | undefined> {
+    const result = await db.select().from(cqcFeedbackCampaigns)
+      .where(eq(cqcFeedbackCampaigns.id, id))
+      .limit(1);
+    return result[0];
+  }
+
+  async getCqcFeedbackCampaignByToken(token: string): Promise<CqcFeedbackCampaign | undefined> {
+    const result = await db.select().from(cqcFeedbackCampaigns)
+      .where(eq(cqcFeedbackCampaigns.linkToken, token))
+      .limit(1);
+    return result[0];
+  }
+
+  async createCqcFeedbackCampaign(campaign: InsertCqcFeedbackCampaign): Promise<CqcFeedbackCampaign> {
+    const result = await db.insert(cqcFeedbackCampaigns).values(campaign).returning();
+    return result[0];
+  }
+
+  async updateCqcFeedbackCampaign(id: string, updates: UpdateCqcFeedbackCampaign): Promise<CqcFeedbackCampaign | undefined> {
+    const result = await db.update(cqcFeedbackCampaigns)
+      .set({ ...updates, updatedAt: new Date() })
+      .where(eq(cqcFeedbackCampaigns.id, id))
+      .returning();
+    return result[0];
+  }
+
+  async deleteCqcFeedbackCampaign(id: string): Promise<boolean> {
+    const result = await db.delete(cqcFeedbackCampaigns).where(eq(cqcFeedbackCampaigns.id, id)).returning();
+    return result.length > 0;
+  }
+
+  // CQC Feedback Responses
+  async getAllCqcFeedbackResponses(filters?: { campaignId?: string; branch?: string; source?: string; status?: string }): Promise<CqcFeedbackResponse[]> {
+    const conditions = [];
+    if (filters?.campaignId) conditions.push(eq(cqcFeedbackResponses.campaignId, filters.campaignId));
+    if (filters?.branch) conditions.push(eq(cqcFeedbackResponses.branch, filters.branch));
+    if (filters?.source) conditions.push(eq(cqcFeedbackResponses.source, filters.source));
+    if (filters?.status) conditions.push(eq(cqcFeedbackResponses.status, filters.status));
+    
+    const query = conditions.length > 0
+      ? db.select().from(cqcFeedbackResponses).where(and(...conditions)).orderBy(desc(cqcFeedbackResponses.createdAt))
+      : db.select().from(cqcFeedbackResponses).orderBy(desc(cqcFeedbackResponses.createdAt));
+    
+    return await query;
+  }
+
+  async getCqcFeedbackResponse(id: string): Promise<CqcFeedbackResponse | undefined> {
+    const result = await db.select().from(cqcFeedbackResponses)
+      .where(eq(cqcFeedbackResponses.id, id))
+      .limit(1);
+    return result[0];
+  }
+
+  async createCqcFeedbackResponse(response: InsertCqcFeedbackResponse): Promise<CqcFeedbackResponse> {
+    const result = await db.insert(cqcFeedbackResponses).values(response).returning();
+    // Increment campaign response count
+    await db.update(cqcFeedbackCampaigns)
+      .set({ responseCount: db.select({ count: cqcFeedbackResponses.id }).from(cqcFeedbackResponses).where(eq(cqcFeedbackResponses.campaignId, response.campaignId)) as any })
+      .where(eq(cqcFeedbackCampaigns.id, response.campaignId));
+    return result[0];
+  }
+
+  async updateCqcFeedbackResponse(id: string, updates: Partial<InsertCqcFeedbackResponse>): Promise<CqcFeedbackResponse | undefined> {
+    const result = await db.update(cqcFeedbackResponses)
+      .set(updates)
+      .where(eq(cqcFeedbackResponses.id, id))
+      .returning();
+    return result[0];
+  }
+
+  async deleteCqcFeedbackResponse(id: string): Promise<boolean> {
+    const result = await db.delete(cqcFeedbackResponses).where(eq(cqcFeedbackResponses.id, id)).returning();
+    return result.length > 0;
+  }
+
+  async getCqcFeedbackCampaignStats(campaignId: string): Promise<{
+    totalResponses: number;
+    averageRating: number;
+    npsScore: number;
+    ratingDistribution: Record<number, number>;
+    recommendPercentage: number;
+  }> {
+    const responses = await db.select().from(cqcFeedbackResponses)
+      .where(eq(cqcFeedbackResponses.campaignId, campaignId));
+    
+    const ratingsWithValue = responses.filter(r => r.overallRating !== null && r.overallRating !== undefined);
+    const npsResponses = responses.filter(r => r.npsScore !== null && r.npsScore !== undefined);
+    const recommendResponses = responses.filter(r => r.wouldRecommend !== null && r.wouldRecommend !== undefined);
+    
+    const ratingDistribution: Record<number, number> = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 };
+    let totalRating = 0;
+    ratingsWithValue.forEach(r => {
+      const rating = r.overallRating!;
+      ratingDistribution[rating] = (ratingDistribution[rating] || 0) + 1;
+      totalRating += rating;
+    });
+    
+    // Calculate NPS: (Promoters - Detractors) / Total * 100
+    const promoters = npsResponses.filter(r => r.npsScore! >= 9).length;
+    const detractors = npsResponses.filter(r => r.npsScore! <= 6).length;
+    const npsScore = npsResponses.length > 0 ? ((promoters - detractors) / npsResponses.length) * 100 : 0;
+    
+    const recommendYes = recommendResponses.filter(r => r.wouldRecommend === true).length;
+    const recommendPercentage = recommendResponses.length > 0 ? (recommendYes / recommendResponses.length) * 100 : 0;
+    
+    return {
+      totalResponses: responses.length,
+      averageRating: ratingsWithValue.length > 0 ? totalRating / ratingsWithValue.length : 0,
+      npsScore: Math.round(npsScore),
+      ratingDistribution,
+      recommendPercentage: Math.round(recommendPercentage),
+    };
   }
 }
 

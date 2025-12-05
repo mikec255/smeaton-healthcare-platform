@@ -1324,3 +1324,134 @@ export const updateServiceImprovementPlanItemSchema = createInsertSchema(service
 export type InsertServiceImprovementPlanItem = z.infer<typeof insertServiceImprovementPlanItemSchema>;
 export type UpdateServiceImprovementPlanItem = z.infer<typeof updateServiceImprovementPlanItemSchema>;
 export type ServiceImprovementPlanItem = typeof serviceImprovementPlanItems.$inferSelect;
+
+// CQC Feedback Campaigns - For collecting structured feedback (C=Caring, S=Safe, P=People, F=Friends & Family)
+export const cqcFeedbackCampaigns = pgTable("cqc_feedback_campaigns", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  name: text("name").notNull(),
+  description: text("description"),
+  branch: text("branch").notNull().default("Plymouth"), // Plymouth, Truro
+  
+  // Feedback category: C (Caring), S (Safe), P (People/Staff), F (Friends & Family)
+  category: text("category").notNull(), // C, S, P, F
+  
+  // Campaign settings
+  status: text("status").notNull().default("draft"), // draft, active, paused, closed
+  startDate: timestamp("start_date"),
+  endDate: timestamp("end_date"),
+  
+  // Public link token for collecting responses
+  linkToken: text("link_token").notNull().unique(),
+  
+  // Custom questions (optional - stored as JSON array)
+  customQuestions: json("custom_questions").$type<Array<{
+    id: string;
+    question: string;
+    type: "rating" | "text" | "choice";
+    required: boolean;
+    options?: string[]; // For choice type
+  }>>(),
+  
+  // Response count cache for performance
+  responseCount: integer("response_count").default(0),
+  
+  // Metadata
+  createdBy: varchar("created_by").references(() => users.id),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// CQC Feedback Responses - Individual feedback entries
+export const cqcFeedbackResponses = pgTable("cqc_feedback_responses", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  campaignId: varchar("campaign_id").references(() => cqcFeedbackCampaigns.id, { onDelete: "cascade" }).notNull(),
+  branch: text("branch").notNull().default("Plymouth"), // Inherited from campaign
+  
+  // Source of feedback
+  source: text("source").notNull().default("link"), // link, manual, email, phone, in_person, letter
+  
+  // Respondent information (optional for anonymous submissions)
+  respondentName: text("respondent_name"),
+  respondentEmail: text("respondent_email"),
+  respondentPhone: text("respondent_phone"),
+  respondentRelationship: text("respondent_relationship"), // service_user, family_member, carer, staff, professional
+  
+  // When feedback was received (for manual entries)
+  receivedAt: timestamp("received_at").defaultNow(),
+  
+  // Rating (1-5 stars)
+  overallRating: integer("overall_rating"), // 1-5
+  
+  // Category-specific ratings
+  categoryRatings: json("category_ratings").$type<Record<string, number>>(), // e.g., { "compassion": 5, "dignity": 4 }
+  
+  // Free text feedback
+  positiveComments: text("positive_comments"),
+  improvementComments: text("improvement_comments"),
+  additionalComments: text("additional_comments"),
+  
+  // Custom question responses
+  customResponses: json("custom_responses").$type<Record<string, any>>(),
+  
+  // Net Promoter Score (0-10)
+  npsScore: integer("nps_score"),
+  
+  // Would recommend? (boolean for simpler analysis)
+  wouldRecommend: boolean("would_recommend"),
+  
+  // Consent
+  consentToContact: boolean("consent_to_contact").default(false),
+  consentToPublish: boolean("consent_to_publish").default(false),
+  
+  // Admin processing
+  status: text("status").default("new"), // new, reviewed, actioned, closed
+  adminNotes: text("admin_notes"),
+  actionTaken: text("action_taken"),
+  
+  // File attachment for manual entries (e.g., scanned email)
+  attachmentPath: text("attachment_path"),
+  
+  // Metadata
+  submittedVia: text("submitted_via").default("web"), // web, admin, import
+  ipAddress: text("ip_address"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const insertCqcFeedbackCampaignSchema = createInsertSchema(cqcFeedbackCampaigns).omit({
+  id: true,
+  responseCount: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const updateCqcFeedbackCampaignSchema = createInsertSchema(cqcFeedbackCampaigns).omit({
+  id: true,
+  createdAt: true,
+}).partial();
+
+export const insertCqcFeedbackResponseSchema = createInsertSchema(cqcFeedbackResponses).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const publicFeedbackSubmissionSchema = z.object({
+  overallRating: z.number().min(1).max(5).optional(),
+  npsScore: z.number().min(0).max(10).optional(),
+  wouldRecommend: z.boolean().optional(),
+  positiveComments: z.string().optional(),
+  improvementComments: z.string().optional(),
+  additionalComments: z.string().optional(),
+  respondentName: z.string().optional(),
+  respondentEmail: z.string().email().optional().or(z.literal("")),
+  respondentRelationship: z.string().optional(),
+  consentToContact: z.boolean().optional(),
+  consentToPublish: z.boolean().optional(),
+  customResponses: z.record(z.any()).optional(),
+});
+
+export type InsertCqcFeedbackCampaign = z.infer<typeof insertCqcFeedbackCampaignSchema>;
+export type UpdateCqcFeedbackCampaign = z.infer<typeof updateCqcFeedbackCampaignSchema>;
+export type CqcFeedbackCampaign = typeof cqcFeedbackCampaigns.$inferSelect;
+export type InsertCqcFeedbackResponse = z.infer<typeof insertCqcFeedbackResponseSchema>;
+export type CqcFeedbackResponse = typeof cqcFeedbackResponses.$inferSelect;
+export type PublicFeedbackSubmission = z.infer<typeof publicFeedbackSubmissionSchema>;
