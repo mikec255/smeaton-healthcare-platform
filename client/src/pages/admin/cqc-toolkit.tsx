@@ -3366,7 +3366,7 @@ Delivering outstanding healthcare across Devon & Cornwall`;
                             <h3 className="font-semibold text-blue-900 dark:text-blue-100">Regulation 17: Good Governance</h3>
                             <p className="text-sm text-blue-700 dark:text-blue-300">QA systems, policies, records, risk management</p>
                           </div>
-                          <Badge className="ml-auto bg-blue-200 text-blue-800 dark:bg-blue-800 dark:text-blue-200">1 Audit</Badge>
+                          <Badge className="ml-auto bg-blue-200 text-blue-800 dark:bg-blue-800 dark:text-blue-200">2 Audits</Badge>
                         </div>
                       </AccordionTrigger>
                       <AccordionContent className="px-4 pb-4">
@@ -3377,6 +3377,16 @@ Delivering outstanding healthcare across Devon & Cornwall`;
                                 <CardContent className="p-4">
                                   <h4 className="font-medium">Governance Audit</h4>
                                   <p className="text-sm text-muted-foreground mt-1">Leadership oversight and systems</p>
+                                </CardContent>
+                              </Card>
+                            </DialogTrigger>
+                          </Dialog>
+                          <Dialog open={statementOfPurposeAuditOpen} onOpenChange={setStatementOfPurposeAuditOpen}>
+                            <DialogTrigger asChild>
+                              <Card className="cursor-pointer hover:shadow-md transition-shadow border border-blue-200">
+                                <CardContent className="p-4">
+                                  <h4 className="font-medium">Statement of Purpose</h4>
+                                  <p className="text-sm text-muted-foreground mt-1">SOP review and version control</p>
                                 </CardContent>
                               </Card>
                             </DialogTrigger>
