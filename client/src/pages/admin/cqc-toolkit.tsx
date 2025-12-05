@@ -2908,11 +2908,7 @@ Delivering outstanding healthcare across Devon & Cornwall`;
                     <div className="w-4 h-4 rounded bg-red-500"></div>
                     <span className="text-xs font-medium">Overdue</span>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <div className="w-4 h-4 rounded bg-gray-300 dark:bg-gray-600"></div>
-                    <span className="text-xs font-medium">Not Scheduled</span>
                   </div>
-                </div>
               </div>
 
               {/* Single Matrix with Filter */}
@@ -3038,7 +3034,7 @@ Delivering outstanding healthcare across Devon & Cornwall`;
                             case 'due_soon': return 'bg-amber-500';
                             case 'overdue': return 'bg-red-500';
                             case 'scheduled': return 'bg-gray-400 dark:bg-gray-500';
-                            default: return 'bg-gray-300 dark:bg-gray-600';
+                            default: return 'bg-transparent';
                           }
                         };
 
