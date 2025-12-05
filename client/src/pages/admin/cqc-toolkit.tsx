@@ -416,8 +416,15 @@ const EVIDENCE_CATEGORY_COLORS: Record<string, string> = {
 };
 
 
+// Branch options for multi-location support
+const BRANCH_OPTIONS = [
+  { value: "Plymouth", label: "Plymouth" },
+  { value: "Truro", label: "Truro" },
+];
+
 export default function CqcToolkit() {
   const [activeTab, setActiveTab] = useState("dashboard");
+  const [selectedBranch, setSelectedBranch] = useState("Plymouth");
   const [createAuditOpen, setCreateAuditOpen] = useState(false);
   const [createRecordOpen, setCreateRecordOpen] = useState(false);
   const [createQuestionnaireOpen, setCreateQuestionnaireOpen] = useState(false);
@@ -466,8 +473,14 @@ export default function CqcToolkit() {
   const currentUser = authData?.user;
 
   // Queries - using single URL format for default fetcher compatibility
+  // All queries now filter by selectedBranch
   const { data: audits = [], isLoading: auditsLoading, error: auditsError } = useQuery<CqcAudit[]>({
-    queryKey: ["/api/cqc/audits"],
+    queryKey: ["/api/cqc/audits", selectedBranch],
+    queryFn: async () => {
+      const response = await fetch(`/api/cqc/audits?branch=${encodeURIComponent(selectedBranch)}`, { credentials: 'include' });
+      if (!response.ok) throw new Error('Failed to fetch audits');
+      return response.json();
+    },
   });
 
   const { data: categories = [], isLoading: categoriesLoading } = useQuery<CqcAuditCategory[]>({
@@ -475,7 +488,12 @@ export default function CqcToolkit() {
   });
 
   const { data: complianceRecords = [], isLoading: recordsLoading, error: recordsError } = useQuery<CqcComplianceRecord[]>({
-    queryKey: ["/api/cqc/compliance-records"],
+    queryKey: ["/api/cqc/compliance-records", selectedBranch],
+    queryFn: async () => {
+      const response = await fetch(`/api/cqc/compliance-records?branch=${encodeURIComponent(selectedBranch)}`, { credentials: 'include' });
+      if (!response.ok) throw new Error('Failed to fetch compliance records');
+      return response.json();
+    },
   });
 
   const { data: knowledgeQuestionnaires = [], isLoading: questionnairesLoading, error: questionnairesError } = useQuery<KnowledgeQuestionnaire[]>({
@@ -512,10 +530,11 @@ export default function CqcToolkit() {
   const sipQueryParams = new URLSearchParams();
   if (sipFilter.status) sipQueryParams.append('status', sipFilter.status);
   if (sipFilter.priority) sipQueryParams.append('priority', sipFilter.priority);
-  const sipQueryString = sipQueryParams.toString() ? `?${sipQueryParams.toString()}` : '';
+  sipQueryParams.append('branch', selectedBranch);
+  const sipQueryString = `?${sipQueryParams.toString()}`;
   
   const { data: sipItems = [], isLoading: sipItemsLoading, error: sipItemsError } = useQuery<ServiceImprovementPlanItem[]>({
-    queryKey: ["/api/admin/sip", sipFilter],
+    queryKey: ["/api/admin/sip", sipFilter, selectedBranch],
     queryFn: async () => {
       const response = await fetch(`/api/admin/sip${sipQueryString}`, { credentials: 'include' });
       if (!response.ok) throw new Error('Failed to fetch SIP items');
@@ -547,12 +566,13 @@ export default function CqcToolkit() {
     },
   });
 
-  // Mutations
+  // Mutations - now include branch for multi-location support
   const createAuditMutation = useMutation({
     mutationFn: async (data: CreateAuditFormData): Promise<CqcAudit> => {
-      // Convert string dates to Date objects for API
+      // Convert string dates to Date objects for API and include branch
       const auditData = {
         ...data,
+        branch: selectedBranch,
         auditDate: new Date(data.auditDate),
         nextAuditDue: data.nextAuditDue ? new Date(data.nextAuditDue) : null,
       };
@@ -561,7 +581,7 @@ export default function CqcToolkit() {
       return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/cqc/audits"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/cqc/audits", selectedBranch] });
       setCreateAuditOpen(false);
       auditForm.reset();
       toast({ title: "Success", description: "Audit created successfully" });
@@ -574,9 +594,10 @@ export default function CqcToolkit() {
 
   const createRecordMutation = useMutation({
     mutationFn: async (data: CreateComplianceRecordFormData): Promise<CqcComplianceRecord> => {
-      // Convert string dates to Date objects for API
+      // Convert string dates to Date objects for API and include branch
       const recordData = {
         ...data,
+        branch: selectedBranch,
         issueDate: data.issueDate ? new Date(data.issueDate) : null,
         expiryDate: data.expiryDate ? new Date(data.expiryDate) : null,
         renewalDue: data.renewalDue ? new Date(data.renewalDue) : null,
@@ -586,7 +607,7 @@ export default function CqcToolkit() {
       return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/cqc/compliance-records"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/cqc/compliance-records", selectedBranch] });
       setCreateRecordOpen(false);
       recordForm.reset();
       toast({ title: "Success", description: "Compliance record created successfully" });
@@ -631,14 +652,14 @@ export default function CqcToolkit() {
     },
   });
 
-  // Service Improvement Plan mutations
+  // Service Improvement Plan mutations - include branch for multi-location support
   const createSipMutation = useMutation({
     mutationFn: async (data: SipFormData): Promise<ServiceImprovementPlanItem> => {
-      const response = await apiRequest('POST', '/api/admin/sip', data);
+      const response = await apiRequest('POST', '/api/admin/sip', { ...data, branch: selectedBranch });
       return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/admin/sip"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/sip", sipFilter, selectedBranch] });
       setSipDialogOpen(false);
       sipForm.reset();
       toast({ title: "Success", description: "Improvement item added to plan" });
@@ -652,7 +673,7 @@ export default function CqcToolkit() {
   // Silent SIP mutation for batch creation from audit forms (no dialog side effects)
   const createSipSilentMutation = useMutation({
     mutationFn: async (data: SipFormData): Promise<ServiceImprovementPlanItem> => {
-      const response = await apiRequest('POST', '/api/admin/sip', data);
+      const response = await apiRequest('POST', '/api/admin/sip', { ...data, branch: selectedBranch });
       return response.json();
     },
   });
@@ -663,7 +684,7 @@ export default function CqcToolkit() {
       return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/admin/sip"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/sip", sipFilter, selectedBranch] });
       setSipDialogOpen(false);
       setEditingSipItem(null);
       sipForm.reset();
@@ -681,7 +702,7 @@ export default function CqcToolkit() {
       return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/admin/sip"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/sip", sipFilter, selectedBranch] });
       toast({ title: "Success", description: "Improvement item marked as completed" });
     },
     onError: (error: Error) => {
@@ -695,7 +716,7 @@ export default function CqcToolkit() {
       await apiRequest('DELETE', `/api/admin/sip/${id}`);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/admin/sip"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/sip", sipFilter, selectedBranch] });
       toast({ title: "Success", description: "Improvement item deleted" });
     },
     onError: (error: Error) => {
@@ -706,12 +727,13 @@ export default function CqcToolkit() {
 
   const createInsuranceAuditMutation = useMutation({
     mutationFn: async (data: InsuranceAuditFormData): Promise<void> => {
-      // First create the audit record
+      // First create the audit record with branch
       const auditData = {
         title: "Insurance Audit",
         auditType: "compliance_specific",
         serviceType: "administrative",
         keyQuestion: "well_led",
+        branch: selectedBranch,
         auditDate: new Date().toISOString(),
         auditorId: currentUser?.id || "unknown-auditor", // Provide fallback for missing session
         auditorName: currentUser?.username || "Unknown",
@@ -766,7 +788,7 @@ export default function CqcToolkit() {
       }
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/cqc/audits"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/cqc/audits", selectedBranch] });
       queryClient.invalidateQueries({ queryKey: ["/api/cqc/audit-evidence"] });
       setInsuranceAuditOpen(false);
       setSelectedEvidenceFiles([]);
@@ -796,6 +818,7 @@ export default function CqcToolkit() {
         category,
         serviceType: "domiciliary_care",
         keyQuestion,
+        branch: selectedBranch,
         auditDate: new Date().toISOString(),
         auditorId: currentUser?.id || "unknown-auditor",
         auditorName: currentUser?.username || "Unknown Auditor",
@@ -808,7 +831,7 @@ export default function CqcToolkit() {
       await apiRequest('POST', '/api/cqc/audits', auditData);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/cqc/audits"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/cqc/audits", selectedBranch] });
       toast({ title: "Success", description: "Audit saved successfully" });
     },
     onError: (error: Error) => {
@@ -1576,7 +1599,22 @@ Delivering outstanding healthcare across Devon & Cornwall`;
             Comprehensive CQC compliance management for healthcare staffing agencies
           </p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex gap-3 items-center">
+          <div className="flex items-center gap-2">
+            <Building2 className="h-4 w-4 text-gray-500" />
+            <Select value={selectedBranch} onValueChange={setSelectedBranch}>
+              <SelectTrigger className="w-[150px]" data-testid="select-branch">
+                <SelectValue placeholder="Select branch" />
+              </SelectTrigger>
+              <SelectContent>
+                {BRANCH_OPTIONS.map((branch) => (
+                  <SelectItem key={branch.value} value={branch.value}>
+                    {branch.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
           <Dialog open={createAuditOpen} onOpenChange={setCreateAuditOpen}>
             <DialogTrigger asChild>
               <Button data-testid="button-create-audit">
