@@ -904,7 +904,7 @@ export default function CqcToolkit() {
     const failCount = results.filter(r => r.status === 'rejected').length;
 
     if (successCount > 0) {
-      queryClient.invalidateQueries({ queryKey: ["/api/admin/sip"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/sip", sipFilter, selectedBranch] });
     }
     if (failCount > 0) {
       console.error(`Failed to add ${failCount} SIP item(s)`);
