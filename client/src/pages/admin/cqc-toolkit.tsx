@@ -16,7 +16,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { Plus, FileCheck, Shield, Users, Clock, AlertTriangle, CheckCircle, XCircle, Calendar, Download, Edit, Trash2, Brain, QrCode, Mail, PlayCircle, Eye, Upload, Camera, FileText, Award, MessageSquare, BarChart3, ClipboardCheck, X } from "lucide-react";
+import { Plus, FileCheck, Shield, Users, Clock, AlertTriangle, CheckCircle, XCircle, Calendar, Download, Edit, Trash2, Brain, QrCode, Mail, PlayCircle, Eye, Upload, Camera, FileText, Award, MessageSquare, BarChart3, ClipboardCheck, X, Star } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { DashboardModal } from '@uppy/react';
@@ -421,6 +421,712 @@ const BRANCH_OPTIONS = [
   { value: "Plymouth", label: "Plymouth" },
   { value: "Truro", label: "Truro" },
 ];
+
+// CQC Feedback Category Configuration
+const FEEDBACK_CATEGORIES = {
+  C: { label: "Caring", color: "bg-rose-500", description: "Compassionate care and emotional support" },
+  S: { label: "Safe", color: "bg-emerald-500", description: "Safety, risk management, and safeguarding" },
+  P: { label: "People", color: "bg-blue-500", description: "Staff competence and person-centred care" },
+  F: { label: "Friends & Family", color: "bg-amber-500", description: "Recommendation and overall satisfaction" },
+} as const;
+
+interface FeedbackCampaign {
+  id: string;
+  name: string;
+  description?: string;
+  branch: string;
+  category: "C" | "S" | "P" | "F";
+  status: "draft" | "active" | "paused" | "closed";
+  startDate?: Date;
+  endDate?: Date;
+  linkToken: string;
+  responseCount: number;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+interface FeedbackResponse {
+  id: string;
+  campaignId: string;
+  branch: string;
+  source: string;
+  overallRating?: number;
+  npsScore?: number;
+  wouldRecommend?: boolean;
+  positiveComments?: string;
+  improvementComments?: string;
+  status: string;
+  createdAt: Date;
+}
+
+interface FeedbackStats {
+  totalResponses: number;
+  averageRating: number;
+  npsScore: number;
+  ratingDistribution: Record<number, number>;
+  recommendPercentage: number;
+}
+
+function FeedbackTab({ branch }: { branch: string }) {
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
+  const [createCampaignOpen, setCreateCampaignOpen] = useState(false);
+  const [selectedCampaign, setSelectedCampaign] = useState<FeedbackCampaign | null>(null);
+  const [viewResponses, setViewResponses] = useState(false);
+  const [addManualResponse, setAddManualResponse] = useState(false);
+  const [categoryFilter, setCategoryFilter] = useState<string>("all");
+  const [statusFilter, setStatusFilter] = useState<string>("all");
+
+  const campaignSchema = z.object({
+    name: z.string().min(1, "Campaign name is required"),
+    description: z.string().optional(),
+    category: z.enum(["C", "S", "P", "F"]),
+    status: z.enum(["draft", "active", "paused", "closed"]).default("draft"),
+    startDate: z.string().optional(),
+    endDate: z.string().optional(),
+  });
+
+  const manualResponseSchema = z.object({
+    source: z.enum(["manual", "email", "phone", "in_person", "letter"]),
+    overallRating: z.coerce.number().min(1).max(5).optional(),
+    npsScore: z.coerce.number().min(0).max(10).optional(),
+    wouldRecommend: z.string().optional().transform(v => v === "yes" ? true : v === "no" ? false : undefined),
+    positiveComments: z.string().optional(),
+    improvementComments: z.string().optional(),
+    respondentName: z.string().optional(),
+    respondentRelationship: z.string().optional(),
+    adminNotes: z.string().optional(),
+  });
+
+  const campaignForm = useForm<z.infer<typeof campaignSchema>>({
+    resolver: zodResolver(campaignSchema),
+    defaultValues: {
+      name: "",
+      description: "",
+      category: "F",
+      status: "draft",
+      startDate: "",
+      endDate: "",
+    },
+  });
+
+  const manualResponseForm = useForm<z.infer<typeof manualResponseSchema>>({
+    resolver: zodResolver(manualResponseSchema),
+    defaultValues: {
+      source: "manual",
+      overallRating: undefined,
+      npsScore: undefined,
+      wouldRecommend: undefined,
+      positiveComments: "",
+      improvementComments: "",
+      respondentName: "",
+      respondentRelationship: "",
+      adminNotes: "",
+    },
+  });
+
+  const { data: campaigns = [], isLoading: loadingCampaigns } = useQuery<FeedbackCampaign[]>({
+    queryKey: ["/api/cqc/feedback/campaigns", branch, categoryFilter, statusFilter],
+    queryFn: async () => {
+      const params = new URLSearchParams({ branch });
+      if (categoryFilter !== "all") params.append("category", categoryFilter);
+      if (statusFilter !== "all") params.append("status", statusFilter);
+      const res = await fetch(`/api/cqc/feedback/campaigns?${params}`, { credentials: "include" });
+      if (!res.ok) throw new Error("Failed to fetch campaigns");
+      return res.json();
+    },
+  });
+
+  const { data: campaignStats } = useQuery<FeedbackStats>({
+    queryKey: ["/api/cqc/feedback/campaigns", selectedCampaign?.id, "stats"],
+    queryFn: async () => {
+      const res = await fetch(`/api/cqc/feedback/campaigns/${selectedCampaign?.id}/stats`, { credentials: "include" });
+      if (!res.ok) throw new Error("Failed to fetch stats");
+      return res.json();
+    },
+    enabled: !!selectedCampaign,
+  });
+
+  const { data: campaignResponses = [] } = useQuery<FeedbackResponse[]>({
+    queryKey: ["/api/cqc/feedback/campaigns", selectedCampaign?.id, "responses"],
+    queryFn: async () => {
+      const res = await fetch(`/api/cqc/feedback/campaigns/${selectedCampaign?.id}/responses`, { credentials: "include" });
+      if (!res.ok) throw new Error("Failed to fetch responses");
+      return res.json();
+    },
+    enabled: !!selectedCampaign && viewResponses,
+  });
+
+  const createCampaignMutation = useMutation({
+    mutationFn: async (data: z.infer<typeof campaignSchema>) => {
+      return await apiRequest("POST", "/api/cqc/feedback/campaigns", { ...data, branch });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/cqc/feedback/campaigns", branch] });
+      setCreateCampaignOpen(false);
+      campaignForm.reset();
+      toast({ title: "Campaign Created", description: "Your feedback campaign has been created successfully." });
+    },
+    onError: (error: Error) => {
+      toast({ title: "Error", description: error.message, variant: "destructive" });
+    },
+  });
+
+  const updateCampaignMutation = useMutation({
+    mutationFn: async ({ id, data }: { id: string; data: Partial<FeedbackCampaign> }) => {
+      return await apiRequest("PUT", `/api/cqc/feedback/campaigns/${id}`, data);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/cqc/feedback/campaigns", branch] });
+      toast({ title: "Campaign Updated", description: "Campaign status has been updated." });
+    },
+    onError: (error: Error) => {
+      toast({ title: "Error", description: error.message, variant: "destructive" });
+    },
+  });
+
+  const deleteCampaignMutation = useMutation({
+    mutationFn: async (id: string) => {
+      return await apiRequest("DELETE", `/api/cqc/feedback/campaigns/${id}`);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/cqc/feedback/campaigns", branch] });
+      setSelectedCampaign(null);
+      toast({ title: "Campaign Deleted", description: "The campaign has been deleted." });
+    },
+    onError: (error: Error) => {
+      toast({ title: "Error", description: error.message, variant: "destructive" });
+    },
+  });
+
+  const addManualResponseMutation = useMutation({
+    mutationFn: async (data: z.infer<typeof manualResponseSchema>) => {
+      return await apiRequest("POST", `/api/cqc/feedback/campaigns/${selectedCampaign?.id}/responses`, data);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/cqc/feedback/campaigns", selectedCampaign?.id, "responses"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/cqc/feedback/campaigns", selectedCampaign?.id, "stats"] });
+      setAddManualResponse(false);
+      manualResponseForm.reset();
+      toast({ title: "Response Added", description: "Manual feedback response has been recorded." });
+    },
+    onError: (error: Error) => {
+      toast({ title: "Error", description: error.message, variant: "destructive" });
+    },
+  });
+
+  const copyLinkToClipboard = (token: string) => {
+    const url = `${window.location.origin}/feedback/${token}`;
+    navigator.clipboard.writeText(url);
+    toast({ title: "Link Copied", description: "Feedback form link has been copied to clipboard." });
+  };
+
+  return (
+    <div className="space-y-6">
+      {/* Header with Create Button */}
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <div>
+          <h2 className="text-xl font-semibold flex items-center gap-2">
+            <MessageSquare className="h-5 w-5 text-primary" />
+            CQC Feedback Collection
+          </h2>
+          <p className="text-sm text-muted-foreground mt-1">
+            Collect and analyse feedback aligned with CQC quality domains (C/S/P/F)
+          </p>
+        </div>
+
+        <Dialog open={createCampaignOpen} onOpenChange={setCreateCampaignOpen}>
+          <DialogTrigger asChild>
+            <Button data-testid="button-create-campaign">
+              <Plus className="h-4 w-4 mr-2" />
+              New Campaign
+            </Button>
+          </DialogTrigger>
+          <DialogContent className="max-w-lg">
+            <DialogHeader>
+              <DialogTitle>Create Feedback Campaign</DialogTitle>
+              <DialogDescription>
+                Set up a new feedback collection campaign for a CQC quality domain.
+              </DialogDescription>
+            </DialogHeader>
+            <Form {...campaignForm}>
+              <form onSubmit={campaignForm.handleSubmit((data) => createCampaignMutation.mutate(data))} className="space-y-4">
+                <FormField
+                  control={campaignForm.control}
+                  name="name"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Campaign Name</FormLabel>
+                      <FormControl>
+                        <Input {...field} placeholder="e.g., Q4 2025 Friends & Family Survey" data-testid="input-campaign-name" />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={campaignForm.control}
+                  name="description"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Description (Optional)</FormLabel>
+                      <FormControl>
+                        <Textarea {...field} rows={2} placeholder="Brief description of this campaign" data-testid="input-campaign-description" />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={campaignForm.control}
+                  name="category"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>CQC Domain</FormLabel>
+                      <Select onValueChange={field.onChange} defaultValue={field.value}>
+                        <FormControl>
+                          <SelectTrigger data-testid="select-campaign-category">
+                            <SelectValue placeholder="Select domain" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {Object.entries(FEEDBACK_CATEGORIES).map(([key, cat]) => (
+                            <SelectItem key={key} value={key}>
+                              <span className="flex items-center gap-2">
+                                <span className={`w-2 h-2 rounded-full ${cat.color}`}></span>
+                                {cat.label}
+                              </span>
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <div className="grid grid-cols-2 gap-4">
+                  <FormField
+                    control={campaignForm.control}
+                    name="startDate"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Start Date</FormLabel>
+                        <FormControl>
+                          <Input type="date" {...field} data-testid="input-campaign-start" />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={campaignForm.control}
+                    name="endDate"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>End Date</FormLabel>
+                        <FormControl>
+                          <Input type="date" {...field} data-testid="input-campaign-end" />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+                <div className="flex justify-end gap-2 pt-4">
+                  <Button type="button" variant="outline" onClick={() => setCreateCampaignOpen(false)}>
+                    Cancel
+                  </Button>
+                  <Button type="submit" disabled={createCampaignMutation.isPending} data-testid="button-submit-campaign">
+                    {createCampaignMutation.isPending ? "Creating..." : "Create Campaign"}
+                  </Button>
+                </div>
+              </form>
+            </Form>
+          </DialogContent>
+        </Dialog>
+      </div>
+
+      {/* Filters */}
+      <div className="flex flex-wrap gap-4">
+        <div className="flex items-center gap-2">
+          <span className="text-sm text-muted-foreground">Domain:</span>
+          <Select value={categoryFilter} onValueChange={setCategoryFilter}>
+            <SelectTrigger className="w-[150px]" data-testid="select-filter-category">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Domains</SelectItem>
+              {Object.entries(FEEDBACK_CATEGORIES).map(([key, cat]) => (
+                <SelectItem key={key} value={key}>{cat.label}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+        <div className="flex items-center gap-2">
+          <span className="text-sm text-muted-foreground">Status:</span>
+          <Select value={statusFilter} onValueChange={setStatusFilter}>
+            <SelectTrigger className="w-[140px]" data-testid="select-filter-status">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Statuses</SelectItem>
+              <SelectItem value="draft">Draft</SelectItem>
+              <SelectItem value="active">Active</SelectItem>
+              <SelectItem value="paused">Paused</SelectItem>
+              <SelectItem value="closed">Closed</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+      </div>
+
+      {/* Campaigns Grid */}
+      {loadingCampaigns ? (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {[1, 2, 3].map(i => (
+            <Skeleton key={i} className="h-48 rounded-lg" />
+          ))}
+        </div>
+      ) : campaigns.length === 0 ? (
+        <Card>
+          <CardContent className="py-12 text-center">
+            <MessageSquare className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+            <h3 className="font-medium text-lg">No Feedback Campaigns</h3>
+            <p className="text-muted-foreground mt-1">
+              Create your first campaign to start collecting feedback.
+            </p>
+          </CardContent>
+        </Card>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {campaigns.map((campaign) => {
+            const categoryConfig = FEEDBACK_CATEGORIES[campaign.category];
+            return (
+              <Card key={campaign.id} className="hover:shadow-md transition-shadow" data-testid={`campaign-card-${campaign.id}`}>
+                <CardHeader className="pb-2">
+                  <div className="flex items-start justify-between">
+                    <div className="flex items-center gap-2">
+                      <div className={`w-3 h-3 rounded-full ${categoryConfig.color}`}></div>
+                      <Badge variant={campaign.status === "active" ? "default" : campaign.status === "closed" ? "secondary" : "outline"}>
+                        {campaign.status}
+                      </Badge>
+                    </div>
+                    <Badge variant="outline">{categoryConfig.label}</Badge>
+                  </div>
+                  <CardTitle className="text-lg mt-2">{campaign.name}</CardTitle>
+                  {campaign.description && (
+                    <CardDescription className="line-clamp-2">{campaign.description}</CardDescription>
+                  )}
+                </CardHeader>
+                <CardContent>
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="text-muted-foreground">Responses</span>
+                    <span className="font-medium">{campaign.responseCount}</span>
+                  </div>
+                  <div className="flex gap-2 mt-4">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => copyLinkToClipboard(campaign.linkToken)}
+                      data-testid={`button-copy-link-${campaign.id}`}
+                    >
+                      <QrCode className="h-4 w-4 mr-1" />
+                      Copy Link
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        setSelectedCampaign(campaign);
+                        setViewResponses(true);
+                      }}
+                      data-testid={`button-view-responses-${campaign.id}`}
+                    >
+                      <Eye className="h-4 w-4 mr-1" />
+                      View
+                    </Button>
+                    {campaign.status === "draft" && (
+                      <Button
+                        size="sm"
+                        onClick={() => updateCampaignMutation.mutate({ id: campaign.id, data: { status: "active" } })}
+                        data-testid={`button-activate-${campaign.id}`}
+                      >
+                        <PlayCircle className="h-4 w-4 mr-1" />
+                        Activate
+                      </Button>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+            );
+          })}
+        </div>
+      )}
+
+      {/* Campaign Detail Dialog */}
+      <Dialog open={viewResponses} onOpenChange={(open) => { setViewResponses(open); if (!open) setSelectedCampaign(null); }}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          {selectedCampaign && (
+            <>
+              <DialogHeader>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <div className={`w-3 h-3 rounded-full ${FEEDBACK_CATEGORIES[selectedCampaign.category].color}`}></div>
+                    <DialogTitle>{selectedCampaign.name}</DialogTitle>
+                  </div>
+                  <div className="flex gap-2">
+                    <Badge variant={selectedCampaign.status === "active" ? "default" : "outline"}>
+                      {selectedCampaign.status}
+                    </Badge>
+                  </div>
+                </div>
+                <DialogDescription>{selectedCampaign.description}</DialogDescription>
+              </DialogHeader>
+
+              {/* Stats Cards */}
+              {campaignStats && (
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 my-4">
+                  <Card>
+                    <CardHeader className="pb-2">
+                      <CardTitle className="text-sm font-medium text-muted-foreground">Total Responses</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="text-2xl font-bold">{campaignStats.totalResponses}</div>
+                    </CardContent>
+                  </Card>
+                  <Card>
+                    <CardHeader className="pb-2">
+                      <CardTitle className="text-sm font-medium text-muted-foreground">Average Rating</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="text-2xl font-bold flex items-center gap-1">
+                        {campaignStats.averageRating.toFixed(1)}
+                        <Star className="h-5 w-5 text-amber-500" fill="currentColor" />
+                      </div>
+                    </CardContent>
+                  </Card>
+                  <Card>
+                    <CardHeader className="pb-2">
+                      <CardTitle className="text-sm font-medium text-muted-foreground">NPS Score</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className={`text-2xl font-bold ${campaignStats.npsScore >= 0 ? "text-green-600" : "text-red-600"}`}>
+                        {campaignStats.npsScore > 0 ? "+" : ""}{campaignStats.npsScore}
+                      </div>
+                    </CardContent>
+                  </Card>
+                  <Card>
+                    <CardHeader className="pb-2">
+                      <CardTitle className="text-sm font-medium text-muted-foreground">Would Recommend</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="text-2xl font-bold text-green-600">{campaignStats.recommendPercentage}%</div>
+                    </CardContent>
+                  </Card>
+                </div>
+              )}
+
+              {/* Actions */}
+              <div className="flex gap-2 mb-4">
+                <Button onClick={() => setAddManualResponse(true)} data-testid="button-add-manual-response">
+                  <Plus className="h-4 w-4 mr-2" />
+                  Add Manual Response
+                </Button>
+                <Button variant="outline" onClick={() => copyLinkToClipboard(selectedCampaign.linkToken)}>
+                  <QrCode className="h-4 w-4 mr-2" />
+                  Copy Public Link
+                </Button>
+                {selectedCampaign.status === "active" && (
+                  <Button variant="outline" onClick={() => updateCampaignMutation.mutate({ id: selectedCampaign.id, data: { status: "paused" } })}>
+                    Pause Campaign
+                  </Button>
+                )}
+                {selectedCampaign.status === "paused" && (
+                  <Button onClick={() => updateCampaignMutation.mutate({ id: selectedCampaign.id, data: { status: "active" } })}>
+                    Resume Campaign
+                  </Button>
+                )}
+              </div>
+
+              {/* Responses List */}
+              <div className="space-y-3 max-h-[300px] overflow-y-auto">
+                {campaignResponses.length === 0 ? (
+                  <p className="text-center text-muted-foreground py-8">No responses yet</p>
+                ) : (
+                  campaignResponses.map((response) => (
+                    <Card key={response.id} className="p-4">
+                      <div className="flex justify-between items-start">
+                        <div className="space-y-1">
+                          <div className="flex items-center gap-2">
+                            <Badge variant="outline" className="text-xs">{response.source}</Badge>
+                            {response.overallRating && (
+                              <span className="flex items-center gap-1 text-sm">
+                                {response.overallRating} <Star className="h-3 w-3 text-amber-500" fill="currentColor" />
+                              </span>
+                            )}
+                            {response.wouldRecommend !== undefined && (
+                              <span className={`text-xs ${response.wouldRecommend ? "text-green-600" : "text-red-600"}`}>
+                                {response.wouldRecommend ? "Would recommend" : "Would not recommend"}
+                              </span>
+                            )}
+                          </div>
+                          {response.positiveComments && (
+                            <p className="text-sm"><strong>Positive:</strong> {response.positiveComments}</p>
+                          )}
+                          {response.improvementComments && (
+                            <p className="text-sm"><strong>To improve:</strong> {response.improvementComments}</p>
+                          )}
+                        </div>
+                        <span className="text-xs text-muted-foreground">
+                          {new Date(response.createdAt).toLocaleDateString()}
+                        </span>
+                      </div>
+                    </Card>
+                  ))
+                )}
+              </div>
+            </>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Manual Response Dialog */}
+      <Dialog open={addManualResponse} onOpenChange={setAddManualResponse}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle>Add Manual Feedback Response</DialogTitle>
+            <DialogDescription>
+              Record feedback received via phone, email, letter, or in person.
+            </DialogDescription>
+          </DialogHeader>
+          <Form {...manualResponseForm}>
+            <form onSubmit={manualResponseForm.handleSubmit((data) => addManualResponseMutation.mutate(data))} className="space-y-4">
+              <FormField
+                control={manualResponseForm.control}
+                name="source"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Source</FormLabel>
+                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <FormControl>
+                        <SelectTrigger data-testid="select-response-source">
+                          <SelectValue />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="manual">Manual Entry</SelectItem>
+                        <SelectItem value="phone">Phone Call</SelectItem>
+                        <SelectItem value="email">Email</SelectItem>
+                        <SelectItem value="in_person">In Person</SelectItem>
+                        <SelectItem value="letter">Letter</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <div className="grid grid-cols-2 gap-4">
+                <FormField
+                  control={manualResponseForm.control}
+                  name="overallRating"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Overall Rating (1-5)</FormLabel>
+                      <FormControl>
+                        <Input type="number" min={1} max={5} {...field} data-testid="input-response-rating" />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={manualResponseForm.control}
+                  name="npsScore"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>NPS Score (0-10)</FormLabel>
+                      <FormControl>
+                        <Input type="number" min={0} max={10} {...field} data-testid="input-response-nps" />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+              <FormField
+                control={manualResponseForm.control}
+                name="wouldRecommend"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Would Recommend?</FormLabel>
+                    <Select onValueChange={field.onChange} value={field.value}>
+                      <FormControl>
+                        <SelectTrigger data-testid="select-response-recommend">
+                          <SelectValue placeholder="Select..." />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="yes">Yes</SelectItem>
+                        <SelectItem value="no">No</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={manualResponseForm.control}
+                name="positiveComments"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Positive Comments</FormLabel>
+                    <FormControl>
+                      <Textarea {...field} rows={2} data-testid="input-response-positive" />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={manualResponseForm.control}
+                name="improvementComments"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Improvement Suggestions</FormLabel>
+                    <FormControl>
+                      <Textarea {...field} rows={2} data-testid="input-response-improvement" />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={manualResponseForm.control}
+                name="adminNotes"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Admin Notes</FormLabel>
+                    <FormControl>
+                      <Textarea {...field} rows={2} placeholder="Internal notes about this response" data-testid="input-response-notes" />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <div className="flex justify-end gap-2 pt-4">
+                <Button type="button" variant="outline" onClick={() => setAddManualResponse(false)}>
+                  Cancel
+                </Button>
+                <Button type="submit" disabled={addManualResponseMutation.isPending} data-testid="button-submit-response">
+                  {addManualResponseMutation.isPending ? "Saving..." : "Add Response"}
+                </Button>
+              </div>
+            </form>
+          </Form>
+        </DialogContent>
+      </Dialog>
+    </div>
+  );
+}
 
 export default function CqcToolkit() {
   const [activeTab, setActiveTab] = useState("dashboard");
@@ -1960,7 +2666,7 @@ Delivering outstanding healthcare across Devon & Cornwall`;
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-        <TabsList className="grid w-full grid-cols-4">
+        <TabsList className="grid w-full grid-cols-5">
           <TabsTrigger value="dashboard" data-testid="tab-dashboard">
             <Shield className="w-4 h-4 mr-2" />
             Dashboard
@@ -1976,6 +2682,10 @@ Delivering outstanding healthcare across Devon & Cornwall`;
           <TabsTrigger value="sip" data-testid="tab-sip">
             <ClipboardCheck className="w-4 h-4 mr-2" />
             Service Improvement Plan
+          </TabsTrigger>
+          <TabsTrigger value="feedback" data-testid="tab-feedback">
+            <MessageSquare className="w-4 h-4 mr-2" />
+            Feedback
           </TabsTrigger>
         </TabsList>
 
@@ -5053,6 +5763,11 @@ Delivering outstanding healthcare across Devon & Cornwall`;
               )}
             </CardContent>
           </Card>
+        </TabsContent>
+
+        {/* Feedback Collection Tab */}
+        <TabsContent value="feedback" className="space-y-6">
+          <FeedbackTab branch={branch} />
         </TabsContent>
       </Tabs>
     </div>
