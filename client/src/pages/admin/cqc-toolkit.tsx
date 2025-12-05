@@ -20,6 +20,7 @@ import { Plus, FileCheck, Shield, Users, Clock, AlertTriangle, CheckCircle, XCir
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { DashboardModal } from '@uppy/react';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell, PieChart, Pie } from "recharts";
 import type { CqcAudit, CqcAuditCategory, CqcQualityStatement, CqcEvidenceCategory, CqcAuditEvidence, CqcQualityAssessment, CqcComplianceRecord, InsertCqcAudit, InsertCqcComplianceRecord, KnowledgeQuestionnaire, InsertKnowledgeQuestionnaire, KnowledgeQuestion, InsertKnowledgeQuestion, KnowledgeSession, KnowledgeAction, ServiceImprovementPlanItem } from "@shared/schema";
 import { insertCqcAuditSchema, insertCqcComplianceRecordSchema, insertKnowledgeQuestionnaireSchema, insertKnowledgeQuestionSchema } from "@shared/schema";
 
@@ -884,45 +885,120 @@ function FeedbackTab({ branch }: { branch: string }) {
 
               {/* Stats Cards */}
               {campaignStats && (
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 my-4">
-                  <Card>
-                    <CardHeader className="pb-2">
-                      <CardTitle className="text-sm font-medium text-muted-foreground">Total Responses</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="text-2xl font-bold">{campaignStats.totalResponses}</div>
-                    </CardContent>
-                  </Card>
-                  <Card>
-                    <CardHeader className="pb-2">
-                      <CardTitle className="text-sm font-medium text-muted-foreground">Average Rating</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="text-2xl font-bold flex items-center gap-1">
-                        {campaignStats.averageRating.toFixed(1)}
-                        <Star className="h-5 w-5 text-amber-500" fill="currentColor" />
-                      </div>
-                    </CardContent>
-                  </Card>
-                  <Card>
-                    <CardHeader className="pb-2">
-                      <CardTitle className="text-sm font-medium text-muted-foreground">NPS Score</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <div className={`text-2xl font-bold ${campaignStats.npsScore >= 0 ? "text-green-600" : "text-red-600"}`}>
-                        {campaignStats.npsScore > 0 ? "+" : ""}{campaignStats.npsScore}
-                      </div>
-                    </CardContent>
-                  </Card>
-                  <Card>
-                    <CardHeader className="pb-2">
-                      <CardTitle className="text-sm font-medium text-muted-foreground">Would Recommend</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="text-2xl font-bold text-green-600">{campaignStats.recommendPercentage}%</div>
-                    </CardContent>
-                  </Card>
-                </div>
+                <>
+                  {/* Stats Summary */}
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4 my-4">
+                    <Card>
+                      <CardHeader className="pb-2">
+                        <CardTitle className="text-sm font-medium text-muted-foreground">Total Responses</CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="text-2xl font-bold">{campaignStats.totalResponses}</div>
+                      </CardContent>
+                    </Card>
+                    <Card>
+                      <CardHeader className="pb-2">
+                        <CardTitle className="text-sm font-medium text-muted-foreground">Average Rating</CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="text-2xl font-bold flex items-center gap-1">
+                          {campaignStats.averageRating.toFixed(1)}
+                          <Star className="h-5 w-5 text-amber-500" fill="currentColor" />
+                        </div>
+                      </CardContent>
+                    </Card>
+                    <Card>
+                      <CardHeader className="pb-2">
+                        <CardTitle className="text-sm font-medium text-muted-foreground">NPS Score</CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <div className={`text-2xl font-bold ${campaignStats.npsScore >= 0 ? "text-green-600" : "text-red-600"}`}>
+                          {campaignStats.npsScore > 0 ? "+" : ""}{campaignStats.npsScore}
+                        </div>
+                      </CardContent>
+                    </Card>
+                    <Card>
+                      <CardHeader className="pb-2">
+                        <CardTitle className="text-sm font-medium text-muted-foreground">Would Recommend</CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="text-2xl font-bold text-green-600">{campaignStats.recommendPercentage}%</div>
+                      </CardContent>
+                    </Card>
+                  </div>
+
+                  {/* Charts Row */}
+                  {campaignStats.totalResponses > 0 && (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 my-4">
+                      {/* Rating Distribution Chart */}
+                      <Card>
+                        <CardHeader className="pb-2">
+                          <CardTitle className="text-sm font-medium">Rating Distribution</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                          <div className="h-48">
+                            <ResponsiveContainer width="100%" height="100%">
+                              <BarChart data={[
+                                { rating: "1★", count: campaignStats.ratingDistribution[1] || 0, fill: "#ef4444" },
+                                { rating: "2★", count: campaignStats.ratingDistribution[2] || 0, fill: "#f97316" },
+                                { rating: "3★", count: campaignStats.ratingDistribution[3] || 0, fill: "#eab308" },
+                                { rating: "4★", count: campaignStats.ratingDistribution[4] || 0, fill: "#84cc16" },
+                                { rating: "5★", count: campaignStats.ratingDistribution[5] || 0, fill: "#22c55e" },
+                              ]}>
+                                <CartesianGrid strokeDasharray="3 3" />
+                                <XAxis dataKey="rating" />
+                                <YAxis allowDecimals={false} />
+                                <Tooltip />
+                                <Bar dataKey="count" name="Responses">
+                                  {[
+                                    { rating: "1★", count: campaignStats.ratingDistribution[1] || 0, fill: "#ef4444" },
+                                    { rating: "2★", count: campaignStats.ratingDistribution[2] || 0, fill: "#f97316" },
+                                    { rating: "3★", count: campaignStats.ratingDistribution[3] || 0, fill: "#eab308" },
+                                    { rating: "4★", count: campaignStats.ratingDistribution[4] || 0, fill: "#84cc16" },
+                                    { rating: "5★", count: campaignStats.ratingDistribution[5] || 0, fill: "#22c55e" },
+                                  ].map((entry, index) => (
+                                    <Cell key={`cell-${index}`} fill={entry.fill} />
+                                  ))}
+                                </Bar>
+                              </BarChart>
+                            </ResponsiveContainer>
+                          </div>
+                        </CardContent>
+                      </Card>
+
+                      {/* Recommendation Pie Chart */}
+                      <Card>
+                        <CardHeader className="pb-2">
+                          <CardTitle className="text-sm font-medium">Would Recommend</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                          <div className="h-48 flex items-center justify-center">
+                            <ResponsiveContainer width="100%" height="100%">
+                              <PieChart>
+                                <Pie
+                                  data={[
+                                    { name: "Yes", value: campaignStats.recommendPercentage, fill: "#22c55e" },
+                                    { name: "No", value: 100 - campaignStats.recommendPercentage, fill: "#ef4444" },
+                                  ]}
+                                  cx="50%"
+                                  cy="50%"
+                                  innerRadius={40}
+                                  outerRadius={70}
+                                  dataKey="value"
+                                  label={({ name, value }) => `${name}: ${value}%`}
+                                >
+                                  <Cell fill="#22c55e" />
+                                  <Cell fill="#ef4444" />
+                                </Pie>
+                                <Tooltip formatter={(value) => `${value}%`} />
+                              </PieChart>
+                            </ResponsiveContainer>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    </div>
+                  )}
+                </>
               )}
 
               {/* Actions */}
