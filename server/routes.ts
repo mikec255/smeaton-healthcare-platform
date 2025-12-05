@@ -1503,6 +1503,335 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // ===== CQC Feedback Campaigns API =====
+  
+  // Get all campaigns (admin)
+  app.get("/api/cqc/feedback/campaigns", requireAdmin, async (req, res) => {
+    try {
+      const filters: { category?: string; status?: string; branch?: string } = {};
+      if (req.query.category) filters.category = req.query.category as string;
+      if (req.query.status) filters.status = req.query.status as string;
+      if (req.query.branch) filters.branch = req.query.branch as string;
+      
+      const campaigns = await storage.getAllCqcFeedbackCampaigns(filters);
+      res.json(campaigns);
+    } catch (error) {
+      console.error("Error fetching feedback campaigns:", error);
+      res.status(500).json({ message: "Failed to fetch feedback campaigns" });
+    }
+  });
+
+  // Get single campaign (admin)
+  app.get("/api/cqc/feedback/campaigns/:id", requireAdmin, async (req, res) => {
+    try {
+      const campaign = await storage.getCqcFeedbackCampaign(req.params.id);
+      if (!campaign) {
+        return res.status(404).json({ message: "Campaign not found" });
+      }
+      res.json(campaign);
+    } catch (error) {
+      console.error("Error fetching feedback campaign:", error);
+      res.status(500).json({ message: "Failed to fetch feedback campaign" });
+    }
+  });
+
+  // Create campaign (admin)
+  app.post("/api/cqc/feedback/campaigns", requireAdmin, async (req, res) => {
+    try {
+      const campaignSchema = z.object({
+        name: z.string().min(1, "Campaign name is required"),
+        description: z.string().optional(),
+        branch: z.string().default("Plymouth"),
+        category: z.enum(["C", "S", "P", "F"]), // Caring, Safe, People, Friends & Family
+        status: z.enum(["draft", "active", "paused", "closed"]).optional().default("draft"),
+        startDate: z.string().optional().transform(v => v ? new Date(v) : undefined),
+        endDate: z.string().optional().transform(v => v ? new Date(v) : undefined),
+        customQuestions: z.array(z.object({
+          id: z.string(),
+          question: z.string(),
+          type: z.enum(["rating", "text", "choice"]),
+          required: z.boolean(),
+          options: z.array(z.string()).optional(),
+        })).optional(),
+      });
+
+      const validatedData = campaignSchema.parse(req.body);
+      
+      // Generate unique link token
+      const linkToken = crypto.randomBytes(32).toString('hex');
+      
+      const campaign = await storage.createCqcFeedbackCampaign({
+        ...validatedData,
+        linkToken,
+        createdBy: (req as any).user?.id,
+      });
+      
+      res.status(201).json(campaign);
+    } catch (error) {
+      console.error("Error creating feedback campaign:", error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid campaign data", errors: error.errors });
+      }
+      res.status(500).json({ message: "Failed to create feedback campaign" });
+    }
+  });
+
+  // Update campaign (admin)
+  app.put("/api/cqc/feedback/campaigns/:id", requireAdmin, async (req, res) => {
+    try {
+      const updateSchema = z.object({
+        name: z.string().optional(),
+        description: z.string().optional(),
+        branch: z.string().optional(),
+        category: z.enum(["C", "S", "P", "F"]).optional(),
+        status: z.enum(["draft", "active", "paused", "closed"]).optional(),
+        startDate: z.string().optional().transform(v => v ? new Date(v) : undefined),
+        endDate: z.string().optional().transform(v => v ? new Date(v) : undefined),
+        customQuestions: z.array(z.object({
+          id: z.string(),
+          question: z.string(),
+          type: z.enum(["rating", "text", "choice"]),
+          required: z.boolean(),
+          options: z.array(z.string()).optional(),
+        })).optional(),
+      });
+
+      const validatedData = updateSchema.parse(req.body);
+      const campaign = await storage.updateCqcFeedbackCampaign(req.params.id, validatedData);
+      if (!campaign) {
+        return res.status(404).json({ message: "Campaign not found" });
+      }
+      res.json(campaign);
+    } catch (error) {
+      console.error("Error updating feedback campaign:", error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid update data", errors: error.errors });
+      }
+      res.status(500).json({ message: "Failed to update feedback campaign" });
+    }
+  });
+
+  // Delete campaign (admin)
+  app.delete("/api/cqc/feedback/campaigns/:id", requireAdmin, async (req, res) => {
+    try {
+      const deleted = await storage.deleteCqcFeedbackCampaign(req.params.id);
+      if (!deleted) {
+        return res.status(404).json({ message: "Campaign not found" });
+      }
+      res.json({ message: "Campaign deleted successfully" });
+    } catch (error) {
+      console.error("Error deleting feedback campaign:", error);
+      res.status(500).json({ message: "Failed to delete feedback campaign" });
+    }
+  });
+
+  // Get campaign stats (admin)
+  app.get("/api/cqc/feedback/campaigns/:id/stats", requireAdmin, async (req, res) => {
+    try {
+      const stats = await storage.getCqcFeedbackCampaignStats(req.params.id);
+      res.json(stats);
+    } catch (error) {
+      console.error("Error fetching campaign stats:", error);
+      res.status(500).json({ message: "Failed to fetch campaign statistics" });
+    }
+  });
+
+  // Get campaign responses (admin)
+  app.get("/api/cqc/feedback/campaigns/:id/responses", requireAdmin, async (req, res) => {
+    try {
+      const filters: { campaignId: string; source?: string; status?: string } = {
+        campaignId: req.params.id,
+      };
+      if (req.query.source) filters.source = req.query.source as string;
+      if (req.query.status) filters.status = req.query.status as string;
+      
+      const responses = await storage.getAllCqcFeedbackResponses(filters);
+      res.json(responses);
+    } catch (error) {
+      console.error("Error fetching campaign responses:", error);
+      res.status(500).json({ message: "Failed to fetch campaign responses" });
+    }
+  });
+
+  // Add manual feedback response (admin)
+  app.post("/api/cqc/feedback/campaigns/:id/responses", requireAdmin, async (req, res) => {
+    try {
+      const campaign = await storage.getCqcFeedbackCampaign(req.params.id);
+      if (!campaign) {
+        return res.status(404).json({ message: "Campaign not found" });
+      }
+
+      const responseSchema = z.object({
+        source: z.enum(["manual", "email", "phone", "in_person", "letter"]),
+        respondentName: z.string().optional(),
+        respondentEmail: z.string().email().optional().or(z.literal("")),
+        respondentPhone: z.string().optional(),
+        respondentRelationship: z.string().optional(),
+        receivedAt: z.string().optional().transform(v => v ? new Date(v) : new Date()),
+        overallRating: z.number().min(1).max(5).optional(),
+        npsScore: z.number().min(0).max(10).optional(),
+        wouldRecommend: z.boolean().optional(),
+        positiveComments: z.string().optional(),
+        improvementComments: z.string().optional(),
+        additionalComments: z.string().optional(),
+        consentToContact: z.boolean().optional(),
+        consentToPublish: z.boolean().optional(),
+        adminNotes: z.string().optional(),
+      });
+
+      const validatedData = responseSchema.parse(req.body);
+      
+      const response = await storage.createCqcFeedbackResponse({
+        ...validatedData,
+        campaignId: req.params.id,
+        branch: campaign.branch,
+        submittedVia: "admin",
+      });
+      
+      res.status(201).json(response);
+    } catch (error) {
+      console.error("Error creating feedback response:", error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid response data", errors: error.errors });
+      }
+      res.status(500).json({ message: "Failed to create feedback response" });
+    }
+  });
+
+  // Update feedback response (admin)
+  app.put("/api/cqc/feedback/responses/:id", requireAdmin, async (req, res) => {
+    try {
+      const updateSchema = z.object({
+        status: z.enum(["new", "reviewed", "actioned", "closed"]).optional(),
+        adminNotes: z.string().optional(),
+        actionTaken: z.string().optional(),
+      });
+
+      const validatedData = updateSchema.parse(req.body);
+      const response = await storage.updateCqcFeedbackResponse(req.params.id, validatedData);
+      if (!response) {
+        return res.status(404).json({ message: "Response not found" });
+      }
+      res.json(response);
+    } catch (error) {
+      console.error("Error updating feedback response:", error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid update data", errors: error.errors });
+      }
+      res.status(500).json({ message: "Failed to update feedback response" });
+    }
+  });
+
+  // Delete feedback response (admin)
+  app.delete("/api/cqc/feedback/responses/:id", requireAdmin, async (req, res) => {
+    try {
+      const deleted = await storage.deleteCqcFeedbackResponse(req.params.id);
+      if (!deleted) {
+        return res.status(404).json({ message: "Response not found" });
+      }
+      res.json({ message: "Response deleted successfully" });
+    } catch (error) {
+      console.error("Error deleting feedback response:", error);
+      res.status(500).json({ message: "Failed to delete feedback response" });
+    }
+  });
+
+  // ===== Public Feedback Submission (No Auth Required) =====
+  
+  // Get campaign by token (public)
+  app.get("/api/feedback/:token", async (req, res) => {
+    try {
+      const campaign = await storage.getCqcFeedbackCampaignByToken(req.params.token);
+      if (!campaign) {
+        return res.status(404).json({ message: "Feedback form not found" });
+      }
+      
+      // Check if campaign is active
+      if (campaign.status !== "active") {
+        return res.status(403).json({ message: "This feedback form is not currently accepting responses" });
+      }
+      
+      // Check date range
+      const now = new Date();
+      if (campaign.startDate && now < new Date(campaign.startDate)) {
+        return res.status(403).json({ message: "This feedback form is not yet open for submissions" });
+      }
+      if (campaign.endDate && now > new Date(campaign.endDate)) {
+        return res.status(403).json({ message: "This feedback form has closed" });
+      }
+      
+      // Return campaign info (excluding sensitive fields)
+      res.json({
+        id: campaign.id,
+        name: campaign.name,
+        description: campaign.description,
+        category: campaign.category,
+        customQuestions: campaign.customQuestions,
+      });
+    } catch (error) {
+      console.error("Error fetching public feedback form:", error);
+      res.status(500).json({ message: "Failed to fetch feedback form" });
+    }
+  });
+
+  // Submit public feedback (no auth)
+  app.post("/api/feedback/:token", async (req, res) => {
+    try {
+      const campaign = await storage.getCqcFeedbackCampaignByToken(req.params.token);
+      if (!campaign) {
+        return res.status(404).json({ message: "Feedback form not found" });
+      }
+      
+      // Check if campaign is active
+      if (campaign.status !== "active") {
+        return res.status(403).json({ message: "This feedback form is not currently accepting responses" });
+      }
+      
+      // Check date range
+      const now = new Date();
+      if (campaign.startDate && now < new Date(campaign.startDate)) {
+        return res.status(403).json({ message: "This feedback form is not yet open for submissions" });
+      }
+      if (campaign.endDate && now > new Date(campaign.endDate)) {
+        return res.status(403).json({ message: "This feedback form has closed" });
+      }
+
+      const submissionSchema = z.object({
+        overallRating: z.number().min(1).max(5).optional(),
+        npsScore: z.number().min(0).max(10).optional(),
+        wouldRecommend: z.boolean().optional(),
+        positiveComments: z.string().optional(),
+        improvementComments: z.string().optional(),
+        additionalComments: z.string().optional(),
+        respondentName: z.string().optional(),
+        respondentEmail: z.string().email().optional().or(z.literal("")),
+        respondentRelationship: z.string().optional(),
+        consentToContact: z.boolean().optional(),
+        consentToPublish: z.boolean().optional(),
+        customResponses: z.record(z.any()).optional(),
+      });
+
+      const validatedData = submissionSchema.parse(req.body);
+      
+      const response = await storage.createCqcFeedbackResponse({
+        ...validatedData,
+        campaignId: campaign.id,
+        branch: campaign.branch,
+        source: "link",
+        submittedVia: "web",
+        ipAddress: req.ip || req.socket.remoteAddress,
+      });
+      
+      res.status(201).json({ message: "Thank you for your feedback!", id: response.id });
+    } catch (error) {
+      console.error("Error submitting public feedback:", error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid submission data", errors: error.errors });
+      }
+      res.status(500).json({ message: "Failed to submit feedback" });
+    }
+  });
+
   // Contact submissions API
   app.get("/api/contact-submissions", requireAdmin, async (req, res) => {
     try {
