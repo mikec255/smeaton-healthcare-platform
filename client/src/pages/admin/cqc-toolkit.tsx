@@ -302,13 +302,20 @@ function FeedbackTab({ branch }: { branch: string }) {
     },
   });
 
+  const getAuthHeaders = () => {
+    const headers: Record<string, string> = {};
+    const token = localStorage.getItem('auth_token');
+    if (token) headers.Authorization = `Bearer ${token}`;
+    return headers;
+  };
+
   const { data: campaigns = [], isLoading: loadingCampaigns } = useQuery<FeedbackCampaign[]>({
     queryKey: ["/api/cqc/feedback/campaigns", branch, categoryFilter, statusFilter],
     queryFn: async () => {
       const params = new URLSearchParams({ branch });
       if (categoryFilter !== "all") params.append("category", categoryFilter);
       if (statusFilter !== "all") params.append("status", statusFilter);
-      const res = await fetch(`/api/cqc/feedback/campaigns?${params}`, { credentials: "include" });
+      const res = await fetch(`/api/cqc/feedback/campaigns?${params}`, { credentials: "include", headers: getAuthHeaders() });
       if (!res.ok) throw new Error("Failed to fetch campaigns");
       return res.json();
     },
@@ -317,7 +324,7 @@ function FeedbackTab({ branch }: { branch: string }) {
   const { data: campaignStats } = useQuery<FeedbackStats>({
     queryKey: ["/api/cqc/feedback/campaigns", selectedCampaign?.id, "stats"],
     queryFn: async () => {
-      const res = await fetch(`/api/cqc/feedback/campaigns/${selectedCampaign?.id}/stats`, { credentials: "include" });
+      const res = await fetch(`/api/cqc/feedback/campaigns/${selectedCampaign?.id}/stats`, { credentials: "include", headers: getAuthHeaders() });
       if (!res.ok) throw new Error("Failed to fetch stats");
       return res.json();
     },
@@ -327,7 +334,7 @@ function FeedbackTab({ branch }: { branch: string }) {
   const { data: campaignResponses = [] } = useQuery<FeedbackResponse[]>({
     queryKey: ["/api/cqc/feedback/campaigns", selectedCampaign?.id, "responses"],
     queryFn: async () => {
-      const res = await fetch(`/api/cqc/feedback/campaigns/${selectedCampaign?.id}/responses`, { credentials: "include" });
+      const res = await fetch(`/api/cqc/feedback/campaigns/${selectedCampaign?.id}/responses`, { credentials: "include", headers: getAuthHeaders() });
       if (!res.ok) throw new Error("Failed to fetch responses");
       return res.json();
     },
