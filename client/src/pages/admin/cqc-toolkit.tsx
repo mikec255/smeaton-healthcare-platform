@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, Fragment } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -2822,8 +2822,8 @@ Delivering outstanding healthcare across Devon & Cornwall`;
             </Card>
           </div>
 
-          {/* Audit Compliance Matrix - Traffic Light System */}
-          <Card data-testid="audit-compliance-matrix">
+          {/* Audit Compliance Matrix - Grid-Based Visual Layout */}
+          <Card data-testid="audit-compliance-matrix" className="overflow-hidden">
             <CardHeader className="pb-3">
               <div className="flex items-center gap-2">
                 <Shield className="h-5 w-5 text-blue-600" />
@@ -2833,57 +2833,128 @@ Delivering outstanding healthcare across Devon & Cornwall`;
                 Visual overview of all audit areas with traffic light status indicators
               </CardDescription>
             </CardHeader>
-            <CardContent>
-              {/* Traffic Light Legend */}
-              <div className="flex flex-wrap gap-4 mb-4 text-xs border-b pb-3">
-                <div className="flex items-center gap-1.5">
-                  <div className="w-3 h-3 rounded-full bg-green-500"></div>
-                  <span className="text-muted-foreground">Good / Outstanding</span>
-                </div>
-                <div className="flex items-center gap-1.5">
-                  <div className="w-3 h-3 rounded-full bg-amber-500"></div>
-                  <span className="text-muted-foreground">Requires Improvement</span>
-                </div>
-                <div className="flex items-center gap-1.5">
-                  <div className="w-3 h-3 rounded-full bg-red-500"></div>
-                  <span className="text-muted-foreground">Inadequate</span>
-                </div>
-                <div className="flex items-center gap-1.5">
-                  <div className="w-3 h-3 rounded-full bg-gray-300 dark:bg-gray-600"></div>
-                  <span className="text-muted-foreground">Not Assessed</span>
+            <CardContent className="p-0">
+              {/* Status Legend - Card Header */}
+              <div className="bg-muted/50 border-b px-6 py-3">
+                <div className="flex items-center flex-wrap gap-4">
+                  <span className="text-sm font-semibold text-foreground flex items-center gap-2">
+                    <AlertTriangle className="h-4 w-4 text-blue-600" />
+                    Status Key
+                  </span>
+                  <div className="flex items-center gap-2">
+                    <div className="w-4 h-4 rounded bg-green-500"></div>
+                    <span className="text-xs font-medium">Outstanding</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className="w-4 h-4 rounded bg-emerald-400"></div>
+                    <span className="text-xs font-medium">Good</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className="w-4 h-4 rounded bg-amber-500"></div>
+                    <span className="text-xs font-medium">Requires Improvement</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className="w-4 h-4 rounded bg-red-500"></div>
+                    <span className="text-xs font-medium">Inadequate</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className="w-4 h-4 rounded bg-gray-300 dark:bg-gray-600"></div>
+                    <span className="text-xs font-medium">Not Assessed</span>
+                  </div>
                 </div>
               </div>
 
-              {/* Audit Matrix Grid */}
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
-                {auditCategories.map((cat) => {
-                  const latestAudit = audits
-                    .filter(a => a.category === cat.key)
-                    .sort((a, b) => new Date(b.auditDate).getTime() - new Date(a.auditDate).getTime())[0];
-
-                  return (
-                    <div 
-                      key={cat.key}
-                      className={`p-3 rounded-lg border-2 cursor-pointer transition-all hover:shadow-md ${getTrafficLightColor(latestAudit?.overallRating)}`}
-                      data-testid={`audit-matrix-tile-${cat.key}`}
-                      title={latestAudit ? `Last audit: ${formatAuditDate(latestAudit.auditDate)} - ${latestAudit.overallRating?.replace('_', ' ') || 'Not rated'}` : 'No audit completed yet'}
-                    >
-                      <div className="flex items-center justify-between mb-2">
-                        <span className="text-lg">{cat.icon}</span>
-                        {getStatusIcon(latestAudit?.overallRating)}
-                      </div>
-                      <div className="text-sm font-medium truncate">{cat.label}</div>
-                      <div className="text-xs opacity-75 mt-1">
-                        {latestAudit ? formatAuditDate(latestAudit.auditDate) : "Not assessed"}
-                      </div>
-                      {latestAudit?.nextAuditDue && (
-                        <div className="text-[10px] opacity-60 mt-0.5">
-                          Due: {formatAuditDate(latestAudit.nextAuditDue)}
-                        </div>
-                      )}
+              {/* Matrix Container with Scroll */}
+              <div className="relative max-h-[60vh] overflow-hidden">
+                <div className="overflow-x-auto overflow-y-auto max-h-[calc(60vh-20px)]">
+                  <div 
+                    className="grid min-w-fit"
+                    style={{ 
+                      gridTemplateColumns: '260px repeat(5, 140px)',
+                      gap: 0
+                    }}
+                  >
+                    {/* Header Row */}
+                    <div className="bg-blue-700 text-white font-semibold p-4 flex items-center sticky left-0 top-0 z-30 border-r-2 border-blue-800 shadow-md min-h-[56px]">
+                      <span className="text-sm">Audit Area</span>
                     </div>
-                  );
-                })}
+                    {['Safe', 'Effective', 'Caring', 'Responsive', 'Well-Led'].map((heading) => (
+                      <div 
+                        key={heading}
+                        className="bg-blue-700 text-white font-semibold p-4 flex items-center justify-center text-center text-sm sticky top-0 z-20 border-b-2 border-blue-800 min-h-[56px]"
+                      >
+                        {heading}
+                      </div>
+                    ))}
+
+                    {/* Data Rows */}
+                    {auditCategories.map((cat) => {
+                      const latestAudit = audits
+                        .filter(a => a.category === cat.key)
+                        .sort((a, b) => new Date(b.auditDate).getTime() - new Date(a.auditDate).getTime())[0];
+
+                      const getStatusSquareClass = (rating: string | null | undefined) => {
+                        switch (rating) {
+                          case 'outstanding': return 'bg-green-500';
+                          case 'good': return 'bg-emerald-400';
+                          case 'requires_improvement': return 'bg-amber-500';
+                          case 'inadequate': return 'bg-red-500';
+                          default: return 'bg-gray-300 dark:bg-gray-600';
+                        }
+                      };
+
+                      const ratings = ['safe', 'effective', 'caring', 'responsive', 'wellLed'];
+                      const getCategoryRating = (category: string, aspect: string) => {
+                        const catAudit = audits
+                          .filter(a => a.category === category)
+                          .sort((a, b) => new Date(b.auditDate).getTime() - new Date(a.auditDate).getTime())[0];
+                        if (!catAudit) return null;
+                        return catAudit.overallRating;
+                      };
+
+                      return (
+                        <Fragment key={cat.key}>
+                          {/* Name Cell - Sticky Left */}
+                          <div 
+                            className="bg-muted/50 p-4 flex items-center sticky left-0 z-10 border-r-2 border-blue-600 shadow-md min-h-[56px] border-b"
+                            data-testid={`audit-matrix-row-${cat.key}`}
+                          >
+                            <div className="flex items-center gap-3 min-w-0">
+                              <div className="w-8 h-8 rounded-full bg-blue-600 text-white flex items-center justify-center text-sm flex-shrink-0">
+                                {cat.icon}
+                              </div>
+                              <div className="min-w-0 flex-1">
+                                <div className="text-sm font-medium truncate">{cat.label}</div>
+                                <div className="text-xs text-muted-foreground">
+                                  {latestAudit ? formatAuditDate(latestAudit.auditDate) : "Not assessed"}
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* Status Cells */}
+                          {ratings.map((aspect) => (
+                            <div 
+                              key={`${cat.key}-${aspect}`}
+                              className="p-4 flex items-center justify-center bg-white dark:bg-gray-950 border-b border-r min-h-[56px]"
+                            >
+                              <div 
+                                className={`w-5 h-5 rounded cursor-pointer transition-transform hover:scale-125 ${getStatusSquareClass(getCategoryRating(cat.key, aspect))}`}
+                                title={`${cat.label} - ${aspect}: ${getCategoryRating(cat.key, aspect)?.replace('_', ' ') || 'Not assessed'}`}
+                                data-testid={`audit-matrix-cell-${cat.key}-${aspect}`}
+                              />
+                              {latestAudit && (
+                                <span className="text-[10px] text-muted-foreground ml-2">
+                                  {new Date(latestAudit.auditDate).toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit' })}
+                                </span>
+                              )}
+                            </div>
+                          ))}
+                        </Fragment>
+                      );
+                    })}
+                  </div>
+                </div>
               </div>
             </CardContent>
           </Card>
@@ -5843,7 +5914,7 @@ Delivering outstanding healthcare across Devon & Cornwall`;
 
         {/* Feedback Collection Tab */}
         <TabsContent value="feedback" className="space-y-6">
-          <FeedbackTab branch={branch} />
+          <FeedbackTab branch={selectedBranch} />
         </TabsContent>
       </Tabs>
     </div>
