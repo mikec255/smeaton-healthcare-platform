@@ -1365,10 +1365,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Service Improvement Plan (SIP) API
   app.get("/api/admin/sip", requireAdmin, async (req, res) => {
     try {
-      const filters: { status?: string; priority?: string; cqcDomain?: string } = {};
+      const filters: { status?: string; priority?: string; cqcDomain?: string; branch?: string } = {};
       if (req.query.status) filters.status = req.query.status as string;
       if (req.query.priority) filters.priority = req.query.priority as string;
       if (req.query.cqcDomain) filters.cqcDomain = req.query.cqcDomain as string;
+      if (req.query.branch) filters.branch = req.query.branch as string;
       
       const items = await storage.getAllServiceImprovementPlanItems(filters);
       res.json(items);
@@ -2325,11 +2326,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // CQC Audits
   app.get("/api/cqc/audits", requireAdmin, async (req, res) => {
     try {
-      const { auditType, status, auditorId } = req.query;
+      const { auditType, status, auditorId, branch } = req.query;
       const audits = await storage.getAllCqcAudits({
         auditType: auditType as string,
         status: status as string,
         auditorId: auditorId as string,
+        branch: branch as string,
       });
       res.json(audits);
     } catch (error) {
@@ -2580,11 +2582,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // CQC Compliance Records
   app.get("/api/cqc/compliance-records", requireAdmin, async (req, res) => {
     try {
-      const { staffId, recordType, status } = req.query;
+      const { staffId, recordType, status, branch } = req.query;
       const records = await storage.getAllCqcComplianceRecords({
         staffId: staffId as string,
         recordType: recordType as string,
         status: status as string,
+        branch: branch as string,
       });
       res.json(records);
     } catch (error) {
