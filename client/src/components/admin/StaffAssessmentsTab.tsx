@@ -42,8 +42,14 @@ export function StaffAssessmentsTab({ branch }: StaffAssessmentsTabProps) {
   const { data: links = [], isLoading: linksLoading } = useQuery<StaffAssessmentLink[]>({
     queryKey: ["/api/staff-assessment-links", branch],
     queryFn: async () => {
+      const headers: Record<string, string> = {};
+      const token = localStorage.getItem('auth_token');
+      if (token) {
+        headers.Authorization = `Bearer ${token}`;
+      }
       const response = await fetch(`/api/staff-assessment-links?branch=${encodeURIComponent(branch)}`, {
-        credentials: 'include'
+        credentials: 'include',
+        headers
       });
       if (!response.ok) throw new Error("Failed to fetch links");
       return response.json();
@@ -53,8 +59,14 @@ export function StaffAssessmentsTab({ branch }: StaffAssessmentsTabProps) {
   const { data: responses = [], isLoading: responsesLoading } = useQuery<StaffAssessmentResponse[]>({
     queryKey: ["/api/staff-assessment-responses", branch],
     queryFn: async () => {
+      const headers: Record<string, string> = {};
+      const token = localStorage.getItem('auth_token');
+      if (token) {
+        headers.Authorization = `Bearer ${token}`;
+      }
       const response = await fetch(`/api/staff-assessment-responses?branch=${encodeURIComponent(branch)}`, {
-        credentials: 'include'
+        credentials: 'include',
+        headers
       });
       if (!response.ok) throw new Error("Failed to fetch responses");
       return response.json();
