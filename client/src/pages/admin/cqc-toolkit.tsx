@@ -115,6 +115,18 @@ const governanceAuditSchema = z.object({
   actions: z.string().min(1, "Actions are required"),
 });
 
+// Statement of Purpose Audit schema (Good Governance)
+const statementOfPurposeAuditSchema = z.object({
+  lastReviewDate: z.string().min(1, "Last review date is required"),
+  newReviewDate: z.string().min(1, "New review date is required"),
+  sopReviewed: z.string().min(1, "Please select an option"),
+  sopChanges: z.string().optional(),
+  sopReviewDateUpdated: z.string().min(1, "Please select an option"),
+  uploadedFileName: z.string().optional(),
+  uploadedFileData: z.string().optional(),
+  notes: z.string().optional(),
+});
+
 // Regulation 18 - Staffing audit form schema
 const staffingAuditSchema = z.object({
   sufficientStaffDeployed: z.string().min(1, "Please select an option"),
@@ -391,6 +403,7 @@ type TrainingCompetencyAuditFormData = z.infer<typeof trainingCompetencyAuditSch
 type SafeCareAuditFormData = z.infer<typeof safeCareAuditSchema>;
 type SafeguardingAuditFormData = z.infer<typeof safeguardingAuditSchema>;
 type GovernanceAuditFormData = z.infer<typeof governanceAuditSchema>;
+type StatementOfPurposeAuditFormData = z.infer<typeof statementOfPurposeAuditSchema>;
 type StaffingAuditFormData = z.infer<typeof staffingAuditSchema>;
 type FitProperPersonsAuditFormData = z.infer<typeof fitProperPersonsAuditSchema>;
 type InfectionControlAuditFormData = z.infer<typeof infectionControlAuditSchema>;
@@ -1221,6 +1234,7 @@ export default function CqcToolkit() {
   const [safeCareAuditOpen, setSafeCareAuditOpen] = useState(false);
   const [safeguardingAuditOpen, setSafeguardingAuditOpen] = useState(false);
   const [governanceAuditOpen, setGovernanceAuditOpen] = useState(false);
+  const [statementOfPurposeAuditOpen, setStatementOfPurposeAuditOpen] = useState(false);
   const [staffingAuditOpen, setStaffingAuditOpen] = useState(false);
   const [fitProperPersonsAuditOpen, setFitProperPersonsAuditOpen] = useState(false);
   const [infectionControlAuditOpen, setInfectionControlAuditOpen] = useState(false);
@@ -1897,6 +1911,20 @@ export default function CqcToolkit() {
       areasOfStrength: "",
       areasForImprovement: "",
       actions: "",
+    },
+  });
+
+  const statementOfPurposeAuditForm = useForm<StatementOfPurposeAuditFormData>({
+    resolver: zodResolver(statementOfPurposeAuditSchema),
+    defaultValues: {
+      lastReviewDate: "",
+      newReviewDate: "",
+      sopReviewed: "",
+      sopChanges: "",
+      sopReviewDateUpdated: "",
+      uploadedFileName: "",
+      uploadedFileData: "",
+      notes: "",
     },
   });
 
