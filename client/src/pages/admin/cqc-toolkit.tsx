@@ -3056,7 +3056,28 @@ Delivering outstanding healthcare across Devon & Cornwall`;
                                 <div className="min-w-0 flex-1">
                                   <div className="text-xs font-medium truncate">{cat.label}</div>
                                   <div className="text-[10px] text-muted-foreground flex items-center gap-1">
-                                    <Badge variant="outline" className="text-[9px] px-1 py-0 h-4">{getFrequencyLabel(cat.key)}</Badge>
+                                    <Select
+                                      value={categoryFrequency}
+                                      onValueChange={(value) => {
+                                        updateAuditScheduleMutation.mutate({
+                                          category: cat.key,
+                                          frequency: value,
+                                          branch: selectedBranch,
+                                        });
+                                      }}
+                                    >
+                                      <SelectTrigger className="h-4 text-[9px] px-1 py-0 w-auto min-w-0 border-dashed" data-testid={`frequency-select-${cat.key}`}>
+                                        <SelectValue placeholder={getFrequencyLabel(cat.key)} />
+                                      </SelectTrigger>
+                                      <SelectContent>
+                                        <SelectItem value="weekly">Weekly</SelectItem>
+                                        <SelectItem value="fortnightly">Fortnightly</SelectItem>
+                                        <SelectItem value="monthly">Monthly</SelectItem>
+                                        <SelectItem value="quarterly">Quarterly</SelectItem>
+                                        <SelectItem value="biannually">Bi-Annually</SelectItem>
+                                        <SelectItem value="annually">Annually</SelectItem>
+                                      </SelectContent>
+                                    </Select>
                                     {latestAudit && <span>• Last: {formatAuditDate(latestAudit.auditDate)}</span>}
                                   </div>
                                 </div>
