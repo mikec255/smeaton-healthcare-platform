@@ -2820,41 +2820,12 @@ Delivering outstanding healthcare across Devon & Cornwall`;
                             <h3 className="font-semibold text-red-900 dark:text-red-100">Regulation 12: Safe Care and Treatment</h3>
                             <p className="text-sm text-red-700 dark:text-red-300">Risk assessments, medication, infection control, equipment safety</p>
                           </div>
-                          <Badge className="ml-auto bg-red-200 text-red-800 dark:bg-red-800 dark:text-red-200">4 Audits</Badge>
+                          <Badge className="ml-auto bg-red-200 text-red-800 dark:bg-red-800 dark:text-red-200">Template Coming Soon</Badge>
                         </div>
                       </AccordionTrigger>
                       <AccordionContent className="px-4 pb-4">
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mt-2">
-                          <Dialog open={safeCareAuditOpen} onOpenChange={setSafeCareAuditOpen}>
-                            <DialogTrigger asChild>
-                              <Card className="cursor-pointer hover:shadow-md transition-shadow border border-red-200">
-                                <CardContent className="p-4">
-                                  <h4 className="font-medium">Safe Care Overview</h4>
-                                  <p className="text-sm text-muted-foreground mt-1">Comprehensive safe care assessment</p>
-                                </CardContent>
-                              </Card>
-                            </DialogTrigger>
-                          </Dialog>
-                          <Dialog open={medicationManagementAuditOpen} onOpenChange={setMedicationManagementAuditOpen}>
-                            <DialogTrigger asChild>
-                              <Card className="cursor-pointer hover:shadow-md transition-shadow border border-red-200">
-                                <CardContent className="p-4">
-                                  <h4 className="font-medium">Medication Management</h4>
-                                  <p className="text-sm text-muted-foreground mt-1">MAR charts, controlled drugs, storage</p>
-                                </CardContent>
-                              </Card>
-                            </DialogTrigger>
-                          </Dialog>
-                          <Dialog open={infectionControlAuditOpen} onOpenChange={setInfectionControlAuditOpen}>
-                            <DialogTrigger asChild>
-                              <Card className="cursor-pointer hover:shadow-md transition-shadow border border-red-200">
-                                <CardContent className="p-4">
-                                  <h4 className="font-medium">Infection Prevention & Control</h4>
-                                  <p className="text-sm text-muted-foreground mt-1">PPE, hand hygiene, IPC policies</p>
-                                </CardContent>
-                              </Card>
-                            </DialogTrigger>
-                          </Dialog>
+                        <div className="p-4 text-center text-muted-foreground">
+                          <p>Audit templates for this regulation will be provided in a future update.</p>
                         </div>
                       </AccordionContent>
                     </AccordionItem>
@@ -2870,21 +2841,12 @@ Delivering outstanding healthcare across Devon & Cornwall`;
                             <h3 className="font-semibold text-purple-900 dark:text-purple-100">Regulation 13: Safeguarding</h3>
                             <p className="text-sm text-purple-700 dark:text-purple-300">Policies, training, DBS, reporting, multi-agency</p>
                           </div>
-                          <Badge className="ml-auto bg-purple-200 text-purple-800 dark:bg-purple-800 dark:text-purple-200">1 Audit</Badge>
+                          <Badge className="ml-auto bg-purple-200 text-purple-800 dark:bg-purple-800 dark:text-purple-200">Template Coming Soon</Badge>
                         </div>
                       </AccordionTrigger>
                       <AccordionContent className="px-4 pb-4">
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mt-2">
-                          <Dialog open={safeguardingAuditOpen} onOpenChange={setSafeguardingAuditOpen}>
-                            <DialogTrigger asChild>
-                              <Card className="cursor-pointer hover:shadow-md transition-shadow border border-purple-200">
-                                <CardContent className="p-4">
-                                  <h4 className="font-medium">Safeguarding Audit</h4>
-                                  <p className="text-sm text-muted-foreground mt-1">Full safeguarding compliance check</p>
-                                </CardContent>
-                              </Card>
-                            </DialogTrigger>
-                          </Dialog>
+                        <div className="p-4 text-center text-muted-foreground">
+                          <p>Audit templates for this regulation will be provided in a future update.</p>
                         </div>
                       </AccordionContent>
                     </AccordionItem>
@@ -2900,21 +2862,11 @@ Delivering outstanding healthcare across Devon & Cornwall`;
                             <h3 className="font-semibold text-blue-900 dark:text-blue-100">Regulation 17: Good Governance</h3>
                             <p className="text-sm text-blue-700 dark:text-blue-300">QA systems, policies, records, risk management</p>
                           </div>
-                          <Badge className="ml-auto bg-blue-200 text-blue-800 dark:bg-blue-800 dark:text-blue-200">2 Audits</Badge>
+                          <Badge className="ml-auto bg-blue-200 text-blue-800 dark:bg-blue-800 dark:text-blue-200">1 Audit</Badge>
                         </div>
                       </AccordionTrigger>
                       <AccordionContent className="px-4 pb-4">
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mt-2">
-                          <Dialog open={governanceAuditOpen} onOpenChange={setGovernanceAuditOpen}>
-                            <DialogTrigger asChild>
-                              <Card className="cursor-pointer hover:shadow-md transition-shadow border border-blue-200">
-                                <CardContent className="p-4">
-                                  <h4 className="font-medium">Governance Audit</h4>
-                                  <p className="text-sm text-muted-foreground mt-1">Leadership oversight and systems</p>
-                                </CardContent>
-                              </Card>
-                            </DialogTrigger>
-                          </Dialog>
                           <Dialog open={statementOfPurposeAuditOpen} onOpenChange={setStatementOfPurposeAuditOpen}>
                             <DialogTrigger asChild>
                               <Card className="cursor-pointer hover:shadow-md transition-shadow border border-blue-200">
@@ -2940,31 +2892,12 @@ Delivering outstanding healthcare across Devon & Cornwall`;
                             <h3 className="font-semibold text-green-900 dark:text-green-100">Regulation 18: Staffing</h3>
                             <p className="text-sm text-green-700 dark:text-green-300">Staffing levels, training, supervision, competency</p>
                           </div>
-                          <Badge className="ml-auto bg-green-200 text-green-800 dark:bg-green-800 dark:text-green-200">2 Audits</Badge>
+                          <Badge className="ml-auto bg-green-200 text-green-800 dark:bg-green-800 dark:text-green-200">Template Coming Soon</Badge>
                         </div>
                       </AccordionTrigger>
                       <AccordionContent className="px-4 pb-4">
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mt-2">
-                          <Dialog open={staffingAuditOpen} onOpenChange={setStaffingAuditOpen}>
-                            <DialogTrigger asChild>
-                              <Card className="cursor-pointer hover:shadow-md transition-shadow border border-green-200">
-                                <CardContent className="p-4">
-                                  <h4 className="font-medium">Staffing Overview</h4>
-                                  <p className="text-sm text-muted-foreground mt-1">Levels, qualifications, supervision</p>
-                                </CardContent>
-                              </Card>
-                            </DialogTrigger>
-                          </Dialog>
-                          <Dialog open={trainingCompetencyAuditOpen} onOpenChange={setTrainingCompetencyAuditOpen}>
-                            <DialogTrigger asChild>
-                              <Card className="cursor-pointer hover:shadow-md transition-shadow border border-green-200">
-                                <CardContent className="p-4">
-                                  <h4 className="font-medium">Training & Competency</h4>
-                                  <p className="text-sm text-muted-foreground mt-1">Training matrix, mandatory training</p>
-                                </CardContent>
-                              </Card>
-                            </DialogTrigger>
-                          </Dialog>
+                        <div className="p-4 text-center text-muted-foreground">
+                          <p>Audit templates for this regulation will be provided in a future update.</p>
                         </div>
                       </AccordionContent>
                     </AccordionItem>
@@ -2980,21 +2913,12 @@ Delivering outstanding healthcare across Devon & Cornwall`;
                             <h3 className="font-semibold text-teal-900 dark:text-teal-100">Regulation 19: Fit & Proper Persons</h3>
                             <p className="text-sm text-teal-700 dark:text-teal-300">Recruitment, DBS, references, registration</p>
                           </div>
-                          <Badge className="ml-auto bg-teal-200 text-teal-800 dark:bg-teal-800 dark:text-teal-200">1 Audit</Badge>
+                          <Badge className="ml-auto bg-teal-200 text-teal-800 dark:bg-teal-800 dark:text-teal-200">Template Coming Soon</Badge>
                         </div>
                       </AccordionTrigger>
                       <AccordionContent className="px-4 pb-4">
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mt-2">
-                          <Dialog open={fitProperPersonsAuditOpen} onOpenChange={setFitProperPersonsAuditOpen}>
-                            <DialogTrigger asChild>
-                              <Card className="cursor-pointer hover:shadow-md transition-shadow border border-teal-200">
-                                <CardContent className="p-4">
-                                  <h4 className="font-medium">Fit & Proper Persons Audit</h4>
-                                  <p className="text-sm text-muted-foreground mt-1">Safe recruitment processes</p>
-                                </CardContent>
-                              </Card>
-                            </DialogTrigger>
-                          </Dialog>
+                        <div className="p-4 text-center text-muted-foreground">
+                          <p>Audit templates for this regulation will be provided in a future update.</p>
                         </div>
                       </AccordionContent>
                     </AccordionItem>
@@ -3010,31 +2934,12 @@ Delivering outstanding healthcare across Devon & Cornwall`;
                             <h3 className="font-semibold text-amber-900 dark:text-amber-100">Regulation 9: Person-Centred Care</h3>
                             <p className="text-sm text-amber-700 dark:text-amber-300">Care plans, preferences, involvement, reviews</p>
                           </div>
-                          <Badge className="ml-auto bg-amber-200 text-amber-800 dark:bg-amber-800 dark:text-amber-200">2 Audits</Badge>
+                          <Badge className="ml-auto bg-amber-200 text-amber-800 dark:bg-amber-800 dark:text-amber-200">Template Coming Soon</Badge>
                         </div>
                       </AccordionTrigger>
                       <AccordionContent className="px-4 pb-4">
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mt-2">
-                          <Dialog open={personCentredCareAuditOpen} onOpenChange={setPersonCentredCareAuditOpen}>
-                            <DialogTrigger asChild>
-                              <Card className="cursor-pointer hover:shadow-md transition-shadow border border-amber-200">
-                                <CardContent className="p-4">
-                                  <h4 className="font-medium">Person-Centred Care Overview</h4>
-                                  <p className="text-sm text-muted-foreground mt-1">Full person-centred care audit</p>
-                                </CardContent>
-                              </Card>
-                            </DialogTrigger>
-                          </Dialog>
-                          <Dialog open={carePlanningAuditOpen} onOpenChange={setCarePlanningAuditOpen}>
-                            <DialogTrigger asChild>
-                              <Card className="cursor-pointer hover:shadow-md transition-shadow border border-amber-200">
-                                <CardContent className="p-4">
-                                  <h4 className="font-medium">Care Planning Audit</h4>
-                                  <p className="text-sm text-muted-foreground mt-1">Assessments, reviews, outcomes</p>
-                                </CardContent>
-                              </Card>
-                            </DialogTrigger>
-                          </Dialog>
+                        <div className="p-4 text-center text-muted-foreground">
+                          <p>Audit templates for this regulation will be provided in a future update.</p>
                         </div>
                       </AccordionContent>
                     </AccordionItem>
@@ -3050,21 +2955,12 @@ Delivering outstanding healthcare across Devon & Cornwall`;
                             <h3 className="font-semibold text-indigo-900 dark:text-indigo-100">Regulation 16: Complaints</h3>
                             <p className="text-sm text-indigo-700 dark:text-indigo-300">Handling, investigation, learning, timeliness</p>
                           </div>
-                          <Badge className="ml-auto bg-indigo-200 text-indigo-800 dark:bg-indigo-800 dark:text-indigo-200">1 Audit</Badge>
+                          <Badge className="ml-auto bg-indigo-200 text-indigo-800 dark:bg-indigo-800 dark:text-indigo-200">Template Coming Soon</Badge>
                         </div>
                       </AccordionTrigger>
                       <AccordionContent className="px-4 pb-4">
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mt-2">
-                          <Dialog open={complaintsAuditOpen} onOpenChange={setComplaintsAuditOpen}>
-                            <DialogTrigger asChild>
-                              <Card className="cursor-pointer hover:shadow-md transition-shadow border border-indigo-200">
-                                <CardContent className="p-4">
-                                  <h4 className="font-medium">Complaints Handling Audit</h4>
-                                  <p className="text-sm text-muted-foreground mt-1">Full complaints process audit</p>
-                                </CardContent>
-                              </Card>
-                            </DialogTrigger>
-                          </Dialog>
+                        <div className="p-4 text-center text-muted-foreground">
+                          <p>Audit templates for this regulation will be provided in a future update.</p>
                         </div>
                       </AccordionContent>
                     </AccordionItem>
