@@ -42,7 +42,9 @@ export function StaffAssessmentsTab({ branch }: StaffAssessmentsTabProps) {
   const { data: links = [], isLoading: linksLoading } = useQuery<StaffAssessmentLink[]>({
     queryKey: ["/api/staff-assessment-links", branch],
     queryFn: async () => {
-      const response = await fetch(`/api/staff-assessment-links?branch=${encodeURIComponent(branch)}`);
+      const response = await fetch(`/api/staff-assessment-links?branch=${encodeURIComponent(branch)}`, {
+        credentials: 'include'
+      });
       if (!response.ok) throw new Error("Failed to fetch links");
       return response.json();
     },
@@ -51,7 +53,9 @@ export function StaffAssessmentsTab({ branch }: StaffAssessmentsTabProps) {
   const { data: responses = [], isLoading: responsesLoading } = useQuery<StaffAssessmentResponse[]>({
     queryKey: ["/api/staff-assessment-responses", branch],
     queryFn: async () => {
-      const response = await fetch(`/api/staff-assessment-responses?branch=${encodeURIComponent(branch)}`);
+      const response = await fetch(`/api/staff-assessment-responses?branch=${encodeURIComponent(branch)}`, {
+        credentials: 'include'
+      });
       if (!response.ok) throw new Error("Failed to fetch responses");
       return response.json();
     },

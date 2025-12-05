@@ -4869,10 +4869,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
       const link = await storage.createStaffAssessmentLink(validatedData);
       res.status(201).json(link);
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error creating staff assessment link:", error);
       if (error instanceof z.ZodError) {
         return res.status(400).json({ message: "Invalid assessment link data", errors: error.errors });
+      }
+      // Handle duplicate key constraint violation
+      if (error?.code === '23505' || error?.constraint?.includes('topic_id_branch')) {
+        return res.status(409).json({ message: "An assessment link for this topic and branch already exists" });
       }
       res.status(500).json({ message: "Failed to create assessment link" });
     }
