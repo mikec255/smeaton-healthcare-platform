@@ -4,7 +4,7 @@ import session from "express-session";
 import bcrypt from "bcryptjs";
 import crypto from "crypto";
 import { storage } from "./storage";
-import { insertJobSchema, insertApplicationSchema, insertContactSubmissionSchema, insertFeedbackSchema, insertNewsletterSchema, insertNewsletterBlockSchema, insertTemplateSchema, insertBlogCategorySchema, insertBlogPostSchema, insertUserSchema, loginUserSchema, updateUserSchema, insertCqcAuditSchema, insertCqcAuditCategorySchema, insertCqcQualityStatementSchema, insertCqcEvidenceCategorySchema, insertCqcAuditEvidenceSchema, insertCqcQualityAssessmentSchema, insertCqcComplianceRecordSchema, insertCqcChecklistItemSchema, insertCqcAuditResponseSchema, insertKnowledgeQuestionnaireSchema, insertKnowledgeQuestionSchema, insertKnowledgeSessionSchema, insertKnowledgeResponseSchema, insertKnowledgeActionSchema, insertRecruitmentApplicationSchema, insertProfessionalReferenceSchema, insertClientSchema, insertVisitSchema, insertRunSchema, insertRunStopSchema, insertGeocodeSchema } from "@shared/schema";
+import { insertJobSchema, insertApplicationSchema, insertContactSubmissionSchema, insertFeedbackSchema, insertNewsletterSchema, insertNewsletterBlockSchema, insertTemplateSchema, insertBlogCategorySchema, insertBlogPostSchema, insertUserSchema, loginUserSchema, updateUserSchema, insertCqcAuditSchema, insertCqcAuditCategorySchema, insertCqcQualityStatementSchema, insertCqcEvidenceCategorySchema, insertCqcAuditEvidenceSchema, insertCqcQualityAssessmentSchema, insertCqcComplianceRecordSchema, insertCqcChecklistItemSchema, insertCqcAuditResponseSchema, insertKnowledgeQuestionnaireSchema, insertKnowledgeQuestionSchema, insertKnowledgeSessionSchema, insertKnowledgeResponseSchema, insertKnowledgeActionSchema, insertRecruitmentApplicationSchema, insertProfessionalReferenceSchema, insertClientSchema, insertVisitSchema, insertRunSchema, insertRunStopSchema, insertGeocodeSchema, insertStaffAssessmentTopicSchema, insertStaffAssessmentLinkSchema, insertStaffAssessmentResponseSchema } from "@shared/schema";
 import { GoogleMapsService } from "./google-maps-service";
 import { ObjectStorageService } from "./objectStorage";
 import { brevoService } from "./brevo-service";
@@ -4747,6 +4747,346 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error('Error deleting run:', error);
       res.status(500).json({ message: "Failed to delete run" });
+    }
+  });
+
+  // ==========================================
+  // Staff Assessment APIs
+  // ==========================================
+
+  // Staff Assessment Topics - Admin API
+  app.get("/api/staff-assessment-topics", requireAdmin, async (req, res) => {
+    try {
+      const filters = {
+        isActive: req.query.isActive === 'true' ? true : req.query.isActive === 'false' ? false : undefined
+      };
+      const topics = await storage.getAllStaffAssessmentTopics(filters);
+      res.json(topics);
+    } catch (error) {
+      console.error("Error fetching staff assessment topics:", error);
+      res.status(500).json({ message: "Failed to fetch assessment topics" });
+    }
+  });
+
+  app.get("/api/staff-assessment-topics/:id", requireAdmin, async (req, res) => {
+    try {
+      const topic = await storage.getStaffAssessmentTopic(req.params.id);
+      if (!topic) {
+        return res.status(404).json({ message: "Assessment topic not found" });
+      }
+      res.json(topic);
+    } catch (error) {
+      console.error("Error fetching staff assessment topic:", error);
+      res.status(500).json({ message: "Failed to fetch assessment topic" });
+    }
+  });
+
+  app.post("/api/staff-assessment-topics", requireAdmin, async (req, res) => {
+    try {
+      const validatedData = insertStaffAssessmentTopicSchema.parse({
+        ...req.body,
+        createdBy: req.user?.id
+      });
+      const topic = await storage.createStaffAssessmentTopic(validatedData);
+      res.status(201).json(topic);
+    } catch (error) {
+      console.error("Error creating staff assessment topic:", error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid assessment topic data", errors: error.errors });
+      }
+      res.status(500).json({ message: "Failed to create assessment topic" });
+    }
+  });
+
+  app.put("/api/staff-assessment-topics/:id", requireAdmin, async (req, res) => {
+    try {
+      const validatedData = insertStaffAssessmentTopicSchema.partial().parse(req.body);
+      const topic = await storage.updateStaffAssessmentTopic(req.params.id, validatedData);
+      if (!topic) {
+        return res.status(404).json({ message: "Assessment topic not found" });
+      }
+      res.json(topic);
+    } catch (error) {
+      console.error("Error updating staff assessment topic:", error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid assessment topic data", errors: error.errors });
+      }
+      res.status(500).json({ message: "Failed to update assessment topic" });
+    }
+  });
+
+  app.delete("/api/staff-assessment-topics/:id", requireAdmin, async (req, res) => {
+    try {
+      const success = await storage.deleteStaffAssessmentTopic(req.params.id);
+      if (!success) {
+        return res.status(404).json({ message: "Assessment topic not found" });
+      }
+      res.status(204).send();
+    } catch (error) {
+      console.error("Error deleting staff assessment topic:", error);
+      res.status(500).json({ message: "Failed to delete assessment topic" });
+    }
+  });
+
+  // Staff Assessment Links - Admin API (Branch-specific links)
+  app.get("/api/staff-assessment-links", requireAdmin, async (req, res) => {
+    try {
+      const filters = {
+        topicId: req.query.topicId as string | undefined,
+        branch: req.query.branch as string | undefined,
+        isActive: req.query.isActive === 'true' ? true : req.query.isActive === 'false' ? false : undefined
+      };
+      const links = await storage.getAllStaffAssessmentLinks(filters);
+      res.json(links);
+    } catch (error) {
+      console.error("Error fetching staff assessment links:", error);
+      res.status(500).json({ message: "Failed to fetch assessment links" });
+    }
+  });
+
+  app.get("/api/staff-assessment-links/:id", requireAdmin, async (req, res) => {
+    try {
+      const link = await storage.getStaffAssessmentLink(req.params.id);
+      if (!link) {
+        return res.status(404).json({ message: "Assessment link not found" });
+      }
+      res.json(link);
+    } catch (error) {
+      console.error("Error fetching staff assessment link:", error);
+      res.status(500).json({ message: "Failed to fetch assessment link" });
+    }
+  });
+
+  app.post("/api/staff-assessment-links", requireAdmin, async (req, res) => {
+    try {
+      // Generate a unique token for the link
+      const token = crypto.randomBytes(8).toString('hex');
+      
+      const validatedData = insertStaffAssessmentLinkSchema.parse({
+        ...req.body,
+        token,
+        createdBy: req.user?.id
+      });
+      const link = await storage.createStaffAssessmentLink(validatedData);
+      res.status(201).json(link);
+    } catch (error) {
+      console.error("Error creating staff assessment link:", error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid assessment link data", errors: error.errors });
+      }
+      res.status(500).json({ message: "Failed to create assessment link" });
+    }
+  });
+
+  app.put("/api/staff-assessment-links/:id", requireAdmin, async (req, res) => {
+    try {
+      const validatedData = insertStaffAssessmentLinkSchema.partial().parse(req.body);
+      const link = await storage.updateStaffAssessmentLink(req.params.id, validatedData);
+      if (!link) {
+        return res.status(404).json({ message: "Assessment link not found" });
+      }
+      res.json(link);
+    } catch (error) {
+      console.error("Error updating staff assessment link:", error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid assessment link data", errors: error.errors });
+      }
+      res.status(500).json({ message: "Failed to update assessment link" });
+    }
+  });
+
+  app.post("/api/staff-assessment-links/:id/regenerate-token", requireAdmin, async (req, res) => {
+    try {
+      const link = await storage.regenerateStaffAssessmentLinkToken(req.params.id);
+      if (!link) {
+        return res.status(404).json({ message: "Assessment link not found" });
+      }
+      res.json(link);
+    } catch (error) {
+      console.error("Error regenerating assessment link token:", error);
+      res.status(500).json({ message: "Failed to regenerate assessment link token" });
+    }
+  });
+
+  app.delete("/api/staff-assessment-links/:id", requireAdmin, async (req, res) => {
+    try {
+      const success = await storage.deleteStaffAssessmentLink(req.params.id);
+      if (!success) {
+        return res.status(404).json({ message: "Assessment link not found" });
+      }
+      res.status(204).send();
+    } catch (error) {
+      console.error("Error deleting staff assessment link:", error);
+      res.status(500).json({ message: "Failed to delete assessment link" });
+    }
+  });
+
+  // Staff Assessment Responses - Admin API
+  app.get("/api/staff-assessment-responses", requireAdmin, async (req, res) => {
+    try {
+      const filters = {
+        topicId: req.query.topicId as string | undefined,
+        branch: req.query.branch as string | undefined,
+        linkId: req.query.linkId as string | undefined
+      };
+      const responses = await storage.getAllStaffAssessmentResponses(filters);
+      res.json(responses);
+    } catch (error) {
+      console.error("Error fetching staff assessment responses:", error);
+      res.status(500).json({ message: "Failed to fetch assessment responses" });
+    }
+  });
+
+  app.get("/api/staff-assessment-responses/:id", requireAdmin, async (req, res) => {
+    try {
+      const response = await storage.getStaffAssessmentResponse(req.params.id);
+      if (!response) {
+        return res.status(404).json({ message: "Assessment response not found" });
+      }
+      res.json(response);
+    } catch (error) {
+      console.error("Error fetching staff assessment response:", error);
+      res.status(500).json({ message: "Failed to fetch assessment response" });
+    }
+  });
+
+  app.delete("/api/staff-assessment-responses/:id", requireAdmin, async (req, res) => {
+    try {
+      const success = await storage.deleteStaffAssessmentResponse(req.params.id);
+      if (!success) {
+        return res.status(404).json({ message: "Assessment response not found" });
+      }
+      res.status(204).send();
+    } catch (error) {
+      console.error("Error deleting staff assessment response:", error);
+      res.status(500).json({ message: "Failed to delete assessment response" });
+    }
+  });
+
+  // Staff Assessment Statistics - Admin API
+  app.get("/api/staff-assessment-stats/:topicId", requireAdmin, async (req, res) => {
+    try {
+      const branch = req.query.branch as string | undefined;
+      const stats = await storage.getStaffAssessmentStats(req.params.topicId, branch);
+      res.json(stats);
+    } catch (error) {
+      console.error("Error fetching staff assessment stats:", error);
+      res.status(500).json({ message: "Failed to fetch assessment statistics" });
+    }
+  });
+
+  // Public Assessment API (for staff completing assessments)
+  app.get("/api/assessments/:token", async (req, res) => {
+    try {
+      const link = await storage.getStaffAssessmentLinkByToken(req.params.token);
+      if (!link) {
+        return res.status(404).json({ message: "Assessment not found or link has expired" });
+      }
+      
+      if (!link.isActive) {
+        return res.status(403).json({ message: "This assessment link is no longer active" });
+      }
+      
+      const topic = await storage.getStaffAssessmentTopic(link.topicId);
+      if (!topic) {
+        return res.status(404).json({ message: "Assessment topic not found" });
+      }
+      
+      if (!topic.isActive) {
+        return res.status(403).json({ message: "This assessment is no longer available" });
+      }
+      
+      // Return topic info and questions (without revealing correct answers)
+      res.json({
+        id: topic.id,
+        title: topic.title,
+        description: topic.description,
+        introduction: topic.introduction,
+        questions: topic.questions,
+        branch: link.branch,
+        linkId: link.id
+      });
+    } catch (error) {
+      console.error("Error fetching public assessment:", error);
+      res.status(500).json({ message: "Failed to fetch assessment" });
+    }
+  });
+
+  app.post("/api/assessments/:token/submit", async (req, res) => {
+    try {
+      const link = await storage.getStaffAssessmentLinkByToken(req.params.token);
+      if (!link) {
+        return res.status(404).json({ message: "Assessment not found or link has expired" });
+      }
+      
+      if (!link.isActive) {
+        return res.status(403).json({ message: "This assessment link is no longer active" });
+      }
+      
+      const topic = await storage.getStaffAssessmentTopic(link.topicId);
+      if (!topic || !topic.isActive) {
+        return res.status(403).json({ message: "This assessment is no longer available" });
+      }
+      
+      const { staffName, jobTitle, answers, needsFurtherTraining, feedback, agreedToParticipate, understandsPurpose, understandsOwnTime } = req.body;
+      
+      if (!staffName || !jobTitle || !answers) {
+        return res.status(400).json({ message: "Staff name, job title, and answers are required" });
+      }
+      
+      // Calculate score based on answers and topic questions
+      let totalScore = 0;
+      let maxScore = 0;
+      
+      const questions = topic.questions as any[];
+      for (const question of questions) {
+        if (question.isScored && question.points > 0) {
+          maxScore += question.points;
+          // For yes/no questions, "yes" typically means correct
+          const answer = answers[question.id];
+          if (answer === 'yes' || answer === 'Yes') {
+            totalScore += question.points;
+          }
+        }
+      }
+      
+      const percentageScore = maxScore > 0 ? Math.round((totalScore / maxScore) * 100) : 0;
+      const passed = percentageScore >= (topic.passingScore || 70);
+      
+      const response = await storage.createStaffAssessmentResponse({
+        linkId: link.id,
+        topicId: topic.id,
+        branch: link.branch,
+        staffName,
+        jobTitle,
+        answers,
+        totalScore,
+        maxScore,
+        percentageScore,
+        passed,
+        needsFurtherTraining,
+        feedback,
+        agreedToParticipate: agreedToParticipate || false,
+        understandsPurpose: understandsPurpose || false,
+        understandsOwnTime: understandsOwnTime || false,
+        ipAddress: req.ip,
+        userAgent: req.headers['user-agent']
+      });
+      
+      res.status(201).json({
+        id: response.id,
+        totalScore,
+        maxScore,
+        percentageScore,
+        passed,
+        message: passed ? "Assessment completed successfully!" : "Assessment submitted. Please review the areas for improvement."
+      });
+    } catch (error) {
+      console.error("Error submitting assessment:", error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid assessment data", errors: error.errors });
+      }
+      res.status(500).json({ message: "Failed to submit assessment" });
     }
   });
 
