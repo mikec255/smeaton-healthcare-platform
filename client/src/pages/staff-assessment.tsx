@@ -23,16 +23,20 @@ interface AssessmentQuestion {
   id: string;
   text: string;
   type: "scored" | "agreement" | "training" | "text";
+  isScored?: boolean;
+  points?: number;
   options?: string[];
-  scores?: number[];
   required?: boolean;
 }
 
-interface AssessmentConfig {
-  topic: StaffAssessmentTopic;
-  link: StaffAssessmentLink;
+interface AssessmentData {
+  id: string;
+  title: string;
+  description: string;
+  introduction: string;
   questions: AssessmentQuestion[];
-  passingPercentage: number;
+  branch: string;
+  linkId: string;
 }
 
 export default function StaffAssessment() {
@@ -50,14 +54,14 @@ export default function StaffAssessment() {
     maxScore: number;
   } | null>(null);
 
-  const { data, isLoading, error } = useQuery<AssessmentConfig>({
-    queryKey: ["/api/staff-assessment/public", token],
+  const { data, isLoading, error } = useQuery<AssessmentData>({
+    queryKey: ["/api/assessments", token],
     enabled: !!token,
   });
 
   const submitMutation = useMutation({
     mutationFn: async (submission: any) => {
-      const response = await apiRequest("POST", `/api/staff-assessment/public/${token}/submit`, submission);
+      const response = await apiRequest("POST", `/api/assessments/${token}/submit`, submission);
       return await response.json();
     },
     onSuccess: (response: any) => {
@@ -120,7 +124,8 @@ export default function StaffAssessment() {
     );
   }
 
-  const { topic, link, questions, passingPercentage } = data;
+  const questions = data.questions || [];
+  const passingPercentage = 70; // Default passing percentage
 
   const handleStartAssessment = () => {
     if (!staffInfo.name.trim() || !staffInfo.jobTitle.trim()) {
@@ -155,11 +160,11 @@ export default function StaffAssessment() {
     let maxScore = 0;
 
     questions.forEach(q => {
-      if (q.type === "scored" && q.scores && q.options) {
-        maxScore += Math.max(...q.scores);
-        const answerIndex = q.options.indexOf(answers[q.id]);
-        if (answerIndex !== -1 && q.scores[answerIndex] !== undefined) {
-          totalScore += q.scores[answerIndex];
+      if (q.isScored && q.points && q.points > 0) {
+        maxScore += q.points;
+        const answer = answers[q.id];
+        if (answer === 'Yes' || answer === 'yes') {
+          totalScore += q.points;
         }
       }
     });
@@ -215,16 +220,16 @@ export default function StaffAssessment() {
                   <Brain className="h-12 w-12 text-pink-600" />
                 </div>
               </div>
-              <CardTitle className="text-2xl">{topic.title}</CardTitle>
+              <CardTitle className="text-2xl">{data.title}</CardTitle>
               <CardDescription className="text-base mt-2">
-                {topic.description}
+                {data.description}
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
               <div className="bg-blue-50 dark:bg-blue-950 p-4 rounded-lg">
                 <h3 className="font-semibold text-blue-900 dark:text-blue-100 mb-2">Assessment Information</h3>
                 <ul className="text-sm text-blue-800 dark:text-blue-200 space-y-1">
-                  <li>• Branch: <strong>{link.branch}</strong></li>
+                  <li>• Branch: <strong>{data.branch}</strong></li>
                   <li>• Total Questions: <strong>{questions.length}</strong></li>
                   <li>• Passing Score: <strong>{passingPercentage}%</strong></li>
                   <li>• Answer all questions honestly - this is for learning and development</li>
@@ -338,7 +343,7 @@ export default function StaffAssessment() {
         <Card>
           <CardHeader>
             <div className="flex items-center justify-between mb-4">
-              <Badge variant="outline">{topic.title}</Badge>
+              <Badge variant="outline">{data.title}</Badge>
               <span className="text-sm text-muted-foreground">
                 Question {currentQuestionIndex + 1} of {questions.length}
               </span>

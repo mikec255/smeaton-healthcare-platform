@@ -5090,6 +5090,144 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Seed route for creating the Dignity & Person Centred Care assessment
+  app.post("/api/admin/seed-dignity-assessment", requireAdmin, async (req, res) => {
+    try {
+      // Check if assessment already exists
+      const existingTopics = await storage.getStaffAssessmentTopics();
+      const existingDignity = existingTopics.find(t => t.slug === 'dignity-person-centred-care');
+      
+      if (existingDignity) {
+        return res.json({ message: "Dignity & Person Centred Care assessment already exists", id: existingDignity.id });
+      }
+      
+      // Create the Dignity & Person Centred Care assessment topic
+      const dignityAssessment = await storage.createStaffAssessmentTopic({
+        title: "Dignity & Person Centred Care",
+        slug: "dignity-person-centred-care",
+        description: "Knowledge assessment covering dignity, person-centred care, and CQC Regulation 10 requirements for health and social care staff.",
+        introduction: "This assessment will evaluate your understanding of dignity and person-centred care principles. Please answer all questions honestly - this is designed to identify training needs and support your professional development.",
+        passingScore: 70,
+        isActive: true,
+        questions: [
+          {
+            id: "q1",
+            text: "I have access to the 'Dignity Do's' and understand the ten specific care challenges that must be met.",
+            type: "scored",
+            isScored: true,
+            points: 1,
+            options: ["Yes", "No", "Partially"]
+          },
+          {
+            id: "q2",
+            text: "I always respect individual needs when using people's preferred names and titles.",
+            type: "scored",
+            isScored: true,
+            points: 1,
+            options: ["Yes", "No", "Partially"]
+          },
+          {
+            id: "q3",
+            text: "I always offer privacy when delivering personal care, and use privacy screens.",
+            type: "scored",
+            isScored: true,
+            points: 1,
+            options: ["Yes", "No", "Partially"]
+          },
+          {
+            id: "q4",
+            text: "I always knock on doors and wait before entering to respect individual's privacy.",
+            type: "scored",
+            isScored: true,
+            points: 1,
+            options: ["Yes", "No", "Partially"]
+          },
+          {
+            id: "q5",
+            text: "I always respect the individual's right to maintain personal dignity, including modesty.",
+            type: "scored",
+            isScored: true,
+            points: 1,
+            options: ["Yes", "No", "Partially"]
+          },
+          {
+            id: "q6",
+            text: "I take care not to draw attention to aspects of their appearance that may give rise to stigmatisation.",
+            type: "scored",
+            isScored: true,
+            points: 1,
+            options: ["Yes", "No", "Partially"]
+          },
+          {
+            id: "q7",
+            text: "I take care not to draw attention to individual specific needs or conditions that may give rise to stigmatisation.",
+            type: "scored",
+            isScored: true,
+            points: 1,
+            options: ["Yes", "No", "Partially"]
+          },
+          {
+            id: "q8",
+            text: "I encourage individual choice and participation in decision-making about their care and support.",
+            type: "scored",
+            isScored: true,
+            points: 1,
+            options: ["Yes", "No", "Partially"]
+          },
+          {
+            id: "q9",
+            text: "I understand how person-centred care differs from task-centred care.",
+            type: "scored",
+            isScored: true,
+            points: 1,
+            options: ["Yes", "No", "Partially"]
+          },
+          {
+            id: "q10",
+            text: "I understand and support individual's rights to independence and autonomy.",
+            type: "agreement",
+            isScored: false,
+            points: 0,
+            options: ["Strongly Agree", "Agree", "Neutral", "Disagree", "Strongly Disagree"]
+          },
+          {
+            id: "q11",
+            text: "I support people to maintain and develop relationships with friends, family, carers and advocates.",
+            type: "agreement",
+            isScored: false,
+            points: 0,
+            options: ["Strongly Agree", "Agree", "Neutral", "Disagree", "Strongly Disagree"]
+          },
+          {
+            id: "q12",
+            text: "Would you like further training or support on Dignity & Person Centred Care?",
+            type: "training",
+            isScored: false,
+            points: 0,
+            options: ["Yes", "No"]
+          },
+          {
+            id: "q13",
+            text: "Please provide any additional comments or feedback about this assessment or the topic.",
+            type: "text",
+            isScored: false,
+            points: 0,
+            required: false
+          }
+        ]
+      });
+      
+      res.status(201).json({
+        message: "Dignity & Person Centred Care assessment created successfully",
+        id: dignityAssessment.id,
+        title: dignityAssessment.title
+      });
+    } catch (error) {
+      console.error("Error seeding dignity assessment:", error);
+      res.status(500).json({ message: "Failed to create assessment" });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }
