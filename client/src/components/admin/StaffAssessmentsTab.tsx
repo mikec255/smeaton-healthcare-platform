@@ -57,10 +57,7 @@ export function StaffAssessmentsTab({ branch }: StaffAssessmentsTabProps) {
 
   const createLinkMutation = useMutation({
     mutationFn: async (data: z.infer<typeof createLinkSchema>) => {
-      return await apiRequest("/api/staff-assessment-links", {
-        method: "POST",
-        body: JSON.stringify(data),
-      });
+      return await apiRequest("POST", "/api/staff-assessment-links", data);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/staff-assessment-links"] });
@@ -82,9 +79,7 @@ export function StaffAssessmentsTab({ branch }: StaffAssessmentsTabProps) {
 
   const regenerateTokenMutation = useMutation({
     mutationFn: async (linkId: string) => {
-      return await apiRequest(`/api/staff-assessment-links/${linkId}/regenerate-token`, {
-        method: "POST",
-      });
+      return await apiRequest("POST", `/api/staff-assessment-links/${linkId}/regenerate-token`);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/staff-assessment-links"] });
@@ -104,10 +99,7 @@ export function StaffAssessmentsTab({ branch }: StaffAssessmentsTabProps) {
 
   const toggleLinkActiveMutation = useMutation({
     mutationFn: async ({ linkId, isActive }: { linkId: string; isActive: boolean }) => {
-      return await apiRequest(`/api/staff-assessment-links/${linkId}`, {
-        method: "PUT",
-        body: JSON.stringify({ isActive }),
-      });
+      return await apiRequest("PUT", `/api/staff-assessment-links/${linkId}`, { isActive });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/staff-assessment-links"] });
@@ -127,9 +119,7 @@ export function StaffAssessmentsTab({ branch }: StaffAssessmentsTabProps) {
 
   const deleteLinkMutation = useMutation({
     mutationFn: async (linkId: string) => {
-      return await apiRequest(`/api/staff-assessment-links/${linkId}`, {
-        method: "DELETE",
-      });
+      return await apiRequest("DELETE", `/api/staff-assessment-links/${linkId}`);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/staff-assessment-links"] });
@@ -149,9 +139,7 @@ export function StaffAssessmentsTab({ branch }: StaffAssessmentsTabProps) {
 
   const deleteResponseMutation = useMutation({
     mutationFn: async (responseId: string) => {
-      return await apiRequest(`/api/staff-assessment-responses/${responseId}`, {
-        method: "DELETE",
-      });
+      return await apiRequest("DELETE", `/api/staff-assessment-responses/${responseId}`);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/staff-assessment-responses"] });

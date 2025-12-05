@@ -73,6 +73,9 @@ const ReferenceForm = lazy(() => import("@/pages/reference-form"));
 // Assessment page for staff knowledge tests
 const Assessment = lazy(() => import("@/pages/assessment"));
 
+// Staff assessment page (branch-specific knowledge assessments)
+const StaffAssessment = lazy(() => import("@/pages/staff-assessment"));
+
 // Public pages (no auth required)
 const PublicFeedback = lazy(() => import("@/pages/public-feedback"));
 
@@ -155,6 +158,7 @@ function Router() {
             
             {/* Staff Assessment page (public) */}
             <Route path="/assessment/:shareableLink" component={Assessment} />
+            <Route path="/assessments/:token" component={StaffAssessment} />
             
             {/* Public Feedback Form */}
             <Route path="/feedback/:token" component={PublicFeedback} />
