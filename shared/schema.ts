@@ -1485,3 +1485,143 @@ export type CqcFeedbackCampaign = typeof cqcFeedbackCampaigns.$inferSelect;
 export type InsertCqcFeedbackResponse = z.infer<typeof insertCqcFeedbackResponseSchema>;
 export type CqcFeedbackResponse = typeof cqcFeedbackResponses.$inferSelect;
 export type PublicFeedbackSubmission = z.infer<typeof publicFeedbackSubmissionSchema>;
+
+// CQC Quick Audit Form Templates - Category-specific audit forms
+export const cqcAuditFormTemplates = pgTable("cqc_audit_form_templates", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  category: text("category").notNull().unique(), // medication_management, infection_control, etc.
+  displayName: text("display_name").notNull(), // "Medication Audit", "Infection Control Audit"
+  description: text("description"),
+  version: integer("version").default(1),
+  isActive: boolean("is_active").default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// CQC Audit Form Checklist Items - Questions for each audit template
+export const cqcAuditFormItems = pgTable("cqc_audit_form_items", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  templateId: varchar("template_id").references(() => cqcAuditFormTemplates.id, { onDelete: "cascade" }).notNull(),
+  section: text("section"), // Group items by section e.g., "Storage", "Administration"
+  questionText: text("question_text").notNull(),
+  questionType: text("question_type").notNull().default("yes_no"), // yes_no, yes_no_na, rating, text, number
+  helpText: text("help_text"), // Guidance for the auditor
+  isRequired: boolean("is_required").default(true),
+  weight: integer("weight").default(1), // Points for scoring
+  sortOrder: integer("sort_order").default(0),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// CQC Audit Form Submissions - Completed audit forms
+export const cqcAuditFormSubmissions = pgTable("cqc_audit_form_submissions", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  templateId: varchar("template_id").references(() => cqcAuditFormTemplates.id).notNull(),
+  branch: text("branch").notNull().default("Plymouth"), // Plymouth, Truro
+  category: text("category").notNull(), // Denormalised for faster queries
+  
+  // Audit details
+  auditDate: timestamp("audit_date").notNull(),
+  auditorId: varchar("auditor_id").references(() => users.id).notNull(),
+  auditorName: text("auditor_name").notNull(),
+  
+  // Scoring
+  totalScore: integer("total_score").default(0),
+  maxScore: integer("max_score").default(0),
+  percentageScore: integer("percentage_score").default(0),
+  
+  // Status
+  status: text("status").default("draft"), // draft, completed
+  
+  // Findings and Actions
+  findings: text("findings"),
+  areasOfStrength: text("areas_of_strength"),
+  areasForImprovement: text("areas_for_improvement"),
+  actionPlan: text("action_plan"),
+  
+  // Next audit
+  nextAuditDue: timestamp("next_audit_due"),
+  
+  // Metadata
+  completedAt: timestamp("completed_at"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// CQC Audit Form Responses - Answers to checklist items
+export const cqcAuditFormItemResponses = pgTable("cqc_audit_form_item_responses", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  submissionId: varchar("submission_id").references(() => cqcAuditFormSubmissions.id, { onDelete: "cascade" }).notNull(),
+  itemId: varchar("item_id").references(() => cqcAuditFormItems.id).notNull(),
+  
+  // Response value
+  response: text("response"), // "yes", "no", "n/a", rating number, or text
+  isCompliant: boolean("is_compliant"), // Derived from response
+  pointsAwarded: integer("points_awarded").default(0),
+  
+  // Notes for this item
+  notes: text("notes"),
+  
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// CQC Audit Form Evidence - Files uploaded for audit submissions
+export const cqcAuditFormEvidenceFiles = pgTable("cqc_audit_form_evidence_files", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  submissionId: varchar("submission_id").references(() => cqcAuditFormSubmissions.id, { onDelete: "cascade" }).notNull(),
+  itemId: varchar("item_id").references(() => cqcAuditFormItems.id), // Optional - can be linked to specific question
+  
+  // File details
+  fileName: text("file_name").notNull(),
+  filePath: text("file_path").notNull(),
+  fileData: text("file_data"), // Base64 encoded file content
+  fileSize: integer("file_size"),
+  mimeType: text("mime_type"),
+  
+  // Description
+  description: text("description"),
+  
+  // Metadata
+  uploadedBy: varchar("uploaded_by").references(() => users.id).notNull(),
+  uploadedAt: timestamp("uploaded_at").defaultNow(),
+});
+
+// Insert schemas for new audit form tables
+export const insertCqcAuditFormTemplateSchema = createInsertSchema(cqcAuditFormTemplates).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertCqcAuditFormItemSchema = createInsertSchema(cqcAuditFormItems).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertCqcAuditFormSubmissionSchema = createInsertSchema(cqcAuditFormSubmissions).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+  completedAt: true,
+});
+
+export const insertCqcAuditFormItemResponseSchema = createInsertSchema(cqcAuditFormItemResponses).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertCqcAuditFormEvidenceFileSchema = createInsertSchema(cqcAuditFormEvidenceFiles).omit({
+  id: true,
+  uploadedAt: true,
+});
+
+// Types for new audit form tables
+export type InsertCqcAuditFormTemplate = z.infer<typeof insertCqcAuditFormTemplateSchema>;
+export type CqcAuditFormTemplate = typeof cqcAuditFormTemplates.$inferSelect;
+export type InsertCqcAuditFormItem = z.infer<typeof insertCqcAuditFormItemSchema>;
+export type CqcAuditFormItem = typeof cqcAuditFormItems.$inferSelect;
+export type InsertCqcAuditFormSubmission = z.infer<typeof insertCqcAuditFormSubmissionSchema>;
+export type CqcAuditFormSubmission = typeof cqcAuditFormSubmissions.$inferSelect;
+export type InsertCqcAuditFormItemResponse = z.infer<typeof insertCqcAuditFormItemResponseSchema>;
+export type CqcAuditFormItemResponse = typeof cqcAuditFormItemResponses.$inferSelect;
+export type InsertCqcAuditFormEvidenceFile = z.infer<typeof insertCqcAuditFormEvidenceFileSchema>;
+export type CqcAuditFormEvidenceFile = typeof cqcAuditFormEvidenceFiles.$inferSelect;

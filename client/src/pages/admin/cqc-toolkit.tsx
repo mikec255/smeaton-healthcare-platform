@@ -23,6 +23,7 @@ import { DashboardModal } from '@uppy/react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell, PieChart, Pie } from "recharts";
 import type { CqcAudit, CqcAuditCategory, CqcQualityStatement, CqcEvidenceCategory, CqcAuditEvidence, CqcQualityAssessment, CqcComplianceRecord, InsertCqcAudit, InsertCqcComplianceRecord, KnowledgeQuestionnaire, InsertKnowledgeQuestionnaire, KnowledgeQuestion, InsertKnowledgeQuestion, KnowledgeSession, KnowledgeAction, ServiceImprovementPlanItem, AuditScheduleSettings } from "@shared/schema";
 import { insertCqcAuditSchema, insertCqcComplianceRecordSchema, insertKnowledgeQuestionnaireSchema, insertKnowledgeQuestionSchema } from "@shared/schema";
+import { CategoryAuditFormDialog } from "@/components/admin/CategoryAuditFormDialog";
 
 // Extended form schemas based on shared insert schemas
 // Note: auditorId is handled server-side from authenticated session
@@ -1246,6 +1247,9 @@ export default function CqcToolkit() {
   // Audit forms tab state
   const [auditFormsTab, setAuditFormsTab] = useState("cqc");
   const [selectedEvidenceFiles, setSelectedEvidenceFiles] = useState<File[]>([]);
+  // Category audit form state (for dynamic audit forms from matrix)
+  const [categoryAuditFormOpen, setCategoryAuditFormOpen] = useState(false);
+  const [selectedCategoryForAudit, setSelectedCategoryForAudit] = useState<{ key: string; label: string } | null>(null);
   const queryClient = useQueryClient();
   const { toast } = useToast();
 
@@ -3108,8 +3112,12 @@ Delivering outstanding healthcare across Devon & Cornwall`;
                                 >
                                   <div 
                                     className={`w-4 h-4 rounded cursor-pointer transition-transform hover:scale-125 ${getStatusSquareClass(monthStatus.status)}`}
-                                    title={`${cat.label} - ${['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'][monthIndex]}: ${getStatusLabel(monthStatus.status)}${monthStatus.date ? ` (${formatAuditDate(monthStatus.date)})` : ''}`}
+                                    title={`${cat.label} - ${['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'][monthIndex]}: ${getStatusLabel(monthStatus.status)}${monthStatus.date ? ` (${formatAuditDate(monthStatus.date)})` : ''}\nClick to open audit form`}
                                     data-testid={`audit-matrix-cell-${cat.key}-${monthIndex}`}
+                                    onClick={() => {
+                                      setSelectedCategoryForAudit({ key: cat.key, label: cat.label });
+                                      setCategoryAuditFormOpen(true);
+                                    }}
                                   />
                                 </div>
                               );
@@ -6082,6 +6090,24 @@ Delivering outstanding healthcare across Devon & Cornwall`;
           <FeedbackTab branch={selectedBranch} />
         </TabsContent>
       </Tabs>
+
+      {/* Category Audit Form Dialog */}
+      {selectedCategoryForAudit && (
+        <CategoryAuditFormDialog
+          open={categoryAuditFormOpen}
+          onOpenChange={setCategoryAuditFormOpen}
+          category={selectedCategoryForAudit.key}
+          categoryLabel={selectedCategoryForAudit.label}
+          branch={selectedBranch}
+          onSuccess={() => {
+            queryClient.invalidateQueries({ queryKey: ["/api/cqc/audits"] });
+            toast({
+              title: "Audit Completed",
+              description: `${selectedCategoryForAudit.label} audit has been saved successfully.`,
+            });
+          }}
+        />
+      )}
     </div>
   );
 }

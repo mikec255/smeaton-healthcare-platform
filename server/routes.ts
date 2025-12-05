@@ -1960,6 +1960,289 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // ===== CQC Audit Form Templates API =====
+  
+  // Get all audit form templates
+  app.get("/api/cqc/audit-form-templates", requireAdmin, async (req, res) => {
+    try {
+      const filters: { isActive?: boolean } = {};
+      if (req.query.isActive !== undefined) filters.isActive = req.query.isActive === 'true';
+      
+      const templates = await storage.getAllCqcAuditFormTemplates(filters);
+      res.json(templates);
+    } catch (error) {
+      console.error("Error fetching audit form templates:", error);
+      res.status(500).json({ message: "Failed to fetch audit form templates" });
+    }
+  });
+
+  // Get template by category (with items)
+  app.get("/api/cqc/audit-form-templates/category/:category", requireAdmin, async (req, res) => {
+    try {
+      const template = await storage.getCqcAuditFormTemplateByCategory(req.params.category);
+      if (!template) {
+        return res.status(404).json({ message: "Template not found for this category" });
+      }
+      
+      // Get checklist items for this template
+      const items = await storage.getCqcAuditFormItems(template.id);
+      
+      res.json({ ...template, items });
+    } catch (error) {
+      console.error("Error fetching audit form template:", error);
+      res.status(500).json({ message: "Failed to fetch audit form template" });
+    }
+  });
+
+  // Get template by ID (with items)
+  app.get("/api/cqc/audit-form-templates/:id", requireAdmin, async (req, res) => {
+    try {
+      const template = await storage.getCqcAuditFormTemplate(req.params.id);
+      if (!template) {
+        return res.status(404).json({ message: "Template not found" });
+      }
+      
+      const items = await storage.getCqcAuditFormItems(template.id);
+      res.json({ ...template, items });
+    } catch (error) {
+      console.error("Error fetching audit form template:", error);
+      res.status(500).json({ message: "Failed to fetch audit form template" });
+    }
+  });
+
+  // ===== CQC Audit Form Submissions API =====
+
+  // Get all submissions
+  app.get("/api/cqc/audit-form-submissions", requireAdmin, async (req, res) => {
+    try {
+      const filters: { branch?: string; category?: string; status?: string } = {};
+      if (req.query.branch) filters.branch = req.query.branch as string;
+      if (req.query.category) filters.category = req.query.category as string;
+      if (req.query.status) filters.status = req.query.status as string;
+      
+      const submissions = await storage.getAllCqcAuditFormSubmissions(filters);
+      res.json(submissions);
+    } catch (error) {
+      console.error("Error fetching audit form submissions:", error);
+      res.status(500).json({ message: "Failed to fetch audit form submissions" });
+    }
+  });
+
+  // Get submission by ID (with responses and evidence)
+  app.get("/api/cqc/audit-form-submissions/:id", requireAdmin, async (req, res) => {
+    try {
+      const submission = await storage.getCqcAuditFormSubmission(req.params.id);
+      if (!submission) {
+        return res.status(404).json({ message: "Submission not found" });
+      }
+      
+      const responses = await storage.getCqcAuditFormItemResponses(submission.id);
+      const evidence = await storage.getCqcAuditFormEvidenceFiles(submission.id);
+      
+      res.json({ ...submission, responses, evidence });
+    } catch (error) {
+      console.error("Error fetching audit form submission:", error);
+      res.status(500).json({ message: "Failed to fetch audit form submission" });
+    }
+  });
+
+  // Create new submission
+  app.post("/api/cqc/audit-form-submissions", requireAdmin, async (req, res) => {
+    try {
+      const submissionSchema = z.object({
+        templateId: z.string().min(1, "Template ID is required"),
+        branch: z.string().default("Plymouth"),
+        category: z.string().min(1, "Category is required"),
+        auditDate: z.string().transform(v => new Date(v)),
+        findings: z.string().optional(),
+        areasOfStrength: z.string().optional(),
+        areasForImprovement: z.string().optional(),
+        actionPlan: z.string().optional(),
+        nextAuditDue: z.string().optional().transform(v => v ? new Date(v) : undefined),
+        responses: z.array(z.object({
+          itemId: z.string(),
+          response: z.string().optional(),
+          isCompliant: z.boolean().optional(),
+          notes: z.string().optional(),
+        })).optional(),
+      });
+
+      const validatedData = submissionSchema.parse(req.body);
+      const user = req.user as { id: string; username: string };
+      
+      // Calculate scores based on responses
+      let totalScore = 0;
+      let maxScore = 0;
+      
+      if (validatedData.responses) {
+        for (const resp of validatedData.responses) {
+          maxScore += 1;
+          if (resp.isCompliant || resp.response === 'yes') {
+            totalScore += 1;
+          }
+        }
+      }
+      
+      const percentageScore = maxScore > 0 ? Math.round((totalScore / maxScore) * 100) : 0;
+      
+      // Create submission
+      const submission = await storage.createCqcAuditFormSubmission({
+        templateId: validatedData.templateId,
+        branch: validatedData.branch,
+        category: validatedData.category,
+        auditDate: validatedData.auditDate,
+        auditorId: user.id,
+        auditorName: user.username,
+        totalScore,
+        maxScore,
+        percentageScore,
+        status: "completed",
+        findings: validatedData.findings,
+        areasOfStrength: validatedData.areasOfStrength,
+        areasForImprovement: validatedData.areasForImprovement,
+        actionPlan: validatedData.actionPlan,
+        nextAuditDue: validatedData.nextAuditDue,
+      });
+      
+      // Create responses
+      if (validatedData.responses) {
+        for (const resp of validatedData.responses) {
+          const isCompliant = resp.isCompliant ?? (resp.response === 'yes');
+          await storage.createCqcAuditFormItemResponse({
+            submissionId: submission.id,
+            itemId: resp.itemId,
+            response: resp.response,
+            isCompliant,
+            pointsAwarded: isCompliant ? 1 : 0,
+            notes: resp.notes,
+          });
+        }
+      }
+      
+      res.status(201).json(submission);
+    } catch (error) {
+      console.error("Error creating audit form submission:", error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid submission data", errors: error.errors });
+      }
+      res.status(500).json({ message: "Failed to create audit form submission" });
+    }
+  });
+
+  // Update submission
+  app.put("/api/cqc/audit-form-submissions/:id", requireAdmin, async (req, res) => {
+    try {
+      const updateSchema = z.object({
+        status: z.enum(["draft", "completed"]).optional(),
+        findings: z.string().optional(),
+        areasOfStrength: z.string().optional(),
+        areasForImprovement: z.string().optional(),
+        actionPlan: z.string().optional(),
+        nextAuditDue: z.string().optional().transform(v => v ? new Date(v) : undefined),
+      });
+
+      const validatedData = updateSchema.parse(req.body);
+      const submission = await storage.updateCqcAuditFormSubmission(req.params.id, validatedData);
+      if (!submission) {
+        return res.status(404).json({ message: "Submission not found" });
+      }
+      res.json(submission);
+    } catch (error) {
+      console.error("Error updating audit form submission:", error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid update data", errors: error.errors });
+      }
+      res.status(500).json({ message: "Failed to update audit form submission" });
+    }
+  });
+
+  // Delete submission
+  app.delete("/api/cqc/audit-form-submissions/:id", requireAdmin, async (req, res) => {
+    try {
+      const deleted = await storage.deleteCqcAuditFormSubmission(req.params.id);
+      if (!deleted) {
+        return res.status(404).json({ message: "Submission not found" });
+      }
+      res.json({ message: "Submission deleted successfully" });
+    } catch (error) {
+      console.error("Error deleting audit form submission:", error);
+      res.status(500).json({ message: "Failed to delete audit form submission" });
+    }
+  });
+
+  // ===== CQC Audit Form Evidence Files API =====
+  
+  // Get evidence files for a submission
+  app.get("/api/cqc/audit-form-submissions/:submissionId/evidence", requireAdmin, async (req, res) => {
+    try {
+      const evidence = await storage.getCqcAuditFormEvidenceFiles(req.params.submissionId);
+      res.json(evidence);
+    } catch (error) {
+      console.error("Error fetching evidence files:", error);
+      res.status(500).json({ message: "Failed to fetch evidence files" });
+    }
+  });
+
+  // Add evidence file to submission
+  app.post("/api/cqc/audit-form-submissions/:submissionId/evidence", requireAdmin, async (req, res) => {
+    try {
+      const evidenceSchema = z.object({
+        itemId: z.string().optional(),
+        fileName: z.string().min(1, "File name is required"),
+        filePath: z.string().min(1, "File path is required"),
+        fileData: z.string().optional(), // Base64 encoded file content
+        fileSize: z.number().optional(),
+        mimeType: z.string().optional(),
+        description: z.string().optional(),
+      });
+
+      const validatedData = evidenceSchema.parse(req.body);
+      const user = req.user as { id: string };
+      
+      // Calculate file size from base64 data if not provided
+      let fileSize = validatedData.fileSize;
+      if (!fileSize && validatedData.fileData) {
+        // Base64 data URL format: data:mime;base64,<content>
+        const base64Content = validatedData.fileData.split(',')[1] || validatedData.fileData;
+        fileSize = Math.round(base64Content.length * 0.75); // Approximate decoded size
+      }
+      
+      const evidence = await storage.createCqcAuditFormEvidenceFile({
+        submissionId: req.params.submissionId,
+        itemId: validatedData.itemId,
+        fileName: validatedData.fileName,
+        filePath: validatedData.filePath,
+        fileData: validatedData.fileData,
+        fileSize: fileSize,
+        mimeType: validatedData.mimeType,
+        description: validatedData.description,
+        uploadedBy: user.id,
+      });
+      
+      res.status(201).json(evidence);
+    } catch (error) {
+      console.error("Error adding evidence file:", error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid evidence data", errors: error.errors });
+      }
+      res.status(500).json({ message: "Failed to add evidence file" });
+    }
+  });
+
+  // Delete evidence file
+  app.delete("/api/cqc/audit-form-evidence/:id", requireAdmin, async (req, res) => {
+    try {
+      const deleted = await storage.deleteCqcAuditFormEvidenceFile(req.params.id);
+      if (!deleted) {
+        return res.status(404).json({ message: "Evidence file not found" });
+      }
+      res.json({ message: "Evidence file deleted successfully" });
+    } catch (error) {
+      console.error("Error deleting evidence file:", error);
+      res.status(500).json({ message: "Failed to delete evidence file" });
+    }
+  });
+
   // Contact submissions API
   app.get("/api/contact-submissions", requireAdmin, async (req, res) => {
     try {

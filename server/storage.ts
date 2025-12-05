@@ -1,7 +1,7 @@
-import { type User, type InsertUser, type Job, type InsertJob, type Application, type InsertApplication, type ContactSubmission, type InsertContactSubmission, type Feedback, type InsertFeedback, type Newsletter, type InsertNewsletter, type NewsletterBlock, type InsertNewsletterBlock, type Template, type InsertTemplate, type Subscriber, type InsertSubscriber, type Campaign, type InsertCampaign, type Delivery, type InsertDelivery, type BlogCategory, type InsertBlogCategory, type BlogPost, type InsertBlogPost, type AuditLog, type InsertAuditLog, type CqcAudit, type InsertCqcAudit, type CqcAuditCategory, type InsertCqcAuditCategory, type CqcQualityStatement, type InsertCqcQualityStatement, type CqcEvidenceCategory, type InsertCqcEvidenceCategory, type CqcAuditEvidence, type InsertCqcAuditEvidence, type CqcQualityAssessment, type InsertCqcQualityAssessment, type CqcComplianceRecord, type InsertCqcComplianceRecord, type CqcChecklistItem, type InsertCqcChecklistItem, type CqcAuditResponse, type InsertCqcAuditResponse, type KnowledgeQuestionnaire, type InsertKnowledgeQuestionnaire, type KnowledgeQuestion, type InsertKnowledgeQuestion, type KnowledgeSession, type InsertKnowledgeSession, type KnowledgeResponse, type InsertKnowledgeResponse, type KnowledgeAction, type InsertKnowledgeAction, type RecruitmentApplication, type InsertRecruitmentApplication, type ProfessionalReference, type InsertProfessionalReference, type FinanceReport, type InsertFinanceReport, type Client, type InsertClient, type Visit, type InsertVisit, type Run, type InsertRun, type RunStop, type InsertRunStop, type Geocode, type InsertGeocode, type ReferenceRequest, type InsertReferenceRequest, type ServiceImprovementPlanItem, type InsertServiceImprovementPlanItem, type UpdateServiceImprovementPlanItem, type CqcFeedbackCampaign, type InsertCqcFeedbackCampaign, type UpdateCqcFeedbackCampaign, type CqcFeedbackResponse, type InsertCqcFeedbackResponse, type AuditScheduleSettings, type InsertAuditScheduleSettings } from "@shared/schema";
+import { type User, type InsertUser, type Job, type InsertJob, type Application, type InsertApplication, type ContactSubmission, type InsertContactSubmission, type Feedback, type InsertFeedback, type Newsletter, type InsertNewsletter, type NewsletterBlock, type InsertNewsletterBlock, type Template, type InsertTemplate, type Subscriber, type InsertSubscriber, type Campaign, type InsertCampaign, type Delivery, type InsertDelivery, type BlogCategory, type InsertBlogCategory, type BlogPost, type InsertBlogPost, type AuditLog, type InsertAuditLog, type CqcAudit, type InsertCqcAudit, type CqcAuditCategory, type InsertCqcAuditCategory, type CqcQualityStatement, type InsertCqcQualityStatement, type CqcEvidenceCategory, type InsertCqcEvidenceCategory, type CqcAuditEvidence, type InsertCqcAuditEvidence, type CqcQualityAssessment, type InsertCqcQualityAssessment, type CqcComplianceRecord, type InsertCqcComplianceRecord, type CqcChecklistItem, type InsertCqcChecklistItem, type CqcAuditResponse, type InsertCqcAuditResponse, type KnowledgeQuestionnaire, type InsertKnowledgeQuestionnaire, type KnowledgeQuestion, type InsertKnowledgeQuestion, type KnowledgeSession, type InsertKnowledgeSession, type KnowledgeResponse, type InsertKnowledgeResponse, type KnowledgeAction, type InsertKnowledgeAction, type RecruitmentApplication, type InsertRecruitmentApplication, type ProfessionalReference, type InsertProfessionalReference, type FinanceReport, type InsertFinanceReport, type Client, type InsertClient, type Visit, type InsertVisit, type Run, type InsertRun, type RunStop, type InsertRunStop, type Geocode, type InsertGeocode, type ReferenceRequest, type InsertReferenceRequest, type ServiceImprovementPlanItem, type InsertServiceImprovementPlanItem, type UpdateServiceImprovementPlanItem, type CqcFeedbackCampaign, type InsertCqcFeedbackCampaign, type UpdateCqcFeedbackCampaign, type CqcFeedbackResponse, type InsertCqcFeedbackResponse, type AuditScheduleSettings, type InsertAuditScheduleSettings, type CqcAuditFormTemplate, type InsertCqcAuditFormTemplate, type CqcAuditFormItem, type InsertCqcAuditFormItem, type CqcAuditFormSubmission, type InsertCqcAuditFormSubmission, type CqcAuditFormItemResponse, type InsertCqcAuditFormItemResponse, type CqcAuditFormEvidenceFile, type InsertCqcAuditFormEvidenceFile } from "@shared/schema";
 import { randomUUID } from "crypto";
 import { db } from "./db";
-import { users, jobs, applications, contactSubmissions, blogCategories, blogPosts, auditLogs, cqcAudits, cqcAuditCategories, cqcQualityStatements, cqcEvidenceCategories, cqcAuditEvidence, cqcQualityAssessments, cqcComplianceRecords, knowledgeQuestionnaires, knowledgeQuestions, knowledgeSessions, knowledgeResponses, knowledgeActions, recruitmentApplications, professionalReferences, financeReports, clients, visits, runs, runStops, geocodeCache, referenceRequests, serviceImprovementPlanItems, cqcFeedbackCampaigns, cqcFeedbackResponses, auditScheduleSettings } from "@shared/schema";
+import { users, jobs, applications, contactSubmissions, blogCategories, blogPosts, auditLogs, cqcAudits, cqcAuditCategories, cqcQualityStatements, cqcEvidenceCategories, cqcAuditEvidence, cqcQualityAssessments, cqcComplianceRecords, knowledgeQuestionnaires, knowledgeQuestions, knowledgeSessions, knowledgeResponses, knowledgeActions, recruitmentApplications, professionalReferences, financeReports, clients, visits, runs, runStops, geocodeCache, referenceRequests, serviceImprovementPlanItems, cqcFeedbackCampaigns, cqcFeedbackResponses, auditScheduleSettings, cqcAuditFormTemplates, cqcAuditFormItems, cqcAuditFormSubmissions, cqcAuditFormItemResponses, cqcAuditFormEvidenceFiles } from "@shared/schema";
 import { eq, and, desc } from "drizzle-orm";
 import bcrypt from "bcryptjs";
 
@@ -322,6 +322,42 @@ export interface IStorage {
   updateAuditScheduleSettings(id: string, updates: Partial<InsertAuditScheduleSettings>): Promise<AuditScheduleSettings | undefined>;
   upsertAuditScheduleSettings(settings: InsertAuditScheduleSettings): Promise<AuditScheduleSettings>;
   deleteAuditScheduleSettings(id: string): Promise<boolean>;
+  
+  // CQC Audit Form Templates
+  getAllCqcAuditFormTemplates(filters?: { isActive?: boolean }): Promise<CqcAuditFormTemplate[]>;
+  getCqcAuditFormTemplate(id: string): Promise<CqcAuditFormTemplate | undefined>;
+  getCqcAuditFormTemplateByCategory(category: string): Promise<CqcAuditFormTemplate | undefined>;
+  createCqcAuditFormTemplate(template: InsertCqcAuditFormTemplate): Promise<CqcAuditFormTemplate>;
+  updateCqcAuditFormTemplate(id: string, updates: Partial<InsertCqcAuditFormTemplate>): Promise<CqcAuditFormTemplate | undefined>;
+  deleteCqcAuditFormTemplate(id: string): Promise<boolean>;
+  
+  // CQC Audit Form Items (Checklist Questions)
+  getCqcAuditFormItems(templateId: string): Promise<CqcAuditFormItem[]>;
+  getCqcAuditFormItem(id: string): Promise<CqcAuditFormItem | undefined>;
+  createCqcAuditFormItem(item: InsertCqcAuditFormItem): Promise<CqcAuditFormItem>;
+  updateCqcAuditFormItem(id: string, updates: Partial<InsertCqcAuditFormItem>): Promise<CqcAuditFormItem | undefined>;
+  deleteCqcAuditFormItem(id: string): Promise<boolean>;
+  
+  // CQC Audit Form Submissions
+  getAllCqcAuditFormSubmissions(filters?: { branch?: string; category?: string; status?: string }): Promise<CqcAuditFormSubmission[]>;
+  getCqcAuditFormSubmission(id: string): Promise<CqcAuditFormSubmission | undefined>;
+  createCqcAuditFormSubmission(submission: InsertCqcAuditFormSubmission): Promise<CqcAuditFormSubmission>;
+  updateCqcAuditFormSubmission(id: string, updates: Partial<InsertCqcAuditFormSubmission>): Promise<CqcAuditFormSubmission | undefined>;
+  deleteCqcAuditFormSubmission(id: string): Promise<boolean>;
+  
+  // CQC Audit Form Item Responses
+  getCqcAuditFormItemResponses(submissionId: string): Promise<CqcAuditFormItemResponse[]>;
+  getCqcAuditFormItemResponse(id: string): Promise<CqcAuditFormItemResponse | undefined>;
+  createCqcAuditFormItemResponse(response: InsertCqcAuditFormItemResponse): Promise<CqcAuditFormItemResponse>;
+  updateCqcAuditFormItemResponse(id: string, updates: Partial<InsertCqcAuditFormItemResponse>): Promise<CqcAuditFormItemResponse | undefined>;
+  deleteCqcAuditFormItemResponse(id: string): Promise<boolean>;
+  deleteAllCqcAuditFormItemResponses(submissionId: string): Promise<boolean>;
+  
+  // CQC Audit Form Evidence Files
+  getCqcAuditFormEvidenceFiles(submissionId: string): Promise<CqcAuditFormEvidenceFile[]>;
+  getCqcAuditFormEvidenceFile(id: string): Promise<CqcAuditFormEvidenceFile | undefined>;
+  createCqcAuditFormEvidenceFile(file: InsertCqcAuditFormEvidenceFile): Promise<CqcAuditFormEvidenceFile>;
+  deleteCqcAuditFormEvidenceFile(id: string): Promise<boolean>;
 }
 
 export class MemStorage implements IStorage {
@@ -2318,6 +2354,158 @@ export class MemStorage implements IStorage {
     return this.auditScheduleSettingsMap.delete(id);
   }
 
+  // CQC Audit Form Templates (MemStorage stubs - not implemented for in-memory storage)
+  private auditFormTemplatesMap: Map<string, CqcAuditFormTemplate> = new Map();
+  private auditFormItemsMap: Map<string, CqcAuditFormItem> = new Map();
+  private auditFormSubmissionsMap: Map<string, CqcAuditFormSubmission> = new Map();
+  private auditFormItemResponsesMap: Map<string, CqcAuditFormItemResponse> = new Map();
+  private auditFormEvidenceFilesMap: Map<string, CqcAuditFormEvidenceFile> = new Map();
+
+  async getAllCqcAuditFormTemplates(filters?: { isActive?: boolean }): Promise<CqcAuditFormTemplate[]> {
+    let templates = Array.from(this.auditFormTemplatesMap.values());
+    if (filters?.isActive !== undefined) templates = templates.filter(t => t.isActive === filters.isActive);
+    return templates;
+  }
+
+  async getCqcAuditFormTemplate(id: string): Promise<CqcAuditFormTemplate | undefined> {
+    return this.auditFormTemplatesMap.get(id);
+  }
+
+  async getCqcAuditFormTemplateByCategory(category: string): Promise<CqcAuditFormTemplate | undefined> {
+    return Array.from(this.auditFormTemplatesMap.values()).find(t => t.category === category);
+  }
+
+  async createCqcAuditFormTemplate(template: InsertCqcAuditFormTemplate): Promise<CqcAuditFormTemplate> {
+    const id = randomUUID();
+    const now = new Date();
+    const newTemplate: CqcAuditFormTemplate = { id, version: 1, isActive: true, createdAt: now, updatedAt: now, ...template };
+    this.auditFormTemplatesMap.set(id, newTemplate);
+    return newTemplate;
+  }
+
+  async updateCqcAuditFormTemplate(id: string, updates: Partial<InsertCqcAuditFormTemplate>): Promise<CqcAuditFormTemplate | undefined> {
+    const existing = this.auditFormTemplatesMap.get(id);
+    if (!existing) return undefined;
+    const updated: CqcAuditFormTemplate = { ...existing, ...updates, updatedAt: new Date() };
+    this.auditFormTemplatesMap.set(id, updated);
+    return updated;
+  }
+
+  async deleteCqcAuditFormTemplate(id: string): Promise<boolean> {
+    return this.auditFormTemplatesMap.delete(id);
+  }
+
+  async getCqcAuditFormItems(templateId: string): Promise<CqcAuditFormItem[]> {
+    return Array.from(this.auditFormItemsMap.values()).filter(i => i.templateId === templateId).sort((a, b) => (a.sortOrder || 0) - (b.sortOrder || 0));
+  }
+
+  async getCqcAuditFormItem(id: string): Promise<CqcAuditFormItem | undefined> {
+    return this.auditFormItemsMap.get(id);
+  }
+
+  async createCqcAuditFormItem(item: InsertCqcAuditFormItem): Promise<CqcAuditFormItem> {
+    const id = randomUUID();
+    const newItem: CqcAuditFormItem = { id, isRequired: true, weight: 1, sortOrder: 0, createdAt: new Date(), ...item };
+    this.auditFormItemsMap.set(id, newItem);
+    return newItem;
+  }
+
+  async updateCqcAuditFormItem(id: string, updates: Partial<InsertCqcAuditFormItem>): Promise<CqcAuditFormItem | undefined> {
+    const existing = this.auditFormItemsMap.get(id);
+    if (!existing) return undefined;
+    const updated: CqcAuditFormItem = { ...existing, ...updates };
+    this.auditFormItemsMap.set(id, updated);
+    return updated;
+  }
+
+  async deleteCqcAuditFormItem(id: string): Promise<boolean> {
+    return this.auditFormItemsMap.delete(id);
+  }
+
+  async getAllCqcAuditFormSubmissions(filters?: { branch?: string; category?: string; status?: string }): Promise<CqcAuditFormSubmission[]> {
+    let submissions = Array.from(this.auditFormSubmissionsMap.values());
+    if (filters?.branch) submissions = submissions.filter(s => s.branch === filters.branch);
+    if (filters?.category) submissions = submissions.filter(s => s.category === filters.category);
+    if (filters?.status) submissions = submissions.filter(s => s.status === filters.status);
+    return submissions.sort((a, b) => new Date(b.auditDate).getTime() - new Date(a.auditDate).getTime());
+  }
+
+  async getCqcAuditFormSubmission(id: string): Promise<CqcAuditFormSubmission | undefined> {
+    return this.auditFormSubmissionsMap.get(id);
+  }
+
+  async createCqcAuditFormSubmission(submission: InsertCqcAuditFormSubmission): Promise<CqcAuditFormSubmission> {
+    const id = randomUUID();
+    const now = new Date();
+    const newSubmission: CqcAuditFormSubmission = { id, totalScore: 0, maxScore: 0, percentageScore: 0, status: "draft", completedAt: null, createdAt: now, updatedAt: now, ...submission };
+    this.auditFormSubmissionsMap.set(id, newSubmission);
+    return newSubmission;
+  }
+
+  async updateCqcAuditFormSubmission(id: string, updates: Partial<InsertCqcAuditFormSubmission>): Promise<CqcAuditFormSubmission | undefined> {
+    const existing = this.auditFormSubmissionsMap.get(id);
+    if (!existing) return undefined;
+    const updated: CqcAuditFormSubmission = { ...existing, ...updates, updatedAt: new Date() };
+    this.auditFormSubmissionsMap.set(id, updated);
+    return updated;
+  }
+
+  async deleteCqcAuditFormSubmission(id: string): Promise<boolean> {
+    return this.auditFormSubmissionsMap.delete(id);
+  }
+
+  async getCqcAuditFormItemResponses(submissionId: string): Promise<CqcAuditFormItemResponse[]> {
+    return Array.from(this.auditFormItemResponsesMap.values()).filter(r => r.submissionId === submissionId);
+  }
+
+  async getCqcAuditFormItemResponse(id: string): Promise<CqcAuditFormItemResponse | undefined> {
+    return this.auditFormItemResponsesMap.get(id);
+  }
+
+  async createCqcAuditFormItemResponse(response: InsertCqcAuditFormItemResponse): Promise<CqcAuditFormItemResponse> {
+    const id = randomUUID();
+    const newResponse: CqcAuditFormItemResponse = { id, pointsAwarded: 0, createdAt: new Date(), ...response };
+    this.auditFormItemResponsesMap.set(id, newResponse);
+    return newResponse;
+  }
+
+  async updateCqcAuditFormItemResponse(id: string, updates: Partial<InsertCqcAuditFormItemResponse>): Promise<CqcAuditFormItemResponse | undefined> {
+    const existing = this.auditFormItemResponsesMap.get(id);
+    if (!existing) return undefined;
+    const updated: CqcAuditFormItemResponse = { ...existing, ...updates };
+    this.auditFormItemResponsesMap.set(id, updated);
+    return updated;
+  }
+
+  async deleteCqcAuditFormItemResponse(id: string): Promise<boolean> {
+    return this.auditFormItemResponsesMap.delete(id);
+  }
+
+  async deleteAllCqcAuditFormItemResponses(submissionId: string): Promise<boolean> {
+    for (const [id, response] of this.auditFormItemResponsesMap) {
+      if (response.submissionId === submissionId) this.auditFormItemResponsesMap.delete(id);
+    }
+    return true;
+  }
+
+  async getCqcAuditFormEvidenceFiles(submissionId: string): Promise<CqcAuditFormEvidenceFile[]> {
+    return Array.from(this.auditFormEvidenceFilesMap.values()).filter(f => f.submissionId === submissionId);
+  }
+
+  async getCqcAuditFormEvidenceFile(id: string): Promise<CqcAuditFormEvidenceFile | undefined> {
+    return this.auditFormEvidenceFilesMap.get(id);
+  }
+
+  async createCqcAuditFormEvidenceFile(file: InsertCqcAuditFormEvidenceFile): Promise<CqcAuditFormEvidenceFile> {
+    const id = randomUUID();
+    const newFile: CqcAuditFormEvidenceFile = { id, uploadedAt: new Date(), ...file };
+    this.auditFormEvidenceFilesMap.set(id, newFile);
+    return newFile;
+  }
+
+  async deleteCqcAuditFormEvidenceFile(id: string): Promise<boolean> {
+    return this.auditFormEvidenceFilesMap.delete(id);
+  }
 }
 
 // Database storage implementation using Drizzle ORM
@@ -3930,6 +4118,191 @@ export class DrizzleStorage implements IStorage {
   async deleteAuditScheduleSettings(id: string): Promise<boolean> {
     const result = await db.delete(auditScheduleSettings)
       .where(eq(auditScheduleSettings.id, id))
+      .returning();
+    return result.length > 0;
+  }
+
+  // CQC Audit Form Templates
+  async getAllCqcAuditFormTemplates(filters?: { isActive?: boolean }): Promise<CqcAuditFormTemplate[]> {
+    const conditions = [];
+    if (filters?.isActive !== undefined) conditions.push(eq(cqcAuditFormTemplates.isActive, filters.isActive));
+    
+    const query = conditions.length > 0
+      ? db.select().from(cqcAuditFormTemplates).where(and(...conditions))
+      : db.select().from(cqcAuditFormTemplates);
+    
+    return await query;
+  }
+
+  async getCqcAuditFormTemplate(id: string): Promise<CqcAuditFormTemplate | undefined> {
+    const result = await db.select().from(cqcAuditFormTemplates)
+      .where(eq(cqcAuditFormTemplates.id, id))
+      .limit(1);
+    return result[0];
+  }
+
+  async getCqcAuditFormTemplateByCategory(category: string): Promise<CqcAuditFormTemplate | undefined> {
+    const result = await db.select().from(cqcAuditFormTemplates)
+      .where(eq(cqcAuditFormTemplates.category, category))
+      .limit(1);
+    return result[0];
+  }
+
+  async createCqcAuditFormTemplate(template: InsertCqcAuditFormTemplate): Promise<CqcAuditFormTemplate> {
+    const result = await db.insert(cqcAuditFormTemplates).values(template).returning();
+    return result[0];
+  }
+
+  async updateCqcAuditFormTemplate(id: string, updates: Partial<InsertCqcAuditFormTemplate>): Promise<CqcAuditFormTemplate | undefined> {
+    const result = await db.update(cqcAuditFormTemplates)
+      .set({ ...updates, updatedAt: new Date() })
+      .where(eq(cqcAuditFormTemplates.id, id))
+      .returning();
+    return result[0];
+  }
+
+  async deleteCqcAuditFormTemplate(id: string): Promise<boolean> {
+    const result = await db.delete(cqcAuditFormTemplates)
+      .where(eq(cqcAuditFormTemplates.id, id))
+      .returning();
+    return result.length > 0;
+  }
+
+  // CQC Audit Form Items (Checklist Questions)
+  async getCqcAuditFormItems(templateId: string): Promise<CqcAuditFormItem[]> {
+    return await db.select().from(cqcAuditFormItems)
+      .where(eq(cqcAuditFormItems.templateId, templateId))
+      .orderBy(cqcAuditFormItems.sortOrder);
+  }
+
+  async getCqcAuditFormItem(id: string): Promise<CqcAuditFormItem | undefined> {
+    const result = await db.select().from(cqcAuditFormItems)
+      .where(eq(cqcAuditFormItems.id, id))
+      .limit(1);
+    return result[0];
+  }
+
+  async createCqcAuditFormItem(item: InsertCqcAuditFormItem): Promise<CqcAuditFormItem> {
+    const result = await db.insert(cqcAuditFormItems).values(item).returning();
+    return result[0];
+  }
+
+  async updateCqcAuditFormItem(id: string, updates: Partial<InsertCqcAuditFormItem>): Promise<CqcAuditFormItem | undefined> {
+    const result = await db.update(cqcAuditFormItems)
+      .set(updates)
+      .where(eq(cqcAuditFormItems.id, id))
+      .returning();
+    return result[0];
+  }
+
+  async deleteCqcAuditFormItem(id: string): Promise<boolean> {
+    const result = await db.delete(cqcAuditFormItems)
+      .where(eq(cqcAuditFormItems.id, id))
+      .returning();
+    return result.length > 0;
+  }
+
+  // CQC Audit Form Submissions
+  async getAllCqcAuditFormSubmissions(filters?: { branch?: string; category?: string; status?: string }): Promise<CqcAuditFormSubmission[]> {
+    const conditions = [];
+    if (filters?.branch) conditions.push(eq(cqcAuditFormSubmissions.branch, filters.branch));
+    if (filters?.category) conditions.push(eq(cqcAuditFormSubmissions.category, filters.category));
+    if (filters?.status) conditions.push(eq(cqcAuditFormSubmissions.status, filters.status));
+    
+    const query = conditions.length > 0
+      ? db.select().from(cqcAuditFormSubmissions).where(and(...conditions)).orderBy(desc(cqcAuditFormSubmissions.auditDate))
+      : db.select().from(cqcAuditFormSubmissions).orderBy(desc(cqcAuditFormSubmissions.auditDate));
+    
+    return await query;
+  }
+
+  async getCqcAuditFormSubmission(id: string): Promise<CqcAuditFormSubmission | undefined> {
+    const result = await db.select().from(cqcAuditFormSubmissions)
+      .where(eq(cqcAuditFormSubmissions.id, id))
+      .limit(1);
+    return result[0];
+  }
+
+  async createCqcAuditFormSubmission(submission: InsertCqcAuditFormSubmission): Promise<CqcAuditFormSubmission> {
+    const result = await db.insert(cqcAuditFormSubmissions).values(submission).returning();
+    return result[0];
+  }
+
+  async updateCqcAuditFormSubmission(id: string, updates: Partial<InsertCqcAuditFormSubmission>): Promise<CqcAuditFormSubmission | undefined> {
+    const result = await db.update(cqcAuditFormSubmissions)
+      .set({ ...updates, updatedAt: new Date() })
+      .where(eq(cqcAuditFormSubmissions.id, id))
+      .returning();
+    return result[0];
+  }
+
+  async deleteCqcAuditFormSubmission(id: string): Promise<boolean> {
+    const result = await db.delete(cqcAuditFormSubmissions)
+      .where(eq(cqcAuditFormSubmissions.id, id))
+      .returning();
+    return result.length > 0;
+  }
+
+  // CQC Audit Form Item Responses
+  async getCqcAuditFormItemResponses(submissionId: string): Promise<CqcAuditFormItemResponse[]> {
+    return await db.select().from(cqcAuditFormItemResponses)
+      .where(eq(cqcAuditFormItemResponses.submissionId, submissionId));
+  }
+
+  async getCqcAuditFormItemResponse(id: string): Promise<CqcAuditFormItemResponse | undefined> {
+    const result = await db.select().from(cqcAuditFormItemResponses)
+      .where(eq(cqcAuditFormItemResponses.id, id))
+      .limit(1);
+    return result[0];
+  }
+
+  async createCqcAuditFormItemResponse(response: InsertCqcAuditFormItemResponse): Promise<CqcAuditFormItemResponse> {
+    const result = await db.insert(cqcAuditFormItemResponses).values(response).returning();
+    return result[0];
+  }
+
+  async updateCqcAuditFormItemResponse(id: string, updates: Partial<InsertCqcAuditFormItemResponse>): Promise<CqcAuditFormItemResponse | undefined> {
+    const result = await db.update(cqcAuditFormItemResponses)
+      .set(updates)
+      .where(eq(cqcAuditFormItemResponses.id, id))
+      .returning();
+    return result[0];
+  }
+
+  async deleteCqcAuditFormItemResponse(id: string): Promise<boolean> {
+    const result = await db.delete(cqcAuditFormItemResponses)
+      .where(eq(cqcAuditFormItemResponses.id, id))
+      .returning();
+    return result.length > 0;
+  }
+
+  async deleteAllCqcAuditFormItemResponses(submissionId: string): Promise<boolean> {
+    await db.delete(cqcAuditFormItemResponses)
+      .where(eq(cqcAuditFormItemResponses.submissionId, submissionId));
+    return true;
+  }
+
+  // CQC Audit Form Evidence Files
+  async getCqcAuditFormEvidenceFiles(submissionId: string): Promise<CqcAuditFormEvidenceFile[]> {
+    return await db.select().from(cqcAuditFormEvidenceFiles)
+      .where(eq(cqcAuditFormEvidenceFiles.submissionId, submissionId));
+  }
+
+  async getCqcAuditFormEvidenceFile(id: string): Promise<CqcAuditFormEvidenceFile | undefined> {
+    const result = await db.select().from(cqcAuditFormEvidenceFiles)
+      .where(eq(cqcAuditFormEvidenceFiles.id, id))
+      .limit(1);
+    return result[0];
+  }
+
+  async createCqcAuditFormEvidenceFile(file: InsertCqcAuditFormEvidenceFile): Promise<CqcAuditFormEvidenceFile> {
+    const result = await db.insert(cqcAuditFormEvidenceFiles).values(file).returning();
+    return result[0];
+  }
+
+  async deleteCqcAuditFormEvidenceFile(id: string): Promise<boolean> {
+    const result = await db.delete(cqcAuditFormEvidenceFiles)
+      .where(eq(cqcAuditFormEvidenceFiles.id, id))
       .returning();
     return result.length > 0;
   }
