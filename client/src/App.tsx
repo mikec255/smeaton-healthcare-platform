@@ -41,6 +41,12 @@ const CreatePassword = lazy(() => import("@/pages/create-password"));
 
 // Admin pages
 const Admin = lazy(() => import("@/pages/admin"));
+const RecruitmentHub = lazy(() => import("@/pages/admin/recruitment-hub"));
+const EnquiriesHub = lazy(() => import("@/pages/admin/enquiries-hub"));
+const FeedbackHub = lazy(() => import("@/pages/admin/feedback-hub"));
+const ComplianceHub = lazy(() => import("@/pages/admin/compliance-hub"));
+const ResourcesHub = lazy(() => import("@/pages/admin/resources-hub"));
+const SystemHub = lazy(() => import("@/pages/admin/system-hub"));
 const UsersAdmin = lazy(() => import("@/pages/admin/users"));
 const NewslettersAdmin = lazy(() => import("@/pages/admin/newsletters"));
 const NewsletterEditor = lazy(() => import("@/pages/admin/newsletter-editor"));
@@ -147,7 +153,15 @@ function Router() {
             {/* Staff Assessment page (public) */}
             <Route path="/assessment/:shareableLink" component={Assessment} />
             
-            {/* Admin pages */}
+            {/* Admin hub pages */}
+            <Route path="/admin/recruitment" component={RecruitmentHub} />
+            <Route path="/admin/enquiries" component={EnquiriesHub} />
+            <Route path="/admin/feedback-hub" component={FeedbackHub} />
+            <Route path="/admin/compliance" component={ComplianceHub} />
+            <Route path="/admin/resources" component={ResourcesHub} />
+            <Route path="/admin/system" component={SystemHub} />
+            
+            {/* Admin feature pages */}
             <Route path="/admin/newsletters/:id/edit" component={NewsletterEditor} />
             <Route path="/admin/newsletters/new" component={NewsletterEditor} />
             <Route path="/admin/newsletters/:id/preview" component={NewsletterEditor} />
