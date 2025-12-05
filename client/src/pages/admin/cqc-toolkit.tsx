@@ -1207,6 +1207,7 @@ function FeedbackTab({ branch }: { branch: string }) {
 export default function CqcToolkit() {
   const [activeTab, setActiveTab] = useState("dashboard");
   const [selectedBranch, setSelectedBranch] = useState("Plymouth");
+  const [matrixFrequencyFilter, setMatrixFrequencyFilter] = useState("all");
   const [createAuditOpen, setCreateAuditOpen] = useState(false);
   const [createRecordOpen, setCreateRecordOpen] = useState(false);
   const [createQuestionnaireOpen, setCreateQuestionnaireOpen] = useState(false);
@@ -2825,9 +2826,25 @@ Delivering outstanding healthcare across Devon & Cornwall`;
           {/* Audit Compliance Matrix - Grid-Based Visual Layout */}
           <Card data-testid="audit-compliance-matrix" className="overflow-hidden">
             <CardHeader className="pb-3">
-              <div className="flex items-center gap-2">
-                <Shield className="h-5 w-5 text-blue-600" />
-                <CardTitle>Audit Compliance Matrix</CardTitle>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Shield className="h-5 w-5 text-blue-600" />
+                  <CardTitle>Audit Compliance Matrix</CardTitle>
+                </div>
+                <Select value={matrixFrequencyFilter} onValueChange={setMatrixFrequencyFilter}>
+                  <SelectTrigger className="w-[180px]" data-testid="select-matrix-frequency">
+                    <SelectValue placeholder="Filter by frequency" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Audits</SelectItem>
+                    <SelectItem value="weekly">Weekly</SelectItem>
+                    <SelectItem value="fortnightly">Fortnightly</SelectItem>
+                    <SelectItem value="monthly">Monthly</SelectItem>
+                    <SelectItem value="quarterly">Quarterly</SelectItem>
+                    <SelectItem value="biannually">Bi-Annually</SelectItem>
+                    <SelectItem value="annually">Annually</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
               <CardDescription>
                 Visual overview of all audit areas across the year with completion status
@@ -2860,168 +2877,167 @@ Delivering outstanding healthcare across Devon & Cornwall`;
                 </div>
               </div>
 
-              {/* Frequency-Based Matrix Sections */}
-              <div className="p-4">
-                <Accordion type="multiple" defaultValue={["weekly", "fortnightly", "monthly", "quarterly", "biannually", "annually"]} className="space-y-2">
-                  {[
-                    { key: 'weekly', label: 'Weekly', icon: '📅', categories: auditCategories.filter(c => ['medication_management', 'infection_control'].includes(c.key)) },
-                    { key: 'fortnightly', label: 'Fortnightly (2 Weekly)', icon: '📆', categories: auditCategories.filter(c => ['care_planning', 'risk_assessment'].includes(c.key)) },
-                    { key: 'monthly', label: 'Monthly', icon: '🗓️', categories: auditCategories.filter(c => ['staff_supervision', 'health_safety', 'safeguarding', 'complaints_feedback'].includes(c.key)) },
-                    { key: 'quarterly', label: 'Quarterly', icon: '📊', categories: auditCategories.filter(c => ['training_development', 'quality_assurance', 'environment'].includes(c.key)) },
-                    { key: 'biannually', label: 'Bi-Annually', icon: '📈', categories: auditCategories.filter(c => ['governance', 'policies_procedures'].includes(c.key)) },
-                    { key: 'annually', label: 'Annually', icon: '📋', categories: auditCategories.filter(c => !['medication_management', 'infection_control', 'care_planning', 'risk_assessment', 'staff_supervision', 'health_safety', 'safeguarding', 'complaints_feedback', 'training_development', 'quality_assurance', 'environment', 'governance', 'policies_procedures'].includes(c.key)) },
-                  ].map((frequencyGroup) => (
-                    <AccordionItem key={frequencyGroup.key} value={frequencyGroup.key} className="border rounded-lg overflow-hidden">
-                      <AccordionTrigger className="px-4 py-3 bg-blue-50 dark:bg-blue-950 hover:bg-blue-100 dark:hover:bg-blue-900 [&[data-state=open]]:bg-blue-100 dark:[&[data-state=open]]:bg-blue-900">
-                        <div className="flex items-center gap-3">
-                          <span className="text-lg">{frequencyGroup.icon}</span>
-                          <span className="font-semibold text-blue-800 dark:text-blue-200">{frequencyGroup.label}</span>
-                          <Badge variant="secondary" className="ml-2">{frequencyGroup.categories.length} audits</Badge>
-                        </div>
-                      </AccordionTrigger>
-                      <AccordionContent className="p-0">
-                        {frequencyGroup.categories.length > 0 ? (
-                          <div className="overflow-x-auto">
+              {/* Single Matrix with Filter */}
+              <div className="relative max-h-[70vh] overflow-hidden">
+                <div className="overflow-x-auto overflow-y-auto max-h-[calc(70vh-20px)]">
+                  <div 
+                    className="grid w-full"
+                    style={{ 
+                      gridTemplateColumns: '240px repeat(12, 1fr)',
+                      gap: 0
+                    }}
+                  >
+                    {/* Header Row - 12 Months */}
+                    <div className="bg-blue-700 text-white font-semibold p-3 flex items-center sticky left-0 top-0 z-30 border-r-2 border-blue-800 shadow-md min-h-[48px]">
+                      <span className="text-xs">Audit Area</span>
+                    </div>
+                    {['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'].map((month) => (
+                      <div 
+                        key={month}
+                        className="bg-blue-700 text-white font-semibold p-2 flex items-center justify-center text-center text-xs sticky top-0 z-20 min-h-[48px]"
+                      >
+                        {month}
+                      </div>
+                    ))}
+
+                    {/* Data Rows - Filtered by Frequency */}
+                    {(() => {
+                      const frequencyMapping: Record<string, string[]> = {
+                        weekly: ['medication_management', 'infection_control'],
+                        fortnightly: ['care_planning', 'risk_assessment'],
+                        monthly: ['staff_supervision', 'health_safety', 'safeguarding', 'complaints_feedback'],
+                        quarterly: ['training_development', 'quality_assurance', 'environment'],
+                        biannually: ['governance', 'policies_procedures'],
+                        annually: auditCategories
+                          .filter(c => !['medication_management', 'infection_control', 'care_planning', 'risk_assessment', 'staff_supervision', 'health_safety', 'safeguarding', 'complaints_feedback', 'training_development', 'quality_assurance', 'environment', 'governance', 'policies_procedures'].includes(c.key))
+                          .map(c => c.key),
+                      };
+
+                      const getFrequencyLabel = (categoryKey: string) => {
+                        if (frequencyMapping.weekly.includes(categoryKey)) return 'Weekly';
+                        if (frequencyMapping.fortnightly.includes(categoryKey)) return 'Fortnightly';
+                        if (frequencyMapping.monthly.includes(categoryKey)) return 'Monthly';
+                        if (frequencyMapping.quarterly.includes(categoryKey)) return 'Quarterly';
+                        if (frequencyMapping.biannually.includes(categoryKey)) return 'Bi-Annually';
+                        return 'Annually';
+                      };
+
+                      const filteredCategories = matrixFrequencyFilter === 'all' 
+                        ? auditCategories 
+                        : auditCategories.filter(cat => frequencyMapping[matrixFrequencyFilter]?.includes(cat.key));
+
+                      return filteredCategories.map((cat) => {
+                        const categoryAudits = audits.filter(a => a.category === cat.key);
+                        const currentYear = new Date().getFullYear();
+
+                        const getMonthStatus = (monthIndex: number) => {
+                          const monthStart = new Date(currentYear, monthIndex, 1);
+                          const monthEnd = new Date(currentYear, monthIndex + 1, 0);
+                          const today = new Date();
+                          const fourteenDaysFromNow = new Date(today.getTime() + 14 * 24 * 60 * 60 * 1000);
+
+                          const auditInMonth = categoryAudits.find(a => {
+                            const auditDate = new Date(a.auditDate);
+                            return auditDate >= monthStart && auditDate <= monthEnd;
+                          });
+
+                          if (auditInMonth && auditInMonth.status === 'completed') {
+                            return { status: 'completed', date: auditInMonth.auditDate };
+                          }
+
+                          const scheduledAudit = categoryAudits.find(a => {
+                            const nextDue = a.nextAuditDue ? new Date(a.nextAuditDue) : null;
+                            return nextDue && nextDue >= monthStart && nextDue <= monthEnd;
+                          });
+
+                          if (scheduledAudit && scheduledAudit.nextAuditDue) {
+                            const dueDate = new Date(scheduledAudit.nextAuditDue);
+                            if (dueDate < today) {
+                              return { status: 'overdue', date: scheduledAudit.nextAuditDue };
+                            }
+                            if (dueDate <= fourteenDaysFromNow) {
+                              return { status: 'due_soon', date: scheduledAudit.nextAuditDue };
+                            }
+                            return { status: 'scheduled', date: scheduledAudit.nextAuditDue };
+                          }
+
+                          if (monthEnd < today && !auditInMonth) {
+                            const wasScheduled = categoryAudits.some(a => {
+                              const nextDue = a.nextAuditDue ? new Date(a.nextAuditDue) : null;
+                              return nextDue && nextDue >= monthStart && nextDue <= monthEnd;
+                            });
+                            if (wasScheduled) return { status: 'overdue', date: null };
+                          }
+
+                          return { status: 'not_scheduled', date: null };
+                        };
+
+                        const getStatusSquareClass = (status: string) => {
+                          switch (status) {
+                            case 'completed': return 'bg-green-500';
+                            case 'due_soon': return 'bg-amber-500';
+                            case 'overdue': return 'bg-red-500';
+                            case 'scheduled': return 'bg-gray-400 dark:bg-gray-500';
+                            default: return 'bg-gray-300 dark:bg-gray-600';
+                          }
+                        };
+
+                        const getStatusLabel = (status: string) => {
+                          switch (status) {
+                            case 'completed': return 'Completed';
+                            case 'due_soon': return 'Due within 14 days';
+                            case 'overdue': return 'Overdue';
+                            case 'scheduled': return 'Scheduled';
+                            default: return 'Not scheduled';
+                          }
+                        };
+
+                        const latestAudit = categoryAudits
+                          .sort((a, b) => new Date(b.auditDate).getTime() - new Date(a.auditDate).getTime())[0];
+
+                        return (
+                          <Fragment key={cat.key}>
+                            {/* Name Cell - Sticky Left */}
                             <div 
-                              className="grid w-full"
-                              style={{ 
-                                gridTemplateColumns: '220px repeat(12, 1fr)',
-                                gap: 0
-                              }}
+                              className="bg-muted/50 p-3 flex items-center sticky left-0 z-10 border-r-2 border-blue-600 shadow-md min-h-[52px] border-b"
+                              data-testid={`audit-matrix-row-${cat.key}`}
                             >
-                              {/* Header Row - 12 Months */}
-                              <div className="bg-blue-700 text-white font-semibold p-3 flex items-center sticky left-0 z-20 border-r-2 border-blue-800 min-h-[48px]">
-                                <span className="text-xs">Audit Area</span>
-                              </div>
-                              {['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'].map((month) => (
-                                <div 
-                                  key={month}
-                                  className="bg-blue-700 text-white font-semibold p-2 flex items-center justify-center text-center text-xs min-h-[48px]"
-                                >
-                                  {month}
+                              <div className="flex items-center gap-2 min-w-0 w-full">
+                                <div className="w-7 h-7 rounded-full bg-blue-600 text-white flex items-center justify-center text-xs flex-shrink-0">
+                                  {cat.icon}
                                 </div>
-                              ))}
-
-                              {/* Data Rows */}
-                              {frequencyGroup.categories.map((cat) => {
-                                const categoryAudits = audits.filter(a => a.category === cat.key);
-                                const currentYear = new Date().getFullYear();
-
-                                const getMonthStatus = (monthIndex: number) => {
-                                  const monthStart = new Date(currentYear, monthIndex, 1);
-                                  const monthEnd = new Date(currentYear, monthIndex + 1, 0);
-                                  const today = new Date();
-                                  const fourteenDaysFromNow = new Date(today.getTime() + 14 * 24 * 60 * 60 * 1000);
-
-                                  const auditInMonth = categoryAudits.find(a => {
-                                    const auditDate = new Date(a.auditDate);
-                                    return auditDate >= monthStart && auditDate <= monthEnd;
-                                  });
-
-                                  if (auditInMonth && auditInMonth.status === 'completed') {
-                                    return { status: 'completed', date: auditInMonth.auditDate };
-                                  }
-
-                                  const scheduledAudit = categoryAudits.find(a => {
-                                    const nextDue = a.nextAuditDue ? new Date(a.nextAuditDue) : null;
-                                    return nextDue && nextDue >= monthStart && nextDue <= monthEnd;
-                                  });
-
-                                  if (scheduledAudit && scheduledAudit.nextAuditDue) {
-                                    const dueDate = new Date(scheduledAudit.nextAuditDue);
-                                    if (dueDate < today) {
-                                      return { status: 'overdue', date: scheduledAudit.nextAuditDue };
-                                    }
-                                    if (dueDate <= fourteenDaysFromNow) {
-                                      return { status: 'due_soon', date: scheduledAudit.nextAuditDue };
-                                    }
-                                    return { status: 'scheduled', date: scheduledAudit.nextAuditDue };
-                                  }
-
-                                  if (monthEnd < today && !auditInMonth) {
-                                    const wasScheduled = categoryAudits.some(a => {
-                                      const nextDue = a.nextAuditDue ? new Date(a.nextAuditDue) : null;
-                                      return nextDue && nextDue >= monthStart && nextDue <= monthEnd;
-                                    });
-                                    if (wasScheduled) return { status: 'overdue', date: null };
-                                  }
-
-                                  return { status: 'not_scheduled', date: null };
-                                };
-
-                                const getStatusSquareClass = (status: string) => {
-                                  switch (status) {
-                                    case 'completed': return 'bg-green-500';
-                                    case 'due_soon': return 'bg-amber-500';
-                                    case 'overdue': return 'bg-red-500';
-                                    case 'scheduled': return 'bg-gray-400 dark:bg-gray-500';
-                                    default: return 'bg-gray-300 dark:bg-gray-600';
-                                  }
-                                };
-
-                                const getStatusLabel = (status: string) => {
-                                  switch (status) {
-                                    case 'completed': return 'Completed';
-                                    case 'due_soon': return 'Due within 14 days';
-                                    case 'overdue': return 'Overdue';
-                                    case 'scheduled': return 'Scheduled';
-                                    default: return 'Not scheduled';
-                                  }
-                                };
-
-                                const latestAudit = categoryAudits
-                                  .sort((a, b) => new Date(b.auditDate).getTime() - new Date(a.auditDate).getTime())[0];
-
-                                return (
-                                  <Fragment key={cat.key}>
-                                    {/* Name Cell - Sticky Left */}
-                                    <div 
-                                      className="bg-muted/50 p-3 flex items-center sticky left-0 z-10 border-r-2 border-blue-600 shadow-md min-h-[52px] border-b"
-                                      data-testid={`audit-matrix-row-${cat.key}`}
-                                    >
-                                      <div className="flex items-center gap-2 min-w-0">
-                                        <div className="w-7 h-7 rounded-full bg-blue-600 text-white flex items-center justify-center text-xs flex-shrink-0">
-                                          {cat.icon}
-                                        </div>
-                                        <div className="min-w-0 flex-1">
-                                          <div className="text-xs font-medium truncate">{cat.label}</div>
-                                          <div className="text-[10px] text-muted-foreground">
-                                            {latestAudit ? `Last: ${formatAuditDate(latestAudit.auditDate)}` : "Not assessed"}
-                                          </div>
-                                        </div>
-                                      </div>
-                                    </div>
-
-                                    {/* Monthly Status Cells */}
-                                    {Array.from({ length: 12 }, (_, monthIndex) => {
-                                      const monthStatus = getMonthStatus(monthIndex);
-                                      return (
-                                        <div 
-                                          key={`${cat.key}-month-${monthIndex}`}
-                                          className="p-2 flex items-center justify-center bg-white dark:bg-gray-950 border-b border-r min-h-[52px]"
-                                        >
-                                          <div 
-                                            className={`w-4 h-4 rounded cursor-pointer transition-transform hover:scale-125 ${getStatusSquareClass(monthStatus.status)}`}
-                                            title={`${cat.label} - ${['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'][monthIndex]}: ${getStatusLabel(monthStatus.status)}${monthStatus.date ? ` (${formatAuditDate(monthStatus.date)})` : ''}`}
-                                            data-testid={`audit-matrix-cell-${cat.key}-${monthIndex}`}
-                                          />
-                                        </div>
-                                      );
-                                    })}
-                                  </Fragment>
-                                );
-                              })}
+                                <div className="min-w-0 flex-1">
+                                  <div className="text-xs font-medium truncate">{cat.label}</div>
+                                  <div className="text-[10px] text-muted-foreground flex items-center gap-1">
+                                    <Badge variant="outline" className="text-[9px] px-1 py-0 h-4">{getFrequencyLabel(cat.key)}</Badge>
+                                    {latestAudit && <span>• Last: {formatAuditDate(latestAudit.auditDate)}</span>}
+                                  </div>
+                                </div>
+                              </div>
                             </div>
-                          </div>
-                        ) : (
-                          <div className="p-4 text-center text-muted-foreground text-sm">
-                            No audits assigned to this frequency
-                          </div>
-                        )}
-                      </AccordionContent>
-                    </AccordionItem>
-                  ))}
-                </Accordion>
+
+                            {/* Monthly Status Cells */}
+                            {Array.from({ length: 12 }, (_, monthIndex) => {
+                              const monthStatus = getMonthStatus(monthIndex);
+                              return (
+                                <div 
+                                  key={`${cat.key}-month-${monthIndex}`}
+                                  className="p-2 flex items-center justify-center bg-white dark:bg-gray-950 border-b border-r min-h-[52px]"
+                                >
+                                  <div 
+                                    className={`w-4 h-4 rounded cursor-pointer transition-transform hover:scale-125 ${getStatusSquareClass(monthStatus.status)}`}
+                                    title={`${cat.label} - ${['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'][monthIndex]}: ${getStatusLabel(monthStatus.status)}${monthStatus.date ? ` (${formatAuditDate(monthStatus.date)})` : ''}`}
+                                    data-testid={`audit-matrix-cell-${cat.key}-${monthIndex}`}
+                                  />
+                                </div>
+                              );
+                            })}
+                          </Fragment>
+                        );
+                      });
+                    })()}
+                  </div>
+                </div>
               </div>
             </CardContent>
           </Card>
