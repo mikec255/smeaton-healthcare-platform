@@ -1397,6 +1397,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const sipSchema = z.object({
         description: z.string().min(1, "Description is required"),
         priority: z.enum(["must_do", "should_do"]),
+        branch: z.string().optional().default("Plymouth"),
         cqcDomain: z.string().optional(),
         serviceArea: z.string().optional(),
         sourceAuditId: z.string().optional(),
@@ -1415,7 +1416,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
 
       const validatedData = sipSchema.parse(req.body);
-      const item = await storage.createServiceImprovementPlanItem(validatedData);
+      
+      // Generate required fields for storage
+      const sipData = {
+        ...validatedData,
+        title: validatedData.description.substring(0, 100), // Use first 100 chars of description as title
+        sourceType: validatedData.sourceAuditId ? "audit" : "self_identified", // Default source type
+      };
+      
+      const item = await storage.createServiceImprovementPlanItem(sipData);
       res.status(201).json(item);
     } catch (error) {
       console.error("Error creating SIP item:", error);
@@ -1431,6 +1440,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const updateSchema = z.object({
         description: z.string().optional(),
         priority: z.enum(["must_do", "should_do"]).optional(),
+        branch: z.string().optional(),
         cqcDomain: z.string().optional(),
         serviceArea: z.string().optional(),
         actions: z.array(z.object({
