@@ -15,8 +15,8 @@ interface JobDetailsModalProps {
 
 export default function JobDetailsModal({ job, isOpen, onClose, onApply }: JobDetailsModalProps) {
   const formatSalary = (job: Job) => {
-    const min = job.salaryMin / 100;
-    const max = job.salaryMax ? job.salaryMax / 100 : null;
+    const min = job.salaryMin;
+    const max = job.salaryMax || null;
     
     if (job.salaryType === "hourly") {
       return max ? `£${min.toFixed(2)}-£${max.toFixed(2)} per hour` : `£${min.toFixed(2)} per hour`;

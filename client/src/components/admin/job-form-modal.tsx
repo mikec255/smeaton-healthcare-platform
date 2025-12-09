@@ -319,14 +319,14 @@ export default function JobFormModal({ job, isOpen, onClose }: JobFormModalProps
                 name="salaryMin"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Salary Min (pence) *</FormLabel>
+                    <FormLabel>Minimum Salary (£) *</FormLabel>
                     <FormControl>
                       <Input 
                         type="number" 
-                        step="1" 
+                        step="0.01" 
                         {...field}
-                        onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
-                        placeholder="e.g., 1130 for £11.30"
+                        onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
+                        placeholder="e.g., 11.50 or 30000"
                         data-testid="input-salary-min"
                       />
                     </FormControl>
@@ -339,14 +339,14 @@ export default function JobFormModal({ job, isOpen, onClose }: JobFormModalProps
                 name="salaryMax"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Salary Max (pence)</FormLabel>
+                    <FormLabel>Maximum Salary (£)</FormLabel>
                     <FormControl>
                       <Input 
                         type="number" 
-                        step="1" 
+                        step="0.01" 
                         {...field}
-                        onChange={(e) => field.onChange(e.target.value ? parseInt(e.target.value) : undefined)}
-                        placeholder="e.g., 1300 for £13.00"
+                        onChange={(e) => field.onChange(e.target.value ? parseFloat(e.target.value) : undefined)}
+                        placeholder="e.g., 13.00 or 35000"
                         data-testid="input-salary-max"
                       />
                     </FormControl>

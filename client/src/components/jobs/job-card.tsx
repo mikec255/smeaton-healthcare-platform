@@ -12,8 +12,8 @@ interface JobCardProps {
 
 export default function JobCard({ job, onViewDetails, onApply }: JobCardProps) {
   const formatSalary = (job: Job) => {
-    const min = job.salaryMin / 100; // Convert from pence to pounds
-    const max = job.salaryMax ? job.salaryMax / 100 : null;
+    const min = job.salaryMin;
+    const max = job.salaryMax || null;
     
     if (job.salaryType === "hourly") {
       return max ? `£${min.toFixed(2)}-£${max.toFixed(2)} per hour` : `£${min.toFixed(2)} per hour`;

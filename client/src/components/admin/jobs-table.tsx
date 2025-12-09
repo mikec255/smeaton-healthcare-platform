@@ -79,8 +79,8 @@ export default function JobsTable({ jobs, onEdit }: JobsTableProps) {
   });
 
   const formatSalary = (job: Job) => {
-    const min = job.salaryMin / 100;
-    const max = job.salaryMax ? job.salaryMax / 100 : null;
+    const min = job.salaryMin;
+    const max = job.salaryMax || null;
     
     if (job.salaryType === "hourly") {
       return max ? `£${min.toFixed(2)}-£${max.toFixed(2)}/hr` : `£${min.toFixed(2)}/hr`;
