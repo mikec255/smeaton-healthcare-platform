@@ -52,7 +52,7 @@ function Ticker() {
         {/* Google */}
         <span className="inline-flex items-center gap-2 shrink-0">
           <SiGoogle className="text-white" style={{ fontSize: "15px" }} />
-          <span className="text-white font-semibold text-sm">4.9</span>
+          <span className="text-white font-semibold text-sm">Google 4.9</span>
         </span>
 
         <span className="text-white/30 shrink-0">|</span>
@@ -60,14 +60,14 @@ function Ticker() {
         {/* Trustpilot */}
         <span className="hidden sm:inline-flex items-center gap-2 shrink-0">
           <SiTrustpilot style={{ color: "#00B67A", fontSize: "16px" }} />
-          <span className="text-white font-semibold text-sm">Trustpilot</span>
+          <span className="text-white font-semibold text-sm">Trustpilot 4.6</span>
         </span>
 
         <span className="text-white/30 hidden sm:inline shrink-0">|</span>
 
         {/* NHS */}
         <span className="hidden sm:inline-flex items-center gap-2 shrink-0">
-          <img src={nhsLogoImg} alt="NHS" style={{ height: "20px", width: "auto", filter: "brightness(0) invert(1)" }} />
+          <img src={nhsLogoImg} alt="NHS" style={{ height: "40px", width: "auto", filter: "brightness(0) invert(1)" }} />
           <span className="text-white/90 text-sm font-medium">Approved Provider</span>
         </span>
 
