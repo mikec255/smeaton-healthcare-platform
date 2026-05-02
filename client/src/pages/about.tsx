@@ -113,7 +113,7 @@ export default function About() {
       </section>
 
       {/* OUR APPROACH */}
-      <section className="bg-white py-20">
+      <section className="py-20" style={{ backgroundColor: CREAM }}>
         <div className="max-w-7xl mx-auto px-5 sm:px-8">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
             <FadeIn>
@@ -156,7 +156,7 @@ export default function About() {
       </section>
 
       {/* ACCREDITATIONS */}
-      <section className="py-20" style={{ backgroundColor: CREAM }}>
+      <section className="bg-white py-20">
         <div className="max-w-7xl mx-auto px-5 sm:px-8">
           <FadeIn className="mb-12">
             <p className="text-xs font-bold tracking-widest uppercase mb-3" style={{ color: PINK }}>Trusted &amp; regulated</p>
@@ -186,7 +186,7 @@ export default function About() {
       </section>
 
       {/* VALUES */}
-      <section className="bg-white py-20 sm:py-24">
+      <section className="py-20 sm:py-24" style={{ backgroundColor: CREAM }}>
         <div className="max-w-7xl mx-auto px-5 sm:px-8">
           <FadeIn className="mb-14">
             <p className="text-xs font-bold tracking-widest uppercase mb-3" style={{ color: PINK }}>What drives us</p>
