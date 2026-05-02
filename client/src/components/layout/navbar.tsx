@@ -74,15 +74,14 @@ export default function Navbar() {
         style={{ backgroundColor: "white", boxShadow: "0 1px 0 rgba(0,0,0,0.07)" }}
         ref={dropdownRef}
       >
-        <div className="px-5 sm:px-8 md:px-12 h-[80px] sm:h-[96px] flex items-center gap-6">
+        <div className="px-5 sm:px-8 md:px-12 h-[80px] sm:h-[96px] flex items-center justify-between gap-6">
 
           <Link href="/" className="shrink-0">
             <img src={logoImage} alt="Smeaton Healthcare" style={{ height: "64px", width: "auto", transform: "scale(2.5) translateX(4px)", transformOrigin: "left center" }} />
           </Link>
 
+          {/* Nav links — left side, next to logo */}
           <div className="hidden md:flex items-center gap-6">
-
-            {/* Our Services dropdown trigger */}
             <button
               onClick={handleServicesClick}
               className="flex items-center gap-1 text-sm font-semibold transition-colors duration-200"
@@ -94,7 +93,6 @@ export default function Navbar() {
               </motion.span>
             </button>
 
-            {/* Resources dropdown trigger */}
             <button
               onClick={handleResourcesClick}
               className="flex items-center gap-1 text-sm font-semibold transition-colors duration-200"
@@ -116,7 +114,10 @@ export default function Navbar() {
                 {l.label}
               </Link>
             ))}
+          </div>
 
+          {/* CTA — right side */}
+          <div className="hidden md:flex items-center gap-4 ml-auto">
             <a
               href="tel:03301658880"
               className="text-sm font-bold flex items-center gap-1.5 hover:text-[#EF2A86] transition-colors"
