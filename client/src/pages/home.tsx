@@ -382,10 +382,10 @@ export default function Home() {
       </section>
 
       {/* CTA */}
-      <section className="bg-white py-20 sm:py-24">
+      <section className="py-20 sm:py-24" style={{ backgroundColor: CREAM }}>
         <div className="max-w-3xl mx-auto px-5 sm:px-8 text-center">
           <FadeIn>
-            <h2 className="text-3xl sm:text-4xl font-extrabold mb-2 tracking-tight" style={{ color: NAVY }}>Ready to get started?</h2>
+            <h2 className="text-3xl sm:text-4xl font-extrabold mb-2 tracking-tight" style={{ color: BLUE }}>Ready to get started?</h2>
             <div className="mb-6" style={{ ...SCRIPT, fontSize: "clamp(2rem, 4vw, 3rem)", color: PINK }}>We'd love to hear from you.</div>
             <p className="text-gray-500 mb-10 leading-relaxed">Make a referral today. Our team will arrange a free, no-obligation assessment at a time that suits you.</p>
             <div className="flex flex-col sm:flex-row justify-center gap-4">

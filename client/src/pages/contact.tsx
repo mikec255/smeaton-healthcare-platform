@@ -145,10 +145,10 @@ export default function Contact() {
       </section>
 
       {/* BOTTOM CTA */}
-      <section className="bg-white py-16 sm:py-20">
+      <section className="py-16 sm:py-20" style={{ backgroundColor: CREAM }}>
         <div className="max-w-3xl mx-auto px-5 sm:px-8 text-center">
           <FadeIn>
-            <h2 className="text-3xl font-extrabold mb-2" style={{ color: NAVY }}>Need to speak to someone?</h2>
+            <h2 className="text-3xl font-extrabold mb-2" style={{ color: BLUE }}>Need to speak to someone?</h2>
             <div className="mb-6" style={{ ...SCRIPT, fontSize: "clamp(1.8rem, 3.5vw, 2.8rem)", color: PINK }}>We're just a call away.</div>
             <a href="tel:03301658880"
               className="inline-flex items-center justify-center gap-3 px-8 py-4 text-white font-bold rounded-xl hover:opacity-90 transition-all hover:scale-105"
