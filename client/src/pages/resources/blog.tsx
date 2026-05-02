@@ -1,25 +1,57 @@
 import { Link } from "wouter";
-import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Skeleton } from "@/components/ui/skeleton";
-import { ArrowLeft, Calendar, Clock, ArrowRight, Filter } from "lucide-react";
+import { Calendar, Clock, ArrowRight, Filter, Phone, Clock as TickerClock, Star as TickerStar } from "lucide-react";
+import { SiTrustpilot } from "react-icons/si";
 import { useState, useMemo, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { type BlogPost, type BlogCategory } from "@shared/schema";
 import DOMPurify from "dompurify";
-import teamMeetingImg from "@assets/generated_images/Healthcare_team_meeting_photo_21dc58ac.png";
-import homeCareImg from "@assets/generated_images/Home_care_support_photo_f0866fa2.png";
-import trainingImg from "@assets/generated_images/Healthcare_training_session_photo_91ddee63.png";
-import careMomentsImg from "@assets/generated_images/Care_moments_connection_photo_e9d18840.png";
-import wellnessImg from "@assets/generated_images/Healthcare_wellness_photo_f702b02c.png";
-import fundingImg from "@assets/generated_images/Healthcare_funding_guidance_photo_035ba46c.png";
-import teamPhotoImg from "@assets/generated_images/Smeaton_Healthcare_team_photo_b7ccf951.png";
+import nhsLogoImg from "@assets/nhs_logo.png";
+import googleLogoImg from "@assets/google_logo_white.svg";
 
 const NAVY = "#05163D";
 const BLUE = "#275799";
 const PINK = "#EF2A86";
 const CREAM = "#FDF7F0";
 const SCRIPT = { fontFamily: "'Dancing Script', cursive" };
+
+function Ticker() {
+  return (
+    <div style={{ backgroundColor: PINK, padding: "10px 0" }}>
+      <div className="w-full flex items-center justify-center flex-nowrap gap-x-8 px-8 overflow-x-auto">
+        <span className="inline-flex items-center gap-2 shrink-0">
+          <img src={googleLogoImg} alt="Google" style={{ height: "18px", width: "auto" }} />
+          <span className="text-white text-sm font-medium">4.9</span>
+        </span>
+        <span className="text-white/30 shrink-0">|</span>
+        <span className="hidden sm:inline-flex items-center gap-2 shrink-0">
+          <SiTrustpilot style={{ color: "#00B67A", fontSize: "18px" }} />
+          <span className="text-white text-sm font-medium">Trustpilot 4.6</span>
+        </span>
+        <span className="text-white/30 hidden sm:inline shrink-0">|</span>
+        <span className="hidden sm:inline-flex items-center gap-2 shrink-0">
+          <img src={nhsLogoImg} alt="NHS" style={{ height: "26px", width: "auto", filter: "brightness(0) invert(1)" }} />
+          <span className="text-white text-sm font-medium">Approved Provider</span>
+        </span>
+        <span className="text-white/30 hidden sm:inline shrink-0">|</span>
+        <span className="hidden sm:inline-flex items-center gap-2 shrink-0">
+          <span className="text-white text-sm font-medium whitespace-nowrap">CQC Rated Good</span>
+        </span>
+        <span className="text-white/30 hidden sm:inline shrink-0">|</span>
+        <span className="hidden sm:inline-flex items-center gap-2 shrink-0">
+          <TickerClock size={15} className="text-white shrink-0" />
+          <span className="text-white text-sm font-medium whitespace-nowrap">Care within 24 hours</span>
+        </span>
+        <span className="text-white/30 hidden sm:inline shrink-0">|</span>
+        <span className="hidden sm:inline-flex items-center gap-2 shrink-0">
+          <TickerStar size={15} className="text-white shrink-0" />
+          <span className="text-white text-sm font-medium whitespace-nowrap">Private Care Available</span>
+        </span>
+      </div>
+    </div>
+  );
+}
 
 interface TransformedBlogPost {
   id: string;
@@ -58,7 +90,7 @@ export default function Blog() {
 
   const transformedBlogPosts: TransformedBlogPost[] = useMemo(() => {
     if (!blogPosts.length || !categories.length) return [];
-    return blogPosts.map((post, index) => ({
+    return blogPosts.map((post) => ({
       id: post.id,
       title: post.title,
       excerpt: post.excerpt,
@@ -66,7 +98,7 @@ export default function Blog() {
       readTime: post.readTime || "5 min read",
       author: post.author,
       category: getCategoryName(post.categoryId),
-      image: post.imagePath || teamMeetingImg,
+      image: post.imagePath || "",
       fullContent: post.content,
     }));
   }, [blogPosts, categories]);
@@ -91,14 +123,13 @@ export default function Blog() {
 
   return (
     <div data-testid="blog-page">
+      <Ticker />
+
       {/* HERO */}
-      <section className="bg-white">
-        <div className="max-w-7xl mx-auto px-5 sm:px-8 pt-12 pb-10">
-          <Link href="/resources" className="inline-flex items-center gap-1.5 text-sm font-semibold mb-8 hover:opacity-80 transition-opacity" style={{ color: PINK }}>
-            <ArrowLeft size={14} /> Back to Resources
-          </Link>
+      <section style={{ backgroundColor: CREAM }}>
+        <div className="max-w-7xl mx-auto px-5 sm:px-8 pt-14 pb-12">
           <p className="text-xs font-bold tracking-widest uppercase mb-4" style={{ color: PINK }}>Articles & insights</p>
-          <h1 className="text-4xl sm:text-5xl font-extrabold mb-1 tracking-tight" style={{ color: NAVY }}>Our Blog</h1>
+          <h1 className="text-4xl sm:text-5xl font-extrabold mb-1 tracking-tight" style={{ color: BLUE }}>Our Blog</h1>
           <div className="mb-4" style={{ ...SCRIPT, fontSize: "clamp(1.8rem, 3.5vw, 2.8rem)", color: PINK }}>stories from the heart of care.</div>
           <p className="text-gray-500 text-base max-w-2xl leading-relaxed" data-testid="blog-description">
             Insights, guidance, and stories from the Smeaton Healthcare team.
@@ -107,12 +138,12 @@ export default function Blog() {
       </section>
 
       {/* CONTENT */}
-      <section className="py-12" style={{ backgroundColor: CREAM }}>
+      <section className="py-12 bg-white">
         <div className="max-w-7xl mx-auto px-5 sm:px-8">
           <div className="flex gap-8 items-start">
             {/* SIDEBAR */}
             <aside className="w-52 shrink-0 hidden md:block">
-              <div className="bg-white rounded-2xl p-5 border-2 border-gray-100 sticky top-28">
+              <div className="rounded-2xl p-5 border-2 border-gray-100 sticky top-28" style={{ backgroundColor: CREAM }}>
                 <div className="flex items-center gap-2 mb-4">
                   <Filter size={14} style={{ color: PINK }} />
                   <span className="text-xs font-bold tracking-widest uppercase" style={{ color: NAVY }}>Filter</span>
@@ -137,7 +168,7 @@ export default function Blog() {
               {isLoading ? (
                 Array.from({ length: 3 }).map((_, i) => <SkeletonCard key={i} />)
               ) : displayPosts.length === 0 ? (
-                <div className="text-center py-16 bg-white rounded-2xl border-2 border-gray-100">
+                <div className="text-center py-16 rounded-2xl border-2 border-gray-100" style={{ backgroundColor: CREAM }}>
                   <p className="text-gray-400 text-lg">No blog posts available yet.</p>
                   <p className="text-sm text-gray-400 mt-1">Check back soon for new content!</p>
                 </div>
@@ -145,9 +176,11 @@ export default function Blog() {
                 displayPosts.map((post, index) => (
                   <article key={post.id} className="bg-white rounded-2xl border-2 border-gray-100 hover:border-gray-200 hover:shadow-sm transition-all p-6" data-testid={`blog-post-${index}`}>
                     <div className="flex gap-5">
-                      <div className="shrink-0 w-28 sm:w-36 h-20 sm:h-24 rounded-xl overflow-hidden">
-                        <img src={post.image} alt={post.title} className="w-full h-full object-cover" data-testid={`blog-image-${index}`} />
-                      </div>
+                      {post.image && (
+                        <div className="shrink-0 w-28 sm:w-36 h-20 sm:h-24 rounded-xl overflow-hidden">
+                          <img src={post.image} alt={post.title} className="w-full h-full object-cover" data-testid={`blog-image-${index}`} />
+                        </div>
+                      )}
                       <div className="flex-1 min-w-0">
                         <div className="flex flex-wrap items-center gap-3 mb-2">
                           <span className="text-xs font-bold px-2 py-1 rounded-full" style={{ backgroundColor: `${PINK}15`, color: PINK }}>{post.category}</span>
@@ -170,9 +203,11 @@ export default function Blog() {
                                 <span className="flex items-center gap-1"><Clock size={11} /> {post.readTime}</span>
                               </div>
                             </DialogHeader>
-                            <div className="aspect-video w-full overflow-hidden rounded-xl mb-6">
-                              <img src={post.image} alt={post.title} className="w-full h-full object-cover" />
-                            </div>
+                            {post.image && (
+                              <div className="aspect-video w-full overflow-hidden rounded-xl mb-6">
+                                <img src={post.image} alt={post.title} className="w-full h-full object-cover" />
+                              </div>
+                            )}
                             <div className="prose prose-lg max-w-none" dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(post.fullContent) }} data-testid={`full-article-${index}`} />
                           </DialogContent>
                         </Dialog>
@@ -189,6 +224,23 @@ export default function Blog() {
                 </Link>
               </div>
             </main>
+          </div>
+        </div>
+      </section>
+
+      {/* CTA */}
+      <section className="py-16 sm:py-20" style={{ backgroundColor: CREAM }}>
+        <div className="max-w-3xl mx-auto px-5 sm:px-8 text-center">
+          <h2 className="text-3xl font-extrabold mb-2 tracking-tight" style={{ color: BLUE }}>Ready to get started?</h2>
+          <div className="mb-5" style={{ ...SCRIPT, fontSize: "clamp(1.8rem, 3.5vw, 2.8rem)", color: PINK }}>We'd love to hear from you.</div>
+          <p className="text-gray-500 mb-8 leading-relaxed">Our team can discuss your care needs and guide you to the right support. No obligation, completely free.</p>
+          <div className="flex flex-col sm:flex-row justify-center gap-4">
+            <Link href="/referral" className="inline-flex items-center justify-center gap-2 px-7 py-4 text-white font-bold rounded-xl hover:scale-105 transition-all" style={{ backgroundColor: PINK, boxShadow: "0 8px 32px rgba(239,42,134,0.4)" }}>
+              Request Free Assessment <ArrowRight size={16} />
+            </Link>
+            <a href="tel:03301658880" className="inline-flex items-center justify-center gap-2 px-7 py-4 font-semibold rounded-xl hover:opacity-80 transition-all border-2" style={{ color: NAVY, borderColor: "rgba(5,22,61,0.2)" }}>
+              <Phone size={16} /> 0330 165 8880
+            </a>
           </div>
         </div>
       </section>
