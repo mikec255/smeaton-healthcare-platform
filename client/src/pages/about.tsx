@@ -213,10 +213,8 @@ export default function About() {
       </section>
 
       {/* CTA */}
-      <section className="bg-white relative overflow-hidden py-20 sm:py-24">
-        <div className="absolute -top-20 -right-20 w-80 h-80 rounded-full opacity-[0.06] pointer-events-none" style={{ backgroundColor: PINK }} />
-        <div className="absolute -bottom-20 -left-20 w-72 h-72 rounded-full opacity-[0.05] pointer-events-none" style={{ backgroundColor: BLUE }} />
-        <div className="relative max-w-7xl mx-auto px-5 sm:px-8 text-center">
+      <section className="bg-white py-20 sm:py-24">
+        <div className="max-w-7xl mx-auto px-5 sm:px-8 text-center">
           <FadeIn>
             <p className="text-xs font-bold tracking-widest uppercase mb-4" style={{ color: PINK }}>Get in touch</p>
             <h2 className="text-4xl sm:text-5xl font-extrabold mb-2 tracking-tight" style={{ color: NAVY }}>Ready to find out more?</h2>
