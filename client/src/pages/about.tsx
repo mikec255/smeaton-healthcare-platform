@@ -38,12 +38,8 @@ export default function About() {
   return (
     <div data-testid="about-page">
       {/* HERO */}
-      <section className="relative overflow-hidden" style={{ backgroundColor: "#FDF7F0" }}>
-        {/* Decorative blobs */}
-        <div className="absolute -top-24 -right-24 w-96 h-96 rounded-full opacity-[0.13] pointer-events-none" style={{ backgroundColor: PINK }} />
-        <div className="absolute -bottom-32 -left-16 w-80 h-80 rounded-full opacity-[0.08] pointer-events-none" style={{ backgroundColor: BLUE }} />
-
-        <div className="relative max-w-7xl mx-auto px-5 sm:px-8 pt-16 pb-0">
+      <section style={{ backgroundColor: "#FDF7F0" }}>
+        <div className="max-w-7xl mx-auto px-5 sm:px-8 pt-16 pb-0">
           <motion.div initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7 }}>
             {/* Label */}
             <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-widest mb-8" style={{ color: BLUE, backgroundColor: "rgba(39,87,153,0.08)", border: "1px solid rgba(39,87,153,0.18)" }}>
