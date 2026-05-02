@@ -85,7 +85,7 @@ export default function LiveInCare() {
           <div className="grid lg:grid-cols-[1fr_400px] gap-12 xl:gap-20 items-center">
             <div>
               <div className="inline-flex items-center px-3.5 py-1.5 rounded-full text-xs font-bold uppercase tracking-widest mb-5 " style={{ color: BLUE, backgroundColor: "rgba(39,87,153,0.09)", border: "1px solid rgba(39,87,153,0.22)" }}>Home Care</div>
-              <h1 className="text-5xl sm:text-6xl font-extrabold mb-3 tracking-tight leading-[1.05]" style={{ color: NAVY }}>Live-In Care</h1>
+              <h1 className="text-5xl sm:text-6xl font-extrabold mb-3 tracking-tight leading-[1.05]" style={{ color: BLUE }}>Live-In Care</h1>
               <div className="mb-6" style={{ ...SCRIPT, fontSize: "clamp(1.8rem, 3.5vw, 2.8rem)", color: PINK }}>home is where you belong.</div>
               <p className="text-gray-600 text-lg max-w-xl leading-relaxed mb-10">Full-time live-in support for people who need constant companionship and care, without leaving the home they love.</p>
               <div className="flex flex-col sm:flex-row gap-4">
