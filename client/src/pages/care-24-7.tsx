@@ -105,13 +105,13 @@ export default function Care247() {
         </div>
       </section>
 
-      <section className="py-16 sm:py-20" style={{ backgroundColor: "rgba(39,87,153,0.04)" }}>
+      <section className="py-16 sm:py-20 bg-white">
         <div className="max-w-7xl mx-auto px-5 sm:px-8">
           <p className="text-xs font-bold tracking-widest uppercase mb-4" style={{ color: PINK }}>What's included</p>
           <h2 className="text-3xl font-extrabold mb-10 tracking-tight" style={{ color: NAVY }}>Everything your care covers</h2>
           <div className="grid md:grid-cols-3 gap-6">
             {INCLUDED.map((cat) => (
-              <div key={cat.category} className="rounded-2xl p-7 border border-gray-100 border-l-4" style={{ borderLeftColor: BLUE }}>
+              <div key={cat.category} className="rounded-2xl p-7 border-2 border-gray-100">
                 <h3 className="font-extrabold mb-4 text-sm tracking-widest uppercase" style={{ color: BLUE }}>{cat.category}</h3>
                 <ul className="space-y-3">{cat.items.map((item) => (
                   <li key={item} className="flex items-start gap-3 text-sm text-gray-600"><CheckCircle size={14} className="mt-0.5 shrink-0" style={{ color: PINK }} />{item}</li>
@@ -125,7 +125,7 @@ export default function Care247() {
       <section className="py-16 sm:py-20" style={{ backgroundColor: CREAM }}>
         <div className="max-w-7xl mx-auto px-5 sm:px-8">
           <p className="text-xs font-bold tracking-widest uppercase mb-4" style={{ color: PINK }}>Why choose us</p>
-          <h2 className="text-3xl font-extrabold mb-10 tracking-tight" style={{ color: NAVY }}>The Smeaton difference</h2>
+          <h2 className="text-3xl font-extrabold mb-10 tracking-tight" style={{ color: BLUE }}>The Smeaton difference</h2>
           <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-5">
             {BENEFITS.map((b) => {
               const Icon = b.icon;
@@ -146,7 +146,7 @@ export default function Care247() {
       <section className="py-16 sm:py-20 bg-white">
         <div className="max-w-3xl mx-auto px-5 sm:px-8">
           <p className="text-xs font-bold tracking-widest uppercase mb-4" style={{ color: PINK }}>Common questions</p>
-          <h2 className="text-3xl font-extrabold mb-10 tracking-tight" style={{ color: NAVY }}>Frequently asked questions</h2>
+          <h2 className="text-3xl font-extrabold mb-10 tracking-tight" style={{ color: BLUE }}>Frequently asked questions</h2>
           <Accordion type="single" collapsible className="space-y-2">
             {FAQS.map((faq, i) => (
               <AccordionItem key={i} value={`faq-${i}`} className="border-2 border-gray-100 rounded-2xl px-6 overflow-hidden">
