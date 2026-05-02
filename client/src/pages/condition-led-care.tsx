@@ -130,7 +130,7 @@ export default function ConditionLedCare() {
         </div>
       </section>
 
-      <section style={{ backgroundColor: PINK }} className="py-16 sm:py-20">
+      <section style={{ backgroundColor: BLUE }} className="py-16 sm:py-20">
         <div className="max-w-3xl mx-auto px-5 sm:px-8 text-center">
           <h2 className="text-3xl font-extrabold text-white mb-2 tracking-tight">Ready to get started?</h2>
           <div className="mb-5" style={{ ...SCRIPT, fontSize: "clamp(1.8rem,3.5vw,2.8rem)", color: "rgba(239,42,134,0.9)" }}>Let's talk about your needs.</div>

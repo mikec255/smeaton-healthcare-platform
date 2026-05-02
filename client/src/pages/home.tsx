@@ -382,7 +382,7 @@ export default function Home() {
       </section>
 
       {/* CTA */}
-      <section style={{ backgroundColor: PINK }} className="py-20 sm:py-24">
+      <section style={{ backgroundColor: BLUE }} className="py-20 sm:py-24">
         <div className="max-w-3xl mx-auto px-5 sm:px-8 text-center">
           <FadeIn>
             <h2 className="text-3xl sm:text-4xl font-extrabold text-white mb-2 tracking-tight">Ready to get started?</h2>
@@ -392,7 +392,7 @@ export default function Home() {
               <Link
                 href="/referral"
                 className="inline-flex items-center justify-center gap-2 px-8 py-4 font-bold rounded-xl hover:opacity-90 transition-all hover:scale-105"
-                style={{ backgroundColor: NAVY, color: "#fff", boxShadow: "0 8px 32px rgba(5,22,61,0.3)" }}
+                style={{ backgroundColor: PINK, color: "#fff", boxShadow: "0 8px 32px rgba(239,42,134,0.3)" }}
                 data-testid="home-bottom-cta">
                 Request a Free Assessment <ArrowRight size={18} />
               </Link>
