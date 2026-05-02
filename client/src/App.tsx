@@ -79,7 +79,6 @@ function Router() {
             <Route path="/admin/applications" component={ApplicationsAdmin} />
             
             {/* Service pages */}
-            <Route path="/services" component={Services} />
             <Route path="/services/short-visits" component={ShortVisits} />
             <Route path="/services/supported-living" component={SupportedLiving} />
             <Route path="/services/care-24-7" component={Care247} />
