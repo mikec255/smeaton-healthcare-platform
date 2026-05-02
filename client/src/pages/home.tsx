@@ -48,7 +48,7 @@ function FadeIn({ children, delay = 0, className = "" }: { children: React.React
 function Ticker() {
   return (
     <div style={{ backgroundColor: PINK, padding: "10px 0" }}>
-      <div className="flex items-center justify-center flex-nowrap gap-x-8 px-8 overflow-x-auto">
+      <div className="w-full flex items-center justify-center flex-nowrap gap-x-8 px-8 overflow-x-auto">
 
         {/* Google */}
         <span className="inline-flex items-center gap-2 shrink-0">
