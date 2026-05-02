@@ -15,7 +15,7 @@ export default function Footer() {
             <img
               src={logoImage}
               alt="Smeaton Healthcare"
-              className="h-24 w-auto mb-4"
+              className="h-32 w-auto mb-4"
             />
             <p className="text-sm leading-relaxed max-w-xs mb-5" style={{ color: `${NAVY}99` }}>
               Home care you can trust, delivered by people who care — across Devon &amp; Cornwall since 2019.
