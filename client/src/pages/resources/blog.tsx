@@ -64,9 +64,7 @@ interface TransformedBlogPost {
   author: string;
   category: string;
   image: string;
-  imageIsFromUpload: boolean; // True if image came from images array, false if extracted from content
   fullContent: string;
-  hasBlocks: boolean;
 }
 
 export default function Blog() {
@@ -91,17 +89,34 @@ export default function Blog() {
     return new Date(dateString).toLocaleDateString('en-GB', { year: 'numeric', month: 'long', day: 'numeric' });
   };
 
+  const extractImage = (post: BlogPost): string => {
+    // 1. Featured image from images array
+    const featured = post.images?.find((img: any) => img.isFeatured);
+    if (featured?.url) return featured.url;
+    // 2. First image in images array
+    if (post.images && post.images.length > 0) return (post.images[0] as any).url || "";
+    // 3. Legacy imagePath field
+    if (post.imagePath) return post.imagePath;
+    // 4. First <img> src from HTML content
+    if (post.content) {
+      const match = post.content.match(/<img[^>]+src=["']([^"']+)["']/i);
+      if (match?.[1]) return match[1];
+    }
+    return "";
+  };
+
   const transformedBlogPosts: TransformedBlogPost[] = useMemo(() => {
     if (!blogPosts.length || !categories.length) return [];
     return blogPosts.map((post) => ({
       id: post.id,
+      slug: post.slug,
       title: post.title,
       excerpt: post.excerpt,
       date: formatDate(post.createdAt),
       readTime: post.readTime || "5 min read",
       author: post.author,
       category: getCategoryName(post.categoryId),
-      image: post.imagePath || "",
+      image: extractImage(post),
       fullContent: post.content,
     }));
   }, [blogPosts, categories]);
