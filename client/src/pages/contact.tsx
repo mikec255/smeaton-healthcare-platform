@@ -239,8 +239,8 @@ export default function Contact() {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {[
               { href: "/referral", label: "Request a Free Assessment", desc: "Start your care journey today. No obligation, completely free.", color: PINK },
-              { href: "/services/short-visits", label: "Our Services", desc: "Explore the range of care options we offer across Devon & Cornwall.", color: BLUE },
-              { href: "/jobs", label: "Join Our Team", desc: "We're always looking for caring, dedicated professionals.", color: NAVY },
+              { href: "/services/short-visits", label: "Our Services", desc: "Explore the range of care options we offer across Devon & Cornwall.", color: PINK },
+              { href: "/jobs", label: "Join Our Team", desc: "We're always looking for caring, dedicated professionals.", color: PINK },
             ].map((item, i) => (
               <FadeIn key={i} delay={i * 0.07}>
                 <Link href={item.href}
