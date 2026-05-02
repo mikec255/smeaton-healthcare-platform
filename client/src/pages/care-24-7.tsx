@@ -35,19 +35,30 @@ export default function Care247() {
 
   return (
     <div data-testid="care-247-page">
-      <section style={{ backgroundColor: BLUE }} className="relative py-16 sm:py-20 overflow-hidden">
-        <div className="absolute inset-0 opacity-[0.04] pointer-events-none">
-          {[0,1,2,3].map(i => <div key={i} className="absolute rounded-full border border-white" style={{ width:`${200+i*150}px`,height:`${200+i*150}px`,top:"50%",left:"50%",transform:"translate(-50%,-50%)" }} />)}
-        </div>
-        <div className="relative max-w-7xl mx-auto px-5 sm:px-8">
-          <Link href="/services" className="inline-flex items-center gap-1.5 text-sm font-semibold mb-8 hover:opacity-80 transition-opacity" style={{ color: PINK }}>← All Services</Link>
-          <p className="text-xs font-bold tracking-widest uppercase mb-4 text-white/50">Home Care</p>
-          <h1 className="text-4xl sm:text-5xl font-extrabold text-white mb-2 tracking-tight">24/7 Care</h1>
-          <h1 className="mb-6" style={{ ...SCRIPT, fontSize: "clamp(2rem, 4vw, 3rem)", color: PINK }}>always there, always safe.</h1>
-          <p className="text-white/60 text-lg max-w-2xl leading-relaxed">Round-the-clock professional care and support in the comfort and familiarity of your own home — complete peace of mind for you and your family.</p>
-          <div className="flex flex-col sm:flex-row gap-4 mt-8">
-            <Link href="/referral" className="inline-flex items-center justify-center gap-2 px-6 py-3.5 text-white font-bold rounded-xl hover:scale-105 transition-all" style={{ backgroundColor: PINK, boxShadow: "0 8px 24px rgba(239,42,134,0.4)" }}>Request Free Assessment <ArrowRight size={16} /></Link>
-            <a href="tel:03301658880" className="inline-flex items-center justify-center gap-2 px-6 py-3.5 font-semibold rounded-xl text-white hover:bg-white/10 transition-all border-2" style={{ borderColor: "rgba(255,255,255,0.25)" }}><Phone size={16} /> 0330 165 8880</a>
+      <section className="relative overflow-hidden" style={{ background: `linear-gradient(135deg, ${NAVY} 0%, ${BLUE} 100%)` }}>
+        <div className="absolute -top-24 -right-24 w-96 h-96 rounded-full opacity-[0.15] pointer-events-none" style={{ backgroundColor: PINK }} />
+        <div className="absolute -bottom-32 -left-16 w-80 h-80 rounded-full opacity-[0.08] pointer-events-none" style={{ backgroundColor: PINK }} />
+        <div className="relative max-w-7xl mx-auto px-5 sm:px-8 py-20 sm:py-28">
+          <Link href="/services" className="inline-flex items-center gap-1.5 text-sm font-semibold mb-10 hover:opacity-80 transition-opacity" style={{ color: PINK }}>← All Services</Link>
+          <div className="grid lg:grid-cols-[1fr_400px] gap-12 xl:gap-20 items-center">
+            <div>
+              <div className="inline-flex items-center px-3.5 py-1.5 rounded-full text-xs font-bold uppercase tracking-widest mb-5 text-white/80" style={{ backgroundColor: "rgba(255,255,255,0.1)", border: "1px solid rgba(255,255,255,0.15)" }}>Home Care</div>
+              <h1 className="text-5xl sm:text-6xl font-extrabold text-white mb-3 tracking-tight leading-[1.05]">24/7 Care</h1>
+              <div className="mb-6" style={{ ...SCRIPT, fontSize: "clamp(1.8rem, 3.5vw, 2.8rem)", color: PINK }}>always there, always safe.</div>
+              <p className="text-white/70 text-lg max-w-xl leading-relaxed mb-10">Round-the-clock professional care and support in the comfort and familiarity of your own home — complete peace of mind for you and your family.</p>
+              <div className="flex flex-col sm:flex-row gap-4">
+                <Link href="/referral" className="inline-flex items-center justify-center gap-2 px-7 py-4 text-white font-bold rounded-2xl hover:scale-105 transition-all text-base" style={{ backgroundColor: PINK, boxShadow: "0 8px 32px rgba(239,42,134,0.45)" }}>Request Free Assessment <ArrowRight size={17} /></Link>
+                <a href="tel:03301658880" className="inline-flex items-center justify-center gap-2 px-7 py-4 font-semibold rounded-2xl text-white hover:bg-white/10 transition-all text-base" style={{ border: "2px solid rgba(255,255,255,0.2)" }}><Phone size={16} /> 0330 165 8880</a>
+              </div>
+            </div>
+            <div className="hidden lg:flex flex-col gap-4">
+              {BENEFITS.map((b) => (
+                <div key={b.title} className="flex items-start gap-4 p-5 rounded-2xl" style={{ backgroundColor: "rgba(255,255,255,0.07)", border: "1px solid rgba(255,255,255,0.1)" }}>
+                  <div className="w-12 h-12 rounded-xl flex items-center justify-center shrink-0" style={{ backgroundColor: PINK }}><b.icon size={22} className="text-white" /></div>
+                  <div><p className="text-white font-bold text-sm mb-1">{b.title}</p><p className="text-white/55 text-xs leading-relaxed">{b.desc}</p></div>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
       </section>
