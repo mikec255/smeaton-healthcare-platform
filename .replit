@@ -40,3 +40,8 @@ waitForPort = 5000
 [[ports]]
 localPort = 5000
 externalPort = 80
+
+[userenv]
+
+[userenv.shared]
+CARELOGR_API_KEY = "clgr_e17439bf4d355423d437d047611f10e8124c5a9f15ac55aa7690da8df011a14a"

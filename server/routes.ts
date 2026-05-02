@@ -1,5 +1,6 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
+import { registerCarelogrRoutes } from "./carelogr-api";
 import session from "express-session";
 import bcrypt from "bcryptjs";
 import crypto from "crypto";
@@ -1363,6 +1364,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ message: "Failed to publish blog post" });
     }
   });
+
+  // CareLogr external API
+  registerCarelogrRoutes(app);
 
   // robots.txt
   app.get("/robots.txt", (_req, res) => {

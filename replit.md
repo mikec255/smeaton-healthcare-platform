@@ -38,6 +38,12 @@ Preferred communication style: Simple, everyday language.
 - Object-level access control system for file uploads with configurable ACL policies
 - Admin interface protected by authentication checks
 
+## CareLogr External API
+- Dedicated REST API at `/api/carelogr/` for integration with the CareLogr care management platform
+- Authenticated via `X-API-Key` header using the `CARELOGR_API_KEY` environment variable
+- Endpoints: `GET/PATCH /enquiries`, `GET/PATCH /enquiries/:id`, `GET/POST/PATCH/DELETE /jobs`, `GET/PATCH /applications`, `GET /applications/:id`
+- File: `server/carelogr-api.ts`
+
 ## External Dependencies
 
 - **Database**: Neon PostgreSQL serverless database
