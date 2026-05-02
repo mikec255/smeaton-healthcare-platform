@@ -16,7 +16,7 @@ import fundingImg from "@assets/generated_images/Healthcare_funding_guidance_pho
 import teamPhotoImg from "@assets/generated_images/Smeaton_Healthcare_team_photo_b7ccf951.png";
 
 const NAVY = "#05163D";
-const BLUE = "#265597";
+const BLUE = "#275799";
 const PINK = "#EF2A86";
 const CREAM = "#FDF7F0";
 const SCRIPT = { fontFamily: "'Dancing Script', cursive" };

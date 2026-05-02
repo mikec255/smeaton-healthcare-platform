@@ -13,7 +13,7 @@ import img131 from "@assets/Smeaton-131_1777730894017.jpg";
 const SCRIPT = { fontFamily: "'Dancing Script', cursive" };
 const CREAM = "#FDF7F0";
 const NAVY = "#05163D";
-const BLUE = "#265597";
+const BLUE = "#275799";
 const PINK = "#EF2A86";
 
 const SERVICES = [
@@ -252,7 +252,7 @@ export default function Home() {
                       style={{ backgroundColor: `${s.color}18` }}>
                       <Icon size={22} style={{ color: s.color }} />
                     </div>
-                    <h3 className="text-lg font-extrabold tracking-tight mb-2 transition-colors group-hover:text-[#265597]" style={{ color: NAVY }}>{s.name}</h3>
+                    <h3 className="text-lg font-extrabold tracking-tight mb-2 transition-colors group-hover:text-[#275799]" style={{ color: NAVY }}>{s.name}</h3>
                     <p className="text-gray-400 text-sm leading-relaxed flex-1">{s.desc}</p>
                     <div className="flex items-center gap-1.5 mt-5 text-sm font-bold transition-all group-hover:gap-2.5" style={{ color: s.color }}>
                       Learn more <ArrowRight size={14} />

@@ -4,7 +4,7 @@ import { Input } from "@/components/ui/input";
 import { ArrowLeft, Mail, Calendar, Clock, Bell, Sparkles, Users, ArrowRight, CheckCircle } from "lucide-react";
 
 const NAVY = "#05163D";
-const BLUE = "#265597";
+const BLUE = "#275799";
 const PINK = "#EF2A86";
 const CREAM = "#FDF7F0";
 const SCRIPT = { fontFamily: "'Dancing Script', cursive" };

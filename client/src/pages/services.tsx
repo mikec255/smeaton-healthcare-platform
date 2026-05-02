@@ -3,7 +3,7 @@ import { Link } from "wouter";
 import { Clock, Home, Clock12, TrendingUp, Coffee, Heart, Stethoscope, ArrowRight, CheckCircle2, Phone } from "lucide-react";
 
 const NAVY = "#05163D";
-const BLUE = "#265597";
+const BLUE = "#275799";
 const PINK = "#EF2A86";
 const CREAM = "#FDF7F0";
 const SCRIPT = { fontFamily: "'Dancing Script', cursive" };
@@ -100,7 +100,7 @@ export default function Services() {
                   <Icon size={20} style={{ color: s.color }} />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <h3 className="text-lg sm:text-xl font-extrabold mb-1 tracking-tight group-hover:text-[#265597] transition-colors" style={{ color: NAVY }}>{s.title}</h3>
+                  <h3 className="text-lg sm:text-xl font-extrabold mb-1 tracking-tight group-hover:text-[#275799] transition-colors" style={{ color: NAVY }}>{s.title}</h3>
                   <p className="text-gray-400 text-sm leading-relaxed">{s.description}</p>
                 </div>
                 <div className="hidden sm:flex items-center gap-3 shrink-0">

@@ -4,7 +4,7 @@ import { ArrowLeft, PoundSterling, Heart, Building2, CheckCircle, FileText, Help
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 
 const NAVY = "#05163D";
-const BLUE = "#265597";
+const BLUE = "#275799";
 const PINK = "#EF2A86";
 const CREAM = "#FDF7F0";
 const SCRIPT = { fontFamily: "'Dancing Script', cursive" };

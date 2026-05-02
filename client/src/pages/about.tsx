@@ -10,7 +10,7 @@ import img131 from "@assets/Smeaton-131_1777730894017.jpg";
 const SCRIPT = { fontFamily: "'Dancing Script', cursive" };
 const CREAM = "#FDF7F0";
 const NAVY = "#05163D";
-const BLUE = "#265597";
+const BLUE = "#275799";
 const PINK = "#EF2A86";
 
 const VALUES = [

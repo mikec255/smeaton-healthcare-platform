@@ -3,7 +3,7 @@ import { Link } from "wouter";
 import { BookOpen, Award, Gift, Mail, Calculator, ArrowRight } from "lucide-react";
 
 const NAVY = "#05163D";
-const BLUE = "#265597";
+const BLUE = "#275799";
 const PINK = "#EF2A86";
 const CREAM = "#FDF7F0";
 const SCRIPT = { fontFamily: "'Dancing Script', cursive" };

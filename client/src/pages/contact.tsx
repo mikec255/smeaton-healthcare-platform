@@ -5,7 +5,7 @@ import { Link } from "wouter";
 
 const SCRIPT = { fontFamily: "'Dancing Script', cursive" };
 const NAVY = "#05163D";
-const BLUE = "#265597";
+const BLUE = "#275799";
 const PINK = "#EF2A86";
 
 const OFFICES = [

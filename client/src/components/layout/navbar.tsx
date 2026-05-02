@@ -121,7 +121,7 @@ export default function Navbar() {
             <a
               href="tel:03301658880"
               className="text-sm font-bold flex items-center gap-1.5 hover:text-[#EF2A86] transition-colors"
-              style={{ color: "#265597" }}
+              style={{ color: "#275799" }}
             >
               <Phone size={14} />
               0330 165 8880
@@ -176,7 +176,7 @@ export default function Navbar() {
                       className="group flex flex-col rounded-xl p-4 border hover:border-[#EF2A86] transition-all duration-200 hover:bg-[#FDF7F0]"
                       style={{ borderColor: "rgba(0,0,0,0.08)" }}
                     >
-                      <p className="text-sm font-bold mb-1.5" style={{ color: i % 2 === 0 ? "#EF2A86" : "#265597" }}>{s.name}</p>
+                      <p className="text-sm font-bold mb-1.5" style={{ color: i % 2 === 0 ? "#EF2A86" : "#275799" }}>{s.name}</p>
                       <p className="text-xs text-gray-500 leading-relaxed">{s.desc}</p>
                     </Link>
                   ))}
@@ -220,8 +220,8 @@ export default function Navbar() {
                         style={{ borderColor: "rgba(0,0,0,0.08)" }}
                       >
                         <div className="flex items-center gap-2 mb-1.5">
-                          <Icon size={13} style={{ color: i % 2 === 0 ? "#EF2A86" : "#265597" }} />
-                          <p className="text-sm font-bold" style={{ color: i % 2 === 0 ? "#EF2A86" : "#265597" }}>{r.name}</p>
+                          <Icon size={13} style={{ color: i % 2 === 0 ? "#EF2A86" : "#275799" }} />
+                          <p className="text-sm font-bold" style={{ color: i % 2 === 0 ? "#EF2A86" : "#275799" }}>{r.name}</p>
                         </div>
                         <p className="text-xs text-gray-500 leading-relaxed">{r.desc}</p>
                       </Link>
