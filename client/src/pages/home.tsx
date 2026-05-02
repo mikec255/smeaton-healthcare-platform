@@ -52,45 +52,45 @@ function Ticker() {
 
         {/* Google */}
         <span className="inline-flex items-center gap-2 shrink-0">
-          <img src={googleLogoImg} alt="Google" style={{ height: "20px", width: "auto" }} />
-          <span className="text-white font-semibold text-sm">4.9</span>
+          <img src={googleLogoImg} alt="Google" style={{ height: "18px", width: "auto" }} />
+          <span className="text-white text-sm font-medium">4.9</span>
         </span>
 
         <span className="text-white/30 shrink-0">|</span>
 
         {/* Trustpilot */}
         <span className="hidden sm:inline-flex items-center gap-2 shrink-0">
-          <SiTrustpilot style={{ color: "#00B67A", fontSize: "16px" }} />
-          <span className="text-white font-semibold text-sm">Trustpilot 4.6</span>
+          <SiTrustpilot style={{ color: "#00B67A", fontSize: "18px" }} />
+          <span className="text-white text-sm font-medium">Trustpilot 4.6</span>
         </span>
 
         <span className="text-white/30 hidden sm:inline shrink-0">|</span>
 
         {/* NHS */}
         <span className="hidden sm:inline-flex items-center gap-2 shrink-0">
-          <img src={nhsLogoImg} alt="NHS" style={{ height: "40px", width: "auto", filter: "brightness(0) invert(1)" }} />
-          <span className="text-white/90 text-sm font-medium">Approved Provider</span>
+          <img src={nhsLogoImg} alt="NHS" style={{ height: "26px", width: "auto", filter: "brightness(0) invert(1)" }} />
+          <span className="text-white text-sm font-medium">Approved Provider</span>
         </span>
 
         <span className="text-white/30 hidden sm:inline shrink-0">|</span>
 
         {/* CQC */}
         <span className="hidden sm:inline-flex items-center gap-2 shrink-0">
-          <span className="text-white/90 text-sm font-medium whitespace-nowrap">CQC Rated Good</span>
+          <span className="text-white text-sm font-medium whitespace-nowrap">CQC Rated Good</span>
         </span>
 
         <span className="text-white/30 hidden sm:inline shrink-0">|</span>
 
         {/* Care */}
         <span className="hidden sm:inline-flex items-center gap-2 shrink-0">
-          <span className="text-white/90 text-sm font-medium whitespace-nowrap">♥ Care within 24 hours</span>
+          <span className="text-white text-sm font-medium whitespace-nowrap">Care within 24 hours</span>
         </span>
 
         <span className="text-white/30 hidden sm:inline shrink-0">|</span>
 
         {/* Private Care */}
         <span className="hidden sm:inline-flex items-center gap-2 shrink-0">
-          <span className="text-white/90 text-sm font-medium whitespace-nowrap">Private Care</span>
+          <span className="text-white text-sm font-medium whitespace-nowrap">Private Care</span>
         </span>
 
       </div>
