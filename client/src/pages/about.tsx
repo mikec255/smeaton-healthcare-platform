@@ -183,7 +183,7 @@ export default function About() {
       </section>
 
       {/* CTA */}
-      <section style={{ backgroundColor: NAVY }} className="relative overflow-hidden py-20 sm:py-24">
+      <section style={{ backgroundColor: PINK }} className="relative overflow-hidden py-20 sm:py-24">
         <div className="absolute inset-0 opacity-5">
           {[...Array(4)].map((_, i) => (
             <div key={i} className="absolute rounded-full" style={{
