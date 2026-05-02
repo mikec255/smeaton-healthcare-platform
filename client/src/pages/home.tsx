@@ -382,7 +382,7 @@ export default function Home() {
       </section>
 
       {/* CTA */}
-      <section style={{ backgroundColor: BLUE }} className="py-20 sm:py-24">
+      <section style={{ backgroundColor: PINK }} className="py-20 sm:py-24">
         <div className="max-w-3xl mx-auto px-5 sm:px-8 text-center">
           <FadeIn>
             <h2 className="text-3xl sm:text-4xl font-extrabold text-white mb-2 tracking-tight">Ready to get started?</h2>

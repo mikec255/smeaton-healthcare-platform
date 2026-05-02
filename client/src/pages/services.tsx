@@ -118,10 +118,10 @@ export default function Services() {
       </section>
 
       {/* CTA */}
-      <section style={{ backgroundColor: BLUE }} className="py-16 sm:py-20">
+      <section style={{ backgroundColor: PINK }} className="py-16 sm:py-20">
         <div className="max-w-3xl mx-auto px-5 sm:px-8 text-center">
           <h2 className="text-3xl font-extrabold text-white mb-2 tracking-tight">Not sure which service is right?</h2>
-          <div className="mb-5" style={{ ...SCRIPT, fontSize: "clamp(1.8rem, 3.5vw, 2.8rem)", color: "rgba(239,42,134,0.9)" }}>We'll help you find out.</div>
+          <div className="mb-5" style={{ ...SCRIPT, fontSize: "clamp(1.8rem, 3.5vw, 2.8rem)", color: "rgba(255,255,255,0.9)" }}>We'll help you find out.</div>
           <p className="text-white/60 mb-8 leading-relaxed">Our team can discuss your needs and guide you to the right support. No obligation, completely free.</p>
           <div className="flex flex-col sm:flex-row justify-center gap-4">
             <Link href="/referral"
