@@ -1,6 +1,9 @@
 import { useEffect } from "react";
 import { Link } from "wouter";
-import { ArrowLeft, GraduationCap, Star, CheckCircle, Users, ArrowRight, AlertCircle, Mail } from "lucide-react";
+import { SiTrustpilot } from "react-icons/si";
+import nhsLogoImg from "@assets/nhs_logo.png";
+import googleLogoImg from "@assets/google_logo_white.svg";
+import { GraduationCap, CheckCircle, Users, ArrowRight, AlertCircle, Mail, Clock as TickerClock, Star as TickerStar } from "lucide-react";
 
 const NAVY = "#05163D";
 const BLUE = "#275799";
@@ -28,26 +31,62 @@ const FAIR_RECRUITMENT = [
   { title: "Clear Information", desc: "We provide clear and accurate information about the Skilled Worker route so applicants can make informed decisions.", color: PINK },
 ];
 
+function Ticker() {
+  return (
+    <div style={{ backgroundColor: PINK, padding: "10px 0" }}>
+      <div className="w-full flex items-center justify-center flex-nowrap gap-x-8 px-8 overflow-x-auto">
+        <span className="inline-flex items-center gap-2 shrink-0">
+          <img src={googleLogoImg} alt="Google" style={{ height: "18px", width: "auto" }} />
+          <span className="text-white text-sm font-medium">4.9</span>
+        </span>
+        <span className="text-white/30 shrink-0">|</span>
+        <span className="hidden sm:inline-flex items-center gap-2 shrink-0">
+          <SiTrustpilot style={{ color: "#00B67A", fontSize: "18px" }} />
+          <span className="text-white text-sm font-medium">Trustpilot 4.6</span>
+        </span>
+        <span className="text-white/30 hidden sm:inline shrink-0">|</span>
+        <span className="hidden sm:inline-flex items-center gap-2 shrink-0">
+          <img src={nhsLogoImg} alt="NHS" style={{ height: "26px", width: "auto", filter: "brightness(0) invert(1)" }} />
+          <span className="text-white text-sm font-medium">Approved Provider</span>
+        </span>
+        <span className="text-white/30 hidden sm:inline shrink-0">|</span>
+        <span className="hidden sm:inline-flex items-center gap-2 shrink-0">
+          <span className="text-white text-sm font-medium whitespace-nowrap">CQC Rated Good</span>
+        </span>
+        <span className="text-white/30 hidden sm:inline shrink-0">|</span>
+        <span className="hidden sm:inline-flex items-center gap-2 shrink-0">
+          <TickerClock size={15} className="text-white shrink-0" />
+          <span className="text-white text-sm font-medium whitespace-nowrap">Care within 24 hours</span>
+        </span>
+        <span className="text-white/30 hidden sm:inline shrink-0">|</span>
+        <span className="hidden sm:inline-flex items-center gap-2 shrink-0">
+          <TickerStar size={15} className="text-white shrink-0" />
+          <span className="text-white text-sm font-medium whitespace-nowrap">Private Care Available</span>
+        </span>
+      </div>
+    </div>
+  );
+}
+
 export default function Sponsorship() {
   useEffect(() => { document.title = "Skilled Worker Sponsorship | Smeaton Healthcare"; }, []);
 
   return (
     <div data-testid="sponsorship-page">
+      <Ticker />
+
       {/* HERO */}
-      <section className="bg-white">
-        <div className="max-w-7xl mx-auto px-5 sm:px-8 pt-12 pb-10">
-          <Link href="/resources" className="inline-flex items-center gap-1.5 text-sm font-semibold mb-8 hover:opacity-80 transition-opacity" style={{ color: PINK }}>
-            <ArrowLeft size={14} /> Back to Resources
-          </Link>
+      <section style={{ backgroundColor: CREAM }}>
+        <div className="max-w-7xl mx-auto px-5 sm:px-8 pt-14 pb-12">
           <p className="text-xs font-bold tracking-widest uppercase mb-4" style={{ color: PINK }}>Skilled Worker Route</p>
-          <h1 className="text-4xl sm:text-5xl font-extrabold mb-1 tracking-tight" style={{ color: NAVY }}>Sponsorship</h1>
+          <h1 className="text-4xl sm:text-5xl font-extrabold mb-1 tracking-tight" style={{ color: BLUE }}>Sponsorship</h1>
           <div className="mb-4" style={{ ...SCRIPT, fontSize: "clamp(1.8rem, 3.5vw, 2.8rem)", color: PINK }}>joining us from overseas.</div>
           <p className="text-gray-500 text-base max-w-2xl leading-relaxed" data-testid="sponsorship-description">
             Smeaton Healthcare is a licensed Skilled Worker sponsor. We can offer eligible overseas applicants the opportunity to join our dedicated care teams here in the UK.
           </p>
           <div className="flex flex-wrap gap-4 mt-6">
             {["Licensed Sponsor", "Fair Recruitment", "No Agency Fees"].map((badge) => (
-              <div key={badge} className="inline-flex items-center gap-2 text-sm font-semibold px-4 py-2 rounded-full bg-gray-100" style={{ color: NAVY }}>
+              <div key={badge} className="inline-flex items-center gap-2 text-sm font-semibold px-4 py-2 rounded-full bg-white border border-gray-200" style={{ color: NAVY }}>
                 <CheckCircle size={14} style={{ color: PINK }} /> {badge}
               </div>
             ))}
@@ -56,7 +95,7 @@ export default function Sponsorship() {
       </section>
 
       {/* HIGH VOLUME NOTICE */}
-      <section className="py-6 bg-white border-b border-gray-100">
+      <section className="py-6 bg-white">
         <div className="max-w-7xl mx-auto px-5 sm:px-8">
           <div className="rounded-2xl p-6 border-2 border-red-200 bg-red-50" data-testid="sponsorship-notice">
             <div className="flex items-start gap-3">
@@ -75,7 +114,7 @@ export default function Sponsorship() {
       <section className="py-14" style={{ backgroundColor: CREAM }}>
         <div className="max-w-7xl mx-auto px-5 sm:px-8">
           <p className="text-xs font-bold tracking-widest uppercase mb-4" style={{ color: PINK }}>About the route</p>
-          <h2 className="text-2xl font-extrabold mb-3 tracking-tight" style={{ color: NAVY }}>What is the Skilled Worker route?</h2>
+          <h2 className="text-2xl font-extrabold mb-3 tracking-tight" style={{ color: BLUE }}>What is the Skilled Worker route?</h2>
           <p className="text-gray-500 text-base leading-relaxed mb-8 max-w-3xl">
             The Skilled Worker route allows overseas candidates to apply for a visa to work in the UK, provided they meet Home Office criteria. In health and social care, this includes roles such as:
           </p>
@@ -96,10 +135,10 @@ export default function Sponsorship() {
       <section className="py-14 bg-white">
         <div className="max-w-7xl mx-auto px-5 sm:px-8">
           <p className="text-xs font-bold tracking-widest uppercase mb-4" style={{ color: PINK }}>What you get</p>
-          <h2 className="text-2xl font-extrabold mb-8 tracking-tight" style={{ color: NAVY }}>What we offer sponsored workers</h2>
+          <h2 className="text-2xl font-extrabold mb-8 tracking-tight" style={{ color: BLUE }}>What we offer sponsored workers</h2>
           <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-5">
             {OFFERS.map((o, i) => (
-              <div key={i} className="rounded-2xl p-6 border-2 border-gray-100">
+              <div key={i} className="rounded-2xl p-6 border-2 border-gray-100" style={{ backgroundColor: CREAM }}>
                 <div className="w-10 h-10 rounded-xl flex items-center justify-center mb-4" style={{ backgroundColor: i % 2 === 0 ? `${PINK}15` : `${BLUE}15` }}>
                   <GraduationCap size={18} style={{ color: i % 2 === 0 ? PINK : BLUE }} />
                 </div>
@@ -115,7 +154,7 @@ export default function Sponsorship() {
       <section className="py-14" style={{ backgroundColor: CREAM }}>
         <div className="max-w-4xl mx-auto px-5 sm:px-8">
           <p className="text-xs font-bold tracking-widest uppercase mb-4" style={{ color: PINK }}>Please note</p>
-          <h2 className="text-2xl font-extrabold mb-8 tracking-tight" style={{ color: NAVY }}>Important information</h2>
+          <h2 className="text-2xl font-extrabold mb-8 tracking-tight" style={{ color: BLUE }}>Important information</h2>
           <div className="bg-amber-50 border-2 border-amber-200 rounded-2xl p-8 space-y-4">
             {IMPORTANT.map((item, i) => (
               <div key={i} className="flex items-start gap-3">
@@ -133,10 +172,10 @@ export default function Sponsorship() {
       <section className="py-14 bg-white">
         <div className="max-w-7xl mx-auto px-5 sm:px-8">
           <p className="text-xs font-bold tracking-widest uppercase mb-4" style={{ color: PINK }}>Our commitment</p>
-          <h2 className="text-2xl font-extrabold mb-8 tracking-tight" style={{ color: NAVY }}>Transparency & fair recruitment</h2>
+          <h2 className="text-2xl font-extrabold mb-8 tracking-tight" style={{ color: BLUE }}>Transparency & fair recruitment</h2>
           <div className="grid md:grid-cols-3 gap-5">
             {FAIR_RECRUITMENT.map((item, i) => (
-              <div key={i} className="rounded-2xl p-6 border-2 border-gray-100 text-center">
+              <div key={i} className="rounded-2xl p-6 border-2 border-gray-100 text-center" style={{ backgroundColor: CREAM }}>
                 <div className="w-10 h-10 rounded-xl flex items-center justify-center mx-auto mb-4" style={{ backgroundColor: `${item.color}15` }}>
                   <CheckCircle size={18} style={{ color: item.color }} />
                 </div>
