@@ -71,7 +71,7 @@ export default function Navbar() {
     <>
       <header
         className="fixed left-0 right-0 top-0 z-40 overflow-visible"
-        style={{ backgroundColor: "white", boxShadow: "0 1px 0 rgba(0,0,0,0.07)" }}
+        style={{ backgroundColor: "#FDF7F0", boxShadow: "0 1px 0 rgba(0,0,0,0.07)" }}
         ref={dropdownRef}
       >
         <div className="px-5 sm:px-8 md:px-12 h-[80px] sm:h-[96px] flex items-center justify-between gap-6">
