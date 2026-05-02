@@ -88,7 +88,7 @@ export default function Navbar() {
               src={logoImage}
               alt="Smeaton Healthcare"
               style={{ height: "64px", width: "auto" }}
-            />
+              className="pl-[50px] pr-[50px]" />
           </Link>
 
           <div className="hidden lg:flex items-center gap-7 ml-auto">
@@ -201,7 +201,6 @@ export default function Navbar() {
           )}
         </AnimatePresence>
       </header>
-
       <AnimatePresence>
         {mobileOpen && (
           <motion.div

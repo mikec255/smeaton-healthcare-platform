@@ -1,145 +1,142 @@
-import { Card, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+import { useEffect } from "react";
 import { Link } from "wouter";
-import { Clock, Home, Clock12, TrendingUp, Coffee, ArrowRight } from "lucide-react";
+import { Clock, Home, Clock12, TrendingUp, Coffee, Heart, Stethoscope, ArrowRight, CheckCircle2, Phone } from "lucide-react";
+
+const NAVY = "#05163D";
+const BLUE = "#265597";
+const PINK = "#EF2A86";
+const CREAM = "#FDF7F0";
+const SCRIPT = { fontFamily: "'Dancing Script', cursive" };
+
+const SERVICES = [
+  {
+    icon: Clock,
+    title: "Short Visits",
+    description: "Essential care visits throughout the day, helping you maintain independence while receiving the support you need in your own home.",
+    features: ["Personal care assistance", "Medication support", "Companionship services", "Flexible scheduling"],
+    color: PINK,
+    href: "/services/short-visits",
+  },
+  {
+    icon: Home,
+    title: "Supported Living",
+    description: "Independent living with personalised support that empowers you to achieve your goals and build the life you want in your community.",
+    features: ["Person-centred care plans", "Skills development support", "Community integration", "24/7 emergency support"],
+    color: BLUE,
+    href: "/services/supported-living",
+  },
+  {
+    icon: Clock12,
+    title: "24/7 Care",
+    description: "Round-the-clock professional care and support in the comfort and familiarity of your own home, providing complete peace of mind.",
+    features: ["Continuous care presence", "Night-time monitoring", "Emergency response", "Complex medical support"],
+    color: PINK,
+    href: "/services/care-24-7",
+  },
+  {
+    icon: TrendingUp,
+    title: "Enabling",
+    description: "Build skills, confidence, and independence through personalised support that empowers you to achieve your goals.",
+    features: ["Goal-focused approach", "Skill building programs", "Confidence development", "Independence training"],
+    color: BLUE,
+    href: "/services/enablements",
+  },
+  {
+    icon: Coffee,
+    title: "Respite Care",
+    description: "Temporary relief for family caregivers — professional, compassionate care so you can take the break you deserve.",
+    features: ["Flexible duration options", "Emergency respite available", "Experienced care staff", "Family peace of mind"],
+    color: PINK,
+    href: "/services/respite",
+  },
+  {
+    icon: Heart,
+    title: "Live-In Care",
+    description: "Full-time live-in support for people who need constant companionship and care, without leaving the home they love.",
+    features: ["24/7 live-in carer", "Full personal care", "Household support", "Companionship & activities"],
+    color: BLUE,
+    href: "/services/live-in-care",
+  },
+  {
+    icon: Stethoscope,
+    title: "Condition-Led Care",
+    description: "Specialist care tailored to specific health conditions — our carers receive specialist training to truly understand your needs.",
+    features: ["Dementia & Alzheimer's care", "Learning disability support", "Complex medical conditions", "Specialist trained carers"],
+    color: PINK,
+    href: "/services/condition-led-care",
+  },
+];
 
 export default function Services() {
-  const services = [
-    {
-      icon: Clock,
-      title: "Short Visits",
-      description: "Essential care visits throughout the day, helping you maintain independence while receiving the support you need in your own home.",
-      features: [
-        "Personal care assistance",
-        "Medication support",
-        "Companionship services",
-        "Flexible scheduling"
-      ],
-      color: "primary",
-      href: "/services/short-visits"
-    },
-    {
-      icon: Home,
-      title: "Supported Living",
-      description: "Independent living with personalized support that empowers you to achieve your goals and build the life you want in your community.",
-      features: [
-        "Person-centered care plans",
-        "Skills development support",
-        "Community integration",
-        "24/7 emergency support"
-      ],
-      color: "secondary",
-      href: "/services/supported-living"
-    },
-    {
-      icon: Clock12,
-      title: "24/7 Care",
-      description: "Round-the-clock professional care and support in the comfort and familiarity of your own home, providing complete peace of mind.",
-      features: [
-        "Continuous care presence",
-        "Night-time monitoring",
-        "Emergency response",
-        "Complex medical support"
-      ],
-      color: "primary",
-      href: "/services/care-24-7"
-    },
-    {
-      icon: TrendingUp,
-      title: "Enablements",
-      description: "Build skills, confidence, and independence through personalized support that empowers you to achieve your goals and live life to the fullest.",
-      features: [
-        "Goal-focused approach",
-        "Skill building programs",
-        "Confidence development",
-        "Independence training"
-      ],
-      color: "accent",
-      href: "/services/enablements"
-    },
-    {
-      icon: Coffee,
-      title: "Respite Care",
-      description: "Temporary relief for family caregivers providing professional, compassionate care for your loved one so you can take the break you deserve.",
-      features: [
-        "Flexible duration options",
-        "Emergency respite available",
-        "Experienced care staff",
-        "Family peace of mind"
-      ],
-      color: "secondary",
-      href: "/services/respite"
-    }
-  ];
+  useEffect(() => { document.title = "Our Services | Smeaton Healthcare | Devon & Cornwall"; }, []);
 
   return (
     <div data-testid="services-page">
-      {/* Hero Section */}
-      <section className="relative min-h-[22vh] overflow-hidden bg-gradient-to-r from-primary/10 via-background to-secondary/10">
-        <div className="relative min-h-[22vh] flex items-center">
-          {/* Animated Background Elements */}
-          <div className="absolute inset-0 overflow-hidden">
-            <div className="absolute -top-20 -right-20 w-40 h-40 bg-white/10 rounded-full blur-2xl animate-pulse"></div>
-            <div className="absolute -bottom-20 -left-20 w-40 h-40 bg-accent/20 rounded-full blur-2xl animate-pulse" style={{ animationDelay: '1s' }}></div>
-          </div>
-          
-          {/* Hero Content */}
-          <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full z-10">
-            <div className="text-center">
-              <h1 className="text-4xl lg:text-5xl font-bold text-foreground mb-4" data-testid="services-hero-title">
-                Our Services
-              </h1>
-              <p className="text-xl text-muted-foreground max-w-3xl mx-auto" data-testid="services-hero-subtitle">
-                Comprehensive healthcare solutions tailored to your needs across Devon and Cornwall
-              </p>
-            </div>
-          </div>
+      {/* HERO */}
+      <section className="bg-white">
+        <div className="max-w-7xl mx-auto px-5 sm:px-8 pt-12 pb-12">
+          <p className="text-xs font-bold tracking-widest uppercase mb-4" style={{ color: PINK }}>What we offer</p>
+          <h1 className="text-4xl sm:text-5xl font-extrabold mb-1 tracking-tight" style={{ color: NAVY }}>Care built around</h1>
+          <h1 className="text-4xl sm:text-5xl mb-5" style={{ ...SCRIPT, color: PINK }}>you, not a rota.</h1>
+          <p className="text-gray-500 text-lg max-w-2xl leading-relaxed" data-testid="services-hero-subtitle">
+            Comprehensive home care services tailored to individual needs across Devon and Cornwall.
+          </p>
         </div>
       </section>
 
-      {/* Services Content */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-      
-      <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-        {services.map((service, index) => {
-          const IconComponent = service.icon;
-          return (
-            <Card 
-              key={index} 
-              className="shadow-lg border border-border hover:shadow-xl transition-all duration-300 hover:scale-105"
-              data-testid={`service-card-${service.title.toLowerCase().replace(/\s+/g, '-')}`}
-            >
-              <CardContent className="p-8 flex flex-col h-full">
-                <div className={`bg-${service.color}/10 rounded-full w-16 h-16 flex items-center justify-center mb-6`}>
-                  <IconComponent className={`text-${service.color} h-8 w-8`} />
+      {/* SERVICE ROWS */}
+      <section style={{ backgroundColor: CREAM }} className="py-16">
+        <div className="max-w-7xl mx-auto px-5 sm:px-8 space-y-1">
+          {SERVICES.map((s, i) => {
+            const Icon = s.icon;
+            return (
+              <Link
+                key={s.href}
+                href={s.href}
+                className="group flex items-center gap-6 sm:gap-10 py-5 px-6 sm:px-8 rounded-2xl transition-all hover:shadow-md bg-white"
+                data-testid={`service-card-${s.title.toLowerCase().replace(/\s+/g, '-')}`}
+              >
+                <div className="w-12 h-12 rounded-xl flex items-center justify-center shrink-0" style={{ backgroundColor: `${s.color}15` }}>
+                  <Icon size={20} style={{ color: s.color }} />
                 </div>
-                <h3 className="text-2xl font-bold mb-4" data-testid={`service-title-${index}`}>
-                  {service.title}
-                </h3>
-                <p className="text-muted-foreground mb-6 flex-grow" data-testid={`service-description-${index}`}>
-                  {service.description}
-                </p>
-                <ul className="text-sm text-muted-foreground space-y-2 mb-6" data-testid={`service-features-${index}`}>
-                  {service.features.map((feature, featureIndex) => (
-                    <li key={featureIndex} data-testid={`feature-${index}-${featureIndex}`}>
-                      • {feature}
-                    </li>
+                <div className="flex-1 min-w-0">
+                  <h3 className="text-lg sm:text-xl font-extrabold mb-1 tracking-tight group-hover:text-[#265597] transition-colors" style={{ color: NAVY }}>{s.title}</h3>
+                  <p className="text-gray-400 text-sm leading-relaxed">{s.description}</p>
+                </div>
+                <div className="hidden sm:flex items-center gap-3 shrink-0">
+                  {s.features.slice(0, 2).map((f) => (
+                    <span key={f} className="hidden lg:flex items-center gap-1.5 text-xs text-gray-400">
+                      <CheckCircle2 size={11} style={{ color: s.color }} /> {f}
+                    </span>
                   ))}
-                </ul>
-                <Link href={service.href} data-testid={`service-link-${index}`}>
-                  <Button 
-                    className={`w-full mt-auto bg-${service.color} text-${service.color}-foreground hover:bg-${service.color}/90`}
-                  >
-                    Learn More
-                    <ArrowRight className="ml-2 h-4 w-4" />
-                  </Button>
-                </Link>
-              </CardContent>
-            </Card>
-          );
-        })}
-      </div>
-      </div>
+                  <ArrowRight size={16} className="transition-all group-hover:translate-x-1 group-hover:text-[#EF2A86]" style={{ color: "#d1d5db" }} />
+                </div>
+              </Link>
+            );
+          })}
+        </div>
+      </section>
+
+      {/* CTA */}
+      <section style={{ backgroundColor: NAVY }} className="py-16 sm:py-20">
+        <div className="max-w-3xl mx-auto px-5 sm:px-8 text-center">
+          <h2 className="text-3xl font-extrabold text-white mb-2 tracking-tight">Not sure which service is right?</h2>
+          <div className="mb-5" style={{ ...SCRIPT, fontSize: "clamp(1.8rem, 3.5vw, 2.8rem)", color: "rgba(239,42,134,0.9)" }}>We'll help you find out.</div>
+          <p className="text-white/60 mb-8 leading-relaxed">Our team can discuss your needs and guide you to the right support. No obligation, completely free.</p>
+          <div className="flex flex-col sm:flex-row justify-center gap-4">
+            <Link href="/referral"
+              className="inline-flex items-center justify-center gap-2 px-7 py-4 text-white font-bold rounded-xl hover:opacity-90 transition-all hover:scale-105"
+              style={{ backgroundColor: PINK, boxShadow: "0 8px 32px rgba(239,42,134,0.4)" }}>
+              Request a Free Assessment <ArrowRight size={16} />
+            </Link>
+            <a href="tel:03301658880"
+              className="inline-flex items-center justify-center gap-2 px-7 py-4 font-semibold rounded-xl text-white hover:bg-white/10 transition-all border-2"
+              style={{ borderColor: "rgba(255,255,255,0.3)" }}>
+              <Phone size={16} /> 0330 165 8880
+            </a>
+          </div>
+        </div>
+      </section>
     </div>
   );
 }

@@ -45,7 +45,7 @@ function FadeIn({ children, delay = 0, className = "" }: { children: React.React
 function Ticker() {
   return (
     <div style={{ backgroundColor: PINK, padding: "12px 0" }}>
-      <div className="px-5 sm:px-8 flex items-center flex-wrap gap-x-6 gap-y-2">
+      <div className="px-5 sm:px-8 flex items-center flex-wrap gap-x-6 gap-y-2 pl-[90px] pr-[90px]">
         <span className="inline-flex items-center gap-2 shrink-0">
           <span className="text-yellow-200 text-sm">★★★★★</span>
           <span className="text-white font-bold text-sm">4.9 Google</span>
