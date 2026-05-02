@@ -89,53 +89,59 @@ export default function Jobs() {
   // Check if user is admin
   const isAdmin = authUser?.user && ["admin", "superadmin"].includes(authUser.user.role);
 
+  const NAVY = "#05163D";
+  const PINK = "#EF2A86";
+  const SCRIPT = { fontFamily: "'Dancing Script', cursive" };
+
   if (isLoading) {
     return (
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-        <div className="text-center" data-testid="jobs-loading">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
-          <p className="mt-2 text-muted-foreground">Loading job opportunities...</p>
-        </div>
+      <div>
+        <section style={{ backgroundColor: NAVY }} className="py-16">
+          <div className="max-w-7xl mx-auto px-5 sm:px-8 text-center">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white mx-auto mb-3"></div>
+            <p className="text-white/60 text-sm" data-testid="jobs-loading">Loading job opportunities...</p>
+          </div>
+        </section>
       </div>
     );
   }
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16" data-testid="jobs-page">
-      {/* Jobs Header */}
-      <div className="text-center mb-12">
-        <div className="flex items-center justify-between mb-8">
-          <div></div> {/* Left spacer */}
-          <div className="text-center">
-            <h1 className="text-4xl font-bold text-foreground mb-4" data-testid="jobs-title">
-              Career Opportunities
-            </h1>
-            <p className="text-xl text-muted-foreground" data-testid="jobs-subtitle">
-              Join our compassionate team and make a difference in people's lives
-            </p>
-          </div>
-          
-          {/* Right side - Create Job Button for Admin Users or empty spacer */}
-          <div className="flex justify-end">
+    <div data-testid="jobs-page">
+      {/* HERO */}
+      <section style={{ backgroundColor: NAVY }} className="relative py-16 sm:py-20 overflow-hidden">
+        <div className="absolute inset-0 opacity-[0.04] pointer-events-none">
+          {[0,1,2,3].map(i => <div key={i} className="absolute rounded-full border border-white" style={{ width:`${200+i*150}px`,height:`${200+i*150}px`,top:"50%",left:"50%",transform:"translate(-50%,-50%)" }} />)}
+        </div>
+        <div className="relative max-w-7xl mx-auto px-5 sm:px-8">
+          <div className="flex items-start justify-between">
+            <div>
+              <p className="text-xs font-bold tracking-widest uppercase mb-4 text-white/50">Careers</p>
+              <h1 className="text-4xl sm:text-5xl font-extrabold text-white mb-2 tracking-tight" data-testid="jobs-title">Career Opportunities</h1>
+              <div className="mb-4" style={{ ...SCRIPT, fontSize: "clamp(2rem, 4vw, 3rem)", color: PINK }}>join a team that cares.</div>
+              <p className="text-white/60 text-base max-w-xl leading-relaxed" data-testid="jobs-subtitle">
+                Join our compassionate team and make a real difference in people's lives across Devon and Cornwall.
+              </p>
+            </div>
             {isAdmin && (
-              <Button 
-                onClick={handleCreateJob}
-                className="bg-primary hover:bg-primary/90 text-primary-foreground"
-                data-testid="button-create-job"
-              >
-                <Plus className="h-4 w-4 mr-2" />
-                Create Job
-              </Button>
+              <div className="shrink-0 ml-6">
+                <Button onClick={handleCreateJob} className="bg-white text-[#05163D] hover:bg-white/90 font-bold" data-testid="button-create-job">
+                  <Plus className="h-4 w-4 mr-2" /> Create Job
+                </Button>
+              </div>
             )}
           </div>
         </div>
-      </div>
+      </section>
+
+      {/* CONTENT */}
+      <div className="max-w-7xl mx-auto px-5 sm:px-8 py-12">
       
       {/* Job Filters */}
       <JobFilters onFilterChange={handleFilterChange} />
       
       {/* Job Listings */}
-      <div className="space-y-6" data-testid="job-listings">
+      <div className="space-y-4 mt-6" data-testid="job-listings">
         {jobs && jobs.length > 0 ? (
           jobs.map((job) => (
             <JobCard
@@ -146,8 +152,8 @@ export default function Jobs() {
             />
           ))
         ) : (
-          <div className="text-center py-12" data-testid="no-jobs-message">
-            <p className="text-muted-foreground">
+          <div className="text-center py-16 rounded-2xl border-2 border-gray-100 bg-white" data-testid="no-jobs-message">
+            <p className="text-gray-400 text-base">
               {filters.location || filters.type || filters.salaryRange
                 ? "No jobs found matching your criteria. Try adjusting your filters."
                 : "No job opportunities available at the moment. Please check back later."}
@@ -181,6 +187,7 @@ export default function Jobs() {
           onClose={handleCloseJobForm}
         />
       )}
+      </div>
     </div>
   );
 }

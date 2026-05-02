@@ -1,540 +1,140 @@
-import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from "@/components/ui/accordion";
+import { useEffect } from "react";
 import { Link } from "wouter";
-import { Clock, Users, Shield, CheckCircle, ArrowRight, Phone, Mail, Heart, Home, Activity, Stethoscope, Pill, HandHeart, UserCheck, Thermometer, Clipboard, Eye, Building2, PoundSterling, FileText, HelpCircle, Info } from "lucide-react";
+import { Clock, Users, Shield, CheckCircle, ArrowRight, Phone, Heart, Home, Activity, Stethoscope, Pill, HandHeart } from "lucide-react";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+
+const NAVY = "#05163D";
+const BLUE = "#265597";
+const PINK = "#EF2A86";
+const CREAM = "#FDF7F0";
+const SCRIPT = { fontFamily: "'Dancing Script', cursive" };
+
+const INCLUDED = [
+  { category: "Personal Care", items: ["Assistance with washing and bathing", "Help with dressing and grooming", "Medication reminders and support", "Support with mobility and transfers"] },
+  { category: "Household Support", items: ["Light housekeeping and cleaning", "Meal preparation and cooking", "Shopping and errands", "Laundry and ironing assistance"] },
+  { category: "Companionship", items: ["Social interaction and conversation", "Emotional support and encouragement", "Accompanying to appointments", "Engaging in hobbies and activities"] },
+];
+
+const BENEFITS = [
+  { icon: Clock, title: "Flexible Scheduling", desc: "Visits scheduled around your routine, from 1 hour to several hours per day." },
+  { icon: Users, title: "Consistent Carers", desc: "Familiar, trusted carers who build meaningful relationships with you." },
+  { icon: Shield, title: "Peace of Mind", desc: "Fully trained, DBS-checked, and insured care professionals you can trust." },
+  { icon: Heart, title: "Personalised Care", desc: "Your care plan is tailored specifically to your individual needs and preferences." },
+];
+
+const FAQS = [
+  { q: "How long are short visits?", a: "Short visits typically last from 30 minutes to several hours. We'll work with you to determine the right duration and frequency for your needs." },
+  { q: "Can I choose my own carer?", a: "We do our best to match you with carers who suit your personality and needs, and we aim to keep consistency so you always have familiar faces." },
+  { q: "What if my care needs change?", a: "We review care plans regularly and can adjust your visits at any time. Simply contact your care coordinator and we'll arrange any changes." },
+  { q: "How quickly can care start?", a: "In many cases we can begin care within 24–48 hours of an initial assessment. For urgent situations we may be able to act sooner." },
+  { q: "Is my carer DBS checked?", a: "Yes — every member of our team is fully DBS checked and receives comprehensive training before visiting clients." },
+];
 
 export default function ShortVisits() {
-  const whatsIncluded = [
-    {
-      category: "Personal Care",
-      items: [
-        "Assistance with washing and bathing",
-        "Help with dressing and grooming",
-        "Medication reminders and support",
-        "Support with mobility and transfers"
-      ]
-    },
-    {
-      category: "Household Support", 
-      items: [
-        "Light housekeeping and cleaning",
-        "Meal preparation and cooking",
-        "Shopping and errands",
-        "Laundry and ironing assistance"
-      ]
-    },
-    {
-      category: "Companionship",
-      items: [
-        "Social interaction and conversation",
-        "Emotional support and encouragement",
-        "Accompanying to appointments",
-        "Engaging in hobbies and activities"
-      ]
-    }
-  ];
-
-  const benefits = [
-    {
-      icon: Clock,
-      title: "Flexible Scheduling",
-      description: "Visits scheduled around your routine and preferences, from 1 hour to several hours"
-    },
-    {
-      icon: Users,
-      title: "Consistent Carers",
-      description: "The comfort of familiar faces - consistent, trusted carers who build meaningful relationships"
-    },
-    {
-      icon: Shield,
-      title: "Peace of Mind",
-      description: "Fully trained, DBS-checked, and insured care professionals you can trust"
-    },
-    {
-      icon: CheckCircle,
-      title: "Independent Living",
-      description: "Maintain independence and dignity while receiving the support you need"
-    }
-  ];
-
-  const faqs = [
-    {
-      question: "How often can I have short visits?",
-      answer: "Short visits can be arranged as frequently as needed - from once a week to multiple times daily. We work with you to create a schedule that meets your specific needs and preferences."
-    },
-    {
-      question: "What is the minimum duration for a visit?",
-      answer: "Our minimum visit duration is 1 hour, though most clients find 1-2 hour visits work best for their needs. We can arrange longer visits if required."
-    },
-    {
-      question: "Can the same carer visit me each time?",
-      answer: "We always aim to provide the same trusted carers so you can build comfort, trust, and meaningful relationships. While there may occasionally be times when a different carer visits, due to things like absence or change, you can be assured that every member of our team is trained to the same high standards and will deliver the same level of compassionate care."
-    },
-    {
-      question: "How quickly can care start?",
-      answer: "We can often arrange care to start within 24-48 hours of your initial assessment. Emergency care can sometimes be arranged more quickly depending on availability."
-    },
-    {
-      question: "Do you provide care at weekends and evenings?",
-      answer: "Yes, our short visit service is available 7 days a week, including evenings and weekends. We understand that care needs don't follow a 9-5 schedule."
-    }
-  ];
+  useEffect(() => { document.title = "Short Visits | Smeaton Healthcare"; }, []);
 
   return (
-    <div className="min-h-screen bg-background">
-      {/* Hero Section */}
-      <section className="relative py-20 lg:py-32 overflow-hidden">
-        {/* Vibrant Background */}
-        <div className="absolute inset-0 bg-gradient-to-br from-primary via-primary/90 to-secondary"></div>
-        
-        {/* Animated Background Elements */}
-        <div className="absolute inset-0 overflow-hidden">
-          <div className="absolute top-20 right-20 w-80 h-80 bg-white/10 rounded-full blur-3xl animate-pulse"></div>
-          <div className="absolute bottom-20 left-20 w-96 h-96 bg-secondary/30 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }}></div>
-          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-60 h-60 bg-white/5 rounded-full blur-2xl animate-pulse" style={{ animationDelay: '2s' }}></div>
+    <div data-testid="short-visits-page">
+      {/* HERO */}
+      <section style={{ backgroundColor: NAVY }} className="relative py-16 sm:py-20 overflow-hidden">
+        <div className="absolute inset-0 opacity-[0.04] pointer-events-none">
+          {[0,1,2,3].map(i => <div key={i} className="absolute rounded-full border border-white" style={{ width:`${200+i*150}px`,height:`${200+i*150}px`,top:"50%",left:"50%",transform:"translate(-50%,-50%)" }} />)}
         </div>
-        
-        {/* Care-Related Icon Patterns - Hidden on mobile for better performance */}
-        <div className="absolute inset-0 opacity-10 pointer-events-none hidden md:block">
-          {/* Top Row - Even distribution across width */}
-          <Heart className="absolute top-16 left-[8%] w-8 h-8 text-white animate-[rollInLeft_5s_ease-out_forwards]" />
-          <Stethoscope className="absolute top-20 left-[25%] w-6 h-6 text-white rotate-12 animate-[rollInTop_5s_ease-out_forwards]" style={{ animationDelay: '0.2s' }} />
-          <Home className="absolute top-12 left-[42%] w-7 h-7 text-white animate-[rollInTop_5s_ease-out_forwards]" style={{ animationDelay: '0.4s' }} />
-          <HandHeart className="absolute top-24 left-[58%] w-9 h-9 text-white rotate-45 animate-[rollInTop_5s_ease-out_forwards]" style={{ animationDelay: '0.6s' }} />
-          <Activity className="absolute top-16 left-[75%] w-6 h-6 text-white animate-[rollInRight_5s_ease-out_forwards]" style={{ animationDelay: '0.8s' }} />
-          <Pill className="absolute top-32 left-[92%] w-5 h-5 text-white rotate-180 animate-[rollInRight_5s_ease-out_forwards]" style={{ animationDelay: '1s' }} />
-          
-          {/* Upper-Mid Row - Offset positioning */}
-          <UserCheck className="absolute top-[30%] left-[15%] w-8 h-8 text-white animate-[rollInLeft_5s_ease-out_forwards]" style={{ animationDelay: '0.3s' }} />
-          <Thermometer className="absolute top-[25%] left-[33%] w-7 h-7 text-white rotate-12 animate-[rollInLeft_5s_ease-out_forwards]" style={{ animationDelay: '0.7s' }} />
-          <Eye className="absolute top-[35%] left-[50%] w-6 h-6 text-white animate-[rollInTop_5s_ease-out_forwards]" style={{ animationDelay: '0.9s' }} />
-          <Users className="absolute top-[28%] left-[67%] w-6 h-6 text-white rotate-12 animate-[rollInRight_5s_ease-out_forwards]" style={{ animationDelay: '1.1s' }} />
-          <Shield className="absolute top-[32%] left-[83%] w-7 h-7 text-white animate-[rollInRight_5s_ease-out_forwards]" style={{ animationDelay: '1.3s' }} />
-          
-          {/* Middle Row - Center distribution */}
-          <CheckCircle className="absolute top-[50%] left-[12%] w-6 h-6 text-white animate-[rollInLeft_5s_ease-out_forwards]" style={{ animationDelay: '1.5s' }} />
-          <Clock className="absolute top-[45%] left-[28%] w-5 h-5 text-white animate-[rollInLeft_5s_ease-out_forwards]" style={{ animationDelay: '1.2s' }} />
-          <Heart className="absolute top-[55%] left-[45%] w-6 h-6 text-white animate-[rollInBottom_5s_ease-out_forwards]" style={{ animationDelay: '1.4s' }} />
-          <Stethoscope className="absolute top-[48%] left-[62%] w-5 h-5 text-white rotate-45 animate-[rollInRight_5s_ease-out_forwards]" style={{ animationDelay: '2s' }} />
-          <Clipboard className="absolute top-[52%] left-[78%] w-7 h-7 text-white rotate-45 animate-[rollInRight_5s_ease-out_forwards]" style={{ animationDelay: '0.5s' }} />
-          
-          {/* Lower-Mid Row - Even spacing */}
-          <HandHeart className="absolute top-[68%] left-[18%] w-6 h-6 text-white animate-[rollInBottom_5s_ease-out_forwards]" style={{ animationDelay: '2.2s' }} />
-          <Pill className="absolute top-[72%] left-[35%] w-8 h-8 text-white rotate-90 animate-[rollInBottom_5s_ease-out_forwards]" style={{ animationDelay: '2.4s' }} />
-          <Thermometer className="absolute top-[65%] left-[52%] w-6 h-6 text-white animate-[rollInBottom_5s_ease-out_forwards]" style={{ animationDelay: '2.6s' }} />
-          <UserCheck className="absolute top-[70%] left-[68%] w-7 h-7 text-white rotate-30 animate-[rollInBottom_5s_ease-out_forwards]" style={{ animationDelay: '2.8s' }} />
-          <Eye className="absolute top-[75%] left-[85%] w-5 h-5 text-white animate-[rollInBottom_5s_ease-out_forwards]" style={{ animationDelay: '3s' }} />
-          
-          {/* Bottom Row - Final distribution */}
-          <Users className="absolute top-[85%] left-[10%] w-8 h-8 text-white rotate-12 animate-[rollInBottom_5s_ease-out_forwards]" style={{ animationDelay: '3.2s' }} />
-          <Shield className="absolute top-[88%] left-[27%] w-6 h-6 text-white animate-[rollInBottom_5s_ease-out_forwards]" style={{ animationDelay: '3.4s' }} />
-          <Clock className="absolute top-[82%] left-[44%] w-7 h-7 text-white rotate-45 animate-[rollInBottom_5s_ease-out_forwards]" style={{ animationDelay: '3.6s' }} />
-          <Activity className="absolute top-[90%] left-[61%] w-7 h-7 text-white animate-[rollInBottom_5s_ease-out_forwards]" style={{ animationDelay: '1.8s' }} />
-          <Home className="absolute top-[86%] left-[78%] w-8 h-8 text-white animate-[rollInBottom_5s_ease-out_forwards]" style={{ animationDelay: '1.6s' }} />
-          <CheckCircle className="absolute top-[92%] left-[95%] w-6 h-6 text-white animate-[rollInBottom_5s_ease-out_forwards]" style={{ animationDelay: '4s' }} />
-          
-          {/* Extra Side Icons - Left Edge */}
-          <Thermometer className="absolute top-[40%] left-[2%] w-6 h-6 text-white animate-[rollInLeft_5s_ease-out_forwards]" style={{ animationDelay: '1.7s' }} />
-          <Heart className="absolute top-[60%] left-[4%] w-7 h-7 text-white animate-[rollInLeft_5s_ease-out_forwards]" style={{ animationDelay: '2.1s' }} />
-          <Stethoscope className="absolute top-[78%] left-[1%] w-5 h-5 text-white rotate-30 animate-[rollInLeft_5s_ease-out_forwards]" style={{ animationDelay: '2.9s' }} />
-          <UserCheck className="absolute top-[22%] left-[3%] w-6 h-6 text-white animate-[rollInLeft_5s_ease-out_forwards]" style={{ animationDelay: '1.9s' }} />
-          
-          {/* Extra Side Icons - Right Edge */}
-          <Pill className="absolute top-[45%] left-[98%] w-6 h-6 text-white rotate-45 animate-[rollInRight_5s_ease-out_forwards]" style={{ animationDelay: '2.3s' }} />
-          <Eye className="absolute top-[38%] left-[96%] w-7 h-7 text-white animate-[rollInRight_5s_ease-out_forwards]" style={{ animationDelay: '1.1s' }} />
-          <HandHeart className="absolute top-[64%] left-[97%] w-5 h-5 text-white animate-[rollInRight_5s_ease-out_forwards]" style={{ animationDelay: '2.7s' }} />
-          <Clipboard className="absolute top-[80%] left-[99%] w-6 h-6 text-white rotate-15 animate-[rollInRight_5s_ease-out_forwards]" style={{ animationDelay: '3.1s' }} />
-          <Users className="absolute top-[26%] left-[97%] w-6 h-6 text-white animate-[rollInRight_5s_ease-out_forwards]" style={{ animationDelay: '3.3s' }} />
-        </div>
-
-        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 z-10">
-          <div className="grid lg:grid-cols-2 gap-12 items-center">
-            <div className="text-center lg:text-left">
-              <div className="inline-flex items-center px-4 py-2 rounded-full bg-white/20 backdrop-blur-sm text-white font-semibold mb-6" data-testid="service-badge">
-                <div className="w-2 h-2 bg-white rounded-full mr-2 animate-pulse"></div>
-                Our Services
-              </div>
-              
-              <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-7xl font-black text-white mb-6 leading-tight" data-testid="hero-title">
-                <span className="block">Short Visit Care</span>
-              </h1>
-              
-              <p className="text-base sm:text-lg md:text-xl lg:text-2xl text-white/90 mb-8 leading-relaxed font-medium" data-testid="hero-description">
-                Personalised short visit care for everyday support and companionship — helping you stay independent in the comfort of your own home.
-              </p>
-              
-              <div className="flex flex-col sm:flex-row gap-4">
-                <Link href="/referral" data-testid="hero-cta-primary">
-                  <Button size="lg" className="bg-primary text-white hover:bg-primary/90 hover:scale-105 transition-all duration-300 shadow-xl font-semibold text-lg px-8 py-4">
-                    Book Your Assessment
-                    <ArrowRight className="ml-2 h-5 w-5" />
-                  </Button>
-                </Link>
-                <Link href="/contact" data-testid="hero-cta-secondary">
-                  <Button size="lg" className="bg-white text-primary hover:bg-white/90 hover:scale-105 transition-all duration-300 shadow-xl font-semibold text-lg px-8 py-4">
-                    <Phone className="mr-2 h-5 w-5" />
-                    Call Us Today
-                  </Button>
-                </Link>
-              </div>
-            </div>
-            
-            <div className="relative lg:ml-8">
-              {/* Main Stats Card - Mobile Responsive */}
-              <div className="space-y-6">
-                <Card className="p-4 sm:p-6 bg-white/95 backdrop-blur-sm shadow-2xl border-0 transform hover:scale-105 transition-all duration-300">
-                  <CardContent className="p-0">
-                    <div className="text-center space-y-4">
-                      <div className="space-y-1">
-                        <div className="text-2xl sm:text-3xl font-black bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
-                          1 - 4 hours
-                        </div>
-                        <div className="text-muted-foreground font-semibold text-sm">Flexible visit duration</div>
-                      </div>
-                      
-                      <div className="h-px bg-gradient-to-r from-transparent via-primary/30 to-transparent"></div>
-                      
-                      <div className="space-y-1">
-                        <div className="text-2xl sm:text-3xl font-black bg-gradient-to-r from-secondary to-primary bg-clip-text text-transparent">
-                          7 days a week
-                        </div>
-                        <div className="text-muted-foreground font-semibold text-sm">Including evenings & weekends</div>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-                
-                {/* Feature Cards - Stack on mobile, float on desktop */}
-                <div className="grid grid-cols-2 gap-4 lg:grid-cols-1 lg:gap-0">
-                  <Card className="lg:absolute lg:-top-12 lg:-left-12 p-4 sm:p-6 bg-secondary text-white shadow-xl border-0 lg:rotate-3 hover:lg:rotate-0 transition-transform duration-300">
-                    <div className="text-center">
-                      <div className="text-lg sm:text-xl font-bold">Rates from</div>
-                      <div className="text-sm sm:text-base opacity-90">£28.00 per hour</div>
-                    </div>
-                  </Card>
-                  
-                  <Card className="lg:absolute lg:-bottom-8 lg:-right-8 p-4 sm:p-6 bg-primary text-white shadow-xl border-0 lg:-rotate-3 hover:lg:rotate-0 transition-transform duration-300">
-                    <div className="text-center">
-                      <div className="text-lg sm:text-xl font-bold">Plymouth</div>
-                      <div className="text-sm sm:text-base opacity-90">only</div>
-                    </div>
-                  </Card>
-                </div>
-              </div>
-            </div>
+        <div className="relative max-w-7xl mx-auto px-5 sm:px-8">
+          <Link href="/services" className="inline-flex items-center gap-1.5 text-sm font-semibold mb-8 hover:opacity-80 transition-opacity" style={{ color: PINK }}>
+            ← All Services
+          </Link>
+          <p className="text-xs font-bold tracking-widest uppercase mb-4 text-white/50">Home Care</p>
+          <h1 className="text-4xl sm:text-5xl font-extrabold text-white mb-2 tracking-tight">Short Visits</h1>
+          <h1 className="mb-6" style={{ ...SCRIPT, fontSize: "clamp(2rem, 4vw, 3rem)", color: PINK }}>care when it counts.</h1>
+          <p className="text-white/60 text-lg max-w-2xl leading-relaxed">
+            Regular care visits throughout the day — helping you stay independent and comfortable in the home you love, without needing to move.
+          </p>
+          <div className="flex flex-col sm:flex-row gap-4 mt-8">
+            <Link href="/referral" className="inline-flex items-center justify-center gap-2 px-6 py-3.5 text-white font-bold rounded-xl hover:scale-105 transition-all" style={{ backgroundColor: PINK, boxShadow: "0 8px 24px rgba(239,42,134,0.4)" }}>
+              Request Free Assessment <ArrowRight size={16} />
+            </Link>
+            <a href="tel:03301658880" className="inline-flex items-center justify-center gap-2 px-6 py-3.5 font-semibold rounded-xl text-white hover:bg-white/10 transition-all border-2" style={{ borderColor: "rgba(255,255,255,0.25)" }}>
+              <Phone size={16} /> 0330 165 8880
+            </a>
           </div>
         </div>
       </section>
 
-      {/* What's Included Section */}
-      <section className="py-10 bg-muted/30">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-12">
-            <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-foreground mb-4" data-testid="whats-included-title">
-              What's Included in Short Visits
-            </h2>
-            <p className="text-lg sm:text-xl text-muted-foreground" data-testid="whats-included-subtitle">
-              Comprehensive support tailored to your individual needs
-            </p>
-          </div>
-
-          <Tabs defaultValue="Personal Care" className="w-full" data-testid="service-tabs">
-            <TabsList className="grid w-full grid-cols-1 sm:grid-cols-3 gap-2 mb-8 h-auto">
-              {whatsIncluded.map((category) => (
-                <TabsTrigger 
-                  key={category.category} 
-                  value={category.category}
-                  data-testid={`tab-${category.category.toLowerCase().replace(/\s+/g, '-')}`}
-                >
-                  {category.category}
-                </TabsTrigger>
-              ))}
-            </TabsList>
-            {whatsIncluded.map((category) => (
-              <TabsContent key={category.category} value={category.category} className="mt-6">
-                <Card>
-                  <CardContent className="p-8">
-                    <div className="grid md:grid-cols-2 gap-6">
-                      {category.items.map((item, index) => (
-                        <div key={index} className="flex items-start space-x-3" data-testid={`service-item-${index}`}>
-                          <CheckCircle className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
-                          <span className="text-foreground">{item}</span>
-                        </div>
-                      ))}
-                    </div>
-                  </CardContent>
-                </Card>
-              </TabsContent>
-            ))}
-          </Tabs>
-        </div>
-      </section>
-
-      {/* Who It's For Section */}
-      <section className="py-10">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-12">
-            <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-foreground mb-4" data-testid="who-its-for-title">
-              Who Short Visits Are For
-            </h2>
-            <p className="text-lg sm:text-xl text-muted-foreground max-w-3xl mx-auto" data-testid="who-its-for-subtitle">
-              Our short visit care service is designed to support independence while providing essential assistance
-            </p>
-          </div>
-
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {[
-              "Adults who need assistance with daily activities but want to maintain independence",
-              "People recovering from illness, injury, or hospital stays requiring temporary support",
-              "Individuals with disabilities who need help with specific tasks throughout the day",
-              "Elderly people who live alone and need regular check-ins and assistance",
-              "Those with chronic conditions requiring medication support and monitoring",
-              "Family members seeking reliable support for their loved ones' daily care needs"
-            ].map((description, index) => (
-              <Card key={index} className="border-l-4 border-l-primary" data-testid={`target-audience-${index}`}>
-                <CardContent className="p-6">
-                  <p className="text-foreground leading-relaxed">{description}</p>
-                </CardContent>
-              </Card>
+      {/* WHAT'S INCLUDED */}
+      <section className="py-16 sm:py-20 bg-white">
+        <div className="max-w-7xl mx-auto px-5 sm:px-8">
+          <p className="text-xs font-bold tracking-widest uppercase mb-4" style={{ color: PINK }}>What's included</p>
+          <h2 className="text-3xl font-extrabold mb-10 tracking-tight" style={{ color: NAVY }}>Everything your visit covers</h2>
+          <div className="grid md:grid-cols-3 gap-6">
+            {INCLUDED.map((cat) => (
+              <div key={cat.category} className="rounded-2xl p-7 border-2 border-gray-100">
+                <h3 className="font-extrabold mb-4 text-sm tracking-widest uppercase" style={{ color: BLUE }}>{cat.category}</h3>
+                <ul className="space-y-3">
+                  {cat.items.map((item) => (
+                    <li key={item} className="flex items-start gap-3 text-sm text-gray-600">
+                      <CheckCircle size={14} className="mt-0.5 shrink-0" style={{ color: PINK }} />
+                      {item}
+                    </li>
+                  ))}
+                </ul>
+              </div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* Care Funding Section */}
-      <section className="py-10">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <Card className="bg-gradient-to-br from-muted/30 to-muted/10 border-0 shadow-lg rounded-2xl">
-            <CardContent className="p-12">
-              <div className="text-center mb-12">
-                <h2 className="text-3xl lg:text-4xl font-bold text-foreground mb-4" data-testid="funding-title">
-                  Understanding Care Funding
-                </h2>
-                <p className="text-xl text-muted-foreground max-w-3xl mx-auto" data-testid="funding-subtitle">
-                  Navigate the different funding options available for your care needs in the UK
-                </p>
-              </div>
-
-          <div className="grid md:grid-cols-2 gap-8 mb-12">
-            {/* NHS Funding */}
-            <Card className="border-l-4 border-l-secondary">
-              <CardContent className="p-8">
-                <div className="flex items-center mb-6">
-                  <div className="bg-secondary/10 rounded-full w-12 h-12 flex items-center justify-center mr-4">
-                    <Heart className="h-6 w-6 text-secondary" />
-                  </div>
-                  <h3 className="text-2xl font-bold text-foreground">NHS Health Funding</h3>
-                </div>
-                <div className="space-y-4">
-                  <div className="flex items-start space-x-3">
-                    <CheckCircle className="h-5 w-5 text-secondary mt-1 flex-shrink-0" />
-                    <div>
-                      <p className="font-semibold text-foreground">NHS Continuing Healthcare (CHC)</p>
-                      <p className="text-muted-foreground text-sm">Free health and social care for complex long-term needs - no means test required</p>
-                    </div>
-                  </div>
-                  <div className="flex items-start space-x-3">
-                    <CheckCircle className="h-5 w-5 text-secondary mt-1 flex-shrink-0" />
-                    <div>
-                      <p className="font-semibold text-foreground">Funded Nursing Care (FNC)</p>
-                      <p className="text-muted-foreground text-sm">NHS contribution for nursing home care - paid directly to the care home</p>
-                    </div>
-                  </div>
-                  <div className="flex items-start space-x-3">
-                    <Info className="h-5 w-5 text-secondary mt-1 flex-shrink-0" />
-                    <div>
-                      <p className="font-semibold text-foreground">No Financial Assessment</p>
-                      <p className="text-muted-foreground text-sm">Eligibility based purely on health needs, not financial situation</p>
-                    </div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Local Authority Funding */}
-            <Card className="border-l-4 border-l-primary">
-              <CardContent className="p-8">
-                <div className="flex items-center mb-6">
-                  <div className="bg-primary/10 rounded-full w-12 h-12 flex items-center justify-center mr-4">
-                    <Building2 className="h-6 w-6 text-primary" />
-                  </div>
-                  <h3 className="text-2xl font-bold text-foreground">Local Authority Social Care</h3>
-                </div>
-                <div className="space-y-4">
-                  <div className="flex items-start space-x-3">
-                    <PoundSterling className="h-5 w-5 text-primary mt-1 flex-shrink-0" />
-                    <div>
-                      <p className="font-semibold text-foreground">Asset Limits (2024-25)</p>
-                      <p className="text-muted-foreground text-sm">Upper limit: £23,250 | Lower limit: £14,250 - unchanged since 2010</p>
-                    </div>
-                  </div>
-                  <div className="flex items-start space-x-3">
-                    <FileText className="h-5 w-5 text-primary mt-1 flex-shrink-0" />
-                    <div>
-                      <p className="font-semibold text-foreground">Means Testing</p>
-                      <p className="text-muted-foreground text-sm">Financial assessment determines your contribution to care costs</p>
-                    </div>
-                  </div>
-                  <div className="flex items-start space-x-3">
-                    <HelpCircle className="h-5 w-5 text-primary mt-1 flex-shrink-0" />
-                    <div>
-                      <p className="font-semibold text-foreground">Personal Expenses Allowance</p>
-                      <p className="text-muted-foreground text-sm">£30.15 per week retained for personal expenses in 2024-25</p>
-                    </div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-
-              {/* Key Differences */}
-              <Card className="bg-background border-2 border-dashed border-muted-foreground/30 mt-8">
-                <CardContent className="p-8">
-                  <h3 className="text-xl font-bold text-foreground mb-6 text-center">Key Funding Differences</h3>
-                  <div className="grid md:grid-cols-3 gap-6">
-                    <div className="text-center">
-                      <div className="bg-accent/10 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
-                        <Shield className="h-8 w-8 text-accent" />
-                      </div>
-                      <h4 className="font-semibold text-foreground mb-2">Eligibility</h4>
-                      <p className="text-sm text-muted-foreground">NHS: Health needs only<br/>Council: Care needs + finances</p>
-                    </div>
-                    <div className="text-center">
-                      <div className="bg-accent/10 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
-                        <PoundSterling className="h-8 w-8 text-accent" />
-                      </div>
-                      <h4 className="font-semibold text-foreground mb-2">Costs</h4>
-                      <p className="text-sm text-muted-foreground">NHS: Free when eligible<br/>Council: Contribution required</p>
-                    </div>
-                    <div className="text-center">
-                      <div className="bg-accent/10 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
-                        <Clipboard className="h-8 w-8 text-accent" />
-                      </div>
-                      <h4 className="font-semibold text-foreground mb-2">Assessment</h4>
-                      <p className="text-sm text-muted-foreground">NHS: Clinical assessment<br/>Council: Care & financial review</p>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-
-              <div className="mt-8 text-center">
-                <p className="text-sm text-muted-foreground italic">
-                  Important: Funding rules can be complex. We recommend seeking independent financial advice 
-                  and contacting your local authority for a care needs assessment.
-                </p>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-      </section>
-
-      {/* Benefits Section */}
-      <section className="py-10">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl lg:text-4xl font-bold text-foreground mb-4" data-testid="benefits-title">
-              Benefits of Short Visit Care
-            </h2>
-            <p className="text-xl text-muted-foreground" data-testid="benefits-subtitle">
-              Professional care that adapts to your lifestyle and needs
-            </p>
-          </div>
-
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
-            {benefits.map((benefit, index) => {
-              const IconComponent = benefit.icon;
+      {/* BENEFITS */}
+      <section className="py-16 sm:py-20" style={{ backgroundColor: CREAM }}>
+        <div className="max-w-7xl mx-auto px-5 sm:px-8">
+          <p className="text-xs font-bold tracking-widest uppercase mb-4" style={{ color: PINK }}>Why choose us</p>
+          <h2 className="text-3xl font-extrabold mb-10 tracking-tight" style={{ color: NAVY }}>The Smeaton difference</h2>
+          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-5">
+            {BENEFITS.map((b) => {
+              const Icon = b.icon;
               return (
-                <Card key={index} className="text-center border-0 shadow-lg" data-testid={`benefit-${index}`}>
-                  <CardContent className="p-8">
-                    <div className="bg-primary/10 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-6">
-                      <IconComponent className="h-8 w-8 text-primary" />
-                    </div>
-                    <h3 className="text-xl font-semibold text-foreground mb-4">{benefit.title}</h3>
-                    <p className="text-muted-foreground leading-relaxed">{benefit.description}</p>
-                  </CardContent>
-                </Card>
+                <div key={b.title} className="bg-white rounded-2xl p-6 border-2 border-gray-100">
+                  <div className="w-10 h-10 rounded-xl flex items-center justify-center mb-4" style={{ backgroundColor: `${PINK}15` }}>
+                    <Icon size={18} style={{ color: PINK }} />
+                  </div>
+                  <h3 className="font-extrabold mb-2 text-base tracking-tight" style={{ color: NAVY }}>{b.title}</h3>
+                  <p className="text-gray-500 text-sm leading-relaxed">{b.desc}</p>
+                </div>
               );
             })}
           </div>
         </div>
       </section>
 
-      {/* FAQs Section */}
-      <section className="py-10">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl lg:text-4xl font-bold text-foreground mb-4" data-testid="faqs-title">
-              Frequently Asked Questions
-            </h2>
-            <p className="text-xl text-muted-foreground" data-testid="faqs-subtitle">
-              Get answers to common questions about our short visit care service
-            </p>
-          </div>
-
-          <Accordion type="single" collapsible className="w-full" data-testid="faqs-accordion">
-            {faqs.map((faq, index) => (
-              <AccordionItem key={index} value={`item-${index}`}>
-                <AccordionTrigger className="text-left text-lg font-medium" data-testid={`faq-question-${index}`}>
-                  {faq.question}
-                </AccordionTrigger>
-                <AccordionContent className="text-muted-foreground leading-relaxed" data-testid={`faq-answer-${index}`}>
-                  {faq.answer}
-                </AccordionContent>
+      {/* FAQ */}
+      <section className="py-16 sm:py-20 bg-white">
+        <div className="max-w-3xl mx-auto px-5 sm:px-8">
+          <p className="text-xs font-bold tracking-widest uppercase mb-4" style={{ color: PINK }}>Common questions</p>
+          <h2 className="text-3xl font-extrabold mb-10 tracking-tight" style={{ color: NAVY }}>Frequently asked questions</h2>
+          <Accordion type="single" collapsible className="space-y-2">
+            {FAQS.map((faq, i) => (
+              <AccordionItem key={i} value={`faq-${i}`} className="border-2 border-gray-100 rounded-2xl px-6 overflow-hidden">
+                <AccordionTrigger className="text-left font-bold py-5 hover:no-underline" style={{ color: NAVY }}>{faq.q}</AccordionTrigger>
+                <AccordionContent className="text-gray-500 pb-5 leading-relaxed">{faq.a}</AccordionContent>
               </AccordionItem>
             ))}
           </Accordion>
         </div>
       </section>
 
-      {/* Modern CTA Section */}
-      <section className="py-8 bg-white" data-testid="cta-section">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="cta-container">
-            <div className="text-center space-y-8">
-              <div className="space-y-4">
-                <h2 className="text-4xl lg:text-5xl font-bold text-foreground">
-                  Ready to get started?
-                </h2>
-                <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-                  Whether you or a loved one need care or you are looking for your next opportunity, 
-                  we're here to help you succeed.
-                </p>
-              </div>
-              
-              <div className="flex flex-col sm:flex-row gap-6 justify-center">
-                <Link href="/contact">
-                  <Button 
-                    size="lg" 
-                    className="modern-button-primary group text-lg px-10 py-4"
-                    data-testid="cta-button-contact"
-                  >
-                    <Building2 className="mr-2 h-5 w-5" />
-                    View Vacancies
-                    <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
-                  </Button>
-                </Link>
-                
-                <Link href="/jobs">
-                  <Button 
-                    size="lg" 
-                    className="bg-secondary text-white hover:bg-secondary/90 group text-lg px-10 py-4"
-                    data-testid="cta-button-jobs"
-                  >
-                    <Users className="mr-2 h-5 w-5" />
-                    Make a Referral
-                    <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
-                  </Button>
-                </Link>
-              </div>
-            </div>
+      {/* CTA */}
+      <section style={{ backgroundColor: NAVY }} className="py-16 sm:py-20">
+        <div className="max-w-3xl mx-auto px-5 sm:px-8 text-center">
+          <h2 className="text-3xl font-extrabold text-white mb-2 tracking-tight">Ready to get started?</h2>
+          <div className="mb-5" style={{ ...SCRIPT, fontSize: "clamp(1.8rem,3.5vw,2.8rem)", color: "rgba(239,42,134,0.9)" }}>Let's talk about your needs.</div>
+          <p className="text-white/60 mb-8 leading-relaxed">A free, no-obligation assessment with one of our care coordinators. We can usually begin within 24–48 hours.</p>
+          <div className="flex flex-col sm:flex-row justify-center gap-4">
+            <Link href="/referral" className="inline-flex items-center justify-center gap-2 px-7 py-4 text-white font-bold rounded-xl hover:scale-105 transition-all" style={{ backgroundColor: PINK, boxShadow: "0 8px 32px rgba(239,42,134,0.4)" }}>
+              Request Free Assessment <ArrowRight size={16} />
+            </Link>
+            <a href="tel:03301658880" className="inline-flex items-center justify-center gap-2 px-7 py-4 font-semibold rounded-xl text-white hover:bg-white/10 transition-all border-2" style={{ borderColor: "rgba(255,255,255,0.3)" }}>
+              <Phone size={16} /> 0330 165 8880
+            </a>
           </div>
         </div>
       </section>

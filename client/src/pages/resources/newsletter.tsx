@@ -1,12 +1,26 @@
+import { useEffect, useState } from "react";
 import { Link } from "wouter";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { ArrowLeft, Mail, Calendar, Clock, Bell, Sparkles, Users, ArrowRight } from "lucide-react";
-import { useState } from "react";
+import { ArrowLeft, Mail, Calendar, Clock, Bell, Sparkles, Users, ArrowRight, CheckCircle } from "lucide-react";
+
+const NAVY = "#05163D";
+const BLUE = "#265597";
+const PINK = "#EF2A86";
+const CREAM = "#FDF7F0";
+const SCRIPT = { fontFamily: "'Dancing Script', cursive" };
+
+const FEATURES = [
+  { icon: Mail, title: "Monthly Industry Insights", description: "Curated home care industry news, trends, and analysis delivered monthly." },
+  { icon: Users, title: "Exclusive Job Opportunities", description: "Early access to care roles before they go public." },
+  { icon: Sparkles, title: "Professional Development", description: "Career advancement tips and training opportunities for care professionals." },
+  { icon: Calendar, title: "Event Notifications", description: "Stay informed about conferences, webinars, and networking events." },
+];
 
 export default function Newsletter() {
   const [email, setEmail] = useState("");
   const [subscribed, setSubscribed] = useState(false);
+
+  useEffect(() => { document.title = "Newsletter | Smeaton Healthcare"; }, []);
 
   const handleSubscribe = (e: React.FormEvent) => {
     e.preventDefault();
@@ -14,238 +28,102 @@ export default function Newsletter() {
     setEmail("");
   };
 
-  const upcomingFeatures = [
-    {
-      icon: <Mail className="h-6 w-6" />,
-      title: "Monthly Industry Insights",
-      description: "Curated healthcare industry news, trends, and analysis delivered monthly"
-    },
-    {
-      icon: <Users className="h-6 w-6" />,
-      title: "Exclusive Job Opportunities",
-      description: "Early access to premium healthcare positions before they go public"
-    },
-    {
-      icon: <Sparkles className="h-6 w-6" />,
-      title: "Professional Development",
-      description: "Career advancement tips and training opportunities for healthcare professionals"
-    },
-    {
-      icon: <Calendar className="h-6 w-6" />,
-      title: "Event Notifications",
-      description: "Stay informed about healthcare conferences, webinars, and networking events"
-    }
-  ];
-
   return (
-    <div className="min-h-screen bg-slate-50">
-      {/* Header */}
-      <section className="relative bg-gradient-to-br from-primary/20 via-white to-secondary/15 py-12 overflow-hidden">
-        {/* Background decorative elements */}
-        <div className="absolute inset-0 opacity-20">
-          <div className="absolute top-0 left-1/4 w-72 h-72 bg-primary/30 rounded-full blur-3xl"></div>
-          <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-secondary/20 rounded-full blur-3xl"></div>
-        </div>
-        
-        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="rounded-3xl p-[1px]" style={{
-            background: 'linear-gradient(90deg, #EF2587, #275799, #EF2587)'
-          }}>
-            <div className="rounded-3xl bg-white/90 backdrop-blur-sm px-4 sm:px-6 lg:px-8 py-6">
-          <div className="flex items-center gap-4 mb-8">
-            <Link href="/resources">
-              <Button variant="ghost" size="sm" className="hover:bg-white/80 backdrop-blur-sm" data-testid="back-to-resources">
-                <ArrowLeft className="h-4 w-4 mr-2" />
-                Back to Resources
-              </Button>
-            </Link>
-          </div>
-          
-          <div className="text-center space-y-6">
-            <div className="space-y-4">
-              <div className="inline-block">
-                <div className="flex items-center justify-center w-16 h-16 bg-gradient-to-br from-primary to-secondary rounded-2xl mb-4 mx-auto shadow-lg">
-                  <Mail className="w-8 h-8 text-white" />
-                </div>
-              </div>
-              <div className="py-4">
-                <h1 className="text-4xl lg:text-5xl font-bold overflow-visible" data-testid="newsletter-title">
-                  <span className="inline-block bg-gradient-to-r from-primary via-secondary to-primary bg-clip-text text-transparent [-webkit-text-fill-color:transparent] leading-[1.1] pb-[0.15em]">
-                    Newsletter
-                  </span>
-                </h1>
-              </div>
-              <div className="w-24 h-1 bg-gradient-to-r from-primary to-secondary rounded-full mx-auto"></div>
-            </div>
-            <p className="text-lg lg:text-xl text-slate-600 max-w-4xl mx-auto leading-relaxed font-medium" data-testid="newsletter-description">
-              Stay ahead with exclusive healthcare insights, job opportunities, and industry updates — launching soon
-            </p>
-            
-            {/* Hero Icons & Stats */}
-            <div className="flex flex-wrap justify-center items-center gap-8 mt-8 text-slate-600">
-              <div className="flex items-center gap-2">
-                <div className="p-2 bg-primary/10 rounded-lg">
-                  <Calendar className="h-5 w-5 text-primary" />
-                </div>
-                <span className="text-sm font-medium">Monthly Delivery</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <div className="p-2 bg-secondary/10 rounded-lg">
-                  <Users className="h-5 w-5 text-secondary" />
-                </div>
-                <span className="text-sm font-medium">Healthcare Focus</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <div className="p-2 bg-primary/10 rounded-lg">
-                  <Clock className="h-5 w-5 text-primary" />
-                </div>
-                <span className="text-sm font-medium">5 Min Reads</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <div className="p-2 bg-secondary/10 rounded-lg">
-                  <Sparkles className="h-5 w-5 text-secondary" />
-                </div>
-                <span className="text-sm font-medium">Exclusive Content</span>
-              </div>
-          </div>
-            </div>
-          </div>
-        </div>
+    <div data-testid="newsletter-page">
+      {/* HERO */}
+      <section className="bg-white">
+        <div className="max-w-7xl mx-auto px-5 sm:px-8 pt-12 pb-10">
+          <Link href="/resources" className="inline-flex items-center gap-1.5 text-sm font-semibold mb-8 hover:opacity-80 transition-opacity" style={{ color: PINK }}>
+            <ArrowLeft size={14} /> Back to Resources
+          </Link>
+          <p className="text-xs font-bold tracking-widest uppercase mb-4" style={{ color: PINK }}>Stay in the loop</p>
+          <h1 className="text-4xl sm:text-5xl font-extrabold mb-1 tracking-tight" style={{ color: NAVY }}>Our Newsletter</h1>
+          <div className="mb-4" style={{ ...SCRIPT, fontSize: "clamp(1.8rem, 3.5vw, 2.8rem)", color: PINK }}>straight to your inbox.</div>
+          <p className="text-gray-500 text-base max-w-2xl leading-relaxed" data-testid="newsletter-description">
+            Exclusive healthcare insights, job opportunities, and company updates — launching soon.
+          </p>
         </div>
       </section>
 
-      {/* Coming Soon Section */}
-      <section className="py-16">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="bg-white rounded-2xl shadow-sm border border-slate-200 text-center">
-            <div className="p-12 space-y-8">
-              <div className="space-y-6">
-                <div className="w-20 h-20 bg-gradient-to-br from-primary/20 to-secondary/20 rounded-2xl flex items-center justify-center mx-auto">
-                  <Bell className="h-10 w-10 text-primary" />
+      {/* COMING SOON CARD */}
+      <section className="py-12" style={{ backgroundColor: CREAM }}>
+        <div className="max-w-2xl mx-auto px-5 sm:px-8">
+          <div className="bg-white rounded-3xl border-2 border-gray-100 p-10 text-center">
+            {!subscribed ? (
+              <>
+                <div className="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-6" style={{ backgroundColor: `${PINK}15` }}>
+                  <Bell size={28} style={{ color: PINK }} />
                 </div>
-                <div className="space-y-4">
-                  <h2 className="text-3xl lg:text-4xl font-bold text-foreground">Coming Soon</h2>
-                  <p className="text-xl text-slate-600 max-w-2xl mx-auto leading-relaxed">
-                    We're crafting something special for healthcare professionals. Be the first to know when our newsletter launches.
-                  </p>
+                <h2 className="text-2xl font-extrabold mb-3 tracking-tight" style={{ color: NAVY }}>Coming Soon</h2>
+                <p className="text-gray-500 leading-relaxed mb-8 max-w-md mx-auto">
+                  We're crafting something special. Be the first to know when our newsletter launches.
+                </p>
+                <form onSubmit={handleSubscribe} className="flex gap-3 max-w-sm mx-auto mb-4">
+                  <Input
+                    type="email"
+                    placeholder="Your email address"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    required
+                    className="flex-1 border-2 border-gray-200 focus:border-pink-400 rounded-xl"
+                    data-testid="newsletter-email-input"
+                  />
+                  <button type="submit" className="px-5 py-2.5 text-white font-bold rounded-xl shrink-0 hover:scale-105 transition-all" style={{ backgroundColor: PINK }}
+                    data-testid="newsletter-subscribe-button">
+                    Notify Me
+                  </button>
+                </form>
+                <p className="text-xs text-gray-400">Join the waitlist for launch updates and exclusive early access.</p>
+              </>
+            ) : (
+              <>
+                <div className="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-6 bg-green-100">
+                  <CheckCircle size={28} className="text-green-600" />
                 </div>
-              </div>
-              
-              {!subscribed ? (
-                <div className="space-y-6">
-                  <form onSubmit={handleSubscribe} className="max-w-md mx-auto">
-                    <div className="flex gap-3">
-                      <Input
-                        type="email"
-                        placeholder="Enter your email address"
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
-                        required
-                        className="flex-1 border-slate-300 focus:border-primary"
-                        data-testid="newsletter-email-input"
-                      />
-                      <Button 
-                        type="submit"
-                        className="modern-button-primary px-8"
-                        data-testid="newsletter-subscribe-button"
-                      >
-                        Notify Me
-                        <ArrowRight className="ml-2 h-4 w-4" />
-                      </Button>
-                    </div>
-                  </form>
-                  <p className="text-sm text-slate-500">
-                    Join the waitlist to receive launch updates and exclusive early access.
-                  </p>
-                </div>
-              ) : (
-                <div className="space-y-6">
-                  <div className="w-20 h-20 bg-gradient-to-br from-green-100 to-green-200 rounded-2xl flex items-center justify-center mx-auto">
-                    <Sparkles className="h-10 w-10 text-green-600" />
-                  </div>
-                  <div className="space-y-2">
-                    <h3 className="text-2xl font-bold text-foreground">You're on the List!</h3>
-                    <p className="text-lg text-slate-600">
-                      Thank you for your interest. We'll notify you as soon as our newsletter is ready.
-                    </p>
-                  </div>
-                </div>
-              )}
-            </div>
+                <h2 className="text-2xl font-extrabold mb-3 tracking-tight" style={{ color: NAVY }}>You're on the list!</h2>
+                <p className="text-gray-500 leading-relaxed">Thank you for your interest. We'll notify you as soon as our newsletter is ready.</p>
+              </>
+            )}
           </div>
         </div>
       </section>
 
-      {/* What to Expect */}
-      <section className="py-16 bg-white">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl lg:text-4xl font-bold text-foreground mb-6">What to Expect</h2>
-            <p className="text-xl text-slate-600 max-w-3xl mx-auto">
-              Our newsletter will deliver carefully curated content designed specifically for healthcare professionals
-            </p>
-          </div>
-          
-          <div className="grid md:grid-cols-2 gap-8">
-            {upcomingFeatures.map((feature, index) => (
-              <div 
-                key={index}
-                className="bg-slate-50 rounded-2xl p-8 border border-slate-200 hover:shadow-md transition-all duration-300"
-                data-testid={`feature-${index}`}
-              >
-                <div className="flex items-start gap-6">
-                  <div className="w-12 h-12 bg-gradient-to-br from-primary/20 to-secondary/20 rounded-xl flex items-center justify-center flex-shrink-0">
-                    <div className="text-primary">
-                      {feature.icon}
-                    </div>
+      {/* WHAT TO EXPECT */}
+      <section className="py-14 bg-white">
+        <div className="max-w-5xl mx-auto px-5 sm:px-8">
+          <p className="text-xs font-bold tracking-widest uppercase mb-4" style={{ color: PINK }}>What to expect</p>
+          <h2 className="text-2xl font-extrabold mb-8 tracking-tight" style={{ color: NAVY }}>What we'll cover</h2>
+          <div className="grid sm:grid-cols-2 gap-5">
+            {FEATURES.map((f, i) => {
+              const Icon = f.icon;
+              return (
+                <div key={i} className="flex gap-4 p-6 rounded-2xl border-2 border-gray-100" data-testid={`feature-${i}`}>
+                  <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0" style={{ backgroundColor: `${BLUE}15` }}>
+                    <Icon size={18} style={{ color: BLUE }} />
                   </div>
-                  <div className="space-y-3">
-                    <h3 className="text-xl font-bold text-foreground">{feature.title}</h3>
-                    <p className="text-slate-600 leading-relaxed">{feature.description}</p>
+                  <div>
+                    <h3 className="font-extrabold mb-1 text-base tracking-tight" style={{ color: NAVY }}>{f.title}</h3>
+                    <p className="text-gray-500 text-sm leading-relaxed">{f.description}</p>
                   </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
       </section>
-
 
       {/* CTA */}
-      <section className="py-16 bg-gradient-to-br from-primary/10 via-white to-secondary/10">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <div className="space-y-8">
-            <div className="space-y-6">
-              <h2 className="text-3xl lg:text-4xl font-bold text-foreground">
-                Stay Connected
-              </h2>
-              <p className="text-xl text-slate-600 max-w-2xl mx-auto">
-                While you wait for our newsletter, explore our current opportunities and resources
-              </p>
-            </div>
-            
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Link href="/jobs">
-                <Button 
-                  size="lg" 
-                  className="modern-button-primary text-lg px-8 py-4"
-                  data-testid="browse-jobs-button"
-                >
-                  Browse Job Opportunities
-                  <ArrowRight className="ml-2 h-5 w-5" />
-                </Button>
-              </Link>
-              <Link href="/resources/blog">
-                <Button 
-                  size="lg" 
-                  variant="outline"
-                  className="border-slate-300 text-slate-600 hover:bg-slate-50 text-lg px-8 py-4"
-                  data-testid="read-blog-button"
-                >
-                  Read Our Blog
-                </Button>
-              </Link>
-            </div>
+      <section className="py-14" style={{ backgroundColor: CREAM }}>
+        <div className="max-w-3xl mx-auto px-5 sm:px-8 text-center">
+          <h2 className="text-2xl font-extrabold mb-2 tracking-tight" style={{ color: NAVY }}>While you wait</h2>
+          <div className="mb-5" style={{ ...SCRIPT, fontSize: "clamp(1.6rem, 3vw, 2.4rem)", color: BLUE }}>explore our current opportunities.</div>
+          <div className="flex flex-col sm:flex-row justify-center gap-4">
+            <Link href="/jobs" className="inline-flex items-center justify-center gap-2 px-6 py-3.5 text-white font-bold rounded-xl hover:scale-105 transition-all" style={{ backgroundColor: PINK, boxShadow: "0 8px 24px rgba(239,42,134,0.35)" }} data-testid="browse-jobs-button">
+              Browse Job Opportunities <ArrowRight size={15} />
+            </Link>
+            <Link href="/resources/blog" className="inline-flex items-center justify-center gap-2 px-6 py-3.5 font-bold rounded-xl text-[#05163D] hover:bg-black/5 transition-all border-2" style={{ borderColor: "rgba(5,22,61,0.15)" }} data-testid="read-blog-button">
+              Read Our Blog <ArrowRight size={15} />
+            </Link>
           </div>
         </div>
       </section>

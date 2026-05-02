@@ -94,48 +94,53 @@ export default function Referral() {
     submitReferralMutation.mutate(data);
   };
 
+  const NAVY = "#05163D";
+  const BLUE = "#265597";
+  const PINK = "#EF2A86";
+  const CREAM = "#FDF7F0";
+  const SCRIPT = { fontFamily: "'Dancing Script', cursive" };
+
   return (
-    <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-16" data-testid="referral-page">
-      <div className="text-center mb-12">
-        <h1 className="text-4xl font-bold text-foreground mb-4" data-testid="referral-title">
-          Make a Referral
-        </h1>
-        <p className="text-xl text-muted-foreground max-w-2xl mx-auto" data-testid="referral-subtitle">
-          Help someone access the care and support they need. Complete this form and we'll arrange a free, no-obligation assessment.
-        </p>
-      </div>
+    <div data-testid="referral-page">
+      {/* HERO */}
+      <section style={{ backgroundColor: NAVY }} className="relative py-16 sm:py-20 overflow-hidden">
+        <div className="absolute inset-0 opacity-[0.04] pointer-events-none">
+          {[0,1,2,3].map(i => <div key={i} className="absolute rounded-full border border-white" style={{ width:`${200+i*150}px`,height:`${200+i*150}px`,top:"50%",left:"50%",transform:"translate(-50%,-50%)" }} />)}
+        </div>
+        <div className="relative max-w-4xl mx-auto px-5 sm:px-8">
+          <p className="text-xs font-bold tracking-widest uppercase mb-4 text-white/50">Referrals</p>
+          <h1 className="text-4xl sm:text-5xl font-extrabold text-white mb-2 tracking-tight" data-testid="referral-title">Make a Referral</h1>
+          <div className="mb-4" style={{ ...SCRIPT, fontSize: "clamp(2rem, 4vw, 3rem)", color: PINK }}>let's find the right care.</div>
+          <p className="text-white/60 text-base max-w-xl leading-relaxed" data-testid="referral-subtitle">
+            Help someone access the care and support they need. Complete this form and we'll arrange a free, no-obligation assessment.
+          </p>
+          <div className="grid sm:grid-cols-3 gap-4 mt-8">
+            {[
+              { icon: Clock, label: "Quick Response", desc: "We'll contact you within 2 hours" },
+              { icon: Heart, label: "No Obligation", desc: "Free assessment with no pressure" },
+              { icon: Users, label: "Expert Support", desc: "Qualified care coordinators" },
+            ].map(({ icon: Icon, label, desc }) => (
+              <div key={label} className="bg-white/10 backdrop-blur-sm rounded-xl p-4 flex items-center gap-3">
+                <div className="w-9 h-9 rounded-lg flex items-center justify-center shrink-0" style={{ backgroundColor: `${PINK}30` }}>
+                  <Icon size={16} style={{ color: PINK }} />
+                </div>
+                <div>
+                  <div className="text-white font-bold text-sm">{label}</div>
+                  <div className="text-white/50 text-xs">{desc}</div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
 
-      {/* Key Information Cards */}
-      <div className="grid md:grid-cols-3 gap-6 mb-12">
-        <Card className="text-center">
-          <CardContent className="p-6">
-            <Clock className="h-8 w-8 text-primary mx-auto mb-4" />
-            <h3 className="font-semibold mb-2">Quick Response</h3>
-            <p className="text-sm text-muted-foreground">We'll contact you within 2 hours</p>
-          </CardContent>
-        </Card>
-        <Card className="text-center">
-          <CardContent className="p-6">
-            <Heart className="h-8 w-8 text-primary mx-auto mb-4" />
-            <h3 className="font-semibold mb-2">No Obligation</h3>
-            <p className="text-sm text-muted-foreground">Free assessment with no pressure</p>
-          </CardContent>
-        </Card>
-        <Card className="text-center">
-          <CardContent className="p-6">
-            <Users className="h-8 w-8 text-primary mx-auto mb-4" />
-            <h3 className="font-semibold mb-2">Expert Support</h3>
-            <p className="text-sm text-muted-foreground">Qualified care coordinators</p>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Referral Form */}
-      <Card className="shadow-lg">
-        <CardHeader>
-          <CardTitle className="text-2xl">Referral Details</CardTitle>
+      {/* FORM */}
+      <div className="max-w-4xl mx-auto px-5 sm:px-8 py-12">
+      <Card className="shadow-sm border-2 border-gray-100 rounded-3xl overflow-hidden">
+        <CardHeader className="px-8 pt-8 pb-0">
+          <CardTitle className="text-2xl font-extrabold tracking-tight" style={{ color: NAVY }}>Referral Details</CardTitle>
         </CardHeader>
-        <CardContent>
+        <CardContent className="px-8 pb-8 pt-6">
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
               {/* Referrer Information */}
@@ -472,24 +477,23 @@ export default function Referral() {
       </Card>
 
       {/* Contact Information */}
-      <Card className="mt-8">
-        <CardContent className="p-6">
-          <h3 className="text-lg font-semibold mb-4">Need Help with This Form?</h3>
-          <div className="grid md:grid-cols-2 gap-4 text-sm">
-            <div className="flex items-center gap-2">
-              <Phone className="h-4 w-4 text-primary" />
-              <span>Call us: 01752 123456</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <Mail className="h-4 w-4 text-primary" />
-              <span>Email: referrals@smeatonhealthcare.com</span>
-            </div>
+      <div className="mt-6 rounded-2xl border-2 border-gray-100 bg-white p-6">
+        <h3 className="text-base font-extrabold mb-4 tracking-tight" style={{ color: NAVY }}>Need help with this form?</h3>
+        <div className="grid md:grid-cols-2 gap-3 text-sm mb-4">
+          <div className="flex items-center gap-2 text-gray-500">
+            <Phone size={14} style={{ color: PINK }} />
+            <span>Call us: 01752 123456</span>
           </div>
-          <p className="text-muted-foreground mt-4 text-sm">
-            Our care coordinators are available Monday to Friday, 8am-6pm to help with referrals and answer questions.
-          </p>
-        </CardContent>
-      </Card>
+          <div className="flex items-center gap-2 text-gray-500">
+            <Mail size={14} style={{ color: PINK }} />
+            <span>referrals@smeatonhealthcare.com</span>
+          </div>
+        </div>
+        <p className="text-xs text-gray-400">
+          Our care coordinators are available Monday to Friday, 8am–6pm to help with referrals and answer questions.
+        </p>
+      </div>
+      </div>
     </div>
   );
 }
