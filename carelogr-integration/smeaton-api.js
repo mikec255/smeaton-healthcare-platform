@@ -6,10 +6,7 @@
  * Drop this file into your CareLogr Replit project and add two Secrets:
  *
  *   SMEATON_API_KEY  = clgr_e17439bf4d355423d437d047611f10e8124c5a9f15ac55aa7690da8df011a14a
- *   SMEATON_BASE_URL = https://ff2b305e-a39b-4452-8770-c986e5e4bcf4-00-164v8ay1wakf2.janeway.replit.dev/api/carelogr
- *
- * ⚠  Once the Smeaton site is published, update SMEATON_BASE_URL to the live
- *    .replit.app domain so it works 24/7.
+ *   SMEATON_BASE_URL = https://www.smeatonhealthcare.co.uk/api/carelogr
  *
  * ─────────────────────────────────────────────────────────────────────────
  * Quick-start
