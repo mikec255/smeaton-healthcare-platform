@@ -4,7 +4,7 @@ import logoImage from "@/assets/logo.png";
 
 export default function Footer() {
   return (
-    <footer style={{ backgroundColor: "#05163D" }} className="text-white">
+    <footer style={{ backgroundColor: "#265597" }} className="text-white">
       <div className="max-w-7xl mx-auto px-5 sm:px-8 py-14">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10">
           <div className="lg:col-span-2">
