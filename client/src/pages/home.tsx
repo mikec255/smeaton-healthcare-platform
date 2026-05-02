@@ -1,7 +1,7 @@
 import { useRef, useEffect } from "react";
 import { Link } from "wouter";
 import { motion, useInView } from "framer-motion";
-import { ArrowRight, CheckCircle2, Phone, ShieldCheck, Award, Clock, Star } from "lucide-react";
+import { ArrowRight, CheckCircle2, Phone, ShieldCheck, Award, Clock, Star, Home as HomeIcon, Heart, Zap, RefreshCw, User, Activity } from "lucide-react";
 import { SiGoogle, SiTrustpilot } from "react-icons/si";
 import nhsLogoImg from "@assets/nhs_logo.png";
 import googleLogoImg from "@assets/google_logo_white.svg";
@@ -17,13 +17,13 @@ const BLUE = "#265597";
 const PINK = "#EF2A86";
 
 const SERVICES = [
-  { num: "01", name: "Short Visits", slug: "short-visits", desc: "Personal care, medication, meals and companionship — built around your day, not ours.", color: PINK },
-  { num: "02", name: "Supported Living", slug: "supported-living", desc: "Specialist support helping adults live independently and confidently.", color: BLUE },
-  { num: "03", name: "24/7 Care", slug: "care-24-7", desc: "Around-the-clock care for complex needs — consistent, trained, reliable.", color: PINK },
-  { num: "04", name: "Enabling", slug: "enablements", desc: "Building independence rather than dependency. Care that empowers.", color: BLUE },
-  { num: "05", name: "Respite Care", slug: "respite", desc: "Trusted short-term cover so family carers can rest and recharge.", color: PINK },
-  { num: "06", name: "Live-In Care", slug: "live-in-care", desc: "Full-time live-in support for people who need constant companionship.", color: BLUE },
-  { num: "07", name: "Condition-Led Care", slug: "condition-led-care", desc: "Specialist care tailored to specific health conditions and complex needs.", color: PINK },
+  { icon: Clock, name: "Short Visits", slug: "short-visits", desc: "Personal care, medication, meals and companionship — built around your day, not ours.", color: PINK },
+  { icon: HomeIcon, name: "Supported Living", slug: "supported-living", desc: "Specialist support helping adults live independently and confidently.", color: BLUE },
+  { icon: Activity, name: "24/7 Care", slug: "care-24-7", desc: "Around-the-clock care for complex needs — consistent, trained, reliable.", color: PINK },
+  { icon: Zap, name: "Enabling", slug: "enablements", desc: "Building independence rather than dependency. Care that empowers.", color: BLUE },
+  { icon: RefreshCw, name: "Respite Care", slug: "respite", desc: "Trusted short-term cover so family carers can rest and recharge.", color: PINK },
+  { icon: User, name: "Live-In Care", slug: "live-in-care", desc: "Full-time live-in support for people who need constant companionship.", color: BLUE },
+  { icon: Heart, name: "Condition-Led Care", slug: "condition-led-care", desc: "Specialist care tailored to specific health conditions and complex needs.", color: PINK },
 ];
 
 const TESTIMONIALS = [
@@ -243,22 +243,27 @@ export default function Home() {
             </Link>
           </FadeIn>
 
-          <div className="space-y-1">
-            {SERVICES.map((s, i) => (
-              <FadeIn key={s.slug} delay={i * 0.06}>
-                <Link href={`/services/${s.slug}`}
-                  className="group flex items-center gap-6 sm:gap-10 py-5 px-6 sm:px-8 rounded-2xl transition-all hover:shadow-md bg-white"
-                  data-testid={`service-row-${s.slug}`}>
-                  <span className="text-4xl sm:text-5xl font-bold shrink-0 w-14 text-right leading-none"
-                    style={{ ...SCRIPT, color: s.color, opacity: 0.45 }}>{s.num}</span>
-                  <div className="flex-1 min-w-0">
-                    <h3 className="text-lg sm:text-xl font-extrabold transition-colors mb-1 tracking-tight group-hover:text-[#265597]" style={{ color: NAVY }}>{s.name}</h3>
-                    <p className="text-gray-400 text-sm leading-relaxed">{s.desc}</p>
-                  </div>
-                  <ArrowRight size={16} className="hidden sm:block transition-all group-hover:translate-x-1 group-hover:text-[#EF2A86] shrink-0" style={{ color: "#d1d5db" }} />
-                </Link>
-              </FadeIn>
-            ))}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+            {SERVICES.map((s, i) => {
+              const Icon = s.icon;
+              return (
+                <FadeIn key={s.slug} delay={i * 0.06}>
+                  <Link href={`/services/${s.slug}`}
+                    className="group flex flex-col h-full bg-white rounded-2xl p-7 transition-all hover:shadow-lg hover:-translate-y-0.5"
+                    data-testid={`service-card-${s.slug}`}>
+                    <div className="w-12 h-12 rounded-xl flex items-center justify-center mb-5 transition-transform group-hover:scale-110"
+                      style={{ backgroundColor: `${s.color}18` }}>
+                      <Icon size={22} style={{ color: s.color }} />
+                    </div>
+                    <h3 className="text-lg font-extrabold tracking-tight mb-2 transition-colors group-hover:text-[#265597]" style={{ color: NAVY }}>{s.name}</h3>
+                    <p className="text-gray-400 text-sm leading-relaxed flex-1">{s.desc}</p>
+                    <div className="flex items-center gap-1.5 mt-5 text-sm font-bold transition-all group-hover:gap-2.5" style={{ color: s.color }}>
+                      Learn more <ArrowRight size={14} />
+                    </div>
+                  </Link>
+                </FadeIn>
+              );
+            })}
           </div>
         </div>
       </section>
