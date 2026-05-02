@@ -332,8 +332,10 @@ export default function Home() {
         <div className="max-w-7xl mx-auto px-5 sm:px-8">
           <FadeIn className="mb-14">
             <p className="text-xs font-bold tracking-widest uppercase mb-3" style={{ color: PINK }}>In their own words</p>
-            <h2 className="text-4xl sm:text-5xl font-extrabold tracking-tight" style={{ color: NAVY }}>Real people.</h2>
-            <div style={{ ...SCRIPT, fontSize: "clamp(2.5rem, 5vw, 3.8rem)", color: BLUE }}>Real stories.</div>
+            <div className="flex flex-wrap items-baseline gap-x-3">
+              <h2 className="text-4xl sm:text-5xl font-extrabold tracking-tight" style={{ color: PINK }}>Real people.</h2>
+              <span style={{ ...SCRIPT, fontSize: "clamp(2.5rem, 5vw, 3.8rem)", color: BLUE }}>Real stories.</span>
+            </div>
           </FadeIn>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
             {TESTIMONIALS.map((t, i) => (
