@@ -79,18 +79,18 @@ export default function RespiteCare() {
       <Ticker />
       <section className="relative overflow-hidden" style={{ backgroundColor: CREAM }}>
         <div className="absolute -top-24 -right-24 w-96 h-96 rounded-full opacity-[0.15] pointer-events-none" style={{ backgroundColor: PINK }} />
-        <div className="absolute -bottom-32 -left-16 w-80 h-80 rounded-full opacity-[0.08] pointer-events-none" style={{ backgroundColor: PINK }} />
+        <div className="absolute -bottom-32 -left-16 w-80 h-80 rounded-full opacity-[0.08] pointer-events-none" style={{ backgroundColor: BLUE }} />
         <div className="relative max-w-7xl mx-auto px-5 sm:px-8 pt-8 pb-20 sm:pt-10 sm:pb-28">
           <Link href="/services" className="inline-flex items-center gap-1.5 text-sm font-semibold mb-10 hover:opacity-80 transition-opacity" style={{ color: PINK }}>← All Services</Link>
           <div className="grid lg:grid-cols-[1fr_400px] gap-12 xl:gap-20 items-center">
             <div>
-              <div className="inline-flex items-center px-3.5 py-1.5 rounded-full text-xs font-bold uppercase tracking-widest mb-5 " style={{ color: NAVY, backgroundColor: "rgba(5,22,61,0.06)", border: "1px solid rgba(5,22,61,0.15)" }}>Home Care</div>
+              <div className="inline-flex items-center px-3.5 py-1.5 rounded-full text-xs font-bold uppercase tracking-widest mb-5 " style={{ color: BLUE, backgroundColor: "rgba(39,87,153,0.09)", border: "1px solid rgba(39,87,153,0.22)" }}>Home Care</div>
               <h1 className="text-5xl sm:text-6xl font-extrabold mb-3 tracking-tight leading-[1.05]" style={{ color: NAVY }}>Respite Care</h1>
               <div className="mb-6" style={{ ...SCRIPT, fontSize: "clamp(1.8rem, 3.5vw, 2.8rem)", color: PINK }}>rest well, we've got this.</div>
               <p className="text-gray-600 text-lg max-w-xl leading-relaxed mb-10">Temporary relief for family caregivers — professional, compassionate care for your loved one so you can take the break you deserve.</p>
               <div className="flex flex-col sm:flex-row gap-4">
                 <Link href="/referral" className="inline-flex items-center justify-center gap-2 px-7 py-4 text-white font-bold rounded-2xl hover:scale-105 transition-all text-base" style={{ backgroundColor: PINK, boxShadow: "0 8px 32px rgba(239,42,134,0.45)" }}>Request Free Assessment <ArrowRight size={17} /></Link>
-                <a href="tel:03301658880" className="inline-flex items-center justify-center gap-2 px-7 py-4 font-semibold rounded-2xl hover:opacity-80 transition-all text-base" style={{ color: NAVY, border: "2px solid rgba(5,22,61,0.25)" }}><Phone size={16} /> 0330 165 8880</a>
+                <a href="tel:03301658880" className="inline-flex items-center justify-center gap-2 px-7 py-4 font-semibold rounded-2xl hover:opacity-80 transition-all text-base" style={{ color: BLUE, border: "2px solid rgba(39,87,153,0.35)" }}><Phone size={16} /> 0330 165 8880</a>
               </div>
             </div>
             <div className="hidden lg:flex flex-col gap-4">
@@ -105,13 +105,13 @@ export default function RespiteCare() {
         </div>
       </section>
 
-      <section className="py-16 sm:py-20 bg-white">
+      <section className="py-16 sm:py-20" style={{ backgroundColor: "rgba(39,87,153,0.04)" }}>
         <div className="max-w-7xl mx-auto px-5 sm:px-8">
           <p className="text-xs font-bold tracking-widest uppercase mb-4" style={{ color: PINK }}>What's included</p>
           <h2 className="text-3xl font-extrabold mb-10 tracking-tight" style={{ color: NAVY }}>Everything your respite covers</h2>
           <div className="grid md:grid-cols-3 gap-6">
             {INCLUDED.map((cat) => (
-              <div key={cat.category} className="rounded-2xl p-7 border-2 border-gray-100">
+              <div key={cat.category} className="rounded-2xl p-7 border border-gray-100 border-l-4" style={{ borderLeftColor: BLUE }}>
                 <h3 className="font-extrabold mb-4 text-sm tracking-widest uppercase" style={{ color: BLUE }}>{cat.category}</h3>
                 <ul className="space-y-3">{cat.items.map((item) => (
                   <li key={item} className="flex items-start gap-3 text-sm text-gray-600"><CheckCircle size={14} className="mt-0.5 shrink-0" style={{ color: PINK }} />{item}</li>
