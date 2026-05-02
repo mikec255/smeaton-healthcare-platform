@@ -4,6 +4,7 @@ import { motion, useInView } from "framer-motion";
 import { ArrowRight, CheckCircle2, Phone, ShieldCheck, Award, Clock } from "lucide-react";
 import { SiGoogle, SiTrustpilot } from "react-icons/si";
 import nhsLogoImg from "@assets/nhs_logo.png";
+import googleLogoImg from "@assets/google_logo.png";
 import img108 from "@assets/Smeaton-108_1777730894016.jpg";
 import img117 from "@assets/Smeaton-117_1777730894016.jpg";
 import img124 from "@assets/Smeaton-124_1777730894017.jpg";
@@ -51,8 +52,8 @@ function Ticker() {
 
         {/* Google */}
         <span className="inline-flex items-center gap-2 shrink-0">
-          <SiGoogle className="text-white" style={{ fontSize: "15px" }} />
-          <span className="text-white font-semibold text-sm">Google 4.9</span>
+          <img src={googleLogoImg} alt="Google" style={{ height: "18px", width: "auto", filter: "brightness(0) invert(1)" }} />
+          <span className="text-white font-semibold text-sm">4.9</span>
         </span>
 
         <span className="text-white/30 shrink-0">|</span>
