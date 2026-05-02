@@ -35,7 +35,7 @@ export default function LiveInCare() {
 
   return (
     <div data-testid="live-in-care-page">
-      <section className="relative overflow-hidden" className="bg-white">
+      <section className="relative overflow-hidden" style={{ backgroundColor: CREAM }}>
         <div className="absolute -top-24 -right-24 w-96 h-96 rounded-full opacity-[0.15] pointer-events-none" style={{ backgroundColor: PINK }} />
         <div className="absolute -bottom-32 -left-16 w-80 h-80 rounded-full opacity-[0.08] pointer-events-none" style={{ backgroundColor: PINK }} />
         <div className="relative max-w-7xl mx-auto px-5 sm:px-8 py-20 sm:py-28">
@@ -53,7 +53,7 @@ export default function LiveInCare() {
             </div>
             <div className="hidden lg:flex flex-col gap-4">
               {BENEFITS.map((b) => (
-                <div key={b.title} className="flex items-start gap-4 p-5 rounded-2xl" style={{ backgroundColor: "white", border: "1px solid #e5e7eb", boxShadow: "0 1px 6px rgba(0,0,0,0.05)" }}>
+                <div key={b.title} className="flex items-start gap-4 p-5 rounded-2xl" style={{ backgroundColor: "rgba(39,87,153,0.07)", border: "1px solid rgba(39,87,153,0.15)" }}>
                   <div className="w-12 h-12 rounded-xl flex items-center justify-center shrink-0" style={{ backgroundColor: PINK }}><b.icon size={22} className="text-white" /></div>
                   <div><p className="font-bold text-sm mb-1" style={{ color: NAVY }}>{b.title}</p><p className="text-gray-500 text-xs leading-relaxed">{b.desc}</p></div>
                 </div>
@@ -80,7 +80,7 @@ export default function LiveInCare() {
         </div>
       </section>
 
-      <section className="py-16 sm:py-20" className="bg-white">
+      <section className="py-16 sm:py-20" style={{ backgroundColor: CREAM }}>
         <div className="max-w-7xl mx-auto px-5 sm:px-8">
           <p className="text-xs font-bold tracking-widest uppercase mb-4" style={{ color: PINK }}>Why choose us</p>
           <h2 className="text-3xl font-extrabold mb-10 tracking-tight" style={{ color: NAVY }}>The Smeaton difference</h2>
