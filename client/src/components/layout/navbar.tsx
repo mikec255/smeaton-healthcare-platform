@@ -120,7 +120,7 @@ export default function Navbar() {
   return (
     <>
       <header
-        className="fixed left-0 right-0 top-0 z-40 overflow-visible"
+        className="fixed left-0 right-0 top-0 z-50 overflow-visible"
         style={{ backgroundColor: "#FDF7F0", boxShadow: "0 1px 0 rgba(0,0,0,0.07)" }}
         ref={dropdownRef}
       >
@@ -284,7 +284,7 @@ export default function Navbar() {
       <AnimatePresence>
         {mobileOpen && (
           <motion.div
-            className="fixed inset-0 z-40 flex flex-col"
+            className="fixed inset-0 z-50 flex flex-col"
             style={{ backgroundColor: "#05163D" }}
             initial={{ x: "100%" }}
             animate={{ x: 0 }}
