@@ -1,6 +1,7 @@
 import { useRef, useEffect } from "react";
 import { motion, useInView } from "framer-motion";
 import { Link } from "wouter";
+import Seo from "@/components/seo";
 import { ArrowRight, CheckCircle2, Heart, Users, Star, Award } from "lucide-react";
 import img87 from "@assets/Smeaton-87_1777730894015.jpg";
 import img108 from "@assets/Smeaton-108_1777730894016.jpg";
@@ -33,10 +34,10 @@ function FadeIn({ children, delay = 0, className = "" }: { children: React.React
 }
 
 export default function About() {
-  useEffect(() => { document.title = "About Us | Smeaton Healthcare | Devon & Cornwall"; }, []);
 
   return (
     <div data-testid="about-page">
+      <Seo title="About Us — Our Story & Values" description="Learn about Smeaton Healthcare — a CQC Rated Good home care provider founded in 2019, serving Devon and Cornwall with compassion, integrity and excellence." path="/about" />
       {/* HERO */}
       <section style={{ backgroundColor: "#FDF7F0" }}>
         <div className="max-w-7xl mx-auto px-5 sm:px-8 pt-16 pb-0">

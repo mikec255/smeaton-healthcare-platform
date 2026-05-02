@@ -1,6 +1,7 @@
 import { useRef, useEffect } from "react";
 import { Link } from "wouter";
 import { motion, useInView } from "framer-motion";
+import Seo from "@/components/seo";
 import { ArrowRight, CheckCircle2, Phone, ShieldCheck, Award, Clock, Star, Home as HomeIcon, Heart, Zap, RefreshCw, User, Activity } from "lucide-react";
 import { SiGoogle, SiTrustpilot } from "react-icons/si";
 import nhsLogoImg from "@assets/nhs_logo.png";
@@ -101,10 +102,10 @@ function Ticker() {
 }
 
 export default function Home() {
-  useEffect(() => { document.title = "Home Care Devon & Cornwall | Smeaton Healthcare | CQC Rated Good"; }, []);
 
   return (
     <div data-testid="home-page">
+      <Seo title="Home Care Services in Devon & Cornwall" description="Smeaton Healthcare provides CQC Rated Good home care across Devon and Cornwall — short visits, live-in care, supported living, respite and 24/7 care. Call 0330 165 8880." path="/" />
       <Ticker />
 
       {/* HERO */}

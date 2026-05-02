@@ -1,5 +1,6 @@
 import { useEffect } from "react";
 import { Link } from "wouter";
+import Seo from "@/components/seo";
 import { SiTrustpilot } from "react-icons/si";
 import nhsLogoImg from "@assets/nhs_logo.png";
 import googleLogoImg from "@assets/google_logo_white.svg";
@@ -78,10 +79,10 @@ function Ticker() {
 }
 
 export default function UnderstandingCareFunding() {
-  useEffect(() => { document.title = "Care Funding Guide | Smeaton Healthcare"; }, []);
 
   return (
     <div data-testid="costings-page">
+      <Seo title="Care Funding & Costs Guide Devon & Cornwall" description="Understand how to fund home care in Devon and Cornwall — council funding, self-funding and NHS continuing healthcare explained. Free guide from Smeaton Healthcare." path="/resources/costings" />
       <Ticker />
 
       {/* HERO */}

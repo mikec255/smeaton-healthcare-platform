@@ -1,4 +1,5 @@
 import { useRef, useEffect } from "react";
+import Seo from "@/components/seo";
 import { motion, useInView } from "framer-motion";
 import { Phone, Mail, MapPin, Clock, ArrowRight, Clock as TickerClock, Star as TickerStar } from "lucide-react";
 import { Link } from "wouter";
@@ -88,10 +89,10 @@ function Ticker() {
 }
 
 export default function Contact() {
-  useEffect(() => { document.title = "Contact Us | Smeaton Healthcare | Devon & Cornwall"; }, []);
 
   return (
     <div data-testid="contact-page">
+      <Seo title="Contact Us — Plymouth & Truro Offices" description="Get in touch with Smeaton Healthcare. Visit our Plymouth or Truro offices, or call 0330 165 8880. Free care assessments available across Devon and Cornwall." path="/contact" />
       <Ticker />
 
       {/* HERO */}

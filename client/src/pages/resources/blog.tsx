@@ -1,4 +1,5 @@
 import { Link } from "wouter";
+import Seo from "@/components/seo";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Calendar, Clock, ArrowRight, Filter, Phone, Clock as TickerClock, Star as TickerStar } from "lucide-react";
@@ -68,7 +69,6 @@ interface TransformedBlogPost {
 export default function Blog() {
   const [selectedCategory, setSelectedCategory] = useState("All");
 
-  useEffect(() => { document.title = "Blog | Smeaton Healthcare"; }, []);
 
   const { data: blogPosts = [], isLoading: postsLoading } = useQuery<BlogPost[]>({
     queryKey: ["/api/blog-posts?isPublished=true"],
@@ -123,6 +123,7 @@ export default function Blog() {
 
   return (
     <div data-testid="blog-page">
+      <Seo title="Blog & News — Care Tips & Insights" description="Read the latest care news, tips and insights from the Smeaton Healthcare team. Helping families across Devon and Cornwall make informed care decisions." path="/resources/blog" />
       <Ticker />
 
       {/* HERO */}

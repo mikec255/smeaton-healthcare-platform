@@ -1,4 +1,5 @@
 import { useState } from "react";
+import Seo from "@/components/seo";
 import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Plus, Clock as TickerClock, Star as TickerStar } from "lucide-react";
@@ -149,6 +150,7 @@ export default function Jobs() {
 
   return (
     <div data-testid="jobs-page">
+      <Seo title="Healthcare Jobs in Devon & Cornwall" description="Join the Smeaton Healthcare team. We're hiring compassionate care workers across Plymouth and Cornwall. View current vacancies and apply online." path="/jobs" />
       {ticker}
 
       {/* HERO */}

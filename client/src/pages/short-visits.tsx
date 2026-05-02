@@ -1,5 +1,6 @@
 import { useEffect } from "react";
 import { Link } from "wouter";
+import Seo from "@/components/seo";
 import { SiTrustpilot } from "react-icons/si";
 import nhsLogoImg from "@assets/nhs_logo.png";
 import googleLogoImg from "@assets/google_logo_white.svg";
@@ -72,10 +73,10 @@ function Ticker() {
 }
 
 export default function ShortVisits() {
-  useEffect(() => { document.title = "Short Visits | Smeaton Healthcare"; }, []);
 
   return (
     <div data-testid="short-visits-page">
+      <Seo title="Short Visits Home Care in Plymouth & Cornwall" description="Professional short visit home care providing personal care, medication support, meals and companionship across Devon and Cornwall. Book a free assessment today." path="/services/short-visits" />
       <Ticker />
       {/* HERO */}
       <section className="relative overflow-hidden" style={{ backgroundColor: CREAM }}>

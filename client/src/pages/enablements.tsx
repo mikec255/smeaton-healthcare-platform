@@ -1,5 +1,6 @@
 import { useEffect } from "react";
 import { Link } from "wouter";
+import Seo from "@/components/seo";
 import { SiTrustpilot } from "react-icons/si";
 import nhsLogoImg from "@assets/nhs_logo.png";
 import googleLogoImg from "@assets/google_logo_white.svg";
@@ -72,10 +73,10 @@ function Ticker() {
 }
 
 export default function Enablements() {
-  useEffect(() => { document.title = "Enabling | Smeaton Healthcare"; }, []);
 
   return (
     <div data-testid="enablements-page">
+      <Seo title="Enabling Care Services Devon & Cornwall" description="Our enabling care service builds independence, not dependency. Specialist support empowering people to live their best lives across Devon and Cornwall." path="/services/enablements" />
       <Ticker />
       <section className="relative overflow-hidden" style={{ backgroundColor: CREAM }}>
         <div className="absolute -top-24 -right-24 w-96 h-96 rounded-full opacity-[0.15] pointer-events-none" style={{ backgroundColor: PINK }} />

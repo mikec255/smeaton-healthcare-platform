@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link } from "wouter";
+import Seo from "@/components/seo";
 import { Input } from "@/components/ui/input";
 import { SiTrustpilot } from "react-icons/si";
 import nhsLogoImg from "@assets/nhs_logo.png";
@@ -60,7 +61,6 @@ export default function Newsletter() {
   const [email, setEmail] = useState("");
   const [subscribed, setSubscribed] = useState(false);
 
-  useEffect(() => { document.title = "Newsletter | Smeaton Healthcare"; }, []);
 
   const handleSubscribe = (e: React.FormEvent) => {
     e.preventDefault();
@@ -70,6 +70,7 @@ export default function Newsletter() {
 
   return (
     <div data-testid="newsletter-page">
+      <Seo title="Sign Up to Our Newsletter" description="Stay up to date with the latest care news, tips and updates from Smeaton Healthcare. Sign up to our free newsletter today." path="/resources/newsletter" />
       <Ticker />
 
       {/* HERO */}

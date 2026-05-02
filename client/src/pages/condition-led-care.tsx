@@ -1,5 +1,6 @@
 import { useEffect } from "react";
 import { Link } from "wouter";
+import Seo from "@/components/seo";
 import { SiTrustpilot } from "react-icons/si";
 import nhsLogoImg from "@assets/nhs_logo.png";
 import googleLogoImg from "@assets/google_logo_white.svg";
@@ -87,10 +88,10 @@ function Ticker() {
 }
 
 export default function ConditionLedCare() {
-  useEffect(() => { document.title = "Condition-Led Care | Smeaton Healthcare"; }, []);
 
   return (
     <div data-testid="condition-led-care-page">
+      <Seo title="Condition-Led Specialist Care Devon & Cornwall" description="Specialist home care tailored to your health condition — dementia, Parkinson's, stroke recovery and more. Expert carers across Devon and Cornwall." path="/services/condition-led-care" />
       <Ticker />
       <section className="relative overflow-hidden" style={{ backgroundColor: CREAM }}>
         <div className="absolute -top-24 -right-24 w-96 h-96 rounded-full opacity-[0.15] pointer-events-none" style={{ backgroundColor: PINK }} />

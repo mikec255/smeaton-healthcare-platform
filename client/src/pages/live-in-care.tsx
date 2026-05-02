@@ -1,5 +1,6 @@
 import { useEffect } from "react";
 import { Link } from "wouter";
+import Seo from "@/components/seo";
 import { SiTrustpilot } from "react-icons/si";
 import nhsLogoImg from "@assets/nhs_logo.png";
 import googleLogoImg from "@assets/google_logo_white.svg";
@@ -72,10 +73,10 @@ function Ticker() {
 }
 
 export default function LiveInCare() {
-  useEffect(() => { document.title = "Live-In Care | Smeaton Healthcare"; }, []);
 
   return (
     <div data-testid="live-in-care-page">
+      <Seo title="Live-In Care Devon & Cornwall" description="Full-time live-in care providing round-the-clock companionship and support at home. CQC Rated Good, trusted by families across Devon and Cornwall." path="/services/live-in-care" />
       <Ticker />
       <section className="relative overflow-hidden" style={{ backgroundColor: CREAM }}>
         <div className="absolute -top-24 -right-24 w-96 h-96 rounded-full opacity-[0.15] pointer-events-none" style={{ backgroundColor: PINK }} />

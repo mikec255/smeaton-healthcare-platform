@@ -1,4 +1,5 @@
 import { useForm } from "react-hook-form";
+import Seo from "@/components/seo";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useMutation } from "@tanstack/react-query";
@@ -102,6 +103,7 @@ export default function Referral() {
 
   return (
     <div data-testid="referral-page">
+      <Seo title="Request a Free Care Assessment" description="Request a free, no-obligation care assessment for yourself or a loved one. Smeaton Healthcare provides expert home care across Devon and Cornwall." path="/referral" />
       {/* HERO */}
       <section style={{ backgroundColor: BLUE }} className="relative py-16 sm:py-20 overflow-hidden">
         <div className="absolute inset-0 opacity-[0.04] pointer-events-none">

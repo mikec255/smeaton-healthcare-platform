@@ -1,5 +1,6 @@
 import { useEffect } from "react";
 import { Link } from "wouter";
+import Seo from "@/components/seo";
 import { SiTrustpilot } from "react-icons/si";
 import nhsLogoImg from "@assets/nhs_logo.png";
 import googleLogoImg from "@assets/google_logo_white.svg";
@@ -64,10 +65,10 @@ function Ticker() {
 }
 
 export default function WorkingAtSmeaton() {
-  useEffect(() => { document.title = "Working at Smeaton | Smeaton Healthcare"; }, []);
 
   return (
     <div data-testid="working-at-smeaton-page">
+      <Seo title="Working at Smeaton Healthcare" description="Discover what it's like to work at Smeaton Healthcare — our culture, values, benefits and career development opportunities across Devon and Cornwall." path="/resources/working-at-smeaton" />
       <Ticker />
 
       {/* HERO */}

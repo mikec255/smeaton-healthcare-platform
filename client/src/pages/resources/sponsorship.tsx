@@ -1,5 +1,6 @@
 import { useEffect } from "react";
 import { Link } from "wouter";
+import Seo from "@/components/seo";
 import { SiTrustpilot } from "react-icons/si";
 import nhsLogoImg from "@assets/nhs_logo.png";
 import googleLogoImg from "@assets/google_logo_white.svg";
@@ -69,10 +70,10 @@ function Ticker() {
 }
 
 export default function Sponsorship() {
-  useEffect(() => { document.title = "Skilled Worker Sponsorship | Smeaton Healthcare"; }, []);
 
   return (
     <div data-testid="sponsorship-page">
+      <Seo title="Skilled Worker Visa Sponsorship — Healthcare Jobs UK" description="Smeaton Healthcare is a UKVI licensed sponsor. Apply to work in the UK as a healthcare professional with our skilled worker visa sponsorship support." path="/resources/sponsorship" />
       <Ticker />
 
       {/* HERO */}

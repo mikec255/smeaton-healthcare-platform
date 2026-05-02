@@ -1,5 +1,6 @@
 import { useEffect } from "react";
 import { Link } from "wouter";
+import Seo from "@/components/seo";
 import { SiTrustpilot } from "react-icons/si";
 import nhsLogoImg from "@assets/nhs_logo.png";
 import googleLogoImg from "@assets/google_logo_white.svg";
@@ -72,10 +73,10 @@ function Ticker() {
 }
 
 export default function SupportedLiving() {
-  useEffect(() => { document.title = "Supported Living | Smeaton Healthcare"; }, []);
 
   return (
     <div data-testid="supported-living-page">
+      <Seo title="Supported Living Care Devon & Cornwall" description="Specialist supported living helping adults with disabilities and complex needs live independently with confidence across Devon and Cornwall. CQC Rated Good." path="/services/supported-living" />
       <Ticker />
       <section className="relative overflow-hidden" style={{ backgroundColor: CREAM }}>
         <div className="absolute -top-24 -right-24 w-96 h-96 rounded-full opacity-[0.15] pointer-events-none" style={{ backgroundColor: PINK }} />

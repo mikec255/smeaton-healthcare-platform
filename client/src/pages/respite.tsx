@@ -1,5 +1,6 @@
 import { useEffect } from "react";
 import { Link } from "wouter";
+import Seo from "@/components/seo";
 import { SiTrustpilot } from "react-icons/si";
 import nhsLogoImg from "@assets/nhs_logo.png";
 import googleLogoImg from "@assets/google_logo_white.svg";
@@ -72,10 +73,10 @@ function Ticker() {
 }
 
 export default function RespiteCare() {
-  useEffect(() => { document.title = "Respite Care | Smeaton Healthcare"; }, []);
 
   return (
     <div data-testid="respite-page">
+      <Seo title="Respite Care in Plymouth & Cornwall" description="Professional respite care giving family carers a well-deserved break. Trusted short-term care cover across Devon and Cornwall from Smeaton Healthcare." path="/services/respite" />
       <Ticker />
       <section className="relative overflow-hidden" style={{ backgroundColor: CREAM }}>
         <div className="absolute -top-24 -right-24 w-96 h-96 rounded-full opacity-[0.15] pointer-events-none" style={{ backgroundColor: PINK }} />

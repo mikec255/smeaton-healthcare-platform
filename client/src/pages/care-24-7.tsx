@@ -1,5 +1,6 @@
 import { useEffect } from "react";
 import { Link } from "wouter";
+import Seo from "@/components/seo";
 import { SiTrustpilot } from "react-icons/si";
 import nhsLogoImg from "@assets/nhs_logo.png";
 import googleLogoImg from "@assets/google_logo_white.svg";
@@ -72,10 +73,10 @@ function Ticker() {
 }
 
 export default function Care247() {
-  useEffect(() => { document.title = "24/7 Care | Smeaton Healthcare"; }, []);
 
   return (
     <div data-testid="care-247-page">
+      <Seo title="24/7 Around-the-Clock Home Care Devon & Cornwall" description="24/7 home care for complex needs across Devon and Cornwall. Our trained carers provide consistent, reliable support day and night. CQC Rated Good." path="/services/care-24-7" />
       <Ticker />
       <section className="relative overflow-hidden" style={{ backgroundColor: CREAM }}>
         <div className="absolute -top-24 -right-24 w-96 h-96 rounded-full opacity-[0.15] pointer-events-none" style={{ backgroundColor: PINK }} />

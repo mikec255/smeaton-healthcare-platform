@@ -1364,6 +1364,54 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // robots.txt
+  app.get("/robots.txt", (_req, res) => {
+    res.type("text/plain");
+    res.send(`User-agent: *
+Allow: /
+Disallow: /admin
+Disallow: /login
+Disallow: /create-password
+
+Sitemap: https://smeatonhealthcare.co.uk/sitemap.xml`);
+  });
+
+  // sitemap.xml
+  app.get("/sitemap.xml", (_req, res) => {
+    const BASE = "https://smeatonhealthcare.co.uk";
+    const now = new Date().toISOString().split("T")[0];
+    const urls = [
+      { loc: "/", priority: "1.0", changefreq: "weekly" },
+      { loc: "/about", priority: "0.8", changefreq: "monthly" },
+      { loc: "/contact", priority: "0.8", changefreq: "monthly" },
+      { loc: "/referral", priority: "0.9", changefreq: "monthly" },
+      { loc: "/jobs", priority: "0.8", changefreq: "weekly" },
+      { loc: "/services/short-visits", priority: "0.9", changefreq: "monthly" },
+      { loc: "/services/supported-living", priority: "0.9", changefreq: "monthly" },
+      { loc: "/services/care-24-7", priority: "0.9", changefreq: "monthly" },
+      { loc: "/services/live-in-care", priority: "0.9", changefreq: "monthly" },
+      { loc: "/services/respite", priority: "0.9", changefreq: "monthly" },
+      { loc: "/services/enablements", priority: "0.9", changefreq: "monthly" },
+      { loc: "/services/condition-led-care", priority: "0.9", changefreq: "monthly" },
+      { loc: "/resources/blog", priority: "0.7", changefreq: "weekly" },
+      { loc: "/resources/working-at-smeaton", priority: "0.6", changefreq: "monthly" },
+      { loc: "/resources/newsletter", priority: "0.5", changefreq: "monthly" },
+      { loc: "/resources/costings", priority: "0.7", changefreq: "monthly" },
+      { loc: "/resources/sponsorship", priority: "0.6", changefreq: "monthly" },
+    ];
+    const xml = `<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+${urls.map(u => `  <url>
+    <loc>${BASE}${u.loc}</loc>
+    <lastmod>${now}</lastmod>
+    <changefreq>${u.changefreq}</changefreq>
+    <priority>${u.priority}</priority>
+  </url>`).join("\n")}
+</urlset>`;
+    res.type("application/xml");
+    res.send(xml);
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }
