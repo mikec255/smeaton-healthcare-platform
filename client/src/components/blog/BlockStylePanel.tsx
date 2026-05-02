@@ -68,6 +68,13 @@ export default function BlockStylePanel({ block, onUpdate, onClose }: BlockStyle
     });
   };
 
+  const resetStyles = () => {
+    onUpdate({
+      ...block,
+      style: {}
+    });
+  };
+
   const currentStyle = block.style || {};
 
   return (
@@ -79,9 +86,14 @@ export default function BlockStylePanel({ block, onUpdate, onClose }: BlockStyle
             Style Block
           </CardTitle>
           <Button
+            type="button"
             size="sm"
             variant="ghost"
-            onClick={onClose}
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              onClose();
+            }}
             className="h-8 w-8 p-0"
             data-testid="close-style-panel"
           >
@@ -103,8 +115,13 @@ export default function BlockStylePanel({ block, onUpdate, onClose }: BlockStyle
             { key: "spacing", label: "Spacing", icon: <Maximize className="h-3 w-3" /> },
           ].map((tab) => (
             <button
+              type="button"
               key={tab.key}
-              onClick={() => setActiveTab(tab.key as any)}
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                setActiveTab(tab.key as any);
+              }}
               className={`flex items-center gap-1 px-3 py-2 text-xs border-b-2 transition-colors ${
                 activeTab === tab.key
                   ? "border-primary text-primary"
@@ -168,10 +185,15 @@ export default function BlockStylePanel({ block, onUpdate, onClose }: BlockStyle
                   { value: "right", icon: <AlignRight className="h-4 w-4" /> },
                 ].map((align) => (
                   <Button
+                    type="button"
                     key={align.value}
                     size="sm"
                     variant={currentStyle.textAlign === align.value ? "default" : "outline"}
-                    onClick={() => updateStyle({ textAlign: align.value as any })}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      updateStyle({ textAlign: align.value as any });
+                    }}
                     className="flex-1"
                     data-testid={`align-${align.value}`}
                   >
@@ -191,8 +213,13 @@ export default function BlockStylePanel({ block, onUpdate, onClose }: BlockStyle
               <div className="grid grid-cols-6 gap-2 mt-2">
                 {COMMON_COLORS.map((color) => (
                   <button
+                    type="button"
                     key={color}
-                    onClick={() => updateStyle({ color })}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      updateStyle({ color });
+                    }}
                     className={`w-8 h-8 rounded border-2 transition-all ${
                       currentStyle.color === color 
                         ? "border-primary scale-110" 
@@ -218,7 +245,12 @@ export default function BlockStylePanel({ block, onUpdate, onClose }: BlockStyle
               <Label className="text-sm font-medium">Background Color</Label>
               <div className="grid grid-cols-6 gap-2 mt-2">
                 <button
-                  onClick={() => updateStyle({ backgroundColor: "transparent" })}
+                  type="button"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    updateStyle({ backgroundColor: "transparent" });
+                  }}
                   className={`w-8 h-8 rounded border-2 bg-white relative ${
                     !currentStyle.backgroundColor || currentStyle.backgroundColor === "transparent"
                       ? "border-primary" 
@@ -231,8 +263,13 @@ export default function BlockStylePanel({ block, onUpdate, onClose }: BlockStyle
                 </button>
                 {COMMON_COLORS.map((color) => (
                   <button
+                    type="button"
                     key={color}
-                    onClick={() => updateStyle({ backgroundColor: color })}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      updateStyle({ backgroundColor: color });
+                    }}
                     className={`w-8 h-8 rounded border-2 transition-all ${
                       currentStyle.backgroundColor === color 
                         ? "border-primary scale-110" 
@@ -322,17 +359,27 @@ export default function BlockStylePanel({ block, onUpdate, onClose }: BlockStyle
         {/* Quick Actions */}
         <div className="flex gap-2">
           <Button
+            type="button"
             size="sm"
             variant="outline"
-            onClick={() => updateStyle({})}
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              resetStyles();
+            }}
             className="flex-1"
             data-testid="reset-styles"
           >
             Reset Styles
           </Button>
           <Button
+            type="button"
             size="sm"
-            onClick={onClose}
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              onClose();
+            }}
             className="flex-1"
             data-testid="apply-styles"
           >

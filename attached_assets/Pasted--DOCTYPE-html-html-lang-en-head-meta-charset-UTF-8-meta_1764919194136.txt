@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Task Tracking Matrix</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #2c5aa0;
+        }
+        
+        body {
+            background: #f5f7fa;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        /* Matrix Container */
+        .matrix-container {
+            position: relative;
+            overflow: hidden;
+            padding: 20px;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            max-height: 60vh;
+        }
+        
+        .matrix-scrollable {
+            overflow-x: auto;
+            overflow-y: auto;
+            max-height: calc(60vh - 40px);
+            scroll-behavior: smooth;
+            overscroll-behavior: contain;
+        }
+        
+        .matrix-grid {
+            display: grid;
+            grid-template-columns: 280px repeat(var(--columns), 160px);
+            gap: 0;
+            min-width: fit-content;
+            background: white;
+        }
+        
+        .matrix-cell {
+            padding: 16px;
+            border-bottom: 1px solid #e9ecef;
+            border-right: 1px solid #e9ecef;
+            display: flex;
+            align-items: center;
+            min-height: 56px;
+            max-height: 56px;
+            background: white;
+        }
+        
+        /* First column frozen */
+        .matrix-cell.name-cell {
+            position: sticky;
+            left: 0;
+            z-index: 15;
+            background: #f8f9fa;
+            border-right: 2px solid var(--primary-color);
+            box-shadow: 2px 0 4px rgba(0,0,0,0.1);
+            border-left: 1px solid #e9ecef;
+        }
+        
+        /* Header row frozen */
+        .matrix-cell.header-cell {
+            background: var(--primary-color) !important;
+            color: white !important;
+            font-weight: 600;
+            justify-content: center;
+            text-align: center;
+            font-size: 13px;
+            border-bottom: 2px solid var(--primary-color);
+            z-index: 20;
+            position: sticky;
+            top: 0;
+            border-top: 1px solid #e9ecef;
+        }
+        
+        /* Corner cell (top-left) - highest z-index */
+        .matrix-cell.corner-cell {
+            justify-content: flex-start;
+            padding-left: 20px;
+            background: var(--primary-color) !important;
+            z-index: 30;
+            position: sticky;
+            top: 0;
+            left: 0;
+        }
+        
+        /* Status indicators */
+        .status-box {
+            width: 18px;
+            height: 18px;
+            border-radius: 4px;
+            margin-right: 8px;
+            flex-shrink: 0;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        
+        .status-box:hover {
+            transform: scale(1.2);
+        }
+        
+        .status-none { background: #e9ecef; }
+        .status-pending { background: #6c757d; }
+        .status-in-progress { background: #ffc107; }
+        .status-completed { background: #28a745; }
+        .status-overdue { background: #dc3545; }
+        .status-blocked { background: #6f42c1; }
+        
+        /* Name cell content */
+        .name-content {
+            display: flex;
+            align-items: center;
+            width: 100%;
+        }
+        
+        .avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: var(--primary-color);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.75rem;
+            font-weight: 600;
+            margin-right: 12px;
+            flex-shrink: 0;
+        }
+        
+        .name-info {
+            min-width: 0;
+            flex: 1;
+        }
+        
+        .name-text {
+            font-weight: 500;
+            color: #333;
+            margin: 0;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        
+        .role-text {
+            font-size: 0.8rem;
+            color: #6c757d;
+            margin: 0;
+        }
+        
+        /* Status cell content */
+        .status-content {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+        }
+        
+        .date-text {
+            font-size: 0.7rem;
+            color: #6c757d;
+        }
+        
+        /* Legend */
+        .legend-item {
+            display: flex;
+            align-items: center;
+            margin-right: 20px;
+        }
+        
+        .legend-box {
+            width: 16px;
+            height: 16px;
+            border-radius: 3px;
+            margin-right: 6px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container-fluid py-4">
+        <!-- Header -->
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <h2 class="fw-bold text-dark mb-1">Task Tracking Matrix</h2>
+                <p class="text-muted mb-0">Track task progress across team members</p>
+            </div>
+            <div>
+                <button class="btn btn-primary">
+                    <i class="fas fa-plus me-2"></i>Add Task
+                </button>
+            </div>
+        </div>
+        
+        <!-- Status Legend -->
+        <div class="card border-0 shadow-sm rounded-4 mb-4">
+            <div class="card-body py-3">
+                <div class="d-flex align-items-center flex-wrap">
+                    <h6 class="fw-bold text-dark mb-0 me-4">
+                        <i class="fas fa-info-circle me-2 text-info"></i>Status Key
+                    </h6>
+                    <div class="legend-item">
+                        <div class="legend-box status-none"></div>
+                        <small class="fw-medium">Not Started</small>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-box status-in-progress"></div>
+                        <small class="fw-medium">In Progress</small>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-box status-completed"></div>
+                        <small class="fw-medium">Completed</small>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-box status-overdue"></div>
+                        <small class="fw-medium">Overdue</small>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-box status-blocked"></div>
+                        <small class="fw-medium">Blocked</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Matrix -->
+        <div class="card border-0 shadow-sm rounded-4">
+            <div class="card-body p-0">
+                <div class="matrix-container">
+                    <div class="matrix-scrollable">
+                        <div class="matrix-grid" id="matrixGrid">
+                            <!-- Content will be generated by JavaScript -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Sample data - replace with your actual data
+        const teamMembers = [
+            { id: 1, name: 'John Smith', role: 'Developer', initials: 'JS' },
+            { id: 2, name: 'Sarah Johnson', role: 'Designer', initials: 'SJ' },
+            { id: 3, name: 'Mike Brown', role: 'Manager', initials: 'MB' },
+            { id: 4, name: 'Emily Davis', role: 'Developer', initials: 'ED' },
+            { id: 5, name: 'Chris Wilson', role: 'QA Tester', initials: 'CW' }
+        ];
+        
+        const tasks = [
+            { id: 'task1', name: 'Project Setup' },
+            { id: 'task2', name: 'Database Design' },
+            { id: 'task3', name: 'API Development' },
+            { id: 'task4', name: 'UI Mockups' },
+            { id: 'task5', name: 'Testing' },
+            { id: 'task6', name: 'Documentation' },
+            { id: 'task7', name: 'Deployment' }
+        ];
+        
+        // Matrix data: { memberId: { taskId: { status, date } } }
+        const matrixData = {
+            1: { 
+                task1: { status: 'completed', date: '05/09' },
+                task2: { status: 'completed', date: '06/09' },
+                task3: { status: 'in-progress', date: null },
+                task4: { status: 'none', date: null },
+                task5: { status: 'none', date: null },
+                task6: { status: 'none', date: null },
+                task7: { status: 'none', date: null }
+            },
+            2: { 
+                task1: { status: 'completed', date: '04/09' },
+                task2: { status: 'none', date: null },
+                task3: { status: 'none', date: null },
+                task4: { status: 'in-progress', date: null },
+                task5: { status: 'none', date: null },
+                task6: { status: 'none', date: null },
+                task7: { status: 'none', date: null }
+            },
+            3: { 
+                task1: { status: 'completed', date: '03/09' },
+                task2: { status: 'completed', date: '05/09' },
+                task3: { status: 'none', date: null },
+                task4: { status: 'none', date: null },
+                task5: { status: 'none', date: null },
+                task6: { status: 'in-progress', date: null },
+                task7: { status: 'blocked', date: null }
+            },
+            4: { 
+                task1: { status: 'completed', date: '04/09' },
+                task2: { status: 'in-progress', date: null },
+                task3: { status: 'none', date: null },
+                task4: { status: 'none', date: null },
+                task5: { status: 'overdue', date: '01/09' },
+                task6: { status: 'none', date: null },
+                task7: { status: 'none', date: null }
+            },
+            5: { 
+                task1: { status: 'completed', date: '05/09' },
+                task2: { status: 'none', date: null },
+                task3: { status: 'none', date: null },
+                task4: { status: 'none', date: null },
+                task5: { status: 'in-progress', date: null },
+                task6: { status: 'none', date: null },
+                task7: { status: 'none', date: null }
+            }
+        };
+        
+        function renderMatrix() {
+            const grid = document.getElementById('matrixGrid');
+            const columnCount = tasks.length;
+            grid.style.setProperty('--columns', columnCount);
+            
+            let html = '';
+            
+            // Header row
+            html += '<div class="matrix-cell header-cell corner-cell name-cell">Team Member</div>';
+            tasks.forEach(task => {
+                html += '<div class="matrix-cell header-cell">' + task.name + '</div>';
+            });
+            
+            // Data rows
+            teamMembers.forEach(member => {
+                // Name cell
+                html += '<div class="matrix-cell name-cell">' +
+                    '<div class="name-content">' +
+                    '<div class="avatar">' + member.initials + '</div>' +
+                    '<div class="name-info">' +
+                    '<div class="name-text">' + member.name + '</div>' +
+                    '<div class="role-text">' + member.role + '</div>' +
+                    '</div></div></div>';
+                
+                // Task cells
+                tasks.forEach(task => {
+                    const cellData = matrixData[member.id][task.id] || { status: 'none', date: null };
+                    const tooltip = task.name + ' - ' + cellData.status.replace('-', ' ');
+                    
+                    html += '<div class="matrix-cell">' +
+                        '<div class="status-content">' +
+                        '<div class="status-box status-' + cellData.status + '" ' +
+                        'title="' + tooltip + '" ' +
+                        'onclick="toggleStatus(' + member.id + ', \'' + task.id + '\')"></div>';
+                    
+                    if (cellData.date) {
+                        html += '<span class="date-text">' + cellData.date + '</span>';
+                    }
+                    
+                    html += '</div></div>';
+                });
+            });
+            
+            grid.innerHTML = html;
+        }
+        
+        function toggleStatus(memberId, taskId) {
+            const statuses = ['none', 'in-progress', 'completed', 'overdue', 'blocked'];
+            const currentStatus = matrixData[memberId][taskId].status;
+            const currentIndex = statuses.indexOf(currentStatus);
+            const nextIndex = (currentIndex + 1) % statuses.length;
+            
+            matrixData[memberId][taskId].status = statuses[nextIndex];
+            
+            if (statuses[nextIndex] === 'completed') {
+                const today = new Date();
+                matrixData[memberId][taskId].date = 
+                    String(today.getDate()).padStart(2, '0') + '/' + 
+                    String(today.getMonth() + 1).padStart(2, '0');
+            } else if (statuses[nextIndex] === 'none') {
+                matrixData[memberId][taskId].date = null;
+            }
+            
+            renderMatrix();
+        }
+        
+        // Initialize
+        document.addEventListener('DOMContentLoaded', renderMatrix);
+    </script>
+</body>
+</html>

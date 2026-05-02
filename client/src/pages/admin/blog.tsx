@@ -13,10 +13,11 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useToast } from "@/hooks/use-toast";
-import { Plus, Edit, Trash2, ArrowLeft, Eye, EyeOff, Upload, Calendar, User, BookOpen, Tag } from "lucide-react";
+import { Plus, Edit, Trash2, ArrowLeft, Eye, EyeOff, Upload, Calendar, User, BookOpen, Tag, Save, FileSearch } from "lucide-react";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { type BlogPost, insertBlogPostSchema, insertBlogCategorySchema, blogCategories, type BlogBlock } from "@shared/schema";
-import BlogVisualEditor from "@/components/blog/BlogVisualEditor";
+import { RichTextEditor } from "@/components/blog/RichTextEditor";
+import BlogImageManager from "@/components/blog/BlogImageManager";
 
 type BlogCategory = typeof blogCategories.$inferSelect;
 import { z } from "zod";
@@ -24,6 +25,7 @@ import { z } from "zod";
 // Extended schemas for form validation
 const createBlogPostSchema = insertBlogPostSchema.extend({
   categoryName: z.string().optional(), // For creating new categories
+  categoryId: z.string().optional(), // Make categoryId optional in form
 }).refine(
   (data) => data.categoryId || data.categoryName,
   {
@@ -40,11 +42,19 @@ type CreateCategoryData = z.infer<typeof createCategorySchema>;
 export default function BlogAdmin() {
   const [selectedPost, setSelectedPost] = useState<BlogPost | null>(null);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [editingPost, setEditingPost] = useState<BlogPost | null>(null);
   const [isCategoryModalOpen, setIsCategoryModalOpen] = useState(false);
-  const [isVisualEditorOpen, setIsVisualEditorOpen] = useState(false);
-  const [editingBlocks, setEditingBlocks] = useState<BlogBlock[]>([]);
-  const [useVisualEditorForCreate, setUseVisualEditorForCreate] = useState(true);
-  const [newPostBlocks, setNewPostBlocks] = useState<BlogBlock[]>([]);
+  const [isEditorOpen, setIsEditorOpen] = useState(false);
+  const [isPreviewOpen, setIsPreviewOpen] = useState(false);
+  const [previewPost, setPreviewPost] = useState<BlogPost | null>(null);
+  const [editingContent, setEditingContent] = useState<string>('');
+  const [slugManuallyEdited, setSlugManuallyEdited] = useState(false);
+  const [editSlugManuallyEdited, setEditSlugManuallyEdited] = useState(true); // For edit mode, slug is already set
+  const [newPostContent, setNewPostContent] = useState<string>('');
+  const [newPostImages, setNewPostImages] = useState<Array<{ id: string; url: string; isFeatured: boolean; uploadedAt?: string }>>([]);
+  const [editPostContent, setEditPostContent] = useState<string>('');
+  const [editPostImages, setEditPostImages] = useState<Array<{ id: string; url: string; isFeatured: boolean; uploadedAt?: string }>>([]);
   const { toast } = useToast();
 
   // Fetch blog posts
@@ -57,27 +67,237 @@ export default function BlogAdmin() {
     queryKey: ["/api/blog-categories"],
   });
 
-  // Visual editor functions
-  const openVisualEditor = (post?: BlogPost) => {
-    if (post?.blocks) {
-      setEditingBlocks(post.blocks);
+  // Helper function to get category name from ID
+  const getCategoryName = (categoryId: string | null): string => {
+    if (!categoryId) return "Uncategorized";
+    const category = categories.find(cat => cat.id === categoryId);
+    return category?.name || "Uncategorized";
+  };
+
+  // Helper function to format date
+  const formatDate = (dateString: Date | null): string => {
+    if (!dateString) return "Unknown date";
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-GB', { 
+      year: 'numeric', 
+      month: 'long', 
+      day: 'numeric' 
+    });
+  };
+
+  // Helper function to convert Google Cloud Storage URL to proxy URL
+  const convertToProxyUrl = (url: string): string => {
+    if (!url.includes('storage.googleapis.com')) {
+      return url;
+    }
+    const match = url.match(/\.private\/uploads\/(.+)/);
+    if (match) {
+      return `/objects/uploads/${match[1]}`;
+    }
+    return url;
+  };
+
+  const getFeaturedImage = (post: BlogPost): string | null => {
+    // First check if post has images array with featured image
+    if (post.images && Array.isArray(post.images)) {
+      const featured = post.images.find((img: any) => img.isFeatured);
+      if (featured) {
+        return convertToProxyUrl(featured.url);
+      }
+    }
+    
+    // Fallback to legacy imagePath
+    if (post.imagePath) {
+      return convertToProxyUrl(post.imagePath);
+    }
+    
+    // Fallback to first image in blocks
+    if (post.blocks && Array.isArray(post.blocks)) {
+      for (const block of post.blocks) {
+        if (block.type === 'image' && (block.content?.url || block.content?.src)) {
+          const imageUrl = block.content.url || block.content.src;
+          return convertToProxyUrl(imageUrl);
+        }
+      }
+    }
+    
+    return null;
+  };
+
+  // Helper function to convert block style object to inline CSS
+  const blockStyleToInlineCSS = (style: any): React.CSSProperties => {
+    if (!style || typeof style !== 'object') return {};
+    
+    const cssProps: React.CSSProperties = {};
+    
+    if (style.color) cssProps.color = style.color;
+    if (style.backgroundColor) cssProps.backgroundColor = style.backgroundColor;
+    if (style.fontSize) cssProps.fontSize = style.fontSize;
+    if (style.fontWeight) cssProps.fontWeight = style.fontWeight;
+    if (style.textAlign) cssProps.textAlign = style.textAlign;
+    if (style.margin) cssProps.margin = style.margin;
+    if (style.padding) cssProps.padding = style.padding;
+    if (style.borderRadius) cssProps.borderRadius = style.borderRadius;
+    if (style.border) cssProps.border = style.border;
+    
+    return cssProps;
+  };
+
+  // Helper function to get image width class
+  const getImageWidthClass = (imageWidth?: string) => {
+    switch (imageWidth) {
+      case 'small': return 'w-1/4';
+      case 'medium': return 'w-1/2';
+      case 'large': return 'w-3/4';
+      default: return 'w-full';
+    }
+  };
+
+  // Helper function to render visual editor blocks with inline layout support
+  const renderBlock = (block: BlogBlock, index: number) => {
+    const style = blockStyleToInlineCSS(block.style);
+    const width = block.width || '100%';
+    const containerStyle = { ...style, width: block.layout === 'inline' ? width : '100%' };
+    
+    switch (block.type) {
+      case 'header':
+        const HeaderTag = (block.content?.level || 'h2') as keyof JSX.IntrinsicElements;
+        return <HeaderTag key={index} style={style}>{block.content?.text || ''}</HeaderTag>;
+      
+      case 'text':
+        const text = block.content?.text || '';
+        // Preserve line breaks by splitting on newlines and creating separate paragraphs
+        const paragraphs = text.split('\n').filter((p: string) => p.trim());
+        if (paragraphs.length === 0) return null;
+        if (paragraphs.length === 1) {
+          return <div key={index} style={containerStyle}><p style={style}>{text}</p></div>;
+        }
+        // Multiple paragraphs with spacing
+        return (
+          <div key={index} style={containerStyle}>
+            {paragraphs.map((para: string, i: number) => (
+              <p key={`${index}-${i}`} style={{ ...style, marginBottom: i < paragraphs.length - 1 ? '1em' : undefined }}>
+                {para}
+              </p>
+            ))}
+          </div>
+        );
+      
+      case 'image':
+        const imageUrl = block.content?.url || block.content?.src;
+        if (!imageUrl) return null;
+        const imgWidthClass = getImageWidthClass(block.imageWidth);
+        return (
+          <div key={index} style={containerStyle} className={block.layout === 'inline' ? 'inline-block' : ''}>
+            <img 
+              src={convertToProxyUrl(imageUrl)} 
+              alt={block.content?.alt || 'Blog image'} 
+              className={`${imgWidthClass} h-auto rounded-lg`}
+              style={{ objectFit: 'contain', maxHeight: '100%' }}
+            />
+            {block.content?.caption && (
+              <p className="text-sm text-gray-600 mt-2 text-center">{block.content.caption}</p>
+            )}
+          </div>
+        );
+      
+      case 'list':
+        const ListTag = block.content?.ordered ? 'ol' : 'ul';
+        return (
+          <ListTag key={index} style={style} className={block.content?.ordered ? 'list-decimal' : 'list-disc'}>
+            {(block.content?.items || []).map((item: string, i: number) => (
+              <li key={i}>{item}</li>
+            ))}
+          </ListTag>
+        );
+      
+      case 'quote':
+        return (
+          <blockquote key={index} style={style} className="border-l-4 border-pink-600 pl-4 italic">
+            {block.content?.text || ''}
+          </blockquote>
+        );
+      
+      case 'button':
+        return (
+          <div key={index} style={style}>
+            <button className="px-6 py-2 bg-pink-600 text-white rounded-lg hover:bg-pink-700">
+              {block.content?.text || 'Button'}
+            </button>
+          </div>
+        );
+      
+      default:
+        return null;
+    }
+  };
+
+  // Helper function to group blocks for rendering (handles inline layouts)
+  const renderBlocks = (blocks: BlogBlock[]) => {
+    const rows: JSX.Element[] = [];
+    let currentRow: JSX.Element[] = [];
+    
+    blocks.forEach((block, index) => {
+      const element = renderBlock(block, index);
+      if (!element) return;
+      
+      if (block.layout === 'inline') {
+        currentRow.push(element);
+      } else {
+        // If we have accumulated inline blocks, render them first
+        if (currentRow.length > 0) {
+          rows.push(
+            <div key={`row-${index}`} className="flex gap-4 mb-4 flex-wrap">
+              {currentRow}
+            </div>
+          );
+          currentRow = [];
+        }
+        // Add the full-width block
+        rows.push(<div key={`block-${index}`} className="mb-4">{element}</div>);
+      }
+    });
+    
+    // Don't forget remaining inline blocks
+    if (currentRow.length > 0) {
+      rows.push(
+        <div key="row-final" className="flex gap-4 mb-4 flex-wrap">
+          {currentRow}
+        </div>
+      );
+    }
+    
+    return rows;
+  };
+
+  // Open preview dialog
+  const openPreview = (post: BlogPost) => {
+    setPreviewPost(post);
+    setIsPreviewOpen(true);
+  };
+
+  // Editor functions
+  const openEditor = (post?: BlogPost) => {
+    if (post?.content) {
+      setEditingContent(post.content);
     } else {
-      setEditingBlocks([]);
+      setEditingContent('');
     }
     setSelectedPost(post || null);
-    setIsVisualEditorOpen(true);
+    setIsEditorOpen(true);
   };
 
-  const closeVisualEditor = () => {
-    setIsVisualEditorOpen(false);
-    setEditingBlocks([]);
+  const closeEditor = () => {
+    setIsEditorOpen(false);
+    setEditingContent('');
   };
 
-  const saveVisualContent = async () => {
+  // Save and close editor
+  const saveAndCloseEditor = async () => {
     if (!selectedPost) {
       toast({
         title: "Error",
-        description: "No post selected for visual editing",
+        description: "No post selected for editing",
         variant: "destructive",
       });
       return;
@@ -85,20 +305,20 @@ export default function BlogAdmin() {
 
     try {
       await apiRequest("PUT", `/api/blog-posts/${selectedPost.id}`, {
-        blocks: editingBlocks,
+        content: editingContent,
       });
       
       queryClient.invalidateQueries({ queryKey: ["/api/blog-posts"] });
-      closeVisualEditor();
+      closeEditor();
       
       toast({
         title: "Content Saved",
-        description: "Your visual content has been saved successfully",
+        description: "Your changes have been saved",
       });
     } catch (error) {
       toast({
         title: "Save Failed",
-        description: "Failed to save visual content. Please try again.",
+        description: "Failed to save content. Please try again.",
         variant: "destructive",
       });
     }
@@ -228,7 +448,7 @@ export default function BlogAdmin() {
     },
   });
 
-  // Form setup
+  // Form setup for creating posts
   const form = useForm<CreateBlogPostData>({
     resolver: zodResolver(createBlogPostSchema),
     defaultValues: {
@@ -236,13 +456,98 @@ export default function BlogAdmin() {
       excerpt: "",
       content: "",
       slug: "",
-      categoryId: undefined,
+      categoryId: "",
       categoryName: "",
       author: "",
       isPublished: false,
-      imagePath: "",
+      blocks: [],
+      images: [],
     },
   });
+
+  // Form setup for editing posts
+  const editForm = useForm<CreateBlogPostData>({
+    resolver: zodResolver(createBlogPostSchema),
+    defaultValues: {
+      title: "",
+      excerpt: "",
+      content: "",
+      slug: "",
+      categoryId: "",
+      categoryName: "",
+      author: "",
+      isPublished: false,
+      blocks: [],
+      images: [],
+    },
+  });
+
+  // Update form's categoryId when categories load
+  useEffect(() => {
+    if (categories.length > 0 && !form.getValues('categoryId')) {
+      form.setValue('categoryId', categories[0].id);
+    }
+  }, [categories, form]);
+
+  // Update post mutation
+  const updatePostMutation = useMutation({
+    mutationFn: async ({ postId, data }: { postId: string; data: Partial<CreateBlogPostData> }) => {
+      return apiRequest("PUT", `/api/blog-posts/${postId}`, data);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/blog-posts"] });
+      setIsEditModalOpen(false);
+      setEditingPost(null);
+      toast({
+        title: "Success",
+        description: "Blog post updated successfully",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to update blog post",
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Open edit modal with pre-filled data
+  const openEditModal = (post: BlogPost) => {
+    setEditingPost(post);
+    setEditPostContent(post.content || '');
+    setEditPostImages(post.images || []);
+    setEditSlugManuallyEdited(true); // Don't auto-generate slug when editing
+    
+    // Pre-fill the edit form
+    editForm.reset({
+      title: post.title,
+      excerpt: post.excerpt || "",
+      content: post.content || "",
+      slug: post.slug,
+      categoryId: post.categoryId || "",
+      categoryName: "",
+      author: post.author || "",
+      isPublished: post.isPublished || false,
+      blocks: post.blocks || [],
+      images: post.images || [],
+    });
+    
+    setIsEditModalOpen(true);
+  };
+
+  // Handle edit form submission
+  const onEditPost = (data: CreateBlogPostData) => {
+    if (!editingPost) return;
+    
+    const postData = { 
+      ...data, 
+      content: editPostContent || data.content,
+      images: editPostImages 
+    };
+    
+    updatePostMutation.mutate({ postId: editingPost.id, data: postData });
+  };
 
   const categoryForm = useForm<CreateCategoryData>({
     resolver: zodResolver(createCategorySchema),
@@ -253,10 +558,12 @@ export default function BlogAdmin() {
   });
 
   const onCreatePost = (data: CreateBlogPostData) => {
-    // Add blocks to the post data if using visual editor
-    const postData = useVisualEditorForCreate 
-      ? { ...data, blocks: newPostBlocks }
-      : data;
+    // Use the rich text content
+    const postData = { 
+      ...data, 
+      content: newPostContent || data.content,
+      images: newPostImages 
+    };
     
     createPostMutation.mutate(postData);
   };
@@ -293,95 +600,77 @@ export default function BlogAdmin() {
   const watchTitle = form.watch("title");
   
   useEffect(() => {
-    const slug = form.getValues("slug");
     const title = form.getValues("title");
-    if (title && !slug) {
+    // Only auto-generate slug if user hasn't manually edited it
+    if (title && !slugManuallyEdited) {
       form.setValue("slug", generateSlug(title));
     }
-  }, [watchTitle, form]);
+  }, [watchTitle, form, slugManuallyEdited]);
 
-  // Visual Editor Modal
-  if (isVisualEditorOpen) {
+  // Full-screen Editor Modal
+  if (isEditorOpen) {
     return (
-      <div className="fixed inset-0 bg-background z-50 flex flex-col">
-        {/* Visual Editor Header */}
-        <div className="border-b border-border p-4 flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <Button
-              variant="outline"
-              onClick={closeVisualEditor}
-              data-testid="close-visual-editor"
-            >
-              <ArrowLeft className="h-4 w-4 mr-2" />
-              Back to Blog List
-            </Button>
-            <div>
-              <h1 className="text-xl font-semibold">Visual Blog Editor</h1>
-              {selectedPost && (
-                <p className="text-sm text-muted-foreground">
-                  Editing: {selectedPost.title}
-                </p>
-              )}
+      <div className="fixed inset-0 bg-background z-[100] flex flex-col pt-20">
+        {/* Editor Header */}
+        <div className="w-full bg-background border-b border-border p-4 shadow-sm">
+          <div className="flex justify-between items-center">
+            <div className="flex items-center gap-4">
+              <Button
+                onClick={closeEditor}
+                variant="outline"
+                data-testid="close-editor"
+              >
+                <ArrowLeft className="h-4 w-4 mr-2" />
+                Back to Blog List
+              </Button>
+              <h2 className="text-xl font-semibold">
+                {selectedPost ? `Editing: ${selectedPost.title}` : 'Blog Editor'}
+              </h2>
             </div>
-          </div>
-          <div className="flex items-center gap-2">
-            <Button
-              variant="outline"
-              onClick={() => {
-                // TODO: Add preview functionality
-                toast({
-                  title: "Preview",
-                  description: "Preview functionality coming soon",
-                });
-              }}
-              data-testid="preview-blog"
-            >
-              <Eye className="h-4 w-4 mr-2" />
-              Preview
-            </Button>
-            <Button
-              onClick={saveVisualContent}
-              data-testid="save-visual-content"
-            >
-              Save Content
-            </Button>
+            <div className="flex gap-2">
+              <Button
+                onClick={saveAndCloseEditor}
+                className="bg-primary hover:bg-primary/90"
+                data-testid="save-and-close"
+              >
+                Save & Close
+              </Button>
+            </div>
           </div>
         </div>
 
-        {/* Visual Editor Content */}
-        <div className="flex-1 overflow-hidden">
-          <BlogVisualEditor
-            blocks={editingBlocks}
-            onChange={setEditingBlocks}
-          />
+        {/* Editor Content */}
+        <div className="flex-1 overflow-auto p-6">
+          <div className="max-w-4xl mx-auto">
+            <RichTextEditor
+              content={editingContent}
+              onChange={setEditingContent}
+              placeholder="Start writing your blog post..."
+            />
+          </div>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16" data-testid="blog-admin-page">
-      {/* Header */}
-      <div className="flex justify-between items-center mb-8">
-        <div className="flex items-center gap-4">
-          <Link href="/admin">
-            <Button variant="outline" size="sm" data-testid="button-back">
-              <ArrowLeft className="h-4 w-4 mr-2" />
-              Back to Admin
-            </Button>
-          </Link>
-          <div>
-            <h1 className="text-4xl font-bold text-foreground mb-2" data-testid="blog-admin-title">
-              Blog Management
-            </h1>
-            <p className="text-xl text-muted-foreground" data-testid="blog-admin-subtitle">
-              Create and manage blog posts for the resources section
-            </p>
-          </div>
+    <div className="container mx-auto py-8 space-y-6" data-testid="blog-admin-page">
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
+            Blog Management
+          </h1>
+          <p className="text-gray-600 dark:text-gray-400 mt-2">
+            Create and manage blog posts for the resources section
+          </p>
         </div>
-
-        <div className="flex gap-4">
-          <Dialog open={isCategoryModalOpen} onOpenChange={setIsCategoryModalOpen}>
+        <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2">
+            <BookOpen className="h-8 w-8 text-pink-600" />
+            <span className="text-sm text-gray-500">Blog Dashboard</span>
+          </div>
+          <div className="flex gap-4">
+            <Dialog open={isCategoryModalOpen} onOpenChange={setIsCategoryModalOpen}>
             <DialogTrigger asChild>
               <Button variant="outline" data-testid="button-create-category">
                 <Tag className="h-4 w-4 mr-2" />
@@ -428,21 +717,47 @@ export default function BlogAdmin() {
             </DialogContent>
           </Dialog>
 
-          <Dialog open={isCreateModalOpen} onOpenChange={setIsCreateModalOpen}>
+          <Dialog open={isCreateModalOpen} onOpenChange={(open) => {
+            setIsCreateModalOpen(open);
+            if (open) {
+              // Reset form and states when opening
+              form.reset();
+              setSlugManuallyEdited(false);
+              setNewPostContent('');
+              setNewPostImages([]);
+            } else {
+              setSlugManuallyEdited(false);
+            }
+          }}>
             <DialogTrigger asChild>
               <Button data-testid="button-create-post">
                 <Plus className="h-4 w-4 mr-2" />
                 Create Post
               </Button>
             </DialogTrigger>
-            <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-              <DialogHeader>
-                <DialogTitle>Create New Blog Post</DialogTitle>
+            <DialogContent className="w-[95vw] max-w-4xl h-[90vh] p-0 flex flex-col">
+              <DialogHeader className="p-4 sm:p-6 pb-4 border-b border-border">
+                <DialogTitle className="text-xl sm:text-2xl">Create New Blog Post</DialogTitle>
               </DialogHeader>
               
-
-              <Form {...form}>
-                <form onSubmit={form.handleSubmit(onCreatePost)} className="space-y-6">
+              <div className="flex-1 overflow-y-auto px-4 sm:px-6 py-4">
+                <Form {...form}>
+                  <form onSubmit={(e) => {
+                    const submitter = (e.nativeEvent as SubmitEvent).submitter;
+                    if (!submitter || submitter.getAttribute('data-intent') !== 'publish') {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      return;
+                    }
+                    form.handleSubmit(onCreatePost, (errors) => {
+                      console.error("Form validation errors:", errors);
+                      toast({
+                        title: "Form Validation Error",
+                        description: "Please fill in all required fields correctly",
+                        variant: "destructive",
+                      });
+                    })(e);
+                  }} className="space-y-4 sm:space-y-6" id="create-post-form">
                   <div className="grid grid-cols-2 gap-4">
                     <FormField
                       control={form.control}
@@ -464,7 +779,14 @@ export default function BlogAdmin() {
                         <FormItem>
                           <FormLabel>Slug</FormLabel>
                           <FormControl>
-                            <Input {...field} data-testid="input-post-slug" />
+                            <Input 
+                              {...field} 
+                              data-testid="input-post-slug"
+                              onChange={(e) => {
+                                field.onChange(e);
+                                setSlugManuallyEdited(true);
+                              }}
+                            />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -487,51 +809,12 @@ export default function BlogAdmin() {
                   />
 
                   <div className="space-y-4">
-                    <div className="flex items-center justify-between">
-                      <FormLabel>Content</FormLabel>
-                      <div className="flex items-center space-x-2">
-                        <Button
-                          type="button"
-                          variant={useVisualEditorForCreate ? "default" : "outline"}
-                          size="sm"
-                          onClick={() => setUseVisualEditorForCreate(true)}
-                          data-testid="button-visual-editor"
-                        >
-                          Visual Editor
-                        </Button>
-                        <Button
-                          type="button"
-                          variant={!useVisualEditorForCreate ? "default" : "outline"}
-                          size="sm"
-                          onClick={() => setUseVisualEditorForCreate(false)}
-                          data-testid="button-text-editor"
-                        >
-                          Text Editor
-                        </Button>
-                      </div>
-                    </div>
-                    
-                    {useVisualEditorForCreate ? (
-                      <div className="border border-border rounded-lg p-4 min-h-[400px]">
-                        <BlogVisualEditor
-                          blocks={newPostBlocks}
-                          onChange={setNewPostBlocks}
-                        />
-                      </div>
-                    ) : (
-                      <FormField
-                        control={form.control}
-                        name="content"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormControl>
-                              <Textarea {...field} rows={10} data-testid="input-post-content" />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                    )}
+                    <FormLabel>Content</FormLabel>
+                    <RichTextEditor
+                      content={newPostContent}
+                      onChange={setNewPostContent}
+                      placeholder="Start writing your blog post..."
+                    />
                   </div>
 
                   <div className="grid grid-cols-2 gap-4">
@@ -574,28 +857,141 @@ export default function BlogAdmin() {
                     />
                   </div>
 
+                  <FormField
+                    control={form.control}
+                    name="author"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Author Name</FormLabel>
+                        <FormControl>
+                          <Input {...field} data-testid="input-post-author" />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <div className="space-y-4 border border-border rounded-lg p-4 bg-muted/30">
+                    <div className="flex items-start justify-between mb-2">
+                      <div>
+                        <h3 className="font-medium text-sm">Featured Image for Social Sharing</h3>
+                        <p className="text-xs text-muted-foreground mt-1">
+                          Upload an image to display when sharing on social media. You can also add images directly in the editor above.
+                        </p>
+                      </div>
+                    </div>
+                    <BlogImageManager
+                      images={newPostImages}
+                      onImagesChange={setNewPostImages}
+                    />
+                  </div>
+
+                  <FormField
+                    control={form.control}
+                    name="isPublished"
+                    render={({ field }) => (
+                      <FormItem className="flex items-center space-x-2">
+                        <FormControl>
+                          <input
+                            type="checkbox"
+                            checked={field.value || false}
+                            onChange={field.onChange}
+                            data-testid="checkbox-post-published"
+                          />
+                        </FormControl>
+                        <FormLabel>Publish immediately</FormLabel>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  </form>
+                </Form>
+              </div>
+
+              <div className="flex flex-col sm:flex-row gap-3 p-4 sm:p-6 pt-4 border-t border-border bg-background">
+                <Button 
+                  type="submit"
+                  form="create-post-form"
+                  disabled={createPostMutation.isPending} 
+                  className="w-full sm:flex-1"
+                  data-testid="button-save-post"
+                  data-intent="publish"
+                >
+                  {createPostMutation.isPending ? "Creating..." : "Create Post"}
+                </Button>
+                <Button 
+                  type="button"
+                  variant="outline"
+                  onClick={() => setIsCreateModalOpen(false)}
+                  className="w-full sm:w-auto"
+                >
+                  Cancel
+                </Button>
+              </div>
+            </DialogContent>
+          </Dialog>
+
+          {/* Edit Post Modal */}
+          <Dialog open={isEditModalOpen} onOpenChange={(open) => {
+            setIsEditModalOpen(open);
+            if (!open) {
+              setEditingPost(null);
+              setEditPostContent('');
+              setEditPostImages([]);
+            }
+          }}>
+            <DialogContent className="w-[95vw] max-w-4xl h-[90vh] p-0 flex flex-col">
+              <DialogHeader className="p-4 sm:p-6 pb-4 border-b border-border">
+                <DialogTitle className="text-xl sm:text-2xl">Edit Blog Post</DialogTitle>
+              </DialogHeader>
+              
+              <div className="flex-1 overflow-y-auto px-4 sm:px-6 py-4">
+                <Form {...editForm}>
+                  <form onSubmit={(e) => {
+                    const submitter = (e.nativeEvent as SubmitEvent).submitter;
+                    if (!submitter || submitter.getAttribute('data-intent') !== 'save') {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      return;
+                    }
+                    editForm.handleSubmit(onEditPost, (errors) => {
+                      console.error("Form validation errors:", errors);
+                      toast({
+                        title: "Form Validation Error",
+                        description: "Please fill in all required fields correctly",
+                        variant: "destructive",
+                      });
+                    })(e);
+                  }} className="space-y-4 sm:space-y-6" id="edit-post-form">
                   <div className="grid grid-cols-2 gap-4">
                     <FormField
-                      control={form.control}
-                      name="author"
+                      control={editForm.control}
+                      name="title"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Author Name</FormLabel>
+                          <FormLabel>Title</FormLabel>
                           <FormControl>
-                            <Input {...field} data-testid="input-post-author" />
+                            <Input {...field} data-testid="input-edit-post-title" />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
                       )}
                     />
                     <FormField
-                      control={form.control}
-                      name="imagePath"
+                      control={editForm.control}
+                      name="slug"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Image Path</FormLabel>
+                          <FormLabel>Slug</FormLabel>
                           <FormControl>
-                            <Input {...field} value={field.value || ""} placeholder="/path/to/image.jpg" data-testid="input-post-image" />
+                            <Input 
+                              {...field} 
+                              data-testid="input-edit-post-slug"
+                              onChange={(e) => {
+                                field.onChange(e);
+                                setEditSlugManuallyEdited(true);
+                              }}
+                            />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -603,39 +999,149 @@ export default function BlogAdmin() {
                     />
                   </div>
 
-                  <div className="flex justify-between">
+                  <FormField
+                    control={editForm.control}
+                    name="excerpt"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Excerpt</FormLabel>
+                        <FormControl>
+                          <Textarea {...field} value={field.value || ""} data-testid="input-edit-post-excerpt" />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <div className="space-y-4">
+                    <FormLabel>Content</FormLabel>
+                    <RichTextEditor
+                      content={editPostContent}
+                      onChange={setEditPostContent}
+                      placeholder="Edit your blog post content..."
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
                     <FormField
-                      control={form.control}
-                      name="isPublished"
+                      control={editForm.control}
+                      name="categoryId"
                       render={({ field }) => (
-                        <FormItem className="flex items-center space-x-2">
-                          <FormControl>
-                            <input
-                              type="checkbox"
-                              checked={field.value || false}
-                              onChange={field.onChange}
-                              data-testid="checkbox-post-published"
-                            />
-                          </FormControl>
-                          <FormLabel>Publish immediately</FormLabel>
+                        <FormItem>
+                          <FormLabel>Category</FormLabel>
+                          <Select onValueChange={field.onChange} value={field.value}>
+                            <FormControl>
+                              <SelectTrigger data-testid="select-edit-post-category">
+                                <SelectValue placeholder="Select a category" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              {categories.map((category) => (
+                                <SelectItem key={category.id} value={category.id}>
+                                  {category.name}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
                           <FormMessage />
                         </FormItem>
                       )}
                     />
-                    
-                    <Button type="submit" disabled={createPostMutation.isPending} data-testid="button-save-post">
-                      {createPostMutation.isPending ? "Creating..." : "Create Post"}
-                    </Button>
+                    <FormField
+                      control={editForm.control}
+                      name="categoryName"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Or Create New Category</FormLabel>
+                          <FormControl>
+                            <Input {...field} placeholder="New category name" data-testid="input-edit-new-category" />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
                   </div>
-                </form>
-              </Form>
+
+                  <FormField
+                    control={editForm.control}
+                    name="author"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Author Name</FormLabel>
+                        <FormControl>
+                          <Input {...field} data-testid="input-edit-post-author" />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <div className="space-y-4 border border-border rounded-lg p-4 bg-muted/30">
+                    <div className="flex items-start justify-between mb-2">
+                      <div>
+                        <h3 className="font-medium text-sm">Featured Image for Social Sharing</h3>
+                        <p className="text-xs text-muted-foreground mt-1">
+                          Upload an image to display when sharing on social media. You can also add images directly in the editor above.
+                        </p>
+                      </div>
+                    </div>
+                    <BlogImageManager
+                      images={editPostImages}
+                      onImagesChange={setEditPostImages}
+                    />
+                  </div>
+
+                  <FormField
+                    control={editForm.control}
+                    name="isPublished"
+                    render={({ field }) => (
+                      <FormItem className="flex items-center space-x-2">
+                        <FormControl>
+                          <input
+                            type="checkbox"
+                            checked={field.value || false}
+                            onChange={field.onChange}
+                            data-testid="checkbox-edit-post-published"
+                          />
+                        </FormControl>
+                        <FormLabel>Published</FormLabel>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  </form>
+                </Form>
+              </div>
+
+              <div className="flex flex-col sm:flex-row gap-3 p-4 sm:p-6 pt-4 border-t border-border bg-background">
+                <Button 
+                  type="submit"
+                  form="edit-post-form"
+                  disabled={updatePostMutation.isPending} 
+                  className="w-full sm:flex-1"
+                  data-testid="button-update-post"
+                  data-intent="save"
+                >
+                  {updatePostMutation.isPending ? "Saving..." : "Save Changes"}
+                </Button>
+                <Button 
+                  type="button"
+                  variant="outline"
+                  onClick={() => setIsEditModalOpen(false)}
+                  className="w-full sm:w-auto"
+                >
+                  Cancel
+                </Button>
+              </div>
             </DialogContent>
           </Dialog>
+
+          </div>
         </div>
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
@@ -680,7 +1186,7 @@ export default function BlogAdmin() {
       </div>
 
       {/* Categories */}
-      <Card className="mb-8">
+      <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Tag className="h-5 w-5" />
@@ -769,6 +1275,10 @@ export default function BlogAdmin() {
                         <Calendar className="h-4 w-4" />
                         {post.createdAt ? new Date(post.createdAt).toLocaleDateString() : 'No date'}
                       </span>
+                      <span className="flex items-center gap-1" title="Total views">
+                        <Eye className="h-4 w-4" />
+                        {post.views || 0} views
+                      </span>
                     </div>
                   </div>
                   
@@ -776,12 +1286,22 @@ export default function BlogAdmin() {
                     <Button
                       variant="outline"
                       size="sm"
-                      onClick={() => openVisualEditor(post)}
+                      onClick={() => openPreview(post)}
+                      className="bg-blue-50 border-blue-200 hover:bg-blue-100 text-blue-700"
+                      data-testid={`button-preview-${post.id}`}
+                    >
+                      <FileSearch className="h-4 w-4 mr-1" />
+                      Preview
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => openEditModal(post)}
                       className="bg-primary/5 border-primary/20 hover:bg-primary/10"
-                      data-testid={`visual-editor-${post.id}`}
+                      data-testid={`button-edit-${post.id}`}
                     >
                       <Edit className="h-4 w-4 mr-1" />
-                      Visual Editor
+                      Edit
                     </Button>
                     <Button
                       variant="outline"
@@ -803,14 +1323,6 @@ export default function BlogAdmin() {
                       )}
                     </Button>
                     <Button
-                      variant="outline"
-                      size="sm"
-                      data-testid={`button-edit-${post.id}`}
-                    >
-                      <Edit className="h-4 w-4 mr-1" />
-                      Edit
-                    </Button>
-                    <Button
                       variant="destructive"
                       size="sm"
                       onClick={() => handleDeletePost(post.id)}
@@ -827,6 +1339,69 @@ export default function BlogAdmin() {
           )}
         </CardContent>
       </Card>
+
+      {/* Preview Dialog */}
+      <Dialog open={isPreviewOpen} onOpenChange={setIsPreviewOpen}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <FileSearch className="h-5 w-5" />
+              Preview: {previewPost?.title}
+              {!previewPost?.isPublished && (
+                <Badge variant="secondary">Draft</Badge>
+              )}
+            </DialogTitle>
+          </DialogHeader>
+          
+          {previewPost && (
+            <article className="prose prose-lg max-w-none">
+              {/* Header with image if available */}
+              {previewPost.imagePath && (
+                <div className="mb-8">
+                  <img 
+                    src={convertToProxyUrl(previewPost.imagePath)} 
+                    alt={previewPost.title}
+                    className="w-full h-64 object-cover rounded-lg"
+                  />
+                </div>
+              )}
+
+              {/* Title */}
+              <h1 className="text-4xl font-bold mb-4">{previewPost.title}</h1>
+              
+              {/* Meta information */}
+              <div className="flex items-center gap-4 text-sm text-gray-600 mb-6 not-prose">
+                <span className="flex items-center gap-1">
+                  <User className="h-4 w-4" />
+                  {previewPost.author}
+                </span>
+                <span className="flex items-center gap-1">
+                  <Calendar className="h-4 w-4" />
+                  {formatDate(previewPost.createdAt)}
+                </span>
+                <span className="flex items-center gap-1">
+                  <Tag className="h-4 w-4" />
+                  {getCategoryName(previewPost.categoryId)}
+                </span>
+              </div>
+
+              {/* Excerpt */}
+              {previewPost.excerpt && (
+                <p className="text-xl text-gray-600 mb-8 italic">{previewPost.excerpt}</p>
+              )}
+
+              {/* Content - Visual Editor Blocks */}
+              {previewPost.blocks && previewPost.blocks.length > 0 ? (
+                <div className="space-y-4">
+                  {renderBlocks(previewPost.blocks)}
+                </div>
+              ) : (
+                <p className="text-gray-500 italic">No content available. Add content using the Visual Editor.</p>
+              )}
+            </article>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

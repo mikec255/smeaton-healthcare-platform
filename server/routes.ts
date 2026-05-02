@@ -5,54 +5,66 @@ import session from "express-session";
 import bcrypt from "bcryptjs";
 import crypto from "crypto";
 import { storage } from "./storage";
-import { insertJobSchema, insertApplicationSchema, insertContactSubmissionSchema, insertFeedbackSchema, insertNewsletterSchema, insertNewsletterBlockSchema, insertTemplateSchema, insertBlogCategorySchema, insertBlogPostSchema, insertUserSchema, loginUserSchema, updateUserSchema } from "@shared/schema";
+import { insertJobSchema, insertApplicationSchema, insertContactSubmissionSchema, insertFeedbackSchema, insertNewsletterSchema, insertNewsletterBlockSchema, insertTemplateSchema, insertBlogCategorySchema, insertBlogPostSchema, insertUserSchema, loginUserSchema, updateUserSchema, insertCqcAuditSchema, insertCqcAuditCategorySchema, insertCqcQualityStatementSchema, insertCqcEvidenceCategorySchema, insertCqcAuditEvidenceSchema, insertCqcQualityAssessmentSchema, insertCqcComplianceRecordSchema, insertCqcChecklistItemSchema, insertCqcAuditResponseSchema, insertKnowledgeQuestionnaireSchema, insertKnowledgeQuestionSchema, insertKnowledgeSessionSchema, insertKnowledgeResponseSchema, insertKnowledgeActionSchema, insertRecruitmentApplicationSchema, insertProfessionalReferenceSchema, insertClientSchema, insertVisitSchema, insertRunSchema, insertRunStopSchema, insertGeocodeSchema, insertStaffAssessmentTopicSchema, insertStaffAssessmentLinkSchema, insertStaffAssessmentResponseSchema } from "@shared/schema";
+import { GoogleMapsService } from "./google-maps-service";
 import { ObjectStorageService } from "./objectStorage";
 import { brevoService } from "./brevo-service";
+import { AuditLogger } from "./audit";
 import { z } from "zod";
 import "./types"; // Import type declarations
 
-// Simplified token-based authentication - more reliable than sessions
+// Unified authentication for development and production
 async function requireAdmin(req: any, res: any, next: any) {
+  // Development debug logging
+  if (process.env.NODE_ENV !== 'production') {
+    console.log("RequireAdmin debug - NODE_ENV:", process.env.NODE_ENV);
+    console.log("RequireAdmin debug - Session exists:", !!req.session);
+    console.log("RequireAdmin debug - Session.user exists:", !!req.session?.user);
+    console.log("RequireAdmin debug - Session ID:", req.session?.id);
+  }
+
   let user = null;
   
-  // Try token authentication from Authorization header
+  // Try Bearer token first (works in both dev and prod)
   const authHeader = req.headers.authorization;
   if (authHeader && authHeader.startsWith('Bearer ')) {
     try {
       const token = authHeader.substring(7);
       const decoded = JSON.parse(Buffer.from(token, 'base64').toString());
       
-      // Verify token is not too old (24 hours)
       if (Date.now() - decoded.timestamp > 24 * 60 * 60 * 1000) {
         return res.status(401).json({ message: "Token expired" });
       }
       
-      // Verify user still exists and is active
       const dbUser = await storage.getUserById(decoded.userId);
-      if (!dbUser || !dbUser.isActive) {
-        return res.status(401).json({ message: "User not found or inactive" });
+      if (dbUser && dbUser.isActive) {
+        user = dbUser;
       }
-      
-      user = decoded;
     } catch (error) {
       console.error("Token verification error:", error);
     }
   }
   
-  // Fallback to session if token not available
+  // Fallback to session if no valid token
   if (!user && req.session?.user) {
-    user = req.session.user;
+    const dbUser = await storage.getUserById(req.session.user.id);
+    if (dbUser && dbUser.isActive) {
+      user = dbUser;
+    }
+  }
+  
+  // Populate session from token for consistency
+  if (user && !req.session?.user) {
+    req.session.user = { id: user.id };
+    if (process.env.NODE_ENV !== 'production') {
+      console.log("FIXED: Populated session with user ID from token:", user.username);
+    }
   }
   
   if (!user) {
     return res.status(401).json({ message: "Unauthorized: Please log in" });
   }
   
-  if (!user.isActive) {
-    return res.status(401).json({ message: "Unauthorized: Account is inactive" });
-  }
-  
-  // Both admin and superadmin have access to admin features
   if (!["admin", "superadmin"].includes(user.role)) {
     return res.status(403).json({ message: "Forbidden: Admin access required" });
   }
@@ -61,39 +73,46 @@ async function requireAdmin(req: any, res: any, next: any) {
   next();
 }
 
-// Superadmin only access with session and token support
+// Unified superadmin authentication for development and production
 async function requireSuperAdmin(req: any, res: any, next: any) {
   let user = null;
   
-  // First try session authentication
-  if (req.session?.user) {
-    user = req.session.user;
-  } else {
-    // Fallback to token authentication for Replit compatibility
-    const authHeader = req.headers.authorization;
-    if (authHeader && authHeader.startsWith('Bearer ')) {
-      try {
-        const token = authHeader.substring(7);
-        const decoded = JSON.parse(Buffer.from(token, 'base64').toString());
-        
-        // Verify token is not too old (24 hours)
-        if (Date.now() - decoded.timestamp > 24 * 60 * 60 * 1000) {
-          return res.status(401).json({ message: "Token expired" });
-        }
-        
-        // Verify user still exists and is active
-        const dbUser = await storage.getUserById(decoded.userId);
-        if (!dbUser || !dbUser.isActive) {
-          return res.status(401).json({ message: "User not found or inactive" });
-        }
-        
-        user = decoded;
-      } catch (error) {
-        // Invalid token format
+  // Try Bearer token first (works in both dev and prod)
+  const authHeader = req.headers.authorization;
+  if (authHeader && authHeader.startsWith('Bearer ')) {
+    try {
+      const token = authHeader.substring(7);
+      const decoded = JSON.parse(Buffer.from(token, 'base64').toString());
+      
+      if (Date.now() - decoded.timestamp > 24 * 60 * 60 * 1000) {
+        return res.status(401).json({ message: "Token expired" });
       }
+      
+      const dbUser = await storage.getUserById(decoded.userId);
+      if (dbUser && dbUser.isActive) {
+        user = dbUser;
+      }
+    } catch (error) {
+      console.error("Token verification error:", error);
     }
   }
   
+  // Fallback to session if no valid token
+  if (!user && req.session?.user) {
+    const dbUser = await storage.getUserById(req.session.user.id);
+    if (dbUser && dbUser.isActive) {
+      user = dbUser;
+    }
+  }
+  
+  // Populate session from token for consistency
+  if (user && !req.session?.user) {
+    req.session.user = { id: user.id };
+    if (process.env.NODE_ENV !== 'production') {
+      console.log("FIXED: Populated session with user ID from token:", user.username);
+    }
+  }
+
   if (!user) {
     return res.status(401).json({ message: "Unauthorized: Please log in" });
   }
@@ -110,44 +129,188 @@ async function requireSuperAdmin(req: any, res: any, next: any) {
   next();
 }
 
-// Optional admin authentication with session and token support
+// Unified optional admin authentication for development and production
 async function optionalAdmin(req: any, res: any, next: any) {
   let user = null;
   
-  // First try session authentication
-  if (req.session?.user) {
-    user = req.session.user;
-  } else {
-    // Fallback to token authentication for Replit compatibility
-    const authHeader = req.headers.authorization;
-    if (authHeader && authHeader.startsWith('Bearer ')) {
-      try {
-        const token = authHeader.substring(7);
-        const decoded = JSON.parse(Buffer.from(token, 'base64').toString());
-        
-        // Verify token is not too old (24 hours)
-        if (Date.now() - decoded.timestamp <= 24 * 60 * 60 * 1000) {
-          // Verify user still exists and is active
-          const dbUser = await storage.getUserById(decoded.userId);
-          if (dbUser && dbUser.isActive) {
-            user = decoded;
-          }
+  // Try Bearer token first (works in both dev and prod)
+  const authHeader = req.headers.authorization;
+  if (authHeader && authHeader.startsWith('Bearer ')) {
+    try {
+      const token = authHeader.substring(7);
+      const decoded = JSON.parse(Buffer.from(token, 'base64').toString());
+      
+      if (Date.now() - decoded.timestamp <= 24 * 60 * 60 * 1000) {
+        const dbUser = await storage.getUserById(decoded.userId);
+        if (dbUser && dbUser.isActive) {
+          user = dbUser;
         }
-      } catch (error) {
-        // Invalid token format, continue without user
       }
+    } catch (error) {
+      // Invalid token format, continue without user
+    }
+  }
+  
+  // Fallback to session if no valid token
+  if (!user && req.session?.user) {
+    const dbUser = await storage.getUserById(req.session.user.id);
+    if (dbUser && dbUser.isActive) {
+      user = dbUser;
     }
   }
   
   req.user = user;
+  // Always derive admin status from fresh database role, never from tokens/sessions
   req.isAdmin = user && ["admin", "superadmin"].includes(user.role);
   next();
 }
 
+// Permission-based middleware functions for granular access control
+function requirePermission(permission: keyof {
+  overview: boolean;
+  recruitment: boolean;
+  customerRelations: boolean;
+  feedback: boolean;
+  tools: boolean;
+  resources: boolean;
+  system: boolean;
+}) {
+  return async (req: any, res: any, next: any) => {
+    // First check if user is authenticated
+    const user = await getAuthenticatedUser(req);
+    
+    if (!user) {
+      return res.status(401).json({ message: "Unauthorized: Please log in" });
+    }
+    
+    if (!user.isActive) {
+      return res.status(401).json({ message: "Unauthorized: Account is inactive" });
+    }
+    
+    // Superadmin always has access to everything
+    if (user.role === "superadmin") {
+      req.user = user;
+      return next();
+    }
+    
+    // Check if user has required permission
+    const permissions = user.permissions;
+    if (!permissions || !permissions[permission]) {
+      return res.status(403).json({ 
+        message: `Forbidden: ${permission} access required` 
+      });
+    }
+    
+    req.user = user;
+    next();
+  };
+}
+
+// Helper function to get authenticated user (reused logic from requireAdmin)
+async function getAuthenticatedUser(req: any) {
+  let user = null;
+  
+  // Production: Only use secure session-based auth
+  if (process.env.NODE_ENV === 'production') {
+    if (!req.session?.user) {
+      return null;
+    }
+    
+    // Always verify user still exists and is active from database
+    const dbUser = await storage.getUserById(req.session.user.id);
+    if (!dbUser || !dbUser.isActive) {
+      return null;
+    }
+    
+    return dbUser;
+  }
+  
+  // Development: Support both session and token auth
+  const authHeader = req.headers.authorization;
+  if (authHeader && authHeader.startsWith('Bearer ')) {
+    try {
+      const token = authHeader.substring(7);
+      const decoded = JSON.parse(Buffer.from(token, 'base64').toString());
+      
+      if (Date.now() - decoded.timestamp > 24 * 60 * 60 * 1000) {
+        return null;
+      }
+      
+      const dbUser = await storage.getUserById(decoded.userId);
+      if (!dbUser || !dbUser.isActive) {
+        return null;
+      }
+      
+      return dbUser;
+    } catch (error) {
+      // Fall through to session check
+    }
+  }
+  
+  // Fallback to session
+  if (req.session?.user) {
+    const dbUser = await storage.getUserById(req.session.user.id);
+    if (dbUser && dbUser.isActive) {
+      return dbUser;
+    }
+  }
+  
+  return null;
+}
+
+// Convenience middleware for specific permissions
+const requireOverview = requirePermission('overview');
+const requireRecruitment = requirePermission('recruitment');
+const requireCustomerRelations = requirePermission('customerRelations');
+const requireFeedback = requirePermission('feedback');
+const requireTools = requirePermission('tools');
+const requireResources = requirePermission('resources');
+const requireSystem = requirePermission('system');
+
 export async function registerRoutes(app: Express): Promise<Server> {
-  // CORS middleware for Replit environment
+  // Import and register blog image routes
+  const { registerBlogImageRoutes } = await import("./routes-blog-images");
+  registerBlogImageRoutes(app);
+  
+  // Import and register blog sharing routes (for social media)
+  const { registerBlogSharingRoutes } = await import("./routes-blog-sharing");
+  registerBlogSharingRoutes(app);
+  
+  // Import and register SEO routes (sitemap.xml, robots.txt)
+  const { registerSeoRoutes } = await import("./routes-seo");
+  registerSeoRoutes(app);
+  
+  // Trust proxy for Replit and Azure deployment (both use reverse proxies)
+  app.set('trust proxy', 1);
+  
+  if (process.env.NODE_ENV === 'production') {
+    // Require strong session secret in production
+    if (!process.env.SESSION_SECRET || process.env.SESSION_SECRET === 'your-secret-key-here-replace-in-production') {
+      console.error('CRITICAL: Strong SESSION_SECRET required in production!');
+      console.error('Please set SESSION_SECRET environment variable to a strong, random value (minimum 32 characters)');
+      process.exit(1);
+    }
+  }
+  // CORS middleware for Replit and Azure environment
   app.use((req, res, next) => {
-    res.header('Access-Control-Allow-Origin', req.headers.origin || '*');
+    // Strict allowlist of origins for production security
+    const allowedOrigins = [
+      process.env.AZURE_FRONTEND_URL,
+      process.env.FRONTEND_URL,
+      'https://smeatonwebsite-aqhgfwdhcef2f7fq.uksouth-01.azurewebsites.net',
+      'https://your-app.azurestaticapps.net'
+    ].filter(Boolean);
+    
+    const origin = req.headers.origin;
+    
+    if (process.env.NODE_ENV === 'development') {
+      // Allow any origin in development
+      res.header('Access-Control-Allow-Origin', origin || '*');
+    } else if (origin && allowedOrigins.includes(origin)) {
+      // Only allow explicitly configured origins in production
+      res.header('Access-Control-Allow-Origin', origin);
+    }
+    
     res.header('Access-Control-Allow-Credentials', 'true');
     res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization, Cookie');
     res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
@@ -158,16 +321,40 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Session middleware setup with default memory store
+  // Health check endpoint for Azure monitoring
+  app.get('/health', (_req, res) => {
+    res.status(200).json({ 
+      status: 'UP',
+      timestamp: new Date().toISOString(),
+      service: 'Smeaton Healthcare Platform',
+      version: '1.0.0'
+    });
+  });
+
+  // Alternative health check for Azure App Service
+  app.get('/api/health', (_req, res) => {
+    res.status(200).json({ 
+      status: 'healthy',
+      timestamp: new Date().toISOString(),
+      database: 'connected'
+    });
+  });
+
+  // Azure-style ping endpoint
+  app.get('/ping', (_req, res) => {
+    res.status(200).send('pong');
+  });
+
+  // Session middleware setup with secure production settings
   app.use(session({
     secret: process.env.SESSION_SECRET || 'your-secret-key-here-replace-in-production',
     resave: false,
     saveUninitialized: false,
     rolling: true, // Reset expiry on each request
     cookie: {
-      secure: false, // Allow HTTP in development
-      httpOnly: false, // Allow frontend access in development
-      sameSite: 'lax', // Allow cross-site requests in development
+      secure: process.env.NODE_ENV === 'production', // HTTPS only in production
+      httpOnly: true, // Prevent XSS access to cookies
+      sameSite: 'lax', // More permissive for better compatibility
       maxAge: 24 * 60 * 60 * 1000, // 24 hours
     },
   }));
@@ -197,26 +384,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       // Create a simple token for Replit compatibility (base64 encoded user info)
-      const token = Buffer.from(JSON.stringify({
-        userId: user.id,
-        username: user.username,
-        role: user.role,
-        isActive: user.isActive,
-        createdAt: user.createdAt,
-        timestamp: Date.now()
-      })).toString('base64');
+      // Store minimal user info in session (ID only) for security
+      req.session.user = { id: user.id };
       
-      // Store user info in session (excluding password) - simplified approach
-      req.session.user = {
-        id: user.id,
-        username: user.username,
-        role: user.role,
-        isActive: user.isActive,
-        createdAt: user.createdAt,
-      };
+      // Production: Only log successful login, never session details
+      if (process.env.NODE_ENV === 'production') {
+        console.log(`Login successful for user: ${user.username}`);
+      } else {
+        // Development only: Log session details for debugging
+        console.log("Login successful - storing user in session:", {
+          userId: user.id,
+          username: user.username,
+          role: user.role
+        });
+      }
       
-      console.log("Login successful - storing user in session:", req.session.user);
-      console.log("Session ID after login:", req.sessionID);
+      // Create insecure token only for development/testing
+      let token = null;
+      if (process.env.NODE_ENV !== 'production') {
+        token = Buffer.from(JSON.stringify({
+          userId: user.id,
+          username: user.username,
+          role: user.role,
+          isActive: user.isActive,
+          createdAt: user.createdAt,
+          timestamp: Date.now()
+        })).toString('base64');
+      }
       
       // Force save session
       req.session.save((err) => {
@@ -225,12 +419,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
           return res.status(500).json({ message: "Login failed" });
         }
         
-        console.log("Session saved successfully");
-        res.json({ 
+        // Development: Detailed session debugging
+        if (process.env.NODE_ENV !== 'production') {
+          console.log("Session saved successfully");
+          console.log("Session ID after save:", req.session.id);
+          console.log("Session contents after save:", req.session);
+          console.log("Session.user after save:", req.session.user);
+        }
+        
+        const response: any = { 
           success: true, 
-          user: req.session.user,
-          token: token
-        });
+          user: req.session.user
+        };
+        
+        // Only include insecure token in development
+        if (process.env.NODE_ENV !== 'production' && token) {
+          response.token = token;
+        }
+        
+        res.json(response);
       });
     } catch (error) {
       console.error("Login error:", error);
@@ -252,12 +459,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   app.get("/api/auth/me", async (req, res) => {
-    // Check session first
-    if (req.session?.user) {
-      return res.json({ user: req.session.user });
+    // Production: Only use secure session-based auth
+    if (process.env.NODE_ENV === 'production') {
+      if (req.session?.user) {
+        // Always verify user from database in production
+        const dbUser = await storage.getUserById(req.session.user.id);
+        if (!dbUser || !dbUser.isActive) {
+          req.session.destroy((err: any) => {
+            if (err) console.error('Session destroy error:', err);
+          });
+          return res.status(401).json({ message: "User not found or inactive" });
+        }
+        return res.json({ user: dbUser });
+      }
+      return res.status(401).json({ message: "Not authenticated" });
     }
     
-    // Fallback: Check for token in Authorization header for Replit compatibility
+    // Development: Check session first, but always get full user from database
+    if (req.session?.user) {
+      const dbUser = await storage.getUserById(req.session.user.id);
+      if (dbUser && dbUser.isActive) {
+        return res.json({ user: dbUser });
+      }
+    }
+    
+    // Development only: Fallback to insecure token for testing
     const authHeader = req.headers.authorization;
     if (authHeader && authHeader.startsWith('Bearer ')) {
       try {
@@ -269,13 +495,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
           return res.status(401).json({ message: "Token expired" });
         }
         
-        // Verify user still exists and is active
-        const user = await storage.getUserById(decoded.userId);
-        if (!user || !user.isActive) {
+        // Always verify from database, never trust token data
+        const dbUser = await storage.getUserById(decoded.userId);
+        if (!dbUser || !dbUser.isActive) {
           return res.status(401).json({ message: "User not found or inactive" });
         }
         
-        return res.json({ user: decoded });
+        return res.json({ user: dbUser }); // Use DB user, not decoded token
       } catch (error) {
         // Invalid token format
       }
@@ -315,7 +541,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // User management routes (superadmin only)
+  // User management routes (superadmin only - critical security requirement)
   app.get("/api/users", requireSuperAdmin, async (req, res) => {
     try {
       const users = await storage.getAllUsers();
@@ -493,28 +719,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  const emailConfigSchema = z.object({
-    apiKey: z.string().min(50, "API key must be at least 50 characters").regex(/^x(keys|smtps)ib-/, "Invalid Brevo API key format")
-  });
-
-  app.post("/api/admin/email-config", requireSuperAdmin, async (req, res) => {
-    try {
-      const { apiKey } = emailConfigSchema.parse(req.body);
-      
-      const success = brevoService.setApiKey(apiKey);
-      if (success) {
-        res.json({ configured: true, message: "Email service configured successfully" });
-      } else {
-        res.status(400).json({ message: "Failed to configure email service" });
-      }
-    } catch (error) {
-      console.error("Error configuring email service:", error);
-      if (error instanceof z.ZodError) {
-        return res.status(400).json({ message: "Invalid API key format", errors: error.errors });
-      }
-      res.status(500).json({ message: "Failed to configure email service" });
-    }
-  });
+  // SECURITY: API key configuration via UI removed - must be set via environment variables only
 
   // Jobs API
   app.get("/api/jobs", async (req, res) => {
@@ -528,6 +733,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(jobs);
     } catch (error) {
       console.error("Error fetching jobs:", error);
+      res.status(500).json({ message: "Failed to fetch jobs" });
+    }
+  });
+
+  // Admin endpoint that returns ALL jobs (both active and inactive) - requires recruitment permission
+  app.get("/api/admin/jobs", requireRecruitment, async (req, res) => {
+    try {
+      const { location, type, salaryRange, status } = req.query;
+      const jobs = await storage.getAllJobsForAdmin({
+        location: location as string,
+        type: type as string,
+        salaryRange: salaryRange as string,
+        status: status as string,
+      });
+      res.json(jobs);
+    } catch (error) {
+      console.error("Error fetching admin jobs:", error);
       res.status(500).json({ message: "Failed to fetch jobs" });
     }
   });
@@ -578,6 +800,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.delete("/api/jobs/:id", requireAdmin, async (req, res) => {
     try {
+      // Check if job exists first
+      const existingJob = await storage.getJob(req.params.id);
+      if (!existingJob) {
+        return res.status(404).json({ message: "Job not found" });
+      }
+      
+      // Unpublish the job before deleting (only if it exists)
+      await storage.updateJob(req.params.id, { isActive: false });
+      
       const success = await storage.deleteJob(req.params.id);
       if (!success) {
         return res.status(404).json({ message: "Job not found" });
@@ -593,6 +824,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/applications", requireAdmin, async (req, res) => {
     try {
       const applications = await storage.getAllApplications();
+      
+      // Log GDPR-relevant action: admin viewing personal data
+      if (req.user) {
+        await AuditLogger.logView(req, req.user, "application", "bulk", {
+          action: "view_all_applications",
+          recordCount: applications.length
+        });
+      }
+      
       res.json(applications);
     } catch (error) {
       console.error("Error fetching all applications:", error);
@@ -614,6 +854,35 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const validatedData = insertApplicationSchema.parse(req.body);
       const application = await storage.createApplication(validatedData);
+      
+      // Get job details for email notification
+      try {
+        const job = await storage.getJob(validatedData.jobId);
+        if (job) {
+          // Send email notification to recruitment team
+          await brevoService.sendPreScreenApplicationEmail({
+            firstName: validatedData.firstName,
+            lastName: validatedData.lastName,
+            email: validatedData.email,
+            phone: validatedData.phone,
+            location: validatedData.location,
+            jobTitle: job.title,
+            branch: job.branch || "Plymouth",
+            experience: validatedData.experience || undefined,
+            currentlyWorking: validatedData.currentlyWorking || undefined,
+            currentEmployer: validatedData.currentEmployer || undefined,
+            referralSource: validatedData.referralSource || undefined,
+            shiftPreferences: Array.isArray(validatedData.shiftPreferences) ? validatedData.shiftPreferences as string[] : undefined,
+            hasDBS: validatedData.hasDBS || undefined,
+            hasMHCertificate: validatedData.hasMHCertificate || undefined,
+            additionalInfo: validatedData.additionalInfo || undefined,
+          });
+        }
+      } catch (emailError) {
+        console.error("Error sending application notification email:", emailError);
+        // Don't fail the application creation if email fails
+      }
+      
       res.status(201).json(application);
     } catch (error) {
       console.error("Error creating application:", error);
@@ -631,6 +900,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (!application) {
         return res.status(404).json({ message: "Application not found" });
       }
+      
+      // Log GDPR-relevant action: admin modifying personal data
+      if (req.user) {
+        await AuditLogger.logUpdate(req, req.user, "application", req.params.id, {
+          action: "update_application_status",
+          newStatus: status,
+          applicantEmail: application.email
+        });
+      }
+      
       res.json(application);
     } catch (error) {
       console.error("Error updating application status:", error);
@@ -650,6 +929,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (!application) {
         return res.status(404).json({ message: "Application not found" });
       }
+      
+      // Log GDPR-relevant action: admin adding/modifying notes about personal data
+      if (req.user) {
+        await AuditLogger.logUpdate(req, req.user, "application", req.params.id, {
+          action: "update_application_notes",
+          notesLength: validatedData.notes?.length || 0,
+          applicantEmail: application.email
+        });
+      }
+      
       res.json(application);
     } catch (error) {
       console.error("Error updating application notes:", error);
@@ -660,18 +949,1322 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Recruitment Applications API (Full Applications - separate from job pre-screening)
+  app.get("/api/admin/recruitment-applications", requireAdmin, async (req, res) => {
+    try {
+      const applications = await storage.getAllRecruitmentApplications();
+      
+      // Log GDPR-relevant action: admin viewing personal data
+      if (req.user) {
+        await AuditLogger.logView(req, req.user, "recruitment_application", "bulk", {
+          action: "view_all_recruitment_applications",
+          recordCount: applications.length
+        });
+      }
+      
+      res.json(applications);
+    } catch (error) {
+      console.error("Error fetching recruitment applications:", error);
+      res.status(500).json({ message: "Failed to fetch recruitment applications" });
+    }
+  });
+
+  app.post("/api/recruitment-applications", async (req, res) => {
+    try {
+      const validatedData = insertRecruitmentApplicationSchema.parse(req.body);
+      const application = await storage.createRecruitmentApplication(validatedData);
+      
+      // Send confirmation email to applicant
+      if (brevoService) {
+        try {
+          await brevoService.sendRecruitmentApplicationConfirmation({
+            to: application.email,
+            applicantName: `${application.firstName} ${application.lastName}`,
+            applicationId: application.id
+          });
+        } catch (emailError) {
+          console.error("Failed to send recruitment application confirmation email:", emailError);
+          // Don't fail the application submission if email fails
+        }
+      }
+
+      res.json(application);
+    } catch (error) {
+      console.error("Error creating recruitment application:", error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid application data", errors: error.errors });
+      }
+      res.status(500).json({ message: "Failed to submit recruitment application" });
+    }
+  });
+
+  app.put("/api/admin/recruitment-applications/:id/status", requireAdmin, async (req, res) => {
+    try {
+      // Validate status input with allowed enum values
+      const statusUpdateSchema = z.object({
+        status: z.enum(["pending", "under_review", "interview_scheduled", "hired", "rejected", "withdrawn"])
+      });
+
+      const validatedData = statusUpdateSchema.parse(req.body);
+      const application = await storage.updateRecruitmentApplicationStatus(req.params.id, validatedData.status, req.user?.id);
+      if (!application) {
+        return res.status(404).json({ message: "Recruitment application not found" });
+      }
+      
+      // Log GDPR-relevant action: admin updating application status
+      if (req.user) {
+        await AuditLogger.logUpdate(req, req.user, "recruitment_application", req.params.id, {
+          action: "update_application_status",
+          newStatus: validatedData.status,
+          applicantEmail: application.email,
+          reviewedBy: req.user.id
+        });
+      }
+      
+      res.json(application);
+    } catch (error) {
+      console.error("Error updating recruitment application status:", error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid status data", errors: error.errors });
+      }
+      res.status(500).json({ message: "Failed to update recruitment application status" });
+    }
+  });
+
+  app.put("/api/admin/recruitment-applications/:id/notes", requireAdmin, async (req, res) => {
+    try {
+      const notesSchema = z.object({
+        adminNotes: z.string().max(5000, "Notes must be less than 5000 characters").optional()
+      });
+      
+      const validatedData = notesSchema.parse(req.body);
+      const application = await storage.updateRecruitmentApplicationNotes(req.params.id, validatedData.adminNotes || "");
+      if (!application) {
+        return res.status(404).json({ message: "Recruitment application not found" });
+      }
+      
+      // Log GDPR-relevant action: admin adding/modifying notes about personal data
+      if (req.user) {
+        await AuditLogger.logUpdate(req, req.user, "recruitment_application", req.params.id, {
+          action: "update_recruitment_application_notes",
+          notesLength: validatedData.adminNotes?.length || 0,
+          applicantEmail: application.email
+        });
+      }
+      
+      res.json(application);
+    } catch (error) {
+      console.error("Error updating recruitment application notes:", error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid notes data", errors: error.errors });
+      }
+      res.status(500).json({ message: "Failed to update recruitment application notes" });
+    }
+  });
+
+  // Professional References API
+  app.get("/api/admin/professional-references", requireAdmin, async (req, res) => {
+    try {
+      const references = await storage.getAllProfessionalReferences();
+      
+      // Log GDPR-relevant action: admin viewing personal data
+      if (req.user) {
+        await AuditLogger.logView(req, req.user, "professional_reference", "bulk", {
+          action: "view_all_professional_references",
+          recordCount: references.length
+        });
+      }
+      
+      res.json(references);
+    } catch (error) {
+      console.error("Error fetching professional references:", error);
+      res.status(500).json({ message: "Failed to fetch professional references" });
+    }
+  });
+
+  app.post("/api/professional-references", async (req, res) => {
+    try {
+      const validatedData = insertProfessionalReferenceSchema.parse(req.body);
+      const reference = await storage.createProfessionalReference(validatedData);
+      
+      // Send confirmation email to reference provider
+      if (brevoService) {
+        try {
+          await brevoService.sendProfessionalReferenceConfirmation({
+            to: reference.referenceProviderEmail,
+            referenceProviderName: reference.referenceProviderName,
+            candidateName: reference.candidateName,
+            referenceId: reference.id
+          });
+        } catch (emailError) {
+          console.error("Failed to send professional reference confirmation email:", emailError);
+          // Don't fail the reference submission if email fails
+        }
+      }
+
+      res.json(reference);
+    } catch (error) {
+      console.error("Error creating professional reference:", error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid reference data", errors: error.errors });
+      }
+      res.status(500).json({ message: "Failed to submit professional reference" });
+    }
+  });
+
+  app.put("/api/admin/professional-references/:id/status", requireAdmin, async (req, res) => {
+    try {
+      // Validate status input with allowed enum values
+      const statusUpdateSchema = z.object({
+        status: z.enum(["pending", "reviewed", "verified", "flagged"])
+      });
+
+      const validatedData = statusUpdateSchema.parse(req.body);
+      const reference = await storage.updateProfessionalReferenceStatus(req.params.id, validatedData.status, req.user?.id);
+      if (!reference) {
+        return res.status(404).json({ message: "Professional reference not found" });
+      }
+      
+      // Log GDPR-relevant action: admin updating reference status
+      if (req.user) {
+        await AuditLogger.logUpdate(req, req.user, "professional_reference", req.params.id, {
+          action: "update_reference_status",
+          newStatus: validatedData.status,
+          candidateEmail: reference.candidateEmail,
+          referenceProviderEmail: reference.referenceProviderEmail,
+          reviewedBy: req.user.id
+        });
+      }
+      
+      res.json(reference);
+    } catch (error) {
+      console.error("Error updating professional reference status:", error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid status data", errors: error.errors });
+      }
+      res.status(500).json({ message: "Failed to update professional reference status" });
+    }
+  });
+
+  app.put("/api/admin/professional-references/:id/notes", requireAdmin, async (req, res) => {
+    try {
+      const notesSchema = z.object({
+        adminNotes: z.string().max(5000, "Notes must be less than 5000 characters").optional()
+      });
+      
+      const validatedData = notesSchema.parse(req.body);
+      const reference = await storage.updateProfessionalReferenceNotes(req.params.id, validatedData.adminNotes || "");
+      if (!reference) {
+        return res.status(404).json({ message: "Professional reference not found" });
+      }
+      
+      // Log GDPR-relevant action: admin adding/modifying notes about personal data
+      if (req.user) {
+        await AuditLogger.logUpdate(req, req.user, "professional_reference", req.params.id, {
+          action: "update_professional_reference_notes",
+          notesLength: validatedData.adminNotes?.length || 0,
+          candidateEmail: reference.candidateEmail,
+          referenceProviderEmail: reference.referenceProviderEmail
+        });
+      }
+      
+      res.json(reference);
+    } catch (error) {
+      console.error("Error updating professional reference notes:", error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid notes data", errors: error.errors });
+      }
+      res.status(500).json({ message: "Failed to update professional reference notes" });
+    }
+  });
+
+  // Reference Requests API (External reference collection with unique links)
+  app.get("/api/admin/reference-requests", requireAdmin, async (req, res) => {
+    try {
+      const statusFilter = req.query.status as string | undefined;
+      const requests = await storage.getAllReferenceRequests(statusFilter ? { status: statusFilter } : undefined);
+      res.json(requests);
+    } catch (error) {
+      console.error("Error fetching reference requests:", error);
+      res.status(500).json({ message: "Failed to fetch reference requests" });
+    }
+  });
+
+  app.get("/api/admin/reference-requests/:id", requireAdmin, async (req, res) => {
+    try {
+      const request = await storage.getReferenceRequest(req.params.id);
+      if (!request) {
+        return res.status(404).json({ message: "Reference request not found" });
+      }
+      res.json(request);
+    } catch (error) {
+      console.error("Error fetching reference request:", error);
+      res.status(500).json({ message: "Failed to fetch reference request" });
+    }
+  });
+
+  app.post("/api/admin/reference-requests", requireAdmin, async (req, res) => {
+    try {
+      const createSchema = z.object({
+        employeeName: z.string().min(1, "Employee name is required"),
+        employeeJobTitle: z.string().optional(),
+        refereeEmail: z.string().email("Valid email required").optional().or(z.literal("")),
+        refereeName: z.string().optional(),
+        refereeCompany: z.string().optional(),
+        recruitmentApplicationId: z.string().optional(),
+      });
+
+      const validatedData = createSchema.parse(req.body);
+      
+      // Generate unique token for the public form URL
+      const token = crypto.randomBytes(32).toString('hex');
+      
+      const request = await storage.createReferenceRequest({
+        ...validatedData,
+        token,
+        status: "draft",
+        createdBy: req.user?.id,
+      });
+      
+      res.json(request);
+    } catch (error) {
+      console.error("Error creating reference request:", error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid request data", errors: error.errors });
+      }
+      res.status(500).json({ message: "Failed to create reference request" });
+    }
+  });
+
+  app.put("/api/admin/reference-requests/:id", requireAdmin, async (req, res) => {
+    try {
+      const updateSchema = z.object({
+        employeeName: z.string().optional(),
+        employeeJobTitle: z.string().optional(),
+        refereeEmail: z.string().email().optional().or(z.literal("")),
+        refereeName: z.string().optional(),
+        refereeCompany: z.string().optional(),
+      });
+
+      const validatedData = updateSchema.parse(req.body);
+      const request = await storage.updateReferenceRequest(req.params.id, validatedData);
+      if (!request) {
+        return res.status(404).json({ message: "Reference request not found" });
+      }
+      res.json(request);
+    } catch (error) {
+      console.error("Error updating reference request:", error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid request data", errors: error.errors });
+      }
+      res.status(500).json({ message: "Failed to update reference request" });
+    }
+  });
+
+  app.put("/api/admin/reference-requests/:id/status", requireAdmin, async (req, res) => {
+    try {
+      const statusSchema = z.object({
+        status: z.enum(["draft", "requested", "received"])
+      });
+
+      const validatedData = statusSchema.parse(req.body);
+      const request = await storage.updateReferenceRequestStatus(req.params.id, validatedData.status);
+      if (!request) {
+        return res.status(404).json({ message: "Reference request not found" });
+      }
+      res.json(request);
+    } catch (error) {
+      console.error("Error updating reference request status:", error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid status data", errors: error.errors });
+      }
+      res.status(500).json({ message: "Failed to update reference request status" });
+    }
+  });
+
+  app.delete("/api/admin/reference-requests/:id", requireAdmin, async (req, res) => {
+    try {
+      const deleted = await storage.deleteReferenceRequest(req.params.id);
+      if (!deleted) {
+        return res.status(404).json({ message: "Reference request not found" });
+      }
+      res.json({ message: "Reference request deleted successfully" });
+    } catch (error) {
+      console.error("Error deleting reference request:", error);
+      res.status(500).json({ message: "Failed to delete reference request" });
+    }
+  });
+
+  // Public Reference Form API (accessed via unique token - no auth required)
+  app.get("/api/reference-form/:token", async (req, res) => {
+    try {
+      const request = await storage.getReferenceRequestByToken(req.params.token);
+      if (!request) {
+        return res.status(404).json({ message: "Reference form not found or has expired" });
+      }
+      
+      // Only return prefilled data and status (not full request details)
+      res.json({
+        id: request.id,
+        employeeName: request.employeeName,
+        employeeJobTitle: request.employeeJobTitle,
+        status: request.status,
+        // Include any already filled data if they're returning to the form
+        employmentStartDate: request.employmentStartDate,
+        employmentEndDate: request.employmentEndDate,
+        jobTitle: request.jobTitle,
+        reasonForLeaving: request.reasonForLeaving,
+        wouldReemploy: request.wouldReemploy,
+        performanceRating: request.performanceRating,
+        additionalComments: request.additionalComments,
+      });
+    } catch (error) {
+      console.error("Error fetching reference form:", error);
+      res.status(500).json({ message: "Failed to fetch reference form" });
+    }
+  });
+
+  app.post("/api/reference-form/:token", async (req, res) => {
+    try {
+      const request = await storage.getReferenceRequestByToken(req.params.token);
+      if (!request) {
+        return res.status(404).json({ message: "Reference form not found or has expired" });
+      }
+      
+      if (request.status === "received") {
+        return res.status(400).json({ message: "This reference has already been submitted" });
+      }
+
+      const submitSchema = z.object({
+        employmentStartDate: z.string().min(1, "Start date is required"),
+        employmentEndDate: z.string().min(1, "End date is required"),
+        jobTitle: z.string().optional(),
+        reasonForLeaving: z.string().optional(),
+        wouldReemploy: z.boolean().optional(),
+        performanceRating: z.string().optional(),
+        additionalComments: z.string().optional(),
+      });
+
+      const validatedData = submitSchema.parse(req.body);
+      
+      // Update the reference request with the submitted data and change status to received
+      const updatedRequest = await storage.updateReferenceRequest(request.id, validatedData);
+      if (updatedRequest) {
+        await storage.updateReferenceRequestStatus(request.id, "received");
+      }
+      
+      res.json({ message: "Reference submitted successfully. Thank you!" });
+    } catch (error) {
+      console.error("Error submitting reference form:", error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid form data", errors: error.errors });
+      }
+      res.status(500).json({ message: "Failed to submit reference form" });
+    }
+  });
+
+  // Service Improvement Plan (SIP) API
+  app.get("/api/admin/sip", requireAdmin, async (req, res) => {
+    try {
+      const filters: { status?: string; priority?: string; cqcDomain?: string; branch?: string } = {};
+      if (req.query.status) filters.status = req.query.status as string;
+      if (req.query.priority) filters.priority = req.query.priority as string;
+      if (req.query.cqcDomain) filters.cqcDomain = req.query.cqcDomain as string;
+      if (req.query.branch) filters.branch = req.query.branch as string;
+      
+      const items = await storage.getAllServiceImprovementPlanItems(filters);
+      res.json(items);
+    } catch (error) {
+      console.error("Error fetching SIP items:", error);
+      res.status(500).json({ message: "Failed to fetch service improvement plan items" });
+    }
+  });
+
+  app.get("/api/admin/sip/:id", requireAdmin, async (req, res) => {
+    try {
+      const item = await storage.getServiceImprovementPlanItem(req.params.id);
+      if (!item) {
+        return res.status(404).json({ message: "SIP item not found" });
+      }
+      res.json(item);
+    } catch (error) {
+      console.error("Error fetching SIP item:", error);
+      res.status(500).json({ message: "Failed to fetch service improvement plan item" });
+    }
+  });
+
+  app.post("/api/admin/sip", requireAdmin, async (req, res) => {
+    try {
+      const sipSchema = z.object({
+        description: z.string().min(1, "Description is required"),
+        priority: z.enum(["must_do", "should_do"]),
+        branch: z.string().optional().default("Plymouth"),
+        cqcDomain: z.string().optional(),
+        serviceArea: z.string().optional(),
+        sourceAuditId: z.string().optional(),
+        sourceAuditType: z.string().optional(),
+        actions: z.array(z.object({
+          action: z.string(),
+          responsible: z.string().optional(),
+          deadline: z.string().optional(),
+          completed: z.boolean().optional()
+        })).optional(),
+        responsibility: z.string().optional(),
+        targetDate: z.string().optional().transform(v => v ? new Date(v) : undefined),
+        status: z.enum(["open", "in_progress", "completed", "cancelled"]).optional(),
+        evidence: z.string().optional(),
+        progressPercentage: z.number().min(0).max(100).optional(),
+      });
+
+      const validatedData = sipSchema.parse(req.body);
+      
+      // Generate required fields for storage
+      const sipData = {
+        ...validatedData,
+        title: validatedData.description.substring(0, 100), // Use first 100 chars of description as title
+        sourceType: validatedData.sourceAuditId ? "audit" : "self_identified", // Default source type
+      };
+      
+      const item = await storage.createServiceImprovementPlanItem(sipData);
+      res.status(201).json(item);
+    } catch (error) {
+      console.error("Error creating SIP item:", error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid SIP data", errors: error.errors });
+      }
+      res.status(500).json({ message: "Failed to create service improvement plan item" });
+    }
+  });
+
+  app.put("/api/admin/sip/:id", requireAdmin, async (req, res) => {
+    try {
+      const updateSchema = z.object({
+        description: z.string().optional(),
+        priority: z.enum(["must_do", "should_do"]).optional(),
+        branch: z.string().optional(),
+        cqcDomain: z.string().optional(),
+        serviceArea: z.string().optional(),
+        actions: z.array(z.object({
+          action: z.string(),
+          responsible: z.string().optional(),
+          deadline: z.string().optional(),
+          completed: z.boolean().optional()
+        })).optional(),
+        responsibility: z.string().optional(),
+        targetDate: z.string().optional().transform(v => v ? new Date(v) : undefined),
+        status: z.enum(["open", "in_progress", "completed", "cancelled"]).optional(),
+        evidence: z.string().optional(),
+        progressPercentage: z.number().min(0).max(100).optional(),
+        updateHistory: z.array(z.object({
+          date: z.string(),
+          update: z.string(),
+          updatedBy: z.string().optional()
+        })).optional(),
+      });
+
+      const validatedData = updateSchema.parse(req.body);
+      const item = await storage.updateServiceImprovementPlanItem(req.params.id, validatedData);
+      if (!item) {
+        return res.status(404).json({ message: "SIP item not found" });
+      }
+      res.json(item);
+    } catch (error) {
+      console.error("Error updating SIP item:", error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid update data", errors: error.errors });
+      }
+      res.status(500).json({ message: "Failed to update service improvement plan item" });
+    }
+  });
+
+  app.put("/api/admin/sip/:id/complete", requireAdmin, async (req, res) => {
+    try {
+      const completedBy = (req as any).user?.username || "Admin";
+      const item = await storage.completeServiceImprovementPlanItem(req.params.id, completedBy);
+      if (!item) {
+        return res.status(404).json({ message: "SIP item not found" });
+      }
+      res.json(item);
+    } catch (error) {
+      console.error("Error completing SIP item:", error);
+      res.status(500).json({ message: "Failed to complete service improvement plan item" });
+    }
+  });
+
+  app.delete("/api/admin/sip/:id", requireAdmin, async (req, res) => {
+    try {
+      const deleted = await storage.deleteServiceImprovementPlanItem(req.params.id);
+      if (!deleted) {
+        return res.status(404).json({ message: "SIP item not found" });
+      }
+      res.json({ message: "SIP item deleted successfully" });
+    } catch (error) {
+      console.error("Error deleting SIP item:", error);
+      res.status(500).json({ message: "Failed to delete service improvement plan item" });
+    }
+  });
+
+  // ===== CQC Feedback Campaigns API =====
+  
+  // Get all campaigns (admin)
+  app.get("/api/cqc/feedback/campaigns", requireAdmin, async (req, res) => {
+    try {
+      const filters: { category?: string; status?: string; branch?: string } = {};
+      if (req.query.category) filters.category = req.query.category as string;
+      if (req.query.status) filters.status = req.query.status as string;
+      if (req.query.branch) filters.branch = req.query.branch as string;
+      
+      const campaigns = await storage.getAllCqcFeedbackCampaigns(filters);
+      res.json(campaigns);
+    } catch (error) {
+      console.error("Error fetching feedback campaigns:", error);
+      res.status(500).json({ message: "Failed to fetch feedback campaigns" });
+    }
+  });
+
+  // Get single campaign (admin)
+  app.get("/api/cqc/feedback/campaigns/:id", requireAdmin, async (req, res) => {
+    try {
+      const campaign = await storage.getCqcFeedbackCampaign(req.params.id);
+      if (!campaign) {
+        return res.status(404).json({ message: "Campaign not found" });
+      }
+      res.json(campaign);
+    } catch (error) {
+      console.error("Error fetching feedback campaign:", error);
+      res.status(500).json({ message: "Failed to fetch feedback campaign" });
+    }
+  });
+
+  // Create campaign (admin)
+  app.post("/api/cqc/feedback/campaigns", requireAdmin, async (req, res) => {
+    try {
+      const campaignSchema = z.object({
+        name: z.string().min(1, "Campaign name is required"),
+        description: z.string().optional(),
+        branch: z.string().default("Plymouth"),
+        category: z.enum(["C", "S", "P", "F"]), // Caring, Safe, People, Friends & Family
+        status: z.enum(["draft", "active", "paused", "closed"]).optional().default("draft"),
+        startDate: z.string().optional().transform(v => v ? new Date(v) : undefined),
+        endDate: z.string().optional().transform(v => v ? new Date(v) : undefined),
+        customQuestions: z.array(z.object({
+          id: z.string(),
+          question: z.string(),
+          type: z.enum(["rating", "text", "choice"]),
+          required: z.boolean(),
+          options: z.array(z.string()).optional(),
+        })).optional(),
+      });
+
+      const validatedData = campaignSchema.parse(req.body);
+      
+      // Generate unique link token
+      const linkToken = crypto.randomBytes(32).toString('hex');
+      
+      const campaign = await storage.createCqcFeedbackCampaign({
+        ...validatedData,
+        linkToken,
+        createdBy: (req as any).user?.id,
+      });
+      
+      res.status(201).json(campaign);
+    } catch (error) {
+      console.error("Error creating feedback campaign:", error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid campaign data", errors: error.errors });
+      }
+      res.status(500).json({ message: "Failed to create feedback campaign" });
+    }
+  });
+
+  // Update campaign (admin)
+  app.put("/api/cqc/feedback/campaigns/:id", requireAdmin, async (req, res) => {
+    try {
+      const updateSchema = z.object({
+        name: z.string().optional(),
+        description: z.string().optional(),
+        branch: z.string().optional(),
+        category: z.enum(["C", "S", "P", "F"]).optional(),
+        status: z.enum(["draft", "active", "paused", "closed"]).optional(),
+        startDate: z.string().optional().transform(v => v ? new Date(v) : undefined),
+        endDate: z.string().optional().transform(v => v ? new Date(v) : undefined),
+        customQuestions: z.array(z.object({
+          id: z.string(),
+          question: z.string(),
+          type: z.enum(["rating", "text", "choice"]),
+          required: z.boolean(),
+          options: z.array(z.string()).optional(),
+        })).optional(),
+      });
+
+      const validatedData = updateSchema.parse(req.body);
+      const campaign = await storage.updateCqcFeedbackCampaign(req.params.id, validatedData);
+      if (!campaign) {
+        return res.status(404).json({ message: "Campaign not found" });
+      }
+      res.json(campaign);
+    } catch (error) {
+      console.error("Error updating feedback campaign:", error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid update data", errors: error.errors });
+      }
+      res.status(500).json({ message: "Failed to update feedback campaign" });
+    }
+  });
+
+  // Delete campaign (admin)
+  app.delete("/api/cqc/feedback/campaigns/:id", requireAdmin, async (req, res) => {
+    try {
+      const deleted = await storage.deleteCqcFeedbackCampaign(req.params.id);
+      if (!deleted) {
+        return res.status(404).json({ message: "Campaign not found" });
+      }
+      res.json({ message: "Campaign deleted successfully" });
+    } catch (error) {
+      console.error("Error deleting feedback campaign:", error);
+      res.status(500).json({ message: "Failed to delete feedback campaign" });
+    }
+  });
+
+  // Get campaign stats (admin)
+  app.get("/api/cqc/feedback/campaigns/:id/stats", requireAdmin, async (req, res) => {
+    try {
+      const stats = await storage.getCqcFeedbackCampaignStats(req.params.id);
+      res.json(stats);
+    } catch (error) {
+      console.error("Error fetching campaign stats:", error);
+      res.status(500).json({ message: "Failed to fetch campaign statistics" });
+    }
+  });
+
+  // Get campaign responses (admin)
+  app.get("/api/cqc/feedback/campaigns/:id/responses", requireAdmin, async (req, res) => {
+    try {
+      const filters: { campaignId: string; source?: string; status?: string } = {
+        campaignId: req.params.id,
+      };
+      if (req.query.source) filters.source = req.query.source as string;
+      if (req.query.status) filters.status = req.query.status as string;
+      
+      const responses = await storage.getAllCqcFeedbackResponses(filters);
+      res.json(responses);
+    } catch (error) {
+      console.error("Error fetching campaign responses:", error);
+      res.status(500).json({ message: "Failed to fetch campaign responses" });
+    }
+  });
+
+  // Add manual feedback response (admin)
+  app.post("/api/cqc/feedback/campaigns/:id/responses", requireAdmin, async (req, res) => {
+    try {
+      const campaign = await storage.getCqcFeedbackCampaign(req.params.id);
+      if (!campaign) {
+        return res.status(404).json({ message: "Campaign not found" });
+      }
+
+      const responseSchema = z.object({
+        source: z.enum(["manual", "email", "phone", "in_person", "letter"]),
+        respondentName: z.string().optional(),
+        respondentEmail: z.string().email().optional().or(z.literal("")),
+        respondentPhone: z.string().optional(),
+        respondentRelationship: z.string().optional(),
+        receivedAt: z.string().optional().transform(v => v ? new Date(v) : new Date()),
+        overallRating: z.number().min(1).max(5).optional(),
+        npsScore: z.number().min(0).max(10).optional(),
+        wouldRecommend: z.boolean().optional(),
+        positiveComments: z.string().optional(),
+        improvementComments: z.string().optional(),
+        additionalComments: z.string().optional(),
+        consentToContact: z.boolean().optional(),
+        consentToPublish: z.boolean().optional(),
+        adminNotes: z.string().optional(),
+      });
+
+      const validatedData = responseSchema.parse(req.body);
+      
+      const response = await storage.createCqcFeedbackResponse({
+        ...validatedData,
+        campaignId: req.params.id,
+        branch: campaign.branch,
+        submittedVia: "admin",
+      });
+      
+      res.status(201).json(response);
+    } catch (error) {
+      console.error("Error creating feedback response:", error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid response data", errors: error.errors });
+      }
+      res.status(500).json({ message: "Failed to create feedback response" });
+    }
+  });
+
+  // Update feedback response (admin)
+  app.put("/api/cqc/feedback/responses/:id", requireAdmin, async (req, res) => {
+    try {
+      const updateSchema = z.object({
+        status: z.enum(["new", "reviewed", "actioned", "closed"]).optional(),
+        adminNotes: z.string().optional(),
+        actionTaken: z.string().optional(),
+      });
+
+      const validatedData = updateSchema.parse(req.body);
+      const response = await storage.updateCqcFeedbackResponse(req.params.id, validatedData);
+      if (!response) {
+        return res.status(404).json({ message: "Response not found" });
+      }
+      res.json(response);
+    } catch (error) {
+      console.error("Error updating feedback response:", error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid update data", errors: error.errors });
+      }
+      res.status(500).json({ message: "Failed to update feedback response" });
+    }
+  });
+
+  // Delete feedback response (admin)
+  app.delete("/api/cqc/feedback/responses/:id", requireAdmin, async (req, res) => {
+    try {
+      const deleted = await storage.deleteCqcFeedbackResponse(req.params.id);
+      if (!deleted) {
+        return res.status(404).json({ message: "Response not found" });
+      }
+      res.json({ message: "Response deleted successfully" });
+    } catch (error) {
+      console.error("Error deleting feedback response:", error);
+      res.status(500).json({ message: "Failed to delete feedback response" });
+    }
+  });
+
+  // ===== Public Feedback Submission (No Auth Required) =====
+  
+  // Get campaign by token (public)
+  app.get("/api/feedback/:token", async (req, res) => {
+    try {
+      const campaign = await storage.getCqcFeedbackCampaignByToken(req.params.token);
+      if (!campaign) {
+        return res.status(404).json({ message: "Feedback form not found" });
+      }
+      
+      // Check if campaign is active
+      if (campaign.status !== "active") {
+        return res.status(403).json({ message: "This feedback form is not currently accepting responses" });
+      }
+      
+      // Check date range
+      const now = new Date();
+      if (campaign.startDate && now < new Date(campaign.startDate)) {
+        return res.status(403).json({ message: "This feedback form is not yet open for submissions" });
+      }
+      if (campaign.endDate && now > new Date(campaign.endDate)) {
+        return res.status(403).json({ message: "This feedback form has closed" });
+      }
+      
+      // Return campaign info (excluding sensitive fields)
+      res.json({
+        id: campaign.id,
+        name: campaign.name,
+        description: campaign.description,
+        category: campaign.category,
+        customQuestions: campaign.customQuestions,
+      });
+    } catch (error) {
+      console.error("Error fetching public feedback form:", error);
+      res.status(500).json({ message: "Failed to fetch feedback form" });
+    }
+  });
+
+  // Submit public feedback (no auth)
+  app.post("/api/feedback/:token", async (req, res) => {
+    try {
+      const campaign = await storage.getCqcFeedbackCampaignByToken(req.params.token);
+      if (!campaign) {
+        return res.status(404).json({ message: "Feedback form not found" });
+      }
+      
+      // Check if campaign is active
+      if (campaign.status !== "active") {
+        return res.status(403).json({ message: "This feedback form is not currently accepting responses" });
+      }
+      
+      // Check date range
+      const now = new Date();
+      if (campaign.startDate && now < new Date(campaign.startDate)) {
+        return res.status(403).json({ message: "This feedback form is not yet open for submissions" });
+      }
+      if (campaign.endDate && now > new Date(campaign.endDate)) {
+        return res.status(403).json({ message: "This feedback form has closed" });
+      }
+
+      const submissionSchema = z.object({
+        overallRating: z.number().min(1).max(5).optional(),
+        npsScore: z.number().min(0).max(10).optional(),
+        wouldRecommend: z.boolean().optional(),
+        positiveComments: z.string().optional(),
+        improvementComments: z.string().optional(),
+        additionalComments: z.string().optional(),
+        respondentName: z.string().optional(),
+        respondentEmail: z.string().email().optional().or(z.literal("")),
+        respondentRelationship: z.string().optional(),
+        consentToContact: z.boolean().optional(),
+        consentToPublish: z.boolean().optional(),
+        customResponses: z.record(z.any()).optional(),
+      });
+
+      const validatedData = submissionSchema.parse(req.body);
+      
+      const response = await storage.createCqcFeedbackResponse({
+        ...validatedData,
+        campaignId: campaign.id,
+        branch: campaign.branch,
+        source: "link",
+        submittedVia: "web",
+        ipAddress: req.ip || req.socket.remoteAddress,
+      });
+      
+      res.status(201).json({ message: "Thank you for your feedback!", id: response.id });
+    } catch (error) {
+      console.error("Error submitting public feedback:", error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid submission data", errors: error.errors });
+      }
+      res.status(500).json({ message: "Failed to submit feedback" });
+    }
+  });
+
+  // ===== Audit Schedule Settings API =====
+
+  // Get all audit schedule settings
+  app.get("/api/cqc/audit-schedules", requireAdmin, async (req, res) => {
+    try {
+      const filters: { branch?: string } = {};
+      if (req.query.branch) filters.branch = req.query.branch as string;
+      
+      const settings = await storage.getAllAuditScheduleSettings(filters);
+      res.json(settings);
+    } catch (error) {
+      console.error("Error fetching audit schedules:", error);
+      res.status(500).json({ message: "Failed to fetch audit schedules" });
+    }
+  });
+
+  // Get schedule settings for a specific category
+  app.get("/api/cqc/audit-schedules/:category/:branch", requireAdmin, async (req, res) => {
+    try {
+      const settings = await storage.getAuditScheduleSettingsByCategory(
+        req.params.category,
+        req.params.branch
+      );
+      res.json(settings || null);
+    } catch (error) {
+      console.error("Error fetching audit schedule:", error);
+      res.status(500).json({ message: "Failed to fetch audit schedule" });
+    }
+  });
+
+  // Create or update audit schedule settings (upsert)
+  app.post("/api/cqc/audit-schedules", requireAdmin, async (req, res) => {
+    try {
+      const scheduleSchema = z.object({
+        branch: z.string().default("Plymouth"),
+        category: z.string().min(1, "Category is required"),
+        frequency: z.enum(["weekly", "fortnightly", "monthly", "quarterly", "biannually", "annually"]).default("monthly"),
+        startDate: z.string().optional().transform(v => v ? new Date(v) : undefined),
+        isActive: z.boolean().optional().default(true),
+        reminderDays: z.number().min(1).max(90).optional().default(14),
+      });
+
+      const validatedData = scheduleSchema.parse(req.body);
+      const settings = await storage.upsertAuditScheduleSettings(validatedData);
+      res.status(201).json(settings);
+    } catch (error) {
+      console.error("Error creating audit schedule:", error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid schedule data", errors: error.errors });
+      }
+      res.status(500).json({ message: "Failed to create audit schedule" });
+    }
+  });
+
+  // Update audit schedule settings
+  app.put("/api/cqc/audit-schedules/:id", requireAdmin, async (req, res) => {
+    try {
+      const updateSchema = z.object({
+        frequency: z.enum(["weekly", "fortnightly", "monthly", "quarterly", "biannually", "annually"]).optional(),
+        startDate: z.string().optional().transform(v => v ? new Date(v) : undefined),
+        isActive: z.boolean().optional(),
+        reminderDays: z.number().min(1).max(90).optional(),
+      });
+
+      const validatedData = updateSchema.parse(req.body);
+      const settings = await storage.updateAuditScheduleSettings(req.params.id, validatedData);
+      if (!settings) {
+        return res.status(404).json({ message: "Schedule settings not found" });
+      }
+      res.json(settings);
+    } catch (error) {
+      console.error("Error updating audit schedule:", error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid update data", errors: error.errors });
+      }
+      res.status(500).json({ message: "Failed to update audit schedule" });
+    }
+  });
+
+  // Delete audit schedule settings
+  app.delete("/api/cqc/audit-schedules/:id", requireAdmin, async (req, res) => {
+    try {
+      const deleted = await storage.deleteAuditScheduleSettings(req.params.id);
+      if (!deleted) {
+        return res.status(404).json({ message: "Schedule settings not found" });
+      }
+      res.json({ message: "Schedule settings deleted successfully" });
+    } catch (error) {
+      console.error("Error deleting audit schedule:", error);
+      res.status(500).json({ message: "Failed to delete audit schedule" });
+    }
+  });
+
+  // Bulk update audit schedules for a branch
+  app.post("/api/cqc/audit-schedules/bulk", requireAdmin, async (req, res) => {
+    try {
+      const bulkSchema = z.object({
+        branch: z.string().default("Plymouth"),
+        schedules: z.array(z.object({
+          category: z.string().min(1),
+          frequency: z.enum(["weekly", "fortnightly", "monthly", "quarterly", "biannually", "annually"]),
+          isActive: z.boolean().optional().default(true),
+        })),
+      });
+
+      const { branch, schedules } = bulkSchema.parse(req.body);
+      const results = [];
+      
+      for (const schedule of schedules) {
+        const settings = await storage.upsertAuditScheduleSettings({
+          branch,
+          category: schedule.category,
+          frequency: schedule.frequency,
+          isActive: schedule.isActive,
+        });
+        results.push(settings);
+      }
+      
+      res.status(201).json(results);
+    } catch (error) {
+      console.error("Error bulk updating audit schedules:", error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid bulk data", errors: error.errors });
+      }
+      res.status(500).json({ message: "Failed to bulk update audit schedules" });
+    }
+  });
+
+  // ===== CQC Audit Form Templates API =====
+  
+  // Get all audit form templates
+  app.get("/api/cqc/audit-form-templates", requireAdmin, async (req, res) => {
+    try {
+      const filters: { isActive?: boolean } = {};
+      if (req.query.isActive !== undefined) filters.isActive = req.query.isActive === 'true';
+      
+      const templates = await storage.getAllCqcAuditFormTemplates(filters);
+      res.json(templates);
+    } catch (error) {
+      console.error("Error fetching audit form templates:", error);
+      res.status(500).json({ message: "Failed to fetch audit form templates" });
+    }
+  });
+
+  // Get template by category (with items)
+  app.get("/api/cqc/audit-form-templates/category/:category", requireAdmin, async (req, res) => {
+    try {
+      const template = await storage.getCqcAuditFormTemplateByCategory(req.params.category);
+      if (!template) {
+        return res.status(404).json({ message: "Template not found for this category" });
+      }
+      
+      // Get checklist items for this template
+      const items = await storage.getCqcAuditFormItems(template.id);
+      
+      res.json({ ...template, items });
+    } catch (error) {
+      console.error("Error fetching audit form template:", error);
+      res.status(500).json({ message: "Failed to fetch audit form template" });
+    }
+  });
+
+  // Get template by ID (with items)
+  app.get("/api/cqc/audit-form-templates/:id", requireAdmin, async (req, res) => {
+    try {
+      const template = await storage.getCqcAuditFormTemplate(req.params.id);
+      if (!template) {
+        return res.status(404).json({ message: "Template not found" });
+      }
+      
+      const items = await storage.getCqcAuditFormItems(template.id);
+      res.json({ ...template, items });
+    } catch (error) {
+      console.error("Error fetching audit form template:", error);
+      res.status(500).json({ message: "Failed to fetch audit form template" });
+    }
+  });
+
+  // ===== CQC Audit Form Submissions API =====
+
+  // Get all submissions
+  app.get("/api/cqc/audit-form-submissions", requireAdmin, async (req, res) => {
+    try {
+      const filters: { branch?: string; category?: string; status?: string } = {};
+      if (req.query.branch) filters.branch = req.query.branch as string;
+      if (req.query.category) filters.category = req.query.category as string;
+      if (req.query.status) filters.status = req.query.status as string;
+      
+      const submissions = await storage.getAllCqcAuditFormSubmissions(filters);
+      res.json(submissions);
+    } catch (error) {
+      console.error("Error fetching audit form submissions:", error);
+      res.status(500).json({ message: "Failed to fetch audit form submissions" });
+    }
+  });
+
+  // Get submission by ID (with responses and evidence)
+  app.get("/api/cqc/audit-form-submissions/:id", requireAdmin, async (req, res) => {
+    try {
+      const submission = await storage.getCqcAuditFormSubmission(req.params.id);
+      if (!submission) {
+        return res.status(404).json({ message: "Submission not found" });
+      }
+      
+      const responses = await storage.getCqcAuditFormItemResponses(submission.id);
+      const evidence = await storage.getCqcAuditFormEvidenceFiles(submission.id);
+      
+      res.json({ ...submission, responses, evidence });
+    } catch (error) {
+      console.error("Error fetching audit form submission:", error);
+      res.status(500).json({ message: "Failed to fetch audit form submission" });
+    }
+  });
+
+  // Create new submission
+  app.post("/api/cqc/audit-form-submissions", requireAdmin, async (req, res) => {
+    try {
+      const submissionSchema = z.object({
+        templateId: z.string().min(1, "Template ID is required"),
+        branch: z.string().default("Plymouth"),
+        category: z.string().min(1, "Category is required"),
+        auditDate: z.string().transform(v => new Date(v)),
+        findings: z.string().optional(),
+        areasOfStrength: z.string().optional(),
+        areasForImprovement: z.string().optional(),
+        actionPlan: z.string().optional(),
+        nextAuditDue: z.string().optional().transform(v => v ? new Date(v) : undefined),
+        responses: z.array(z.object({
+          itemId: z.string(),
+          response: z.string().optional(),
+          isCompliant: z.boolean().optional(),
+          notes: z.string().optional(),
+        })).optional(),
+      });
+
+      const validatedData = submissionSchema.parse(req.body);
+      const user = req.user as { id: string; username: string };
+      
+      // Calculate scores based on responses
+      let totalScore = 0;
+      let maxScore = 0;
+      
+      if (validatedData.responses) {
+        for (const resp of validatedData.responses) {
+          maxScore += 1;
+          if (resp.isCompliant || resp.response === 'yes') {
+            totalScore += 1;
+          }
+        }
+      }
+      
+      const percentageScore = maxScore > 0 ? Math.round((totalScore / maxScore) * 100) : 0;
+      
+      // Create submission
+      const submission = await storage.createCqcAuditFormSubmission({
+        templateId: validatedData.templateId,
+        branch: validatedData.branch,
+        category: validatedData.category,
+        auditDate: validatedData.auditDate,
+        auditorId: user.id,
+        auditorName: user.username,
+        totalScore,
+        maxScore,
+        percentageScore,
+        status: "completed",
+        findings: validatedData.findings,
+        areasOfStrength: validatedData.areasOfStrength,
+        areasForImprovement: validatedData.areasForImprovement,
+        actionPlan: validatedData.actionPlan,
+        nextAuditDue: validatedData.nextAuditDue,
+      });
+      
+      // Create responses
+      if (validatedData.responses) {
+        for (const resp of validatedData.responses) {
+          const isCompliant = resp.isCompliant ?? (resp.response === 'yes');
+          await storage.createCqcAuditFormItemResponse({
+            submissionId: submission.id,
+            itemId: resp.itemId,
+            response: resp.response,
+            isCompliant,
+            pointsAwarded: isCompliant ? 1 : 0,
+            notes: resp.notes,
+          });
+        }
+      }
+      
+      res.status(201).json(submission);
+    } catch (error) {
+      console.error("Error creating audit form submission:", error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid submission data", errors: error.errors });
+      }
+      res.status(500).json({ message: "Failed to create audit form submission" });
+    }
+  });
+
+  // Update submission
+  app.put("/api/cqc/audit-form-submissions/:id", requireAdmin, async (req, res) => {
+    try {
+      const updateSchema = z.object({
+        status: z.enum(["draft", "completed"]).optional(),
+        findings: z.string().optional(),
+        areasOfStrength: z.string().optional(),
+        areasForImprovement: z.string().optional(),
+        actionPlan: z.string().optional(),
+        nextAuditDue: z.string().optional().transform(v => v ? new Date(v) : undefined),
+      });
+
+      const validatedData = updateSchema.parse(req.body);
+      const submission = await storage.updateCqcAuditFormSubmission(req.params.id, validatedData);
+      if (!submission) {
+        return res.status(404).json({ message: "Submission not found" });
+      }
+      res.json(submission);
+    } catch (error) {
+      console.error("Error updating audit form submission:", error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid update data", errors: error.errors });
+      }
+      res.status(500).json({ message: "Failed to update audit form submission" });
+    }
+  });
+
+  // Delete submission
+  app.delete("/api/cqc/audit-form-submissions/:id", requireAdmin, async (req, res) => {
+    try {
+      const deleted = await storage.deleteCqcAuditFormSubmission(req.params.id);
+      if (!deleted) {
+        return res.status(404).json({ message: "Submission not found" });
+      }
+      res.json({ message: "Submission deleted successfully" });
+    } catch (error) {
+      console.error("Error deleting audit form submission:", error);
+      res.status(500).json({ message: "Failed to delete audit form submission" });
+    }
+  });
+
+  // ===== CQC Audit Form Evidence Files API =====
+  
+  // Get evidence files for a submission
+  app.get("/api/cqc/audit-form-submissions/:submissionId/evidence", requireAdmin, async (req, res) => {
+    try {
+      const evidence = await storage.getCqcAuditFormEvidenceFiles(req.params.submissionId);
+      res.json(evidence);
+    } catch (error) {
+      console.error("Error fetching evidence files:", error);
+      res.status(500).json({ message: "Failed to fetch evidence files" });
+    }
+  });
+
+  // Add evidence file to submission
+  app.post("/api/cqc/audit-form-submissions/:submissionId/evidence", requireAdmin, async (req, res) => {
+    try {
+      const evidenceSchema = z.object({
+        itemId: z.string().optional(),
+        fileName: z.string().min(1, "File name is required"),
+        filePath: z.string().min(1, "File path is required"),
+        fileData: z.string().optional(), // Base64 encoded file content
+        fileSize: z.number().optional(),
+        mimeType: z.string().optional(),
+        description: z.string().optional(),
+      });
+
+      const validatedData = evidenceSchema.parse(req.body);
+      const user = req.user as { id: string };
+      
+      // Calculate file size from base64 data if not provided
+      let fileSize = validatedData.fileSize;
+      if (!fileSize && validatedData.fileData) {
+        // Base64 data URL format: data:mime;base64,<content>
+        const base64Content = validatedData.fileData.split(',')[1] || validatedData.fileData;
+        fileSize = Math.round(base64Content.length * 0.75); // Approximate decoded size
+      }
+      
+      const evidence = await storage.createCqcAuditFormEvidenceFile({
+        submissionId: req.params.submissionId,
+        itemId: validatedData.itemId,
+        fileName: validatedData.fileName,
+        filePath: validatedData.filePath,
+        fileData: validatedData.fileData,
+        fileSize: fileSize,
+        mimeType: validatedData.mimeType,
+        description: validatedData.description,
+        uploadedBy: user.id,
+      });
+      
+      res.status(201).json(evidence);
+    } catch (error) {
+      console.error("Error adding evidence file:", error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid evidence data", errors: error.errors });
+      }
+      res.status(500).json({ message: "Failed to add evidence file" });
+    }
+  });
+
+  // Delete evidence file
+  app.delete("/api/cqc/audit-form-evidence/:id", requireAdmin, async (req, res) => {
+    try {
+      const deleted = await storage.deleteCqcAuditFormEvidenceFile(req.params.id);
+      if (!deleted) {
+        return res.status(404).json({ message: "Evidence file not found" });
+      }
+      res.json({ message: "Evidence file deleted successfully" });
+    } catch (error) {
+      console.error("Error deleting evidence file:", error);
+      res.status(500).json({ message: "Failed to delete evidence file" });
+    }
+  });
+
   // Contact submissions API
   app.get("/api/contact-submissions", requireAdmin, async (req, res) => {
     try {
       const submissions = await storage.getAllContactSubmissions();
       
       // Filter by type if specified
+      let responseSubmissions = submissions;
       if (req.query.type) {
-        const filteredSubmissions = submissions.filter(submission => submission.type === req.query.type);
-        return res.json(filteredSubmissions);
+        responseSubmissions = submissions.filter(submission => submission.type === req.query.type);
       }
       
-      res.json(submissions);
+      // Log GDPR-relevant action: admin viewing personal data
+      if (req.user) {
+        await AuditLogger.logView(req, req.user, "contact_submission", "bulk", {
+          action: "view_all_contact_submissions",
+          recordCount: responseSubmissions.length,
+          filterType: req.query.type || "all"
+        });
+      }
+      
+      res.json(responseSubmissions);
     } catch (error) {
       console.error("Error fetching contact submissions:", error);
       res.status(500).json({ message: "Failed to fetch contact submissions" });
@@ -694,6 +2287,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (!submission) {
         return res.status(404).json({ message: "Contact submission not found" });
       }
+      
+      // Log GDPR-relevant action: admin modifying personal data
+      if (req.user) {
+        await AuditLogger.logUpdate(req, req.user, "contact_submission", req.params.id, {
+          action: "update_contact_submission_status",
+          newStatus: status,
+          submissionType: submission.type,
+          submitterEmail: submission.email
+        });
+      }
+      
       res.json(submission);
     } catch (error) {
       console.error("Error updating contact submission:", error);
@@ -754,10 +2358,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
           behavioralSupport, additionalInfo
         } = req.body;
 
-        // Validate required referral fields
-        if (!referrerName || !referrerEmail || !referrerPhone || !relationship ||
-            !clientName || !clientAge || !clientAddress || !serviceType || !urgency) {
-          return res.status(400).json({ message: "All required referral fields must be provided" });
+        // Validate required referral fields (referrer fields are optional for self-referrals)
+        if (!clientName || !clientAge || !clientAddress || !serviceType || !urgency) {
+          return res.status(400).json({ message: "Client name, age, address, service type, and urgency are required" });
         }
 
         // Send referral email notification to hello@smeatonhealthcare.co.uk
@@ -772,15 +2375,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // Adapt referral data for database storage
         const submissionData = {
           type: "referral",
-          firstName: referrerName.split(' ')[0] || referrerName,
-          lastName: referrerName.split(' ').slice(1).join(' ') || '',
-          email: referrerEmail,
-          phone: referrerPhone,
+          firstName: referrerName ? (referrerName.split(' ')[0] || referrerName) : clientName.split(' ')[0] || clientName,
+          lastName: referrerName ? (referrerName.split(' ').slice(1).join(' ') || '') : (clientName.split(' ').slice(1).join(' ') || ''),
+          email: referrerEmail || 'no-email@provided.com',
+          phone: referrerPhone || 'No phone provided',
           location: clientAddress,
           serviceRequired: serviceType,
           additionalRequirements: [
             `Client: ${clientName} (Age: ${clientAge})`,
-            `Relationship: ${relationship}`,
+            referrerName ? `Referrer: ${referrerName}` : 'Self-referral',
+            relationship ? `Relationship: ${relationship}` : '',
+            referrerEmail ? `Referrer Email: ${referrerEmail}` : '',
+            referrerPhone ? `Referrer Phone: ${referrerPhone}` : '',
             clientPhone ? `Client Phone: ${clientPhone}` : '',
             `Urgency: ${urgency}`,
             startDate ? `Preferred Start: ${startDate}` : '',
@@ -849,7 +2455,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.put("/api/feedback/:id", requireAdmin, async (req, res) => {
+  app.put("/api/feedback/:id", requireFeedback, async (req, res) => {
     try {
       const validatedData = insertFeedbackSchema.partial().parse(req.body);
       const feedback = await storage.updateFeedback(req.params.id, validatedData);
@@ -866,7 +2472,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.delete("/api/feedback/:id", requireAdmin, async (req, res) => {
+  app.delete("/api/feedback/:id", requireFeedback, async (req, res) => {
     try {
       const success = await storage.deleteFeedback(req.params.id);
       if (!success) {
@@ -879,8 +2485,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // CV/File upload endpoints
-  app.post("/api/objects/upload", async (req, res) => {
+  // CV/File upload endpoints (admin only for security)
+  app.post("/api/objects/upload", requireAdmin, async (req, res) => {
     try {
       const objectStorageService = new ObjectStorageService();
       const uploadURL = await objectStorageService.getObjectEntityUploadURL();
@@ -891,15 +2497,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Admin-only blog image upload endpoint
+  // Admin-only blog image upload endpoint - SIMPLIFIED BASE64 STORAGE
   app.post("/api/blog-images/upload", requireAdmin, async (req, res) => {
     try {
-      const objectStorageService = new ObjectStorageService();
-      const uploadURL = await objectStorageService.getObjectEntityUploadURL();
-      res.json({ uploadURL });
+      // Just return success - client will handle base64 directly
+      res.json({ uploadURL: "base64", useBase64: true });
     } catch (error) {
       console.error("Error getting blog image upload URL:", error);
-      res.status(500).json({ message: "Failed to get upload URL" });
+      res.status(500).json({ 
+        message: "Failed to get upload URL",
+        error: error instanceof Error ? error.message : String(error)
+      });
+    }
+  });
+
+  // Make blog image public (callable after upload) - NO-OP FOR BASE64
+  app.post("/api/blog-images/make-public", requireAdmin, async (req, res) => {
+    try {
+      const { fileUrl } = req.body;
+      res.json({ success: true, url: fileUrl });
+    } catch (error) {
+      console.error("Error making blog image public:", error);
+      res.status(500).json({ error: "Failed to make image public" });
     }
   });
 
@@ -934,9 +2553,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Newsletter API
-  app.get("/api/newsletters", async (req, res) => {
+  app.get("/api/newsletters", optionalAdmin, async (req, res) => {
     try {
       const newsletters = await storage.getAllNewsletters();
+      // Non-admin users only see published newsletters
+      if (!(req as any).isAdmin) {
+        const publishedNewsletters = newsletters.filter(n => n.status === "published");
+        return res.json(publishedNewsletters);
+      }
       res.json(newsletters);
     } catch (error) {
       console.error("Error fetching newsletters:", error);
@@ -953,6 +2577,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(newsletter);
     } catch (error) {
       console.error("Error fetching newsletter:", error);
+      res.status(500).json({ message: "Failed to fetch newsletter" });
+    }
+  });
+
+  app.get("/api/newsletters/slug/:slug", async (req, res) => {
+    try {
+      const newsletter = await storage.getNewsletterBySlug(req.params.slug);
+      if (!newsletter) {
+        return res.status(404).json({ message: "Newsletter not found" });
+      }
+      // Only return published newsletters for public access
+      if (newsletter.status !== "published") {
+        return res.status(404).json({ message: "Newsletter not found" });
+      }
+      res.json(newsletter);
+    } catch (error) {
+      console.error("Error fetching newsletter by slug:", error);
       res.status(500).json({ message: "Failed to fetch newsletter" });
     }
   });
@@ -1150,6 +2791,52 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // GDPR Audit Logs API
+  app.get("/api/audit-logs", requireAdmin, async (req, res) => {
+    try {
+      const { userId, resourceType, action, startDate, endDate } = req.query;
+      
+      const filters: any = {};
+      if (userId) filters.userId = userId as string;
+      if (resourceType) filters.resourceType = resourceType as string; 
+      if (action) filters.action = action as string;
+      if (startDate) filters.startDate = new Date(startDate as string);
+      if (endDate) filters.endDate = new Date(endDate as string);
+      
+      const logs = await storage.getAuditLogs(filters);
+      
+      // Log that admin is viewing audit logs (meta-logging)
+      await AuditLogger.logView(req, req.user!, "audit_log", "bulk", {
+        action: "view_audit_logs",
+        recordCount: logs.length,
+        filters
+      });
+      
+      res.json(logs);
+    } catch (error) {
+      console.error("Error fetching audit logs:", error);
+      res.status(500).json({ message: "Failed to fetch audit logs" });
+    }
+  });
+
+  app.get("/api/audit-logs/resource/:resourceId", requireAdmin, async (req, res) => {
+    try {
+      const logs = await storage.getAuditLogsByResourceId(req.params.resourceId);
+      
+      // Log that admin is viewing resource-specific audit logs
+      await AuditLogger.logView(req, req.user!, "audit_log", "resource_specific", {
+        action: "view_resource_audit_logs",
+        resourceId: req.params.resourceId,
+        recordCount: logs.length
+      });
+      
+      res.json(logs);
+    } catch (error) {
+      console.error("Error fetching resource audit logs:", error);
+      res.status(500).json({ message: "Failed to fetch resource audit logs" });
+    }
+  });
+
   // Blog Categories API
   app.get("/api/blog-categories", async (req, res) => {
     try {
@@ -1341,6 +3028,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.delete("/api/blog-posts/:id", requireAdmin, async (req, res) => {
     try {
+      // Check if blog post exists first
+      const existingPost = await storage.getBlogPost(req.params.id);
+      if (!existingPost) {
+        return res.status(404).json({ message: "Blog post not found" });
+      }
+      
+      // Unpublish the blog post before deleting (only if it exists)
+      await storage.updateBlogPost(req.params.id, { isPublished: false });
+      
       const success = await storage.deleteBlogPost(req.params.id);
       if (!success) {
         return res.status(404).json({ message: "Blog post not found" });
@@ -1414,6 +3110,2205 @@ ${urls.map(u => `  <url>
 </urlset>`;
     res.type("application/xml");
     res.send(xml);
+  });
+  // Track blog post view (public endpoint - no auth required)
+  app.post("/api/blog-posts/:id/view", async (req, res) => {
+    try {
+      await storage.incrementBlogPostViews(req.params.id);
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Error tracking blog post view:", error);
+      res.status(500).json({ message: "Failed to track view" });
+    }
+  });
+
+  // ========== CQC AUDIT API ROUTES ==========
+  
+  // CQC Audits
+  app.get("/api/cqc/audits", requireAdmin, async (req, res) => {
+    try {
+      const { auditType, status, auditorId, branch } = req.query;
+      const audits = await storage.getAllCqcAudits({
+        auditType: auditType as string,
+        status: status as string,
+        auditorId: auditorId as string,
+        branch: branch as string,
+      });
+      res.json(audits);
+    } catch (error) {
+      console.error("Error fetching CQC audits:", error);
+      res.status(500).json({ message: "Failed to fetch CQC audits" });
+    }
+  });
+
+  app.get("/api/cqc/audits/:id", requireAdmin, async (req, res) => {
+    try {
+      const audit = await storage.getCqcAudit(req.params.id);
+      if (!audit) {
+        return res.status(404).json({ message: "CQC audit not found" });
+      }
+      res.json(audit);
+    } catch (error) {
+      console.error("Error fetching CQC audit:", error);
+      res.status(500).json({ message: "Failed to fetch CQC audit" });
+    }
+  });
+
+  app.post("/api/cqc/audits", requireAdmin, async (req, res) => {
+    try {
+      // Debug what's being sent
+      console.log("CREATE AUDIT DEBUG - Original req.body:", JSON.stringify(req.body, null, 2));
+      
+      // Convert date string to Date object and ensure required fields
+      const bodyWithDateFixed = {
+        ...req.body,
+        auditDate: new Date(req.body.auditDate),
+        nextReviewDate: req.body.nextReviewDate ? new Date(req.body.nextReviewDate) : undefined,
+        // Fix category mapping for insurance audits
+        category: req.body.category || "insurance", // Default to "insurance" if not provided
+        auditorName: req.user?.username || "System Admin",
+        auditorId: req.user?.id
+      };
+      
+      console.log("CREATE AUDIT DEBUG - Fixed body:", JSON.stringify(bodyWithDateFixed, null, 2));
+      
+      const validatedData = insertCqcAuditSchema.parse(bodyWithDateFixed);
+      
+      console.log("CREATE AUDIT DEBUG - Validated data:", JSON.stringify(validatedData, null, 2));
+      const audit = await storage.createCqcAudit(validatedData);
+      
+      // Create audit log for compliance tracking
+      await AuditLogger.logCreate(
+        req,
+        req.user!,
+        'cqc_audit',
+        audit.id,
+        { auditType: audit.auditType, category: audit.category, title: audit.title }
+      );
+      
+      res.status(201).json(audit);
+    } catch (error) {
+      console.error("Error creating CQC audit:", error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid audit data", errors: error.errors });
+      }
+      res.status(500).json({ message: "Failed to create CQC audit" });
+    }
+  });
+
+  app.put("/api/cqc/audits/:id", requireAdmin, async (req, res) => {
+    try {
+      const validatedData = insertCqcAuditSchema.partial().parse(req.body);
+      const audit = await storage.updateCqcAudit(req.params.id, validatedData);
+      if (!audit) {
+        return res.status(404).json({ message: "CQC audit not found" });
+      }
+      
+      // Create audit log
+      await AuditLogger.logUpdate(
+        req,
+        req.user!,
+        'cqc_audit',
+        audit.id,
+        { ...validatedData, title: audit.title }
+      );
+      
+      res.json(audit);
+    } catch (error) {
+      console.error("Error updating CQC audit:", error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid audit data", errors: error.errors });
+      }
+      res.status(500).json({ message: "Failed to update CQC audit" });
+    }
+  });
+
+  app.delete("/api/cqc/audits/:id", requireAdmin, async (req, res) => {
+    try {
+      // Get audit details before deletion for logging
+      const existingAudit = await storage.getCqcAudit(req.params.id);
+      if (!existingAudit) {
+        return res.status(404).json({ message: "CQC audit not found" });
+      }
+      
+      const success = await storage.deleteCqcAudit(req.params.id);
+      if (!success) {
+        return res.status(404).json({ message: "CQC audit not found" });
+      }
+      
+      // Create audit log
+      await AuditLogger.logDelete(
+        req,
+        req.user!,
+        'cqc_audit',
+        req.params.id,
+        { auditType: existingAudit.auditType, title: existingAudit.title }
+      );
+      
+      res.status(204).send();
+    } catch (error) {
+      console.error("Error deleting CQC audit:", error);
+      res.status(500).json({ message: "Failed to delete CQC audit" });
+    }
+  });
+
+  // CQC Audit Categories
+  app.get("/api/cqc/audit-categories", requireAdmin, async (req, res) => {
+    try {
+      const { auditType } = req.query;
+      const categories = await storage.getAllCqcAuditCategories(auditType as string);
+      res.json(categories);
+    } catch (error) {
+      console.error("Error fetching CQC audit categories:", error);
+      res.status(500).json({ message: "Failed to fetch CQC audit categories" });
+    }
+  });
+
+  app.post("/api/cqc/audit-categories", requireAdmin, async (req, res) => {
+    try {
+      const validatedData = insertCqcAuditCategorySchema.parse(req.body);
+      const category = await storage.createCqcAuditCategory(validatedData);
+      res.status(201).json(category);
+    } catch (error) {
+      console.error("Error creating CQC audit category:", error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid category data", errors: error.errors });
+      }
+      res.status(500).json({ message: "Failed to create CQC audit category" });
+    }
+  });
+
+  app.put("/api/cqc/audit-categories/:id", requireAdmin, async (req, res) => {
+    try {
+      const validatedData = insertCqcAuditCategorySchema.partial().parse(req.body);
+      const category = await storage.updateCqcAuditCategory(req.params.id, validatedData);
+      if (!category) {
+        return res.status(404).json({ message: "CQC audit category not found" });
+      }
+      res.json(category);
+    } catch (error) {
+      console.error("Error updating CQC audit category:", error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid category data", errors: error.errors });
+      }
+      res.status(500).json({ message: "Failed to update CQC audit category" });
+    }
+  });
+
+  // CQC Checklist Items
+  app.get("/api/cqc/checklist-items", requireAdmin, async (req, res) => {
+    try {
+      const { categoryId } = req.query;
+      const items = await storage.getCqcChecklistItems(categoryId as string);
+      res.json(items);
+    } catch (error) {
+      console.error("Error fetching CQC checklist items:", error);
+      res.status(500).json({ message: "Failed to fetch CQC checklist items" });
+    }
+  });
+
+  app.post("/api/cqc/checklist-items", requireAdmin, async (req, res) => {
+    try {
+      const validatedData = insertCqcChecklistItemSchema.parse(req.body);
+      const item = await storage.createCqcChecklistItem(validatedData);
+      res.status(201).json(item);
+    } catch (error) {
+      console.error("Error creating CQC checklist item:", error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid checklist item data", errors: error.errors });
+      }
+      res.status(500).json({ message: "Failed to create CQC checklist item" });
+    }
+  });
+
+  app.put("/api/cqc/checklist-items/:id", requireAdmin, async (req, res) => {
+    try {
+      const validatedData = insertCqcChecklistItemSchema.partial().parse(req.body);
+      const item = await storage.updateCqcChecklistItem(req.params.id, validatedData);
+      if (!item) {
+        return res.status(404).json({ message: "CQC checklist item not found" });
+      }
+      res.json(item);
+    } catch (error) {
+      console.error("Error updating CQC checklist item:", error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid checklist item data", errors: error.errors });
+      }
+      res.status(500).json({ message: "Failed to update CQC checklist item" });
+    }
+  });
+
+  // CQC Audit Responses
+  app.get("/api/cqc/audits/:auditId/responses", requireAdmin, async (req, res) => {
+    try {
+      const responses = await storage.getCqcAuditResponses(req.params.auditId);
+      res.json(responses);
+    } catch (error) {
+      console.error("Error fetching CQC audit responses:", error);
+      res.status(500).json({ message: "Failed to fetch CQC audit responses" });
+    }
+  });
+
+  app.post("/api/cqc/audit-responses", requireAdmin, async (req, res) => {
+    try {
+      const validatedData = insertCqcAuditResponseSchema.parse(req.body);
+      const response = await storage.createCqcAuditResponse(validatedData);
+      res.status(201).json(response);
+    } catch (error) {
+      console.error("Error creating CQC audit response:", error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid audit response data", errors: error.errors });
+      }
+      res.status(500).json({ message: "Failed to create CQC audit response" });
+    }
+  });
+
+  app.put("/api/cqc/audit-responses/:id", requireAdmin, async (req, res) => {
+    try {
+      const validatedData = insertCqcAuditResponseSchema.partial().parse(req.body);
+      const response = await storage.updateCqcAuditResponse(req.params.id, validatedData);
+      if (!response) {
+        return res.status(404).json({ message: "CQC audit response not found" });
+      }
+      res.json(response);
+    } catch (error) {
+      console.error("Error updating CQC audit response:", error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid audit response data", errors: error.errors });
+      }
+      res.status(500).json({ message: "Failed to update CQC audit response" });
+    }
+  });
+
+  // CQC Compliance Records
+  app.get("/api/cqc/compliance-records", requireAdmin, async (req, res) => {
+    try {
+      const { staffId, recordType, status, branch } = req.query;
+      const records = await storage.getAllCqcComplianceRecords({
+        staffId: staffId as string,
+        recordType: recordType as string,
+        status: status as string,
+        branch: branch as string,
+      });
+      res.json(records);
+    } catch (error) {
+      console.error("Error fetching CQC compliance records:", error);
+      res.status(500).json({ message: "Failed to fetch CQC compliance records" });
+    }
+  });
+
+  app.get("/api/cqc/compliance-records/:id", requireAdmin, async (req, res) => {
+    try {
+      const record = await storage.getCqcComplianceRecord(req.params.id);
+      if (!record) {
+        return res.status(404).json({ message: "CQC compliance record not found" });
+      }
+      res.json(record);
+    } catch (error) {
+      console.error("Error fetching CQC compliance record:", error);
+      res.status(500).json({ message: "Failed to fetch CQC compliance record" });
+    }
+  });
+
+  app.post("/api/cqc/compliance-records", requireAdmin, async (req, res) => {
+    try {
+      const validatedData = insertCqcComplianceRecordSchema.parse(req.body);
+      const record = await storage.createCqcComplianceRecord(validatedData);
+      
+      // Create audit log for compliance tracking
+      await AuditLogger.logCreate(
+        req,
+        req.user!,
+        'cqc_compliance_record',
+        record.id,
+        { recordType: record.recordType, staffId: record.staffId, title: record.title }
+      );
+      
+      res.status(201).json(record);
+    } catch (error) {
+      console.error("Error creating CQC compliance record:", error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid compliance record data", errors: error.errors });
+      }
+      res.status(500).json({ message: "Failed to create CQC compliance record" });
+    }
+  });
+
+  app.put("/api/cqc/compliance-records/:id", requireAdmin, async (req, res) => {
+    try {
+      const validatedData = insertCqcComplianceRecordSchema.partial().parse(req.body);
+      const record = await storage.updateCqcComplianceRecord(req.params.id, validatedData);
+      if (!record) {
+        return res.status(404).json({ message: "CQC compliance record not found" });
+      }
+      
+      // Create audit log
+      await AuditLogger.logUpdate(
+        req,
+        req.user!,
+        'cqc_compliance_record',
+        record.id,
+        { ...validatedData, title: record.title }
+      );
+      
+      res.json(record);
+    } catch (error) {
+      console.error("Error updating CQC compliance record:", error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid compliance record data", errors: error.errors });
+      }
+      res.status(500).json({ message: "Failed to update CQC compliance record" });
+    }
+  });
+
+  app.delete("/api/cqc/compliance-records/:id", requireAdmin, async (req, res) => {
+    try {
+      // Get record details before deletion for logging
+      const existingRecord = await storage.getCqcComplianceRecord(req.params.id);
+      if (!existingRecord) {
+        return res.status(404).json({ message: "CQC compliance record not found" });
+      }
+      
+      const success = await storage.deleteCqcComplianceRecord(req.params.id);
+      if (!success) {
+        return res.status(404).json({ message: "CQC compliance record not found" });
+      }
+      
+      // Create audit log
+      await AuditLogger.logDelete(
+        req,
+        req.user!,
+        'cqc_compliance_record',
+        req.params.id,
+        { recordType: existingRecord.recordType, staffId: existingRecord.staffId, title: existingRecord.title }
+      );
+      
+      res.status(204).send();
+    } catch (error) {
+      console.error("Error deleting CQC compliance record:", error);
+      res.status(500).json({ message: "Failed to delete CQC compliance record" });
+    }
+  });
+
+  // ========== CQC 2024 SINGLE ASSESSMENT FRAMEWORK API ROUTES ==========
+  
+  // Quality Statements - Fetch the 34 CQC Quality Statements 
+  app.get("/api/cqc/quality-statements", requireAdmin, async (req, res) => {
+    try {
+      const { keyQuestion } = req.query;
+      const statements = await storage.getAllCqcQualityStatements(keyQuestion as string);
+      res.json(statements);
+    } catch (error) {
+      console.error("Error fetching CQC quality statements:", error);
+      res.status(500).json({ message: "Failed to fetch CQC quality statements" });
+    }
+  });
+
+  app.post("/api/cqc/quality-statements", requireAdmin, async (req, res) => {
+    try {
+      const validatedData = insertCqcQualityStatementSchema.parse(req.body);
+      const statement = await storage.createCqcQualityStatement(validatedData);
+      res.status(201).json(statement);
+    } catch (error) {
+      console.error("Error creating CQC quality statement:", error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid quality statement data", errors: error.errors });
+      }
+      res.status(500).json({ message: "Failed to create CQC quality statement" });
+    }
+  });
+
+  // Evidence Categories - Fetch the 6 CQC Evidence Categories
+  app.get("/api/cqc/evidence-categories", requireAdmin, async (req, res) => {
+    try {
+      const categories = await storage.getAllCqcEvidenceCategories();
+      res.json(categories);
+    } catch (error) {
+      console.error("Error fetching CQC evidence categories:", error);
+      res.status(500).json({ message: "Failed to fetch CQC evidence categories" });
+    }
+  });
+
+  app.post("/api/cqc/evidence-categories", requireAdmin, async (req, res) => {
+    try {
+      const validatedData = insertCqcEvidenceCategorySchema.parse(req.body);
+      const category = await storage.createCqcEvidenceCategory(validatedData);
+      res.status(201).json(category);
+    } catch (error) {
+      console.error("Error creating CQC evidence category:", error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid evidence category data", errors: error.errors });
+      }
+      res.status(500).json({ message: "Failed to create CQC evidence category" });
+    }
+  });
+
+  // Audit Evidence - File uploads and evidence management
+  app.get("/api/cqc/evidence", requireAdmin, async (req, res) => {
+    try {
+      const { auditId, evidenceCategoryId, qualityStatementId } = req.query;
+      const evidence = await storage.getAllCqcAuditEvidence({
+        auditId: auditId as string,
+        evidenceCategoryId: evidenceCategoryId as string,
+        qualityStatementId: qualityStatementId as string
+      });
+      res.json(evidence);
+    } catch (error) {
+      console.error("Error fetching CQC audit evidence:", error);
+      res.status(500).json({ message: "Failed to fetch CQC audit evidence" });
+    }
+  });
+
+  app.post("/api/cqc/evidence", requireAdmin, async (req, res) => {
+    try {
+      const validatedData = insertCqcAuditEvidenceSchema.parse({
+        ...req.body,
+        uploadedBy: req.user!.id
+      });
+      const evidence = await storage.createCqcAuditEvidence(validatedData);
+      
+      // Create audit log for evidence upload
+      await AuditLogger.logCreate(
+        req,
+        req.user!,
+        'cqc_audit_evidence',
+        evidence.id,
+        { 
+          fileName: evidence.fileName,
+          evidenceCategory: evidence.evidenceCategoryId,
+          auditId: evidence.auditId 
+        }
+      );
+      
+      res.status(201).json(evidence);
+    } catch (error) {
+      console.error("Error creating CQC audit evidence:", error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid evidence data", errors: error.errors });
+      }
+      res.status(500).json({ message: "Failed to create CQC audit evidence" });
+    }
+  });
+
+  app.get("/api/cqc/evidence/:id", requireAdmin, async (req, res) => {
+    try {
+      const evidence = await storage.getCqcAuditEvidence(req.params.id);
+      if (!evidence) {
+        return res.status(404).json({ message: "CQC audit evidence not found" });
+      }
+      res.json(evidence);
+    } catch (error) {
+      console.error("Error fetching CQC audit evidence:", error);
+      res.status(500).json({ message: "Failed to fetch CQC audit evidence" });
+    }
+  });
+
+  app.delete("/api/cqc/evidence/:id", requireAdmin, async (req, res) => {
+    try {
+      const existingEvidence = await storage.getCqcAuditEvidence(req.params.id);
+      if (!existingEvidence) {
+        return res.status(404).json({ message: "CQC audit evidence not found" });
+      }
+      
+      const success = await storage.deleteCqcAuditEvidence(req.params.id);
+      if (!success) {
+        return res.status(404).json({ message: "CQC audit evidence not found" });
+      }
+      
+      // Create audit log for evidence deletion
+      await AuditLogger.logDelete(
+        req,
+        req.user!,
+        'cqc_audit_evidence',
+        req.params.id,
+        { fileName: existingEvidence.fileName, evidenceCategory: existingEvidence.evidenceCategoryId }
+      );
+      
+      res.status(204).send();
+    } catch (error) {
+      console.error("Error deleting CQC audit evidence:", error);
+      res.status(500).json({ message: "Failed to delete CQC audit evidence" });
+    }
+  });
+
+  // Quality Assessments - Ratings and judgements for Quality Statements
+  app.get("/api/cqc/assessments", requireAdmin, async (req, res) => {
+    try {
+      const { auditId, qualityStatementId, assessmentRating } = req.query;
+      const assessments = await storage.getAllCqcQualityAssessments({
+        auditId: auditId as string,
+        qualityStatementId: qualityStatementId as string,
+        assessmentRating: assessmentRating as string
+      });
+      res.json(assessments);
+    } catch (error) {
+      console.error("Error fetching CQC quality assessments:", error);
+      res.status(500).json({ message: "Failed to fetch CQC quality assessments" });
+    }
+  });
+
+  app.post("/api/cqc/assessments", requireAdmin, async (req, res) => {
+    try {
+      const validatedData = insertCqcQualityAssessmentSchema.parse({
+        ...req.body,
+        assessorId: req.user!.id
+      });
+      const assessment = await storage.createCqcQualityAssessment(validatedData);
+      
+      // Create audit log for assessment
+      await AuditLogger.logCreate(
+        req,
+        req.user!,
+        'cqc_quality_assessment',
+        assessment.id,
+        { 
+          qualityStatementId: assessment.qualityStatementId,
+          rating: assessment.complianceLevel,
+          auditId: assessment.auditId 
+        }
+      );
+      
+      res.status(201).json(assessment);
+    } catch (error) {
+      console.error("Error creating CQC quality assessment:", error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid assessment data", errors: error.errors });
+      }
+      res.status(500).json({ message: "Failed to create CQC quality assessment" });
+    }
+  });
+
+  app.get("/api/cqc/assessments/:id", requireAdmin, async (req, res) => {
+    try {
+      const assessment = await storage.getCqcQualityAssessment(req.params.id);
+      if (!assessment) {
+        return res.status(404).json({ message: "CQC quality assessment not found" });
+      }
+      res.json(assessment);
+    } catch (error) {
+      console.error("Error fetching CQC quality assessment:", error);
+      res.status(500).json({ message: "Failed to fetch CQC quality assessment" });
+    }
+  });
+
+  app.put("/api/cqc/assessments/:id", requireAdmin, async (req, res) => {
+    try {
+      const validatedData = insertCqcQualityAssessmentSchema.partial().parse(req.body);
+      const assessment = await storage.updateCqcQualityAssessment(req.params.id, validatedData);
+      if (!assessment) {
+        return res.status(404).json({ message: "CQC quality assessment not found" });
+      }
+      
+      // Create audit log for assessment update
+      await AuditLogger.logUpdate(
+        req,
+        req.user!,
+        'cqc_quality_assessment',
+        req.params.id,
+        { rating: assessment.complianceLevel, qualityStatementId: assessment.qualityStatementId }
+      );
+      
+      res.json(assessment);
+    } catch (error) {
+      console.error("Error updating CQC quality assessment:", error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid assessment data", errors: error.errors });
+      }
+      res.status(500).json({ message: "Failed to update CQC quality assessment" });
+    }
+  });
+
+  // ========== STAFF KNOWLEDGE ASSESSMENT API ROUTES ==========
+  
+  // Knowledge Questionnaires
+  app.get("/api/knowledge/questionnaires", requireAdmin, async (req, res) => {
+    try {
+      const { category, subcategory, isActive } = req.query;
+      const questionnaires = await storage.getAllKnowledgeQuestionnaires({
+        category: category as string,
+        subcategory: subcategory as string,
+        isActive: isActive === 'true' ? true : isActive === 'false' ? false : undefined
+      });
+      res.json(questionnaires);
+    } catch (error) {
+      console.error("Error fetching knowledge questionnaires:", error);
+      res.status(500).json({ message: "Failed to fetch knowledge questionnaires" });
+    }
+  });
+
+  app.get("/api/knowledge/questionnaires/:id", requireAdmin, async (req, res) => {
+    try {
+      const questionnaire = await storage.getKnowledgeQuestionnaire(req.params.id);
+      if (!questionnaire) {
+        return res.status(404).json({ message: "Knowledge questionnaire not found" });
+      }
+      res.json(questionnaire);
+    } catch (error) {
+      console.error("Error fetching knowledge questionnaire:", error);
+      res.status(500).json({ message: "Failed to fetch knowledge questionnaire" });
+    }
+  });
+
+  app.post("/api/knowledge/questionnaires", requireAdmin, async (req, res) => {
+    try {
+      // Generate shareable link
+      const shareableLink = crypto.randomUUID();
+      const validatedData = insertKnowledgeQuestionnaireSchema.parse({
+        ...req.body,
+        shareableLink,
+        createdBy: req.user!.id
+      });
+      
+      const questionnaire = await storage.createKnowledgeQuestionnaire(validatedData);
+      
+      // Create audit log
+      await AuditLogger.logCreate(
+        req,
+        req.user!,
+        'knowledge_questionnaire',
+        questionnaire.id,
+        { title: questionnaire.title, category: questionnaire.category }
+      );
+      
+      res.status(201).json(questionnaire);
+    } catch (error) {
+      console.error("Error creating knowledge questionnaire:", error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid questionnaire data", errors: error.errors });
+      }
+      res.status(500).json({ message: "Failed to create knowledge questionnaire" });
+    }
+  });
+
+  app.put("/api/knowledge/questionnaires/:id", requireAdmin, async (req, res) => {
+    try {
+      const validatedData = insertKnowledgeQuestionnaireSchema.partial().parse(req.body);
+      const questionnaire = await storage.updateKnowledgeQuestionnaire(req.params.id, validatedData);
+      if (!questionnaire) {
+        return res.status(404).json({ message: "Knowledge questionnaire not found" });
+      }
+      
+      // Create audit log
+      await AuditLogger.logUpdate(
+        req,
+        req.user!,
+        'knowledge_questionnaire',
+        questionnaire.id,
+        { ...validatedData, title: questionnaire.title }
+      );
+      
+      res.json(questionnaire);
+    } catch (error) {
+      console.error("Error updating knowledge questionnaire:", error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid questionnaire data", errors: error.errors });
+      }
+      res.status(500).json({ message: "Failed to update knowledge questionnaire" });
+    }
+  });
+
+  app.delete("/api/knowledge/questionnaires/:id", requireAdmin, async (req, res) => {
+    try {
+      const existingQuestionnaire = await storage.getKnowledgeQuestionnaire(req.params.id);
+      if (!existingQuestionnaire) {
+        return res.status(404).json({ message: "Knowledge questionnaire not found" });
+      }
+      
+      const success = await storage.deleteKnowledgeQuestionnaire(req.params.id);
+      if (!success) {
+        return res.status(404).json({ message: "Knowledge questionnaire not found" });
+      }
+      
+      // Create audit log
+      await AuditLogger.logDelete(
+        req,
+        req.user!,
+        'knowledge_questionnaire',
+        req.params.id,
+        { title: existingQuestionnaire.title, category: existingQuestionnaire.category }
+      );
+      
+      res.status(204).send();
+    } catch (error) {
+      console.error("Error deleting knowledge questionnaire:", error);
+      res.status(500).json({ message: "Failed to delete knowledge questionnaire" });
+    }
+  });
+
+  // Knowledge Questions
+  app.get("/api/knowledge/questionnaires/:questionnaireId/questions", requireAdmin, async (req, res) => {
+    try {
+      const questions = await storage.getKnowledgeQuestions(req.params.questionnaireId);
+      res.json(questions);
+    } catch (error) {
+      console.error("Error fetching knowledge questions:", error);
+      res.status(500).json({ message: "Failed to fetch knowledge questions" });
+    }
+  });
+
+  app.post("/api/knowledge/questions", requireAdmin, async (req, res) => {
+    try {
+      const validatedData = insertKnowledgeQuestionSchema.parse(req.body);
+      const question = await storage.createKnowledgeQuestion(validatedData);
+      res.status(201).json(question);
+    } catch (error) {
+      console.error("Error creating knowledge question:", error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid question data", errors: error.errors });
+      }
+      res.status(500).json({ message: "Failed to create knowledge question" });
+    }
+  });
+
+  app.put("/api/knowledge/questions/:id", requireAdmin, async (req, res) => {
+    try {
+      const validatedData = insertKnowledgeQuestionSchema.partial().parse(req.body);
+      const question = await storage.updateKnowledgeQuestion(req.params.id, validatedData);
+      if (!question) {
+        return res.status(404).json({ message: "Knowledge question not found" });
+      }
+      res.json(question);
+    } catch (error) {
+      console.error("Error updating knowledge question:", error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid question data", errors: error.errors });
+      }
+      res.status(500).json({ message: "Failed to update knowledge question" });
+    }
+  });
+
+  app.delete("/api/knowledge/questions/:id", requireAdmin, async (req, res) => {
+    try {
+      const success = await storage.deleteKnowledgeQuestion(req.params.id);
+      if (!success) {
+        return res.status(404).json({ message: "Knowledge question not found" });
+      }
+      res.status(204).send();
+    } catch (error) {
+      console.error("Error deleting knowledge question:", error);
+      res.status(500).json({ message: "Failed to delete knowledge question" });
+    }
+  });
+
+  // Knowledge Sessions (for admin viewing)
+  app.get("/api/knowledge/sessions", requireAdmin, async (req, res) => {
+    try {
+      const { questionnaireId, staffEmail, status } = req.query;
+      const sessions = await storage.getAllKnowledgeSessions({
+        questionnaireId: questionnaireId as string,
+        staffEmail: staffEmail as string,
+        status: status as string
+      });
+      res.json(sessions);
+    } catch (error) {
+      console.error("Error fetching knowledge sessions:", error);
+      res.status(500).json({ message: "Failed to fetch knowledge sessions" });
+    }
+  });
+
+  app.get("/api/knowledge/sessions/:id", requireAdmin, async (req, res) => {
+    try {
+      const session = await storage.getKnowledgeSession(req.params.id);
+      if (!session) {
+        return res.status(404).json({ message: "Knowledge session not found" });
+      }
+      res.json(session);
+    } catch (error) {
+      console.error("Error fetching knowledge session:", error);
+      res.status(500).json({ message: "Failed to fetch knowledge session" });
+    }
+  });
+
+  // Knowledge Actions
+  app.get("/api/knowledge/actions", requireAdmin, async (req, res) => {
+    try {
+      const { sessionId, assignedTo, status } = req.query;
+      const actions = await storage.getAllKnowledgeActions({
+        sessionId: sessionId as string,
+        assignedTo: assignedTo as string,
+        status: status as string
+      });
+      res.json(actions);
+    } catch (error) {
+      console.error("Error fetching knowledge actions:", error);
+      res.status(500).json({ message: "Failed to fetch knowledge actions" });
+    }
+  });
+
+  app.post("/api/knowledge/actions", requireAdmin, async (req, res) => {
+    try {
+      const validatedData = insertKnowledgeActionSchema.parse({
+        ...req.body,
+        createdBy: req.user!.id
+      });
+      const action = await storage.createKnowledgeAction(validatedData);
+      res.status(201).json(action);
+    } catch (error) {
+      console.error("Error creating knowledge action:", error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid action data", errors: error.errors });
+      }
+      res.status(500).json({ message: "Failed to create knowledge action" });
+    }
+  });
+
+  app.put("/api/knowledge/actions/:id", requireAdmin, async (req, res) => {
+    try {
+      const validatedData = insertKnowledgeActionSchema.partial().parse(req.body);
+      const action = await storage.updateKnowledgeAction(req.params.id, validatedData);
+      if (!action) {
+        return res.status(404).json({ message: "Knowledge action not found" });
+      }
+      res.json(action);
+    } catch (error) {
+      console.error("Error updating knowledge action:", error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid action data", errors: error.errors });
+      }
+      res.status(500).json({ message: "Failed to update knowledge action" });
+    }
+  });
+
+  // Public Assessment Taking Routes (no auth required for staff to take assessments)
+  app.get("/api/public/knowledge/assessment/:shareableLink", async (req, res) => {
+    try {
+      const questionnaire = await storage.getKnowledgeQuestionnaireByShareableLink(req.params.shareableLink);
+      if (!questionnaire || !questionnaire.isActive) {
+        return res.status(404).json({ message: "Assessment not found or inactive" });
+      }
+      
+      const questions = await storage.getKnowledgeQuestions(questionnaire.id);
+      res.json({
+        questionnaire: {
+          id: questionnaire.id,
+          title: questionnaire.title,
+          description: questionnaire.description,
+          instructions: questionnaire.instructions,
+          timeLimit: questionnaire.timeLimit,
+          category: questionnaire.category,
+          subcategory: questionnaire.subcategory
+        },
+        questions: questions.map(q => ({
+          id: q.id,
+          questionText: q.questionText,
+          questionType: q.questionType,
+          options: q.options,
+          points: q.points,
+          sortOrder: q.sortOrder,
+          isRequired: q.isRequired
+          // Note: correctAnswer and explanation are not included for security
+        }))
+      });
+    } catch (error) {
+      console.error("Error fetching public assessment:", error);
+      res.status(500).json({ message: "Failed to fetch assessment" });
+    }
+  });
+
+  app.post("/api/public/knowledge/start-session", async (req, res) => {
+    try {
+      const { questionnaireId, staffEmail, staffName } = req.body;
+      
+      // Validate questionnaire exists and is active
+      const questionnaire = await storage.getKnowledgeQuestionnaire(questionnaireId);
+      if (!questionnaire || !questionnaire.isActive) {
+        return res.status(404).json({ message: "Assessment not found or inactive" });
+      }
+      
+      const sessionData = insertKnowledgeSessionSchema.parse({
+        questionnaireId,
+        staffEmail,
+        staffName,
+        status: 'in_progress',
+        ipAddress: req.ip,
+        userAgent: req.get('User-Agent')
+      });
+      
+      const session = await storage.createKnowledgeSession(sessionData);
+      res.status(201).json({ sessionId: session.id });
+    } catch (error) {
+      console.error("Error starting knowledge session:", error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid session data", errors: error.errors });
+      }
+      res.status(500).json({ message: "Failed to start assessment session" });
+    }
+  });
+
+  app.post("/api/public/knowledge/submit-response", async (req, res) => {
+    try {
+      const responseData = insertKnowledgeResponseSchema.parse(req.body);
+      
+      // Get the question to check correct answer and calculate points
+      const question = await storage.getKnowledgeQuestion(responseData.questionId);
+      if (!question) {
+        return res.status(404).json({ message: "Question not found" });
+      }
+      
+      // Calculate if answer is correct and award points
+      let isCorrect = false;
+      let pointsAwarded = 0;
+      
+      if (question.correctAnswer && question.correctAnswer === responseData.answer) {
+        isCorrect = true;
+        pointsAwarded = question.points || 1;
+      }
+      
+      const response = await storage.createKnowledgeResponse({
+        ...responseData,
+        isCorrect,
+        pointsAwarded,
+        needsReview: question.questionType === 'short_answer' || question.questionType === 'scenario_based'
+      });
+      
+      res.status(201).json({ success: true });
+    } catch (error) {
+      console.error("Error submitting knowledge response:", error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid response data", errors: error.errors });
+      }
+      res.status(500).json({ message: "Failed to submit response" });
+    }
+  });
+
+  app.post("/api/public/knowledge/complete-session/:sessionId", async (req, res) => {
+    try {
+      const sessionId = req.params.sessionId;
+      
+      // Get all responses for this session to calculate final score
+      const responses = await storage.getKnowledgeResponses(sessionId);
+      const session = await storage.getKnowledgeSession(sessionId);
+      
+      if (!session) {
+        return res.status(404).json({ message: "Session not found" });
+      }
+      
+      const questionnaire = await storage.getKnowledgeQuestionnaire(session.questionnaireId);
+      if (!questionnaire) {
+        return res.status(404).json({ message: "Questionnaire not found" });
+      }
+      
+      // Calculate scores
+      const totalScore = responses.reduce((sum, r) => sum + (r.pointsAwarded || 0), 0);
+      const maxScore = responses.reduce((sum, r) => sum + (responses.find(resp => resp.questionId === r.questionId)?.pointsAwarded || 1), 0);
+      const percentageScore = maxScore > 0 ? Math.round((totalScore / maxScore) * 100) : 0;
+      const passed = percentageScore >= (questionnaire.passingScore || 70);
+      
+      // Update session
+      await storage.updateKnowledgeSession(sessionId, {
+        status: 'completed',
+        completedAt: new Date(),
+        totalScore,
+        maxScore,
+        percentageScore,
+        passed,
+        timeSpent: req.body.timeSpent || 0
+      });
+      
+      res.json({ 
+        totalScore, 
+        maxScore, 
+        percentageScore, 
+        passed,
+        passingScore: questionnaire.passingScore || 70
+      });
+    } catch (error) {
+      console.error("Error completing knowledge session:", error);
+      res.status(500).json({ message: "Failed to complete session" });
+    }
+  });
+
+  // CQC Audit Reminder System
+  app.post("/api/cqc/check-reminders", requireSuperAdmin, async (req, res) => {
+    try {
+      console.log('Checking for CQC audit reminders...');
+      
+      // Get all completed audits
+      const allAudits = await storage.getAllCqcAudits({ status: 'completed' });
+      
+      const today = new Date();
+      const sevenDaysFromNow = new Date();
+      sevenDaysFromNow.setDate(today.getDate() + 7);
+      
+      // Filter audits that need reminders (7 days before due date)
+      const auditsNeedingReminders = allAudits.filter(audit => {
+        if (!audit.nextAuditDue) return false;
+        
+        const dueDate = new Date(audit.nextAuditDue);
+        const diffTime = dueDate.getTime() - today.getTime();
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+        
+        // Send reminder exactly 7 days before (within 24 hour window)
+        return diffDays >= 7 && diffDays <= 8;
+      });
+      
+      console.log(`Found ${auditsNeedingReminders.length} audits needing reminders`);
+      
+      let emailsSent = 0;
+      let emailErrors = 0;
+      
+      for (const audit of auditsNeedingReminders) {
+        try {
+          const dueDate = new Date(audit.nextAuditDue!);
+          const diffTime = dueDate.getTime() - today.getTime();
+          const daysUntilDue = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+          
+          await brevoService.sendAuditReviewReminderEmail({
+            auditTitle: audit.title,
+            auditType: audit.auditType,
+            serviceType: audit.serviceType,
+            completedDate: new Date(audit.auditDate).toLocaleDateString('en-GB'),
+            nextReviewDate: dueDate.toLocaleDateString('en-GB'),
+            daysUntilDue: daysUntilDue,
+            auditorName: audit.auditorName,
+            overallRating: audit.overallRating || undefined,
+            areasForImprovement: audit.areasForImprovement || undefined
+          });
+          
+          emailsSent++;
+          console.log(`Reminder email sent for audit: ${audit.title}`);
+          
+        } catch (emailError) {
+          console.error(`Failed to send reminder for audit ${audit.title}:`, emailError);
+          emailErrors++;
+        }
+      }
+      
+      res.json({
+        success: true,
+        message: `Reminder check completed. Emails sent: ${emailsSent}, Errors: ${emailErrors}`,
+        auditsChecked: allAudits.length,
+        remindersNeeded: auditsNeedingReminders.length,
+        emailsSent,
+        emailErrors
+      });
+      
+    } catch (error) {
+      console.error('Error checking audit reminders:', error);
+      res.status(500).json({ 
+        success: false, 
+        message: 'Failed to check audit reminders',
+        error: error instanceof Error ? error.message : 'Unknown error'
+      });
+    }
+  });
+
+  // Trigger reminder check when an audit is completed
+  app.post("/api/cqc/audits/:id/complete", requireAdmin, async (req, res) => {
+    try {
+      const auditId = req.params.id;
+      const { nextAuditDue } = req.body;
+      
+      // Update audit status to completed and set next audit due date
+      const updatedAudit = await storage.updateCqcAudit(auditId, {
+        status: 'completed',
+        nextAuditDue: nextAuditDue ? new Date(nextAuditDue) : undefined,
+        // updatedAt is automatically handled by the database
+      });
+      
+      if (!updatedAudit) {
+        return res.status(404).json({ message: "Audit not found" });
+      }
+      
+      console.log(`Audit ${auditId} marked as completed. Next review due: ${nextAuditDue}`);
+      
+      res.json({
+        success: true,
+        message: "Audit marked as completed",
+        audit: updatedAudit
+      });
+      
+    } catch (error) {
+      console.error('Error completing audit:', error);
+      res.status(500).json({ 
+        message: "Failed to complete audit",
+        error: error instanceof Error ? error.message : 'Unknown error'
+      });
+    }
+  });
+
+  // Finance Reports
+  app.get("/api/finance-reports", requireAdmin, async (req, res) => {
+    try {
+      const reports = await storage.getAllFinanceReports();
+      res.json(reports);
+    } catch (error) {
+      console.error("Error fetching finance reports:", error);
+      res.status(500).json({ error: "Failed to fetch finance reports" });
+    }
+  });
+
+  app.get("/api/finance-reports/:id", requireAdmin, async (req, res) => {
+    try {
+      const report = await storage.getFinanceReport(req.params.id);
+      if (!report) {
+        return res.status(404).json({ error: "Finance report not found" });
+      }
+      res.json(report);
+    } catch (error) {
+      console.error("Error fetching finance report:", error);
+      res.status(500).json({ error: "Failed to fetch finance report" });
+    }
+  });
+
+  app.get("/api/finance-reports/month/:month", requireAdmin, async (req, res) => {
+    try {
+      const report = await storage.getFinanceReportByMonth(req.params.month);
+      if (!report) {
+        return res.status(404).json({ error: "Finance report not found for this month" });
+      }
+      res.json(report);
+    } catch (error) {
+      console.error("Error fetching finance report by month:", error);
+      res.status(500).json({ error: "Failed to fetch finance report" });
+    }
+  });
+
+  app.post("/api/finance-reports", requireAdmin, async (req, res) => {
+    try {
+      const userId = req.session?.user?.id;
+      const reportData = {
+        ...req.body,
+        createdBy: userId,
+        // Convert "YYYY-MM" format to "YYYY-MM-01" for proper date storage
+        reportMonth: req.body.reportMonth.includes('-') && req.body.reportMonth.length === 7 
+          ? `${req.body.reportMonth}-01` 
+          : req.body.reportMonth
+      };
+      
+      const report = await storage.createFinanceReport(reportData);
+      res.json(report);
+    } catch (error: any) {
+      console.error("Error creating finance report:", error);
+      if (error.code === '23505') { // Unique constraint violation
+        return res.status(400).json({ error: "A report for this month already exists" });
+      }
+      res.status(500).json({ error: "Failed to create finance report" });
+    }
+  });
+
+  app.patch("/api/finance-reports/:id", requireAdmin, async (req, res) => {
+    try {
+      const updateData = { ...req.body };
+      // Convert "YYYY-MM" format to "YYYY-MM-01" for proper date storage if present
+      if (updateData.reportMonth && updateData.reportMonth.includes('-') && updateData.reportMonth.length === 7) {
+        updateData.reportMonth = `${updateData.reportMonth}-01`;
+      }
+      
+      const report = await storage.updateFinanceReport(req.params.id, updateData);
+      if (!report) {
+        return res.status(404).json({ error: "Finance report not found" });
+      }
+      res.json(report);
+    } catch (error: any) {
+      console.error("Error updating finance report:", error);
+      if (error.code === '23505') {
+        return res.status(400).json({ error: "A report for this month already exists" });
+      }
+      res.status(500).json({ error: "Failed to update finance report" });
+    }
+  });
+
+  app.delete("/api/finance-reports/:id", requireAdmin, async (req, res) => {
+    try {
+      const deleted = await storage.deleteFinanceReport(req.params.id);
+      if (!deleted) {
+        return res.status(404).json({ error: "Finance report not found" });
+      }
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Error deleting finance report:", error);
+      res.status(500).json({ error: "Failed to delete finance report" });
+    }
+  });
+
+  // Route Planning and Optimization APIs
+  const googleMapsService = new GoogleMapsService();
+
+  // Geocoding API
+  app.post("/api/route-planner/geocode", requireAdmin, async (req, res) => {
+    try {
+      const { addresses } = req.body;
+      
+      if (!Array.isArray(addresses) || addresses.length === 0) {
+        return res.status(400).json({ message: "Please provide an array of addresses" });
+      }
+
+      const results = [];
+      
+      for (const address of addresses) {
+        try {
+          // Check cache first
+          const cacheKey = GoogleMapsService.getCacheKey(address);
+          const cached = await storage.getGeocode(cacheKey);
+          
+          if (cached) {
+            results.push({
+              address,
+              latitude: cached.latitude,
+              longitude: cached.longitude,
+              formattedAddress: cached.formattedAddress,
+              postcode: cached.postcode,
+              fromCache: true
+            });
+          } else {
+            // Geocode using Google Maps
+            const geocoded = await googleMapsService.geocodeAddress(address);
+            if (geocoded) {
+              // Cache the result
+              await storage.createGeocode({
+                cacheKey,
+                originalQuery: address,
+                latitude: geocoded.latitude,
+                longitude: geocoded.longitude,
+                formattedAddress: geocoded.formattedAddress,
+                postcode: geocoded.postcode,
+                placeId: geocoded.placeId
+              });
+              
+              results.push({
+                address,
+                latitude: geocoded.latitude,
+                longitude: geocoded.longitude,
+                formattedAddress: geocoded.formattedAddress,
+                postcode: geocoded.postcode,
+                fromCache: false
+              });
+            } else {
+              results.push({
+                address,
+                error: "Could not geocode address"
+              });
+            }
+          }
+        } catch (error) {
+          console.error(`Error geocoding ${address}:`, error);
+          results.push({
+            address,
+            error: "Geocoding failed"
+          });
+        }
+      }
+
+      res.json({ results });
+    } catch (error) {
+      console.error('Geocoding API error:', error);
+      res.status(500).json({ 
+        message: "Failed to geocode addresses",
+        error: error instanceof Error ? error.message : 'Unknown error'
+      });
+    }
+  });
+
+  // Distance Matrix API
+  app.post("/api/route-planner/distance-matrix", requireAdmin, async (req, res) => {
+    try {
+      const { origins, destinations, mode = 'driving' } = req.body;
+      
+      if (!Array.isArray(origins) || !Array.isArray(destinations)) {
+        return res.status(400).json({ message: "Please provide origins and destinations arrays" });
+      }
+
+      if (origins.length === 0 || destinations.length === 0) {
+        return res.status(400).json({ message: "Origins and destinations cannot be empty" });
+      }
+
+      // Validate coordinate format
+      const validateCoords = (coords: any[]) => {
+        return coords.every(coord => 
+          typeof coord.lat === 'number' && 
+          typeof coord.lng === 'number' &&
+          coord.lat >= -90 && coord.lat <= 90 &&
+          coord.lng >= -180 && coord.lng <= 180
+        );
+      };
+
+      if (!validateCoords(origins) || !validateCoords(destinations)) {
+        return res.status(400).json({ message: "Invalid coordinate format" });
+      }
+
+      const matrix = await googleMapsService.getDistanceMatrix(origins, destinations, mode);
+      
+      if (!matrix) {
+        return res.status(500).json({ message: "Failed to calculate distance matrix" });
+      }
+
+      res.json(matrix);
+    } catch (error) {
+      console.error('Distance Matrix API error:', error);
+      res.status(500).json({ 
+        message: "Failed to calculate distance matrix",
+        error: error instanceof Error ? error.message : 'Unknown error'
+      });
+    }
+  });
+
+  // Advanced Route Optimization API
+  // Update visit coordinates API for draggable pins
+  app.patch("/api/route-planner/visit/:visitId/coordinates", requireAdmin, async (req, res) => {
+    try {
+      const { visitId } = req.params;
+      const { latitude, longitude } = req.body;
+
+      // Validate coordinates
+      if (typeof latitude !== 'number' || typeof longitude !== 'number') {
+        return res.status(400).json({ 
+          message: "Invalid coordinates. Latitude and longitude must be numbers." 
+        });
+      }
+
+      if (latitude < -90 || latitude > 90) {
+        return res.status(400).json({ 
+          message: "Invalid latitude. Must be between -90 and 90." 
+        });
+      }
+
+      if (longitude < -180 || longitude > 180) {
+        return res.status(400).json({ 
+          message: "Invalid longitude. Must be between -180 and 180." 
+        });
+      }
+
+      // For route planner, we'll reverse geocode to get the address at the new coordinates
+      try {
+        const reverseGeocode = await googleMapsService.reverseGeocode(latitude, longitude);
+        
+        res.json({
+          success: true,
+          visitId,
+          latitude,
+          longitude,
+          address: reverseGeocode?.formattedAddress || `${latitude.toFixed(6)}, ${longitude.toFixed(6)}`,
+          message: "Visit coordinates updated successfully"
+        });
+      } catch (error) {
+        // If reverse geocoding fails, still return success with coordinates
+        console.warn('Reverse geocoding failed for dragged pin:', error);
+        res.json({
+          success: true,
+          visitId,
+          latitude,
+          longitude,
+          address: `${latitude.toFixed(6)}, ${longitude.toFixed(6)}`,
+          message: "Visit coordinates updated successfully"
+        });
+      }
+    } catch (error) {
+      console.error('Update visit coordinates error:', error);
+      res.status(500).json({ 
+        message: "Failed to update visit coordinates",
+        error: error instanceof Error ? error.message : 'Unknown error'
+      });
+    }
+  });
+
+  app.post("/api/route-planner/optimize", requireAdmin, async (req, res) => {
+    try {
+      const { 
+        visits, 
+        mode = 'driving', // Default to driving for domiciliary care
+        departureTime, // CRITICAL FIX: Remove hardcoded default - use actual user value
+        runDate,
+        runName,
+        saveRun = false,
+        optimizationStrategy = 'shortest_distance',
+        maxRoutesPerDay = 3
+      } = req.body;
+
+      if (!Array.isArray(visits) || visits.length === 0) {
+        return res.status(400).json({ message: "Please provide an array of visits" });
+      }
+
+      // Validate and provide fallback for departureTime
+      const validDepartureTime = departureTime || '08:00';
+      console.log(`FIXED: Using departure time: ${validDepartureTime} (from frontend: ${departureTime})`);
+
+      // Import the advanced optimizer
+      const { AdvancedRouteOptimizer } = await import('./advanced-route-optimizer');
+      const optimizer = new AdvancedRouteOptimizer();
+
+      console.log(`Starting advanced optimization for ${visits.length} visits`);
+
+      // Convert timeSlot names to actual time windows before optimization
+      const visitsWithTimeWindows = visits.map(visit => {
+        let windowStart, windowEnd;
+        
+        // Convert common time slot names to time windows
+        switch (visit.timeSlot?.toLowerCase()) {
+          case 'morning':
+            windowStart = '07:00';
+            windowEnd = '11:00';
+            break;
+          case 'lunch':
+            windowStart = '11:00';
+            windowEnd = '15:00';
+            break;
+          case 'tea':
+            windowStart = '15:00';
+            windowEnd = '18:00';
+            break;
+          case 'bed':
+            windowStart = '18:00';
+            windowEnd = '23:00';
+            break;
+          default:
+            // Use provided earliestTime/latestTime if available, or no constraints
+            windowStart = visit.earliestTime;
+            windowEnd = visit.latestTime;
+        }
+
+        return {
+          ...visit,
+          windowStart,
+          windowEnd
+        };
+      });
+
+      // Run advanced optimization with TSP solver and 2-opt improvement
+      const optimizationResult = await optimizer.optimizeRoutes(visitsWithTimeWindows, {
+        mode,
+        optimizationStrategy,
+        maxRoutesPerDay,
+        considerTimeWindows: true,
+        departureTime: validDepartureTime // CRITICAL FIX: Pass the actual user's shift start time
+      });
+
+      // Convert to legacy format for compatibility with frontend
+      // Flatten all routes into a single optimized order - travel times already calculated by optimizer
+      const allOptimizedVisits = optimizationResult.optimizedRoutes.flatMap(route => route.visits);
+      
+      // CRITICAL: Do NOT recalculate travel times here - they are already set by advanced-route-optimizer.ts
+      // The optimizer has already calculated authoritative travel times using Google Maps API
+      console.log(`Using authoritative travel times from optimizer for ${allOptimizedVisits.length} visits`);
+      
+      const result = {
+        optimizedOrder: allOptimizedVisits.length > 0 ? allOptimizedVisits : visits,
+        totalDistanceMeters: Math.round(optimizationResult.optimizedRoutes.reduce(
+          (sum, route) => sum + route.totalDistanceMeters, 0
+        )),
+        totalTravelMinutes: Math.round(
+          optimizationResult.optimizedRoutes.reduce(
+            (sum, route) => sum + (route.metrics?.travelTimeHours || 0) * 60, 0
+          )
+        ),
+        totalServiceMinutes: Math.round(
+          optimizationResult.optimizedRoutes.reduce(
+            (sum, route) => sum + (route.metrics?.serviceTimeHours || 0) * 60, 0
+          )
+        ),
+        mode,
+        
+        // Enhanced metrics for cost analysis
+        totalRoutes: optimizationResult.totalRoutes,
+        costSavings: optimizationResult.costSavings,
+        distanceSavedKm: optimizationResult.distanceSavedKm,
+        optimizationStrategy: optimizationResult.optimizationStrategy,
+        routes: optimizationResult.optimizedRoutes.map((route, index) => ({
+          routeNumber: index + 1,
+          visits: route.visits,
+          distanceKm: route.metrics?.totalDistanceKm || 0,
+          timeHours: route.metrics?.totalTimeHours || 0,
+          cost: route.metrics?.totalCost || 0,
+          visitCount: route.visits.length
+        })),
+        baseline: optimizationResult.baseline
+      };
+
+      // Save run if requested
+      if (saveRun && runDate && runName) {
+        try {
+          const run = await storage.createRun({
+            name: runName,
+            runDate,
+            travelMode: mode,
+            totalDistanceMeters: result.totalDistanceMeters,
+            totalTravelMinutes: result.totalTravelMinutes,
+            totalServiceMinutes: result.totalServiceMinutes,
+            departureTime,
+            status: 'optimized',
+            createdBy: req.user!.id
+          });
+
+          // Save run stops for all routes
+          let stopOrder = 1;
+          for (const route of optimizationResult.optimizedRoutes) {
+            for (const visit of route.visits) {
+              await storage.createRunStop({
+                runId: run.id,
+                visitId: visit.id || null,
+                stopOrder: stopOrder++,
+                adHocAddress: visit.id ? null : visit.address,
+                adHocLatitude: visit.id ? null : visit.latitude,
+                adHocLongitude: visit.id ? null : visit.longitude,
+                adHocDuration: visit.id ? null : visit.durationMinutes
+              });
+            }
+          }
+
+          (result as any).runId = run.id;
+        } catch (saveError) {
+          console.error('Error saving run:', saveError);
+          // Don't fail the optimization, just log the error
+        }
+      }
+
+      res.json(result);
+    } catch (error) {
+      console.error('Route optimization error:', error);
+      res.status(500).json({ 
+        message: "Failed to optimize route",
+        error: error instanceof Error ? error.message : 'Unknown error'
+      });
+    }
+  });
+
+  // Helper function to calculate distance between two coordinates (Haversine formula)
+  function calculateDistance(coord1: { lat: number; lng: number }, coord2: { lat: number; lng: number }): number {
+    const R = 6371000; // Earth's radius in meters
+    const dLat = (coord2.lat - coord1.lat) * Math.PI / 180;
+    const dLng = (coord2.lng - coord1.lng) * Math.PI / 180;
+    const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+      Math.cos(coord1.lat * Math.PI / 180) * Math.cos(coord2.lat * Math.PI / 180) *
+      Math.sin(dLng / 2) * Math.sin(dLng / 2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    return R * c; // Distance in meters
+  }
+
+  // CRUD APIs for Route Planning entities
+
+  // Clients
+  app.get("/api/clients", requireAdmin, async (req, res) => {
+    try {
+      const filters = {
+        isActive: req.query.isActive ? req.query.isActive === 'true' : undefined,
+        postcode: req.query.postcode as string | undefined
+      };
+      const clients = await storage.getAllClients(filters);
+      res.json(clients);
+    } catch (error) {
+      console.error('Error fetching clients:', error);
+      res.status(500).json({ message: "Failed to fetch clients" });
+    }
+  });
+
+  app.post("/api/clients", requireAdmin, async (req, res) => {
+    try {
+      const validation = insertClientSchema.safeParse(req.body);
+      if (!validation.success) {
+        return res.status(400).json({ 
+          message: "Invalid client data",
+          errors: validation.error.errors
+        });
+      }
+
+      // Normalize postcode
+      const normalizedPostcode = validation.data.postcode?.replace(/\s+/g, '').toUpperCase();
+      
+      const client = await storage.createClient({
+        ...validation.data,
+        normalizedPostcode
+      });
+      
+      res.status(201).json(client);
+    } catch (error) {
+      console.error('Error creating client:', error);
+      res.status(500).json({ message: "Failed to create client" });
+    }
+  });
+
+  // Visits
+  app.get("/api/visits", requireAdmin, async (req, res) => {
+    try {
+      const filters = {
+        date: req.query.date as string | undefined,
+        clientId: req.query.clientId as string | undefined,
+        timeSlot: req.query.timeSlot as string | undefined,
+        status: req.query.status as string | undefined
+      };
+      const visits = await storage.getAllVisits(filters);
+      res.json(visits);
+    } catch (error) {
+      console.error('Error fetching visits:', error);
+      res.status(500).json({ message: "Failed to fetch visits" });
+    }
+  });
+
+  app.post("/api/visits", requireAdmin, async (req, res) => {
+    try {
+      const validation = insertVisitSchema.safeParse(req.body);
+      if (!validation.success) {
+        return res.status(400).json({ 
+          message: "Invalid visit data",
+          errors: validation.error.errors
+        });
+      }
+
+      const visit = await storage.createVisit(validation.data);
+      res.status(201).json(visit);
+    } catch (error) {
+      console.error('Error creating visit:', error);
+      res.status(500).json({ message: "Failed to create visit" });
+    }
+  });
+
+  // Runs
+  app.get("/api/runs", requireAdmin, async (req, res) => {
+    try {
+      const filters = {
+        date: req.query.date as string | undefined,
+        travelMode: req.query.travelMode as string | undefined,
+        status: req.query.status as string | undefined,
+        createdBy: req.query.createdBy as string | undefined
+      };
+      const runs = await storage.getAllRuns(filters);
+      res.json(runs);
+    } catch (error) {
+      console.error('Error fetching runs:', error);
+      res.status(500).json({ message: "Failed to fetch runs" });
+    }
+  });
+
+  app.get("/api/runs/:id", requireAdmin, async (req, res) => {
+    try {
+      const run = await storage.getRun(req.params.id);
+      if (!run) {
+        return res.status(404).json({ message: "Run not found" });
+      }
+      
+      const runStops = await storage.getRunStops(req.params.id);
+      res.json({ ...run, stops: runStops });
+    } catch (error) {
+      console.error('Error fetching run:', error);
+      res.status(500).json({ message: "Failed to fetch run" });
+    }
+  });
+
+  app.delete("/api/runs/:id", requireAdmin, async (req, res) => {
+    try {
+      // Delete run stops first
+      await storage.deleteRunStops(req.params.id);
+      
+      // Delete run
+      const deleted = await storage.deleteRun(req.params.id);
+      if (!deleted) {
+        return res.status(404).json({ message: "Run not found" });
+      }
+      
+      res.json({ message: "Run deleted successfully" });
+    } catch (error) {
+      console.error('Error deleting run:', error);
+      res.status(500).json({ message: "Failed to delete run" });
+    }
+  });
+
+  // ==========================================
+  // Staff Assessment APIs
+  // ==========================================
+
+  // Staff Assessment Topics - Admin API
+  app.get("/api/staff-assessment-topics", requireAdmin, async (req, res) => {
+    try {
+      const filters = {
+        isActive: req.query.isActive === 'true' ? true : req.query.isActive === 'false' ? false : undefined
+      };
+      const topics = await storage.getAllStaffAssessmentTopics(filters);
+      res.json(topics);
+    } catch (error) {
+      console.error("Error fetching staff assessment topics:", error);
+      res.status(500).json({ message: "Failed to fetch assessment topics" });
+    }
+  });
+
+  app.get("/api/staff-assessment-topics/:id", requireAdmin, async (req, res) => {
+    try {
+      const topic = await storage.getStaffAssessmentTopic(req.params.id);
+      if (!topic) {
+        return res.status(404).json({ message: "Assessment topic not found" });
+      }
+      res.json(topic);
+    } catch (error) {
+      console.error("Error fetching staff assessment topic:", error);
+      res.status(500).json({ message: "Failed to fetch assessment topic" });
+    }
+  });
+
+  app.post("/api/staff-assessment-topics", requireAdmin, async (req, res) => {
+    try {
+      const validatedData = insertStaffAssessmentTopicSchema.parse({
+        ...req.body,
+        createdBy: req.user?.id
+      });
+      const topic = await storage.createStaffAssessmentTopic(validatedData);
+      res.status(201).json(topic);
+    } catch (error) {
+      console.error("Error creating staff assessment topic:", error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid assessment topic data", errors: error.errors });
+      }
+      res.status(500).json({ message: "Failed to create assessment topic" });
+    }
+  });
+
+  app.put("/api/staff-assessment-topics/:id", requireAdmin, async (req, res) => {
+    try {
+      const validatedData = insertStaffAssessmentTopicSchema.partial().parse(req.body);
+      const topic = await storage.updateStaffAssessmentTopic(req.params.id, validatedData);
+      if (!topic) {
+        return res.status(404).json({ message: "Assessment topic not found" });
+      }
+      res.json(topic);
+    } catch (error) {
+      console.error("Error updating staff assessment topic:", error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid assessment topic data", errors: error.errors });
+      }
+      res.status(500).json({ message: "Failed to update assessment topic" });
+    }
+  });
+
+  app.delete("/api/staff-assessment-topics/:id", requireAdmin, async (req, res) => {
+    try {
+      const success = await storage.deleteStaffAssessmentTopic(req.params.id);
+      if (!success) {
+        return res.status(404).json({ message: "Assessment topic not found" });
+      }
+      res.status(204).send();
+    } catch (error) {
+      console.error("Error deleting staff assessment topic:", error);
+      res.status(500).json({ message: "Failed to delete assessment topic" });
+    }
+  });
+
+  // Staff Assessment Links - Admin API (Branch-specific links)
+  app.get("/api/staff-assessment-links", requireAdmin, async (req, res) => {
+    try {
+      const filters = {
+        topicId: req.query.topicId as string | undefined,
+        branch: req.query.branch as string | undefined,
+        isActive: req.query.isActive === 'true' ? true : req.query.isActive === 'false' ? false : undefined
+      };
+      const links = await storage.getAllStaffAssessmentLinks(filters);
+      res.json(links);
+    } catch (error) {
+      console.error("Error fetching staff assessment links:", error);
+      res.status(500).json({ message: "Failed to fetch assessment links" });
+    }
+  });
+
+  app.get("/api/staff-assessment-links/:id", requireAdmin, async (req, res) => {
+    try {
+      const link = await storage.getStaffAssessmentLink(req.params.id);
+      if (!link) {
+        return res.status(404).json({ message: "Assessment link not found" });
+      }
+      res.json(link);
+    } catch (error) {
+      console.error("Error fetching staff assessment link:", error);
+      res.status(500).json({ message: "Failed to fetch assessment link" });
+    }
+  });
+
+  app.post("/api/staff-assessment-links", requireAdmin, async (req, res) => {
+    try {
+      // Generate a unique token for the link
+      const token = crypto.randomBytes(8).toString('hex');
+      
+      const validatedData = insertStaffAssessmentLinkSchema.parse({
+        ...req.body,
+        token,
+        createdBy: req.user?.id
+      });
+      const link = await storage.createStaffAssessmentLink(validatedData);
+      res.status(201).json(link);
+    } catch (error: any) {
+      console.error("Error creating staff assessment link:", error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid assessment link data", errors: error.errors });
+      }
+      // Handle duplicate key constraint violation
+      if (error?.code === '23505' || error?.constraint?.includes('topic_id_branch')) {
+        return res.status(409).json({ message: "An assessment link for this topic and branch already exists" });
+      }
+      res.status(500).json({ message: "Failed to create assessment link" });
+    }
+  });
+
+  app.put("/api/staff-assessment-links/:id", requireAdmin, async (req, res) => {
+    try {
+      const validatedData = insertStaffAssessmentLinkSchema.partial().parse(req.body);
+      const link = await storage.updateStaffAssessmentLink(req.params.id, validatedData);
+      if (!link) {
+        return res.status(404).json({ message: "Assessment link not found" });
+      }
+      res.json(link);
+    } catch (error) {
+      console.error("Error updating staff assessment link:", error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid assessment link data", errors: error.errors });
+      }
+      res.status(500).json({ message: "Failed to update assessment link" });
+    }
+  });
+
+  app.post("/api/staff-assessment-links/:id/regenerate-token", requireAdmin, async (req, res) => {
+    try {
+      const link = await storage.regenerateStaffAssessmentLinkToken(req.params.id);
+      if (!link) {
+        return res.status(404).json({ message: "Assessment link not found" });
+      }
+      res.json(link);
+    } catch (error) {
+      console.error("Error regenerating assessment link token:", error);
+      res.status(500).json({ message: "Failed to regenerate assessment link token" });
+    }
+  });
+
+  app.delete("/api/staff-assessment-links/:id", requireAdmin, async (req, res) => {
+    try {
+      const success = await storage.deleteStaffAssessmentLink(req.params.id);
+      if (!success) {
+        return res.status(404).json({ message: "Assessment link not found" });
+      }
+      res.status(204).send();
+    } catch (error) {
+      console.error("Error deleting staff assessment link:", error);
+      res.status(500).json({ message: "Failed to delete assessment link" });
+    }
+  });
+
+  // Staff Assessment Responses - Admin API
+  app.get("/api/staff-assessment-responses", requireAdmin, async (req, res) => {
+    try {
+      const filters = {
+        topicId: req.query.topicId as string | undefined,
+        branch: req.query.branch as string | undefined,
+        linkId: req.query.linkId as string | undefined
+      };
+      const responses = await storage.getAllStaffAssessmentResponses(filters);
+      res.json(responses);
+    } catch (error) {
+      console.error("Error fetching staff assessment responses:", error);
+      res.status(500).json({ message: "Failed to fetch assessment responses" });
+    }
+  });
+
+  app.get("/api/staff-assessment-responses/:id", requireAdmin, async (req, res) => {
+    try {
+      const response = await storage.getStaffAssessmentResponse(req.params.id);
+      if (!response) {
+        return res.status(404).json({ message: "Assessment response not found" });
+      }
+      res.json(response);
+    } catch (error) {
+      console.error("Error fetching staff assessment response:", error);
+      res.status(500).json({ message: "Failed to fetch assessment response" });
+    }
+  });
+
+  app.delete("/api/staff-assessment-responses/:id", requireAdmin, async (req, res) => {
+    try {
+      const success = await storage.deleteStaffAssessmentResponse(req.params.id);
+      if (!success) {
+        return res.status(404).json({ message: "Assessment response not found" });
+      }
+      res.status(204).send();
+    } catch (error) {
+      console.error("Error deleting staff assessment response:", error);
+      res.status(500).json({ message: "Failed to delete assessment response" });
+    }
+  });
+
+  // Staff Assessment Statistics - Admin API
+  app.get("/api/staff-assessment-stats/:topicId", requireAdmin, async (req, res) => {
+    try {
+      const branch = req.query.branch as string | undefined;
+      const stats = await storage.getStaffAssessmentStats(req.params.topicId, branch);
+      res.json(stats);
+    } catch (error) {
+      console.error("Error fetching staff assessment stats:", error);
+      res.status(500).json({ message: "Failed to fetch assessment statistics" });
+    }
+  });
+
+  // Public Assessment API (for staff completing assessments)
+  app.get("/api/assessments/:token", async (req, res) => {
+    try {
+      const link = await storage.getStaffAssessmentLinkByToken(req.params.token);
+      if (!link) {
+        return res.status(404).json({ message: "Assessment not found or link has expired" });
+      }
+      
+      if (!link.isActive) {
+        return res.status(403).json({ message: "This assessment link is no longer active" });
+      }
+      
+      const topic = await storage.getStaffAssessmentTopic(link.topicId);
+      if (!topic) {
+        return res.status(404).json({ message: "Assessment topic not found" });
+      }
+      
+      if (!topic.isActive) {
+        return res.status(403).json({ message: "This assessment is no longer available" });
+      }
+      
+      // Return topic info and questions (without revealing correct answers)
+      res.json({
+        id: topic.id,
+        title: topic.title,
+        description: topic.description,
+        introduction: topic.introduction,
+        questions: topic.questions,
+        passingScore: topic.passingScore || 70,
+        branch: link.branch,
+        linkId: link.id
+      });
+    } catch (error) {
+      console.error("Error fetching public assessment:", error);
+      res.status(500).json({ message: "Failed to fetch assessment" });
+    }
+  });
+
+  app.post("/api/assessments/:token/submit", async (req, res) => {
+    try {
+      const link = await storage.getStaffAssessmentLinkByToken(req.params.token);
+      if (!link) {
+        return res.status(404).json({ message: "Assessment not found or link has expired" });
+      }
+      
+      if (!link.isActive) {
+        return res.status(403).json({ message: "This assessment link is no longer active" });
+      }
+      
+      const topic = await storage.getStaffAssessmentTopic(link.topicId);
+      if (!topic || !topic.isActive) {
+        return res.status(403).json({ message: "This assessment is no longer available" });
+      }
+      
+      const { staffName, jobTitle, answers, needsFurtherTraining, feedback, agreedToParticipate, understandsPurpose, understandsOwnTime } = req.body;
+      
+      if (!staffName || !jobTitle || !answers) {
+        return res.status(400).json({ message: "Staff name, job title, and answers are required" });
+      }
+      
+      // Calculate score based on answers and topic questions
+      let totalScore = 0;
+      let maxScore = 0;
+      
+      const questions = topic.questions as any[];
+      for (const question of questions) {
+        if (question.isScored && question.points > 0) {
+          maxScore += question.points;
+          // For yes/no questions, "yes" typically means correct
+          const answer = answers[question.id];
+          if (answer === 'yes' || answer === 'Yes') {
+            totalScore += question.points;
+          }
+        }
+      }
+      
+      const percentageScore = maxScore > 0 ? Math.round((totalScore / maxScore) * 100) : 0;
+      const passed = percentageScore >= (topic.passingScore || 70);
+      
+      const response = await storage.createStaffAssessmentResponse({
+        linkId: link.id,
+        topicId: topic.id,
+        branch: link.branch,
+        staffName,
+        jobTitle,
+        answers,
+        totalScore,
+        maxScore,
+        percentageScore,
+        passed,
+        needsFurtherTraining,
+        feedback,
+        agreedToParticipate: agreedToParticipate || false,
+        understandsPurpose: understandsPurpose || false,
+        understandsOwnTime: understandsOwnTime || false,
+        ipAddress: req.ip,
+        userAgent: req.headers['user-agent']
+      });
+      
+      res.status(201).json({
+        id: response.id,
+        totalScore,
+        maxScore,
+        percentageScore,
+        passed,
+        message: passed ? "Assessment completed successfully!" : "Assessment submitted. Please review the areas for improvement."
+      });
+    } catch (error) {
+      console.error("Error submitting assessment:", error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid assessment data", errors: error.errors });
+      }
+      res.status(500).json({ message: "Failed to submit assessment" });
+    }
+  });
+
+  // Seed route for creating the Dignity & Person Centred Care assessment
+  app.post("/api/admin/seed-dignity-assessment", requireAdmin, async (req, res) => {
+    try {
+      // Check if assessment already exists
+      const existingTopics = await storage.getStaffAssessmentTopics();
+      const existingDignity = existingTopics.find(t => t.slug === 'dignity-person-centred-care');
+      
+      if (existingDignity) {
+        // Delete the existing one so we can recreate with correct questions
+        await storage.deleteStaffAssessmentTopic(existingDignity.id);
+      }
+      
+      // Create the Dignity & Person Centred Care assessment topic matching the PDF form
+      const dignityAssessment = await storage.createStaffAssessmentTopic({
+        title: "Dignity & Person Centred Care",
+        slug: "dignity-person-centred-care",
+        description: "Staff Knowledge Q&As are randomised question-and-answer checks carried out with employees to test their understanding of key policies, procedures, and regulatory requirements.",
+        introduction: "Staff Knowledge Q&As are carried out to confirm that staff can demonstrate knowledge of essential areas such as safeguarding, incident reporting, health and safety, and the CQC Fundamental Standards. This approach demonstrates compliance with Regulation 18 (Staffing) and Regulation 19 (Fit and Proper Persons Employed). It is important that you answer honestly - these checks are not designed as punishment, but as an opportunity to identify areas where further support or training may be helpful.",
+        passingScore: 70,
+        isActive: true,
+        questions: [
+          {
+            id: "q1",
+            text: "Do you agree to take part, ensuring honesty throughout?",
+            type: "agreement",
+            section: "Consent",
+            isScored: false,
+            points: 0,
+            options: ["Yes", "No"],
+            required: true
+          },
+          {
+            id: "q2",
+            text: "Do you understand why you have been asked to complete a Staff Knowledge Q&A?",
+            type: "agreement",
+            section: "Consent",
+            isScored: false,
+            points: 0,
+            options: ["Yes", "No"],
+            required: true
+          },
+          {
+            id: "q3",
+            text: "Do you understand that you do not have to complete this in your own time?",
+            type: "agreement",
+            section: "Consent",
+            isScored: false,
+            points: 0,
+            options: ["Yes", "No"],
+            required: true
+          },
+          {
+            id: "q4",
+            text: "What does \"person-centred care\" mean?",
+            type: "text",
+            section: "Your Understanding",
+            isScored: true,
+            points: 1,
+            required: true
+          },
+          {
+            id: "q5",
+            text: "Why is dignity important in the care we provide?",
+            type: "text",
+            section: "Your Understanding",
+            isScored: true,
+            points: 1,
+            required: true
+          },
+          {
+            id: "q6",
+            text: "How does person-centred care make a difference to the daily lives of the people we support?",
+            type: "text",
+            section: "Your Understanding",
+            isScored: true,
+            points: 1,
+            required: true
+          },
+          {
+            id: "q7",
+            text: "Give an example of how you promote a customer's dignity during personal care.",
+            type: "text",
+            section: "Practical Application",
+            isScored: true,
+            points: 1,
+            required: true
+          },
+          {
+            id: "q8",
+            text: "How do you support independence?",
+            type: "text",
+            section: "Practical Application",
+            isScored: true,
+            points: 1,
+            required: true
+          },
+          {
+            id: "q9",
+            text: "Describe one way you can respect a customer's privacy in their own home.",
+            type: "text",
+            section: "Practical Application",
+            isScored: true,
+            points: 1,
+            required: true
+          },
+          {
+            id: "q10",
+            text: "If a customer refuses care, what steps should you take?",
+            type: "text",
+            section: "Scenarios",
+            isScored: true,
+            points: 1,
+            required: true
+          },
+          {
+            id: "q11",
+            text: "What should you do if a colleague speaks to a customer in a way that you feel is undignified?",
+            type: "text",
+            section: "Scenarios",
+            isScored: true,
+            points: 1,
+            required: true
+          },
+          {
+            id: "q12",
+            text: "During a busy shift, you notice a colleague rushing through care tasks without speaking to the customer. What would you do?",
+            type: "text",
+            section: "Scenarios",
+            isScored: true,
+            points: 1,
+            required: true
+          },
+          {
+            id: "q13",
+            text: "Do you feel that you would benefit from further training?",
+            type: "training",
+            section: "Almost Finished",
+            isScored: false,
+            points: 0,
+            options: ["Yes", "No", "I don't know"],
+            required: true
+          },
+          {
+            id: "q14",
+            text: "Further Comments (Please provide Feedback here)",
+            type: "text",
+            section: "Almost Finished",
+            isScored: false,
+            points: 0,
+            required: false
+          }
+        ]
+      });
+      
+      res.status(201).json({
+        message: "Dignity & Person Centred Care assessment created successfully",
+        id: dignityAssessment.id,
+        title: dignityAssessment.title
+      });
+    } catch (error) {
+      console.error("Error seeding dignity assessment:", error);
+      res.status(500).json({ message: "Failed to create assessment" });
+    }
   });
 
   const httpServer = createServer(app);

@@ -56,6 +56,7 @@ function Ticker() {
 
 interface TransformedBlogPost {
   id: string;
+  slug: string;
   title: string;
   excerpt: string | null;
   date: string;
@@ -63,7 +64,9 @@ interface TransformedBlogPost {
   author: string;
   category: string;
   image: string;
+  imageIsFromUpload: boolean; // True if image came from images array, false if extracted from content
   fullContent: string;
+  hasBlocks: boolean;
 }
 
 export default function Blog() {
@@ -120,6 +123,13 @@ export default function Blog() {
       </div>
     </div>
   );
+
+  // Breadcrumb data for structured data
+  const breadcrumbs = [
+    { name: 'Home', url: 'https://smeatonhealthcare.co.uk/' },
+    { name: 'Resources', url: 'https://smeatonhealthcare.co.uk/resources' },
+    { name: 'Blog', url: 'https://smeatonhealthcare.co.uk/resources/blog' }
+  ];
 
   return (
     <div data-testid="blog-page">

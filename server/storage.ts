@@ -1,7 +1,7 @@
-import { type User, type InsertUser, type Job, type InsertJob, type Application, type InsertApplication, type ContactSubmission, type InsertContactSubmission, type Feedback, type InsertFeedback, type Newsletter, type InsertNewsletter, type NewsletterBlock, type InsertNewsletterBlock, type Template, type InsertTemplate, type Subscriber, type InsertSubscriber, type Campaign, type InsertCampaign, type Delivery, type InsertDelivery, type BlogCategory, type InsertBlogCategory, type BlogPost, type InsertBlogPost } from "@shared/schema";
+import { type User, type InsertUser, type Job, type InsertJob, type Application, type InsertApplication, type ContactSubmission, type InsertContactSubmission, type Feedback, type InsertFeedback, type Newsletter, type InsertNewsletter, type NewsletterBlock, type InsertNewsletterBlock, type Template, type InsertTemplate, type Subscriber, type InsertSubscriber, type Campaign, type InsertCampaign, type Delivery, type InsertDelivery, type BlogCategory, type InsertBlogCategory, type BlogPost, type InsertBlogPost, type AuditLog, type InsertAuditLog, type CqcAudit, type InsertCqcAudit, type CqcAuditCategory, type InsertCqcAuditCategory, type CqcQualityStatement, type InsertCqcQualityStatement, type CqcEvidenceCategory, type InsertCqcEvidenceCategory, type CqcAuditEvidence, type InsertCqcAuditEvidence, type CqcQualityAssessment, type InsertCqcQualityAssessment, type CqcComplianceRecord, type InsertCqcComplianceRecord, type CqcChecklistItem, type InsertCqcChecklistItem, type CqcAuditResponse, type InsertCqcAuditResponse, type KnowledgeQuestionnaire, type InsertKnowledgeQuestionnaire, type KnowledgeQuestion, type InsertKnowledgeQuestion, type KnowledgeSession, type InsertKnowledgeSession, type KnowledgeResponse, type InsertKnowledgeResponse, type KnowledgeAction, type InsertKnowledgeAction, type RecruitmentApplication, type InsertRecruitmentApplication, type ProfessionalReference, type InsertProfessionalReference, type FinanceReport, type InsertFinanceReport, type Client, type InsertClient, type Visit, type InsertVisit, type Run, type InsertRun, type RunStop, type InsertRunStop, type Geocode, type InsertGeocode, type ReferenceRequest, type InsertReferenceRequest, type ServiceImprovementPlanItem, type InsertServiceImprovementPlanItem, type UpdateServiceImprovementPlanItem, type CqcFeedbackCampaign, type InsertCqcFeedbackCampaign, type UpdateCqcFeedbackCampaign, type CqcFeedbackResponse, type InsertCqcFeedbackResponse, type AuditScheduleSettings, type InsertAuditScheduleSettings, type StaffAssessmentTopic, type InsertStaffAssessmentTopic, type StaffAssessmentLink, type InsertStaffAssessmentLink, type StaffAssessmentResponse, type InsertStaffAssessmentResponse, type CqcAuditFormTemplate, type InsertCqcAuditFormTemplate, type CqcAuditFormItem, type InsertCqcAuditFormItem, type CqcAuditFormSubmission, type InsertCqcAuditFormSubmission, type CqcAuditFormItemResponse, type InsertCqcAuditFormItemResponse, type CqcAuditFormEvidenceFile, type InsertCqcAuditFormEvidenceFile } from "@shared/schema";
 import { randomUUID } from "crypto";
 import { db } from "./db";
-import { users, jobs, applications, contactSubmissions, blogCategories, blogPosts } from "@shared/schema";
+import { users, jobs, applications, contactSubmissions, blogCategories, blogPosts, auditLogs, cqcAudits, cqcAuditCategories, cqcQualityStatements, cqcEvidenceCategories, cqcAuditEvidence, cqcQualityAssessments, cqcComplianceRecords, knowledgeQuestionnaires, knowledgeQuestions, knowledgeSessions, knowledgeResponses, knowledgeActions, recruitmentApplications, professionalReferences, financeReports, clients, visits, runs, runStops, geocodeCache, referenceRequests, serviceImprovementPlanItems, cqcFeedbackCampaigns, cqcFeedbackResponses, auditScheduleSettings, cqcAuditFormTemplates, cqcAuditFormItems, cqcAuditFormSubmissions, cqcAuditFormItemResponses, cqcAuditFormEvidenceFiles, staffAssessmentTopics, staffAssessmentLinks, staffAssessmentResponses } from "@shared/schema";
 import { eq, and, desc } from "drizzle-orm";
 import bcrypt from "bcryptjs";
 
@@ -19,6 +19,7 @@ export interface IStorage {
   
   // Jobs
   getAllJobs(filters?: { location?: string; type?: string; salaryRange?: string }): Promise<Job[]>;
+  getAllJobsForAdmin(filters?: { location?: string; type?: string; salaryRange?: string; status?: string }): Promise<Job[]>;
   getJob(id: string): Promise<Job | undefined>;
   createJob(job: InsertJob): Promise<Job>;
   updateJob(id: string, updates: Partial<InsertJob>): Promise<Job | undefined>;
@@ -31,6 +32,20 @@ export interface IStorage {
   createApplication(application: InsertApplication): Promise<Application>;
   updateApplicationStatus(id: string, status: string): Promise<Application | undefined>;
   updateApplicationNotes(id: string, notes: string): Promise<Application | undefined>;
+  
+  // Recruitment Applications (Full Applications)
+  getAllRecruitmentApplications(): Promise<RecruitmentApplication[]>;
+  getRecruitmentApplication(id: string): Promise<RecruitmentApplication | undefined>;
+  createRecruitmentApplication(application: InsertRecruitmentApplication): Promise<RecruitmentApplication>;
+  updateRecruitmentApplicationStatus(id: string, status: string, reviewedBy?: string): Promise<RecruitmentApplication | undefined>;
+  updateRecruitmentApplicationNotes(id: string, adminNotes: string): Promise<RecruitmentApplication | undefined>;
+  
+  // Professional References
+  getAllProfessionalReferences(): Promise<ProfessionalReference[]>;
+  getProfessionalReference(id: string): Promise<ProfessionalReference | undefined>;
+  createProfessionalReference(reference: InsertProfessionalReference): Promise<ProfessionalReference>;
+  updateProfessionalReferenceStatus(id: string, status: string, reviewedBy?: string): Promise<ProfessionalReference | undefined>;
+  updateProfessionalReferenceNotes(id: string, adminNotes: string): Promise<ProfessionalReference | undefined>;
   
   // Contact submissions
   getAllContactSubmissions(): Promise<ContactSubmission[]>;
@@ -115,6 +130,8 @@ export class MemStorage implements IStorage {
   private users: Map<string, User>;
   private jobs: Map<string, Job>;
   private applications: Map<string, Application>;
+  private recruitmentApplications: Map<string, RecruitmentApplication>;
+  private professionalReferences: Map<string, ProfessionalReference>;
   private contactSubmissions: Map<string, ContactSubmission>;
   private feedback: Map<string, Feedback>;
   private newsletters: Map<string, Newsletter>;
@@ -125,11 +142,31 @@ export class MemStorage implements IStorage {
   private deliveries: Map<string, Delivery>;
   private blogCategories: Map<string, BlogCategory>;
   private blogPosts: Map<string, BlogPost>;
+  private auditLogs: Map<string, AuditLog>;
+  private cqcAudits: Map<string, CqcAudit>;
+  private cqcAuditCategories: Map<string, CqcAuditCategory>;
+  private cqcChecklistItems: Map<string, CqcChecklistItem>;
+  private cqcAuditResponses: Map<string, CqcAuditResponse>;
+  private cqcComplianceRecords: Map<string, CqcComplianceRecord>;
+  private knowledgeQuestionnaires: Map<string, KnowledgeQuestionnaire>;
+  private knowledgeQuestions: Map<string, KnowledgeQuestion>;
+  private knowledgeSessions: Map<string, KnowledgeSession>;
+  private knowledgeResponses: Map<string, KnowledgeResponse>;
+  private knowledgeActions: Map<string, KnowledgeAction>;
+  private clients: Map<string, Client>;
+  private visits: Map<string, Visit>;
+  private runs: Map<string, Run>;
+  private runStops: Map<string, RunStop>;
+  private geocodes: Map<string, Geocode>;
+  private referenceRequests: Map<string, ReferenceRequest>;
+  private sipItems: Map<string, ServiceImprovementPlanItem>;
 
   constructor() {
     this.users = new Map();
     this.jobs = new Map();
     this.applications = new Map();
+    this.recruitmentApplications = new Map();
+    this.professionalReferences = new Map();
     this.contactSubmissions = new Map();
     this.feedback = new Map();
     this.newsletters = new Map();
@@ -140,6 +177,24 @@ export class MemStorage implements IStorage {
     this.deliveries = new Map();
     this.blogCategories = new Map();
     this.blogPosts = new Map();
+    this.auditLogs = new Map();
+    this.cqcAudits = new Map();
+    this.cqcAuditCategories = new Map();
+    this.cqcChecklistItems = new Map();
+    this.cqcAuditResponses = new Map();
+    this.cqcComplianceRecords = new Map();
+    this.knowledgeQuestionnaires = new Map();
+    this.knowledgeQuestions = new Map();
+    this.knowledgeSessions = new Map();
+    this.knowledgeResponses = new Map();
+    this.knowledgeActions = new Map();
+    this.clients = new Map();
+    this.visits = new Map();
+    this.runs = new Map();
+    this.runStops = new Map();
+    this.geocodes = new Map();
+    this.referenceRequests = new Map();
+    this.sipItems = new Map();
     
     // Initialize with sample jobs from the website
     this.initializeSampleJobs();
@@ -152,6 +207,7 @@ export class MemStorage implements IStorage {
         title: "Service Manager",
         type: "permanent",
         location: "Plymouth",
+        branch: "Plymouth",
         department: "Care at Home",
         salaryType: "annual",
         salaryMin: 28600,
@@ -171,6 +227,7 @@ export class MemStorage implements IStorage {
         title: "Homecare Assistant",
         type: "care-at-home",
         location: "Devon & Cornwall",
+        branch: "Multi-Location",
         department: "Care at Home",
         salaryType: "hourly",
         salaryMin: 1150, // £11.50 in pence
@@ -190,6 +247,7 @@ export class MemStorage implements IStorage {
         title: "Live-in Care",
         type: "care-at-home",
         location: "Various Locations",
+        branch: "Multi-Location",
         department: "Care at Home",
         salaryType: "weekly",
         salaryMin: 80000, // £800 in pence
@@ -305,6 +363,39 @@ export class MemStorage implements IStorage {
     return jobs.sort((a, b) => (b.createdAt?.getTime() || 0) - (a.createdAt?.getTime() || 0));
   }
 
+  async getAllJobsForAdmin(filters?: { location?: string; type?: string; salaryRange?: string; status?: string }): Promise<Job[]> {
+    let jobs = Array.from(this.jobs.values());
+    
+    if (filters?.status) {
+      if (filters.status === "active") {
+        jobs = jobs.filter(job => job.isActive);
+      } else if (filters.status === "inactive") {
+        jobs = jobs.filter(job => !job.isActive);
+      }
+      // "all" shows both active and inactive
+    }
+    
+    if (filters?.location) {
+      jobs = jobs.filter(job => 
+        job.location.toLowerCase().includes(filters.location!.toLowerCase())
+      );
+    }
+    
+    if (filters?.type) {
+      jobs = jobs.filter(job => job.type === filters.type);
+    }
+    
+    if (filters?.salaryRange) {
+      const [min, max] = filters.salaryRange.split('-').map(Number);
+      jobs = jobs.filter(job => {
+        const jobSalary = job.salaryMin;
+        return jobSalary >= (min * 100) && (!max || jobSalary <= (max * 100));
+      });
+    }
+    
+    return jobs.sort((a, b) => (b.createdAt?.getTime() || 0) - (a.createdAt?.getTime() || 0));
+  }
+
   async getJob(id: string): Promise<Job | undefined> {
     return this.jobs.get(id);
   }
@@ -315,6 +406,7 @@ export class MemStorage implements IStorage {
       ...jobData,
       id,
       department: jobData.department || null,
+      branch: jobData.branch,
       salaryMax: jobData.salaryMax || null,
       requirements: jobData.requirements || null,
       benefits: jobData.benefits || null,
@@ -369,6 +461,8 @@ export class MemStorage implements IStorage {
       experience: applicationData.experience || null,
       additionalInfo: applicationData.additionalInfo || null,
       status: applicationData.status || "pending",
+      notes: applicationData.notes || null,
+      referralSource: applicationData.referralSource || null,
       createdAt: new Date(),
     };
     this.applications.set(id, application);
@@ -397,6 +491,110 @@ export class MemStorage implements IStorage {
     };
     this.applications.set(id, updatedApplication);
     return updatedApplication;
+  }
+
+  // Recruitment Applications (Full Applications) - MemStorage
+  async getAllRecruitmentApplications(): Promise<RecruitmentApplication[]> {
+    return Array.from(this.recruitmentApplications.values())
+      .sort((a, b) => (b.createdAt?.getTime() || 0) - (a.createdAt?.getTime() || 0));
+  }
+
+  async getRecruitmentApplication(id: string): Promise<RecruitmentApplication | undefined> {
+    return this.recruitmentApplications.get(id);
+  }
+
+  async createRecruitmentApplication(application: InsertRecruitmentApplication): Promise<RecruitmentApplication> {
+    const id = randomUUID();
+    const now = new Date();
+    const newApplication: RecruitmentApplication = {
+      id,
+      ...application,
+      createdAt: now,
+      updatedAt: now,
+    };
+    this.recruitmentApplications.set(id, newApplication);
+    return newApplication;
+  }
+
+  async updateRecruitmentApplicationStatus(id: string, status: string, reviewedBy?: string): Promise<RecruitmentApplication | undefined> {
+    const application = this.recruitmentApplications.get(id);
+    if (!application) return undefined;
+    
+    const now = new Date();
+    const updatedApplication: RecruitmentApplication = {
+      ...application,
+      status,
+      reviewedBy: reviewedBy || null,
+      reviewedAt: reviewedBy ? now : null,
+      updatedAt: now,
+    };
+    this.recruitmentApplications.set(id, updatedApplication);
+    return updatedApplication;
+  }
+
+  async updateRecruitmentApplicationNotes(id: string, adminNotes: string): Promise<RecruitmentApplication | undefined> {
+    const application = this.recruitmentApplications.get(id);
+    if (!application) return undefined;
+    
+    const updatedApplication: RecruitmentApplication = {
+      ...application,
+      adminNotes,
+      updatedAt: new Date(),
+    };
+    this.recruitmentApplications.set(id, updatedApplication);
+    return updatedApplication;
+  }
+
+  // Professional References - MemStorage
+  async getAllProfessionalReferences(): Promise<ProfessionalReference[]> {
+    return Array.from(this.professionalReferences.values())
+      .sort((a, b) => (b.createdAt?.getTime() || 0) - (a.createdAt?.getTime() || 0));
+  }
+
+  async getProfessionalReference(id: string): Promise<ProfessionalReference | undefined> {
+    return this.professionalReferences.get(id);
+  }
+
+  async createProfessionalReference(reference: InsertProfessionalReference): Promise<ProfessionalReference> {
+    const id = randomUUID();
+    const now = new Date();
+    const newReference: ProfessionalReference = {
+      id,
+      ...reference,
+      createdAt: now,
+      updatedAt: now,
+    };
+    this.professionalReferences.set(id, newReference);
+    return newReference;
+  }
+
+  async updateProfessionalReferenceStatus(id: string, status: string, reviewedBy?: string): Promise<ProfessionalReference | undefined> {
+    const reference = this.professionalReferences.get(id);
+    if (!reference) return undefined;
+    
+    const now = new Date();
+    const updatedReference: ProfessionalReference = {
+      ...reference,
+      status,
+      reviewedBy: reviewedBy || null,
+      reviewedAt: reviewedBy ? now : null,
+      updatedAt: now,
+    };
+    this.professionalReferences.set(id, updatedReference);
+    return updatedReference;
+  }
+
+  async updateProfessionalReferenceNotes(id: string, adminNotes: string): Promise<ProfessionalReference | undefined> {
+    const reference = this.professionalReferences.get(id);
+    if (!reference) return undefined;
+    
+    const updatedReference: ProfessionalReference = {
+      ...reference,
+      adminNotes,
+      updatedAt: new Date(),
+    };
+    this.professionalReferences.set(id, updatedReference);
+    return updatedReference;
   }
 
   async getAllContactSubmissions(): Promise<ContactSubmission[]> {
@@ -908,11 +1106,13 @@ export class MemStorage implements IStorage {
     const post: BlogPost = {
       ...postData,
       id,
+      content: postData.content || null,
       excerpt: postData.excerpt || null,
       imagePath: postData.imagePath || null,
       readTime: postData.readTime || null,
       isPublished: postData.isPublished ?? false,
       publishedAt: null,
+      blocks: postData.blocks || null,
       createdAt: new Date(),
       updatedAt: new Date(),
     };
@@ -1065,6 +1265,43 @@ export class DrizzleStorage implements IStorage {
     
     return filteredJobs;
   }
+
+  // Admin version that returns ALL jobs regardless of status
+  async getAllJobsForAdmin(filters?: { location?: string; type?: string; salaryRange?: string; status?: string }): Promise<Job[]> {
+    let query = db.select().from(jobs);
+    
+    const result = await query.orderBy(desc(jobs.createdAt));
+    let filteredJobs = result;
+    
+    if (filters?.location) {
+      filteredJobs = filteredJobs.filter(job => 
+        job.location.toLowerCase().includes(filters.location!.toLowerCase())
+      );
+    }
+    
+    if (filters?.type) {
+      filteredJobs = filteredJobs.filter(job => job.type === filters.type);
+    }
+    
+    if (filters?.status) {
+      if (filters.status === "active") {
+        filteredJobs = filteredJobs.filter(job => job.isActive);
+      } else if (filters.status === "inactive") {
+        filteredJobs = filteredJobs.filter(job => !job.isActive);
+      }
+      // "all" shows both active and inactive
+    }
+    
+    if (filters?.salaryRange) {
+      const [min, max] = filters.salaryRange.split('-').map(Number);
+      filteredJobs = filteredJobs.filter(job => {
+        const jobSalary = job.salaryMin;
+        return jobSalary >= (min * 100) && (!max || jobSalary <= (max * 100));
+      });
+    }
+    
+    return filteredJobs;
+  }
   
   async getJob(id: string): Promise<Job | undefined> {
     const result = await db.select().from(jobs).where(eq(jobs.id, id)).limit(1);
@@ -1106,7 +1343,7 @@ export class DrizzleStorage implements IStorage {
   }
   
   async createApplication(applicationData: InsertApplication): Promise<Application> {
-    const result = await db.insert(applications).values(applicationData).returning();
+    const result = await db.insert(applications).values([applicationData]).returning();
     return result[0];
   }
   
@@ -1127,6 +1364,103 @@ export class DrizzleStorage implements IStorage {
     
     return result[0];
   }
+
+  // Recruitment Applications (Full Applications) - DatabaseStorage
+  async getAllRecruitmentApplications(): Promise<RecruitmentApplication[]> {
+    return await db.select().from(recruitmentApplications).orderBy(desc(recruitmentApplications.createdAt));
+  }
+
+  async getRecruitmentApplication(id: string): Promise<RecruitmentApplication | undefined> {
+    const result = await db.select().from(recruitmentApplications)
+      .where(eq(recruitmentApplications.id, id))
+      .limit(1);
+    return result[0];
+  }
+
+  async createRecruitmentApplication(application: InsertRecruitmentApplication): Promise<RecruitmentApplication> {
+    const result = await db.insert(recruitmentApplications).values(application).returning();
+    return result[0];
+  }
+
+  async updateRecruitmentApplicationStatus(id: string, status: string, reviewedBy?: string): Promise<RecruitmentApplication | undefined> {
+    const updateData: any = { 
+      status, 
+      updatedAt: new Date()
+    };
+    
+    if (reviewedBy) {
+      updateData.reviewedBy = reviewedBy;
+      updateData.reviewedAt = new Date();
+    }
+
+    const result = await db.update(recruitmentApplications)
+      .set(updateData)
+      .where(eq(recruitmentApplications.id, id))
+      .returning();
+    
+    return result[0];
+  }
+
+  async updateRecruitmentApplicationNotes(id: string, adminNotes: string): Promise<RecruitmentApplication | undefined> {
+    const result = await db.update(recruitmentApplications)
+      .set({ 
+        adminNotes,
+        updatedAt: new Date()
+      })
+      .where(eq(recruitmentApplications.id, id))
+      .returning();
+    
+    return result[0];
+  }
+
+  // Professional References - DatabaseStorage
+  async getAllProfessionalReferences(): Promise<ProfessionalReference[]> {
+    return await db.select().from(professionalReferences).orderBy(desc(professionalReferences.createdAt));
+  }
+
+  async getProfessionalReference(id: string): Promise<ProfessionalReference | undefined> {
+    const result = await db.select().from(professionalReferences)
+      .where(eq(professionalReferences.id, id))
+      .limit(1);
+    return result[0];
+  }
+
+  async createProfessionalReference(reference: InsertProfessionalReference): Promise<ProfessionalReference> {
+    const result = await db.insert(professionalReferences).values(reference).returning();
+    return result[0];
+  }
+
+  async updateProfessionalReferenceStatus(id: string, status: string, reviewedBy?: string): Promise<ProfessionalReference | undefined> {
+    const updateData: any = { 
+      status, 
+      updatedAt: new Date()
+    };
+    
+    if (reviewedBy) {
+      updateData.reviewedBy = reviewedBy;
+      updateData.reviewedAt = new Date();
+    }
+
+    const result = await db.update(professionalReferences)
+      .set(updateData)
+      .where(eq(professionalReferences.id, id))
+      .returning();
+    
+    return result[0];
+  }
+
+  async updateProfessionalReferenceNotes(id: string, adminNotes: string): Promise<ProfessionalReference | undefined> {
+    const result = await db.update(professionalReferences)
+      .set({ 
+        adminNotes,
+        updatedAt: new Date()
+      })
+      .where(eq(professionalReferences.id, id))
+      .returning();
+    
+    return result[0];
+  }
+
   async getAllContactSubmissions(): Promise<ContactSubmission[]> {
     const result = await db.select().from(contactSubmissions).orderBy(desc(contactSubmissions.createdAt));
     return result;
@@ -1292,6 +1626,1513 @@ export class DrizzleStorage implements IStorage {
       .where(eq(blogPosts.id, id))
       .returning();
     return result[0];
+  }
+
+  async incrementBlogPostViews(id: string): Promise<void> {
+    await db.update(blogPosts)
+      .set({ views: sql`${blogPosts.views} + 1` })
+      .where(eq(blogPosts.id, id));
+  }
+
+  // GDPR Audit Logging Methods
+  async createAuditLog(log: InsertAuditLog): Promise<AuditLog> {
+    const result = await db.insert(auditLogs).values(log).returning();
+    return result[0];
+  }
+
+  async getAuditLogs(filters?: { userId?: string; resourceType?: string; action?: string; startDate?: Date; endDate?: Date }): Promise<AuditLog[]> {
+    let query = db.select().from(auditLogs);
+
+    if (filters) {
+      const conditions = [];
+      
+      if (filters.userId) {
+        conditions.push(eq(auditLogs.userId, filters.userId));
+      }
+      if (filters.resourceType) {
+        conditions.push(eq(auditLogs.resourceType, filters.resourceType));
+      }
+      if (filters.action) {
+        conditions.push(eq(auditLogs.action, filters.action));
+      }
+      // Add date filters if needed - would require additional imports from drizzle-orm
+
+      if (conditions.length > 0) {
+        query = query.where(and(...conditions));
+      }
+    }
+
+    const result = await query.orderBy(desc(auditLogs.createdAt));
+    return result;
+  }
+
+  async getAuditLogsByResourceId(resourceId: string): Promise<AuditLog[]> {
+    const result = await db.select()
+      .from(auditLogs)
+      .where(eq(auditLogs.resourceId, resourceId))
+      .orderBy(desc(auditLogs.createdAt));
+    
+    return result;
+  }
+
+  // CQC Audit Management Methods
+  async getAllCqcAudits(filters?: { auditType?: string; status?: string; auditorId?: string; branch?: string }): Promise<CqcAudit[]> {
+    let query = db.select().from(cqcAudits);
+    
+    if (filters) {
+      const conditions = [];
+      
+      if (filters.auditType) {
+        conditions.push(eq(cqcAudits.auditType, filters.auditType));
+      }
+      if (filters.status) {
+        conditions.push(eq(cqcAudits.status, filters.status));
+      }
+      if (filters.auditorId) {
+        conditions.push(eq(cqcAudits.auditorId, filters.auditorId));
+      }
+      if (filters.branch) {
+        conditions.push(eq(cqcAudits.branch, filters.branch));
+      }
+      
+      if (conditions.length > 0) {
+        query = query.where(and(...conditions));
+      }
+    }
+    
+    const result = await query.orderBy(desc(cqcAudits.createdAt));
+    return result;
+  }
+
+  async getCqcAudit(id: string): Promise<CqcAudit | undefined> {
+    const result = await db.select().from(cqcAudits).where(eq(cqcAudits.id, id)).limit(1);
+    return result[0];
+  }
+
+  async createCqcAudit(audit: InsertCqcAudit): Promise<CqcAudit> {
+    const result = await db.insert(cqcAudits).values(audit).returning();
+    return result[0];
+  }
+
+  async updateCqcAudit(id: string, updates: Partial<InsertCqcAudit>): Promise<CqcAudit | undefined> {
+    const updateData = {
+      ...updates,
+      updatedAt: new Date(),
+    };
+    
+    const result = await db.update(cqcAudits)
+      .set(updateData)
+      .where(eq(cqcAudits.id, id))
+      .returning();
+    return result[0];
+  }
+
+  async deleteCqcAudit(id: string): Promise<boolean> {
+    const result = await db.delete(cqcAudits).where(eq(cqcAudits.id, id)).returning();
+    return result.length > 0;
+  }
+
+  // CQC Audit Categories Methods
+  async getAllCqcAuditCategories(auditType?: string): Promise<CqcAuditCategory[]> {
+    let query = db.select().from(cqcAuditCategories).where(eq(cqcAuditCategories.isActive, true));
+    
+    if (auditType) {
+      query = query.where(and(eq(cqcAuditCategories.isActive, true), eq(cqcAuditCategories.auditType, auditType)));
+    }
+    
+    const result = await query.orderBy(cqcAuditCategories.sortOrder);
+    return result;
+  }
+
+  async getCqcAuditCategory(id: string): Promise<CqcAuditCategory | undefined> {
+    const result = await db.select().from(cqcAuditCategories).where(eq(cqcAuditCategories.id, id)).limit(1);
+    return result[0];
+  }
+
+  async createCqcAuditCategory(category: InsertCqcAuditCategory): Promise<CqcAuditCategory> {
+    const result = await db.insert(cqcAuditCategories).values(category).returning();
+    return result[0];
+  }
+
+  async updateCqcAuditCategory(id: string, updates: Partial<InsertCqcAuditCategory>): Promise<CqcAuditCategory | undefined> {
+    const result = await db.update(cqcAuditCategories)
+      .set(updates)
+      .where(eq(cqcAuditCategories.id, id))
+      .returning();
+    return result[0];
+  }
+
+  async deleteCqcAuditCategory(id: string): Promise<boolean> {
+    const result = await db.delete(cqcAuditCategories).where(eq(cqcAuditCategories.id, id)).returning();
+    return result.length > 0;
+  }
+
+  // CQC Checklist Items Methods
+  async getCqcChecklistItems(categoryId?: string): Promise<CqcChecklistItem[]> {
+    let query = db.select().from(cqcChecklistItems).where(eq(cqcChecklistItems.isActive, true));
+    
+    if (categoryId) {
+      query = query.where(and(eq(cqcChecklistItems.isActive, true), eq(cqcChecklistItems.categoryId, categoryId)));
+    }
+    
+    const result = await query.orderBy(cqcChecklistItems.sortOrder);
+    return result;
+  }
+
+  async getCqcChecklistItem(id: string): Promise<CqcChecklistItem | undefined> {
+    const result = await db.select().from(cqcChecklistItems).where(eq(cqcChecklistItems.id, id)).limit(1);
+    return result[0];
+  }
+
+  async createCqcChecklistItem(item: InsertCqcChecklistItem): Promise<CqcChecklistItem> {
+    const result = await db.insert(cqcChecklistItems).values(item).returning();
+    return result[0];
+  }
+
+  async updateCqcChecklistItem(id: string, updates: Partial<InsertCqcChecklistItem>): Promise<CqcChecklistItem | undefined> {
+    const result = await db.update(cqcChecklistItems)
+      .set(updates)
+      .where(eq(cqcChecklistItems.id, id))
+      .returning();
+    return result[0];
+  }
+
+  async deleteCqcChecklistItem(id: string): Promise<boolean> {
+    const result = await db.delete(cqcChecklistItems).where(eq(cqcChecklistItems.id, id)).returning();
+    return result.length > 0;
+  }
+
+  // CQC Audit Responses Methods
+  async getCqcAuditResponses(auditId: string): Promise<CqcAuditResponse[]> {
+    const result = await db.select().from(cqcAuditResponses)
+      .where(eq(cqcAuditResponses.auditId, auditId))
+      .orderBy(desc(cqcAuditResponses.createdAt));
+    return result;
+  }
+
+  async getCqcAuditResponse(id: string): Promise<CqcAuditResponse | undefined> {
+    const result = await db.select().from(cqcAuditResponses).where(eq(cqcAuditResponses.id, id)).limit(1);
+    return result[0];
+  }
+
+  async createCqcAuditResponse(response: InsertCqcAuditResponse): Promise<CqcAuditResponse> {
+    const result = await db.insert(cqcAuditResponses).values(response).returning();
+    return result[0];
+  }
+
+  async updateCqcAuditResponse(id: string, updates: Partial<InsertCqcAuditResponse>): Promise<CqcAuditResponse | undefined> {
+    const updateData = {
+      ...updates,
+      updatedAt: new Date(),
+    };
+    
+    const result = await db.update(cqcAuditResponses)
+      .set(updateData)
+      .where(eq(cqcAuditResponses.id, id))
+      .returning();
+    return result[0];
+  }
+
+  async deleteCqcAuditResponse(id: string): Promise<boolean> {
+    const result = await db.delete(cqcAuditResponses).where(eq(cqcAuditResponses.id, id)).returning();
+    return result.length > 0;
+  }
+
+  // CQC Compliance Records Methods
+  async getAllCqcComplianceRecords(filters?: { staffId?: string; recordType?: string; status?: string; branch?: string }): Promise<CqcComplianceRecord[]> {
+    let query = db.select().from(cqcComplianceRecords);
+    
+    if (filters) {
+      const conditions = [];
+      
+      if (filters.staffId) {
+        conditions.push(eq(cqcComplianceRecords.staffId, filters.staffId));
+      }
+      if (filters.recordType) {
+        conditions.push(eq(cqcComplianceRecords.recordType, filters.recordType));
+      }
+      if (filters.status) {
+        conditions.push(eq(cqcComplianceRecords.status, filters.status));
+      }
+      if (filters.branch) {
+        conditions.push(eq(cqcComplianceRecords.branch, filters.branch));
+      }
+      
+      if (conditions.length > 0) {
+        query = query.where(and(...conditions));
+      }
+    }
+    
+    const result = await query.orderBy(desc(cqcComplianceRecords.createdAt));
+    return result;
+  }
+
+  async getCqcComplianceRecord(id: string): Promise<CqcComplianceRecord | undefined> {
+    const result = await db.select().from(cqcComplianceRecords).where(eq(cqcComplianceRecords.id, id)).limit(1);
+    return result[0];
+  }
+
+  async createCqcComplianceRecord(record: InsertCqcComplianceRecord): Promise<CqcComplianceRecord> {
+    const result = await db.insert(cqcComplianceRecords).values(record).returning();
+    return result[0];
+  }
+
+  async updateCqcComplianceRecord(id: string, updates: Partial<InsertCqcComplianceRecord>): Promise<CqcComplianceRecord | undefined> {
+    const updateData = {
+      ...updates,
+      updatedAt: new Date(),
+    };
+    
+    const result = await db.update(cqcComplianceRecords)
+      .set(updateData)
+      .where(eq(cqcComplianceRecords.id, id))
+      .returning();
+    return result[0];
+  }
+
+  async deleteCqcComplianceRecord(id: string): Promise<boolean> {
+    const result = await db.delete(cqcComplianceRecords).where(eq(cqcComplianceRecords.id, id)).returning();
+    return result.length > 0;
+  }
+
+  // CQC 2024 Single Assessment Framework - Quality Statements Methods
+  async getAllCqcQualityStatements(keyQuestion?: string): Promise<CqcQualityStatement[]> {
+    let query = db.select().from(cqcQualityStatements);
+    
+    if (keyQuestion) {
+      query = query.where(eq(cqcQualityStatements.keyQuestion, keyQuestion));
+    }
+    
+    return await query.orderBy(cqcQualityStatements.statementNumber);
+  }
+
+  async getCqcQualityStatement(id: string): Promise<CqcQualityStatement | undefined> {
+    const result = await db.select().from(cqcQualityStatements).where(eq(cqcQualityStatements.id, id)).limit(1);
+    return result[0];
+  }
+
+  async createCqcQualityStatement(statement: InsertCqcQualityStatement): Promise<CqcQualityStatement> {
+    const result = await db.insert(cqcQualityStatements).values(statement).returning();
+    return result[0];
+  }
+
+  async updateCqcQualityStatement(id: string, updates: Partial<InsertCqcQualityStatement>): Promise<CqcQualityStatement | undefined> {
+    const result = await db.update(cqcQualityStatements)
+      .set({ ...updates, updatedAt: new Date() })
+      .where(eq(cqcQualityStatements.id, id))
+      .returning();
+    return result[0];
+  }
+
+  async deleteCqcQualityStatement(id: string): Promise<boolean> {
+    const result = await db.delete(cqcQualityStatements).where(eq(cqcQualityStatements.id, id)).returning();
+    return result.length > 0;
+  }
+
+  // CQC 2024 Single Assessment Framework - Evidence Categories Methods
+  async getAllCqcEvidenceCategories(): Promise<CqcEvidenceCategory[]> {
+    return await db.select().from(cqcEvidenceCategories).orderBy(cqcEvidenceCategories.categoryName);
+  }
+
+  async getCqcEvidenceCategory(id: string): Promise<CqcEvidenceCategory | undefined> {
+    const result = await db.select().from(cqcEvidenceCategories).where(eq(cqcEvidenceCategories.id, id)).limit(1);
+    return result[0];
+  }
+
+  async createCqcEvidenceCategory(category: InsertCqcEvidenceCategory): Promise<CqcEvidenceCategory> {
+    const result = await db.insert(cqcEvidenceCategories).values(category).returning();
+    return result[0];
+  }
+
+  async updateCqcEvidenceCategory(id: string, updates: Partial<InsertCqcEvidenceCategory>): Promise<CqcEvidenceCategory | undefined> {
+    const result = await db.update(cqcEvidenceCategories)
+      .set({ ...updates, updatedAt: new Date() })
+      .where(eq(cqcEvidenceCategories.id, id))
+      .returning();
+    return result[0];
+  }
+
+  async deleteCqcEvidenceCategory(id: string): Promise<boolean> {
+    const result = await db.delete(cqcEvidenceCategories).where(eq(cqcEvidenceCategories.id, id)).returning();
+    return result.length > 0;
+  }
+
+  // CQC 2024 Single Assessment Framework - Audit Evidence Methods
+  async getAllCqcAuditEvidence(filters?: { auditId?: string; evidenceCategoryId?: string; qualityStatementId?: string }): Promise<CqcAuditEvidence[]> {
+    let query = db.select().from(cqcAuditEvidence);
+    
+    if (filters) {
+      const conditions = [];
+      
+      if (filters.auditId) {
+        conditions.push(eq(cqcAuditEvidence.auditId, filters.auditId));
+      }
+      if (filters.evidenceCategoryId) {
+        conditions.push(eq(cqcAuditEvidence.evidenceCategoryId, filters.evidenceCategoryId));
+      }
+      if (filters.qualityStatementId) {
+        conditions.push(eq(cqcAuditEvidence.qualityStatementId, filters.qualityStatementId));
+      }
+      
+      if (conditions.length > 0) {
+        query = query.where(and(...conditions));
+      }
+    }
+    
+    return await query.orderBy(desc(cqcAuditEvidence.uploadedAt));
+  }
+
+  async getCqcAuditEvidence(id: string): Promise<CqcAuditEvidence | undefined> {
+    const result = await db.select().from(cqcAuditEvidence).where(eq(cqcAuditEvidence.id, id)).limit(1);
+    return result[0];
+  }
+
+  async createCqcAuditEvidence(evidence: InsertCqcAuditEvidence): Promise<CqcAuditEvidence> {
+    const result = await db.insert(cqcAuditEvidence).values(evidence).returning();
+    return result[0];
+  }
+
+  async updateCqcAuditEvidence(id: string, updates: Partial<InsertCqcAuditEvidence>): Promise<CqcAuditEvidence | undefined> {
+    const result = await db.update(cqcAuditEvidence)
+      .set({ ...updates, updatedAt: new Date() })
+      .where(eq(cqcAuditEvidence.id, id))
+      .returning();
+    return result[0];
+  }
+
+  async deleteCqcAuditEvidence(id: string): Promise<boolean> {
+    const result = await db.delete(cqcAuditEvidence).where(eq(cqcAuditEvidence.id, id)).returning();
+    return result.length > 0;
+  }
+
+  // CQC 2024 Single Assessment Framework - Quality Assessments Methods
+  async getAllCqcQualityAssessments(filters?: { auditId?: string; qualityStatementId?: string; assessmentRating?: string }): Promise<CqcQualityAssessment[]> {
+    let query = db.select().from(cqcQualityAssessments);
+    
+    if (filters) {
+      const conditions = [];
+      
+      if (filters.auditId) {
+        conditions.push(eq(cqcQualityAssessments.auditId, filters.auditId));
+      }
+      if (filters.qualityStatementId) {
+        conditions.push(eq(cqcQualityAssessments.qualityStatementId, filters.qualityStatementId));
+      }
+      if (filters.assessmentRating) {
+        conditions.push(eq(cqcQualityAssessments.assessmentRating, filters.assessmentRating));
+      }
+      
+      if (conditions.length > 0) {
+        query = query.where(and(...conditions));
+      }
+    }
+    
+    return await query.orderBy(desc(cqcQualityAssessments.assessedAt));
+  }
+
+  async getCqcQualityAssessment(id: string): Promise<CqcQualityAssessment | undefined> {
+    const result = await db.select().from(cqcQualityAssessments).where(eq(cqcQualityAssessments.id, id)).limit(1);
+    return result[0];
+  }
+
+  async createCqcQualityAssessment(assessment: InsertCqcQualityAssessment): Promise<CqcQualityAssessment> {
+    const result = await db.insert(cqcQualityAssessments).values(assessment).returning();
+    return result[0];
+  }
+
+  async updateCqcQualityAssessment(id: string, updates: Partial<InsertCqcQualityAssessment>): Promise<CqcQualityAssessment | undefined> {
+    const result = await db.update(cqcQualityAssessments)
+      .set({ ...updates, updatedAt: new Date() })
+      .where(eq(cqcQualityAssessments.id, id))
+      .returning();
+    return result[0];
+  }
+
+  async deleteCqcQualityAssessment(id: string): Promise<boolean> {
+    const result = await db.delete(cqcQualityAssessments).where(eq(cqcQualityAssessments.id, id)).returning();
+    return result.length > 0;
+  }
+
+  // Staff Knowledge Assessment Methods
+  async getAllKnowledgeQuestionnaires(filters?: { category?: string; subcategory?: string; isActive?: boolean }): Promise<KnowledgeQuestionnaire[]> {
+    let query = db.select().from(knowledgeQuestionnaires);
+    
+    if (filters) {
+      const conditions = [];
+      
+      if (filters.category) {
+        conditions.push(eq(knowledgeQuestionnaires.category, filters.category));
+      }
+      if (filters.subcategory) {
+        conditions.push(eq(knowledgeQuestionnaires.subcategory, filters.subcategory));
+      }
+      if (filters.isActive !== undefined) {
+        conditions.push(eq(knowledgeQuestionnaires.isActive, filters.isActive));
+      }
+      
+      if (conditions.length > 0) {
+        query = query.where(and(...conditions));
+      }
+    }
+    
+    const result = await query.orderBy(desc(knowledgeQuestionnaires.createdAt));
+    return result;
+  }
+
+  async getKnowledgeQuestionnaire(id: string): Promise<KnowledgeQuestionnaire | undefined> {
+    const result = await db.select().from(knowledgeQuestionnaires).where(eq(knowledgeQuestionnaires.id, id)).limit(1);
+    return result[0];
+  }
+
+  async getKnowledgeQuestionnaireByShareableLink(shareableLink: string): Promise<KnowledgeQuestionnaire | undefined> {
+    const result = await db.select().from(knowledgeQuestionnaires).where(eq(knowledgeQuestionnaires.shareableLink, shareableLink)).limit(1);
+    return result[0];
+  }
+
+  async createKnowledgeQuestionnaire(questionnaire: InsertKnowledgeQuestionnaire): Promise<KnowledgeQuestionnaire> {
+    const result = await db.insert(knowledgeQuestionnaires).values(questionnaire).returning();
+    return result[0];
+  }
+
+  async updateKnowledgeQuestionnaire(id: string, updates: Partial<InsertKnowledgeQuestionnaire>): Promise<KnowledgeQuestionnaire | undefined> {
+    const updateData = {
+      ...updates,
+      updatedAt: new Date(),
+    };
+    
+    const result = await db.update(knowledgeQuestionnaires)
+      .set(updateData)
+      .where(eq(knowledgeQuestionnaires.id, id))
+      .returning();
+    return result[0];
+  }
+
+  async deleteKnowledgeQuestionnaire(id: string): Promise<boolean> {
+    const result = await db.delete(knowledgeQuestionnaires).where(eq(knowledgeQuestionnaires.id, id)).returning();
+    return result.length > 0;
+  }
+
+  // Knowledge Questions Methods
+  async getKnowledgeQuestions(questionnaireId: string): Promise<KnowledgeQuestion[]> {
+    const result = await db.select().from(knowledgeQuestions)
+      .where(eq(knowledgeQuestions.questionnaireId, questionnaireId))
+      .orderBy(knowledgeQuestions.sortOrder);
+    return result;
+  }
+
+  async getKnowledgeQuestion(id: string): Promise<KnowledgeQuestion | undefined> {
+    const result = await db.select().from(knowledgeQuestions).where(eq(knowledgeQuestions.id, id)).limit(1);
+    return result[0];
+  }
+
+  async createKnowledgeQuestion(question: InsertKnowledgeQuestion): Promise<KnowledgeQuestion> {
+    const result = await db.insert(knowledgeQuestions).values(question).returning();
+    return result[0];
+  }
+
+  async updateKnowledgeQuestion(id: string, updates: Partial<InsertKnowledgeQuestion>): Promise<KnowledgeQuestion | undefined> {
+    const result = await db.update(knowledgeQuestions)
+      .set(updates)
+      .where(eq(knowledgeQuestions.id, id))
+      .returning();
+    return result[0];
+  }
+
+  async deleteKnowledgeQuestion(id: string): Promise<boolean> {
+    const result = await db.delete(knowledgeQuestions).where(eq(knowledgeQuestions.id, id)).returning();
+    return result.length > 0;
+  }
+
+  // Knowledge Sessions Methods
+  async getAllKnowledgeSessions(filters?: { questionnaireId?: string; staffEmail?: string; status?: string }): Promise<KnowledgeSession[]> {
+    let query = db.select().from(knowledgeSessions);
+    
+    if (filters) {
+      const conditions = [];
+      
+      if (filters.questionnaireId) {
+        conditions.push(eq(knowledgeSessions.questionnaireId, filters.questionnaireId));
+      }
+      if (filters.staffEmail) {
+        conditions.push(eq(knowledgeSessions.staffEmail, filters.staffEmail));
+      }
+      if (filters.status) {
+        conditions.push(eq(knowledgeSessions.status, filters.status));
+      }
+      
+      if (conditions.length > 0) {
+        query = query.where(and(...conditions));
+      }
+    }
+    
+    const result = await query.orderBy(desc(knowledgeSessions.createdAt));
+    return result;
+  }
+
+  async getKnowledgeSession(id: string): Promise<KnowledgeSession | undefined> {
+    const result = await db.select().from(knowledgeSessions).where(eq(knowledgeSessions.id, id)).limit(1);
+    return result[0];
+  }
+
+  async createKnowledgeSession(session: InsertKnowledgeSession): Promise<KnowledgeSession> {
+    const result = await db.insert(knowledgeSessions).values(session).returning();
+    return result[0];
+  }
+
+  async updateKnowledgeSession(id: string, updates: Partial<InsertKnowledgeSession>): Promise<KnowledgeSession | undefined> {
+    const result = await db.update(knowledgeSessions)
+      .set(updates)
+      .where(eq(knowledgeSessions.id, id))
+      .returning();
+    return result[0];
+  }
+
+  async deleteKnowledgeSession(id: string): Promise<boolean> {
+    const result = await db.delete(knowledgeSessions).where(eq(knowledgeSessions.id, id)).returning();
+    return result.length > 0;
+  }
+
+  // Knowledge Responses Methods
+  async getKnowledgeResponses(sessionId: string): Promise<KnowledgeResponse[]> {
+    const result = await db.select().from(knowledgeResponses)
+      .where(eq(knowledgeResponses.sessionId, sessionId))
+      .orderBy(desc(knowledgeResponses.createdAt));
+    return result;
+  }
+
+  async getKnowledgeResponse(id: string): Promise<KnowledgeResponse | undefined> {
+    const result = await db.select().from(knowledgeResponses).where(eq(knowledgeResponses.id, id)).limit(1);
+    return result[0];
+  }
+
+  async createKnowledgeResponse(response: InsertKnowledgeResponse): Promise<KnowledgeResponse> {
+    const result = await db.insert(knowledgeResponses).values(response).returning();
+    return result[0];
+  }
+
+  async updateKnowledgeResponse(id: string, updates: Partial<InsertKnowledgeResponse>): Promise<KnowledgeResponse | undefined> {
+    const result = await db.update(knowledgeResponses)
+      .set(updates)
+      .where(eq(knowledgeResponses.id, id))
+      .returning();
+    return result[0];
+  }
+
+  async deleteKnowledgeResponse(id: string): Promise<boolean> {
+    const result = await db.delete(knowledgeResponses).where(eq(knowledgeResponses.id, id)).returning();
+    return result.length > 0;
+  }
+
+  // Knowledge Actions Methods
+  async getAllKnowledgeActions(filters?: { sessionId?: string; assignedTo?: string; status?: string }): Promise<KnowledgeAction[]> {
+    let query = db.select().from(knowledgeActions);
+    
+    if (filters) {
+      const conditions = [];
+      
+      if (filters.sessionId) {
+        conditions.push(eq(knowledgeActions.sessionId, filters.sessionId));
+      }
+      if (filters.assignedTo) {
+        conditions.push(eq(knowledgeActions.assignedTo, filters.assignedTo));
+      }
+      if (filters.status) {
+        conditions.push(eq(knowledgeActions.status, filters.status));
+      }
+      
+      if (conditions.length > 0) {
+        query = query.where(and(...conditions));
+      }
+    }
+    
+    const result = await query.orderBy(desc(knowledgeActions.createdAt));
+    return result;
+  }
+
+  async getKnowledgeAction(id: string): Promise<KnowledgeAction | undefined> {
+    const result = await db.select().from(knowledgeActions).where(eq(knowledgeActions.id, id)).limit(1);
+    return result[0];
+  }
+
+  async createKnowledgeAction(action: InsertKnowledgeAction): Promise<KnowledgeAction> {
+    const result = await db.insert(knowledgeActions).values(action).returning();
+    return result[0];
+  }
+
+  async updateKnowledgeAction(id: string, updates: Partial<InsertKnowledgeAction>): Promise<KnowledgeAction | undefined> {
+    const updateData = {
+      ...updates,
+      updatedAt: new Date(),
+    };
+    
+    const result = await db.update(knowledgeActions)
+      .set(updateData)
+      .where(eq(knowledgeActions.id, id))
+      .returning();
+    return result[0];
+  }
+
+  async deleteKnowledgeAction(id: string): Promise<boolean> {
+    const result = await db.delete(knowledgeActions).where(eq(knowledgeActions.id, id)).returning();
+    return result.length > 0;
+  }
+
+  // Finance Reports
+  async getAllFinanceReports(): Promise<FinanceReport[]> {
+    return await db.select().from(financeReports).orderBy(desc(financeReports.reportMonth));
+  }
+
+  async getFinanceReport(id: string): Promise<FinanceReport | undefined> {
+    const result = await db.select().from(financeReports).where(eq(financeReports.id, id)).limit(1);
+    return result[0];
+  }
+
+  async getFinanceReportByMonth(reportMonth: string): Promise<FinanceReport | undefined> {
+    const result = await db.select().from(financeReports).where(eq(financeReports.reportMonth, reportMonth)).limit(1);
+    return result[0];
+  }
+
+  async createFinanceReport(report: InsertFinanceReport): Promise<FinanceReport> {
+    const result = await db.insert(financeReports).values(report).returning();
+    return result[0];
+  }
+
+  async updateFinanceReport(id: string, updates: Partial<InsertFinanceReport>): Promise<FinanceReport | undefined> {
+    const result = await db.update(financeReports)
+      .set({ ...updates, updatedAt: new Date() })
+      .where(eq(financeReports.id, id))
+      .returning();
+    return result[0];
+  }
+
+  async deleteFinanceReport(id: string): Promise<boolean> {
+    const result = await db.delete(financeReports).where(eq(financeReports.id, id)).returning();
+    return result.length > 0;
+  }
+
+  // Route Planning - Geocoding Cache
+  async getGeocode(cacheKey: string): Promise<Geocode | undefined> {
+    const result = await db.select().from(geocodeCache)
+      .where(eq(geocodeCache.cacheKey, cacheKey))
+      .limit(1);
+    return result[0];
+  }
+
+  async createGeocode(geocode: InsertGeocode): Promise<Geocode> {
+    const result = await db.insert(geocodeCache).values(geocode).returning();
+    return result[0];
+  }
+
+  async updateGeocode(id: string, updates: Partial<InsertGeocode>): Promise<Geocode | undefined> {
+    const updateData = {
+      ...updates,
+      updatedAt: new Date(),
+    };
+    
+    const result = await db.update(geocodeCache)
+      .set(updateData)
+      .where(eq(geocodeCache.id, id))
+      .returning();
+    return result[0];
+  }
+
+  // Route Planning - Clients
+  async getAllClients(filters?: { isActive?: boolean; postcode?: string }): Promise<Client[]> {
+    let query = db.select().from(clients);
+    
+    if (filters?.isActive !== undefined) {
+      query = query.where(eq(clients.isActive, filters.isActive));
+    }
+    
+    if (filters?.postcode) {
+      query = query.where(eq(clients.postcode, filters.postcode));
+    }
+    
+    return await query.orderBy(clients.name);
+  }
+
+  async createClient(client: InsertClient): Promise<Client> {
+    const result = await db.insert(clients).values(client).returning();
+    return result[0];
+  }
+
+  // Route Planning - Visits
+  async getAllVisits(filters?: { date?: string; clientId?: string; timeSlot?: string; status?: string }): Promise<Visit[]> {
+    let query = db.select().from(visits);
+    
+    if (filters?.date) {
+      query = query.where(eq(visits.visitDate, filters.date));
+    }
+    
+    if (filters?.clientId) {
+      query = query.where(eq(visits.clientId, filters.clientId));
+    }
+    
+    if (filters?.timeSlot) {
+      query = query.where(eq(visits.timeSlot, filters.timeSlot));
+    }
+    
+    if (filters?.status) {
+      query = query.where(eq(visits.status, filters.status));
+    }
+    
+    return await query.orderBy(visits.visitDate, visits.timeSlot);
+  }
+
+  async createVisit(visit: InsertVisit): Promise<Visit> {
+    const result = await db.insert(visits).values(visit).returning();
+    return result[0];
+  }
+
+  // Route Planning - Runs
+  async getAllRuns(filters?: { date?: string; travelMode?: string; status?: string; createdBy?: string }): Promise<Run[]> {
+    let query = db.select().from(runs);
+    
+    if (filters?.date) {
+      const targetDate = new Date(filters.date);
+      const startOfDay = new Date(targetDate.setHours(0, 0, 0, 0));
+      const endOfDay = new Date(targetDate.setHours(23, 59, 59, 999));
+      query = query.where(and(
+        gte(runs.date, startOfDay),
+        lte(runs.date, endOfDay)
+      ));
+    }
+    
+    if (filters?.travelMode) {
+      query = query.where(eq(runs.travelMode, filters.travelMode));
+    }
+    
+    if (filters?.status) {
+      query = query.where(eq(runs.status, filters.status));
+    }
+    
+    if (filters?.createdBy) {
+      query = query.where(eq(runs.createdBy, filters.createdBy));
+    }
+    
+    return await query.orderBy(desc(runs.createdAt));
+  }
+
+  async getRun(id: string): Promise<Run | undefined> {
+    const result = await db.select().from(runs)
+      .where(eq(runs.id, id))
+      .limit(1);
+    return result[0];
+  }
+
+  async createRun(run: InsertRun): Promise<Run> {
+    // TEMPORARY FIX: Exclude travelMode field until database schema is synced
+    // The travelMode column exists in code schema but not in database yet
+    const { travelMode, ...runWithoutTravelMode } = run;
+    
+    try {
+      const result = await db.insert(runs).values(run).returning();
+      return result[0];
+    } catch (error: any) {
+      // If travelMode column doesn't exist, try without it
+      if (error?.code === '42703' && error?.message?.includes('travel_mode')) {
+        console.warn('Database missing travel_mode column, inserting without it (temporary fix)');
+        const result = await db.insert(runs).values(runWithoutTravelMode).returning();
+        // Add the travelMode back to the returned object for consistency
+        return { ...result[0], travelMode: travelMode || 'walking' };
+      }
+      throw error;
+    }
+  }
+
+  // Route Planning - Run Stops
+  async getRunStops(runId: string): Promise<RunStop[]> {
+    return await db.select().from(runStops)
+      .where(eq(runStops.runId, runId))
+      .orderBy(runStops.stopOrder);
+  }
+
+  async createRunStop(runStop: InsertRunStop): Promise<RunStop> {
+    const result = await db.insert(runStops).values(runStop).returning();
+    return result[0];
+  }
+
+  async deleteRunStops(runId: string): Promise<boolean> {
+    const result = await db.delete(runStops).where(eq(runStops.runId, runId)).returning();
+    return result.length > 0;
+  }
+
+  async deleteRun(id: string): Promise<boolean> {
+    const result = await db.delete(runs).where(eq(runs.id, id)).returning();
+    return result.length > 0;
+  }
+
+  // Reference Requests
+  async getAllReferenceRequests(filters?: { status?: string }): Promise<ReferenceRequest[]> {
+    let query = db.select().from(referenceRequests);
+    
+    if (filters?.status) {
+      query = query.where(eq(referenceRequests.status, filters.status));
+    }
+    
+    return await query.orderBy(desc(referenceRequests.createdAt));
+  }
+
+  async getReferenceRequest(id: string): Promise<ReferenceRequest | undefined> {
+    const result = await db.select().from(referenceRequests)
+      .where(eq(referenceRequests.id, id))
+      .limit(1);
+    return result[0];
+  }
+
+  async getReferenceRequestByToken(token: string): Promise<ReferenceRequest | undefined> {
+    const result = await db.select().from(referenceRequests)
+      .where(eq(referenceRequests.token, token))
+      .limit(1);
+    return result[0];
+  }
+
+  async createReferenceRequest(request: InsertReferenceRequest): Promise<ReferenceRequest> {
+    const result = await db.insert(referenceRequests).values(request).returning();
+    return result[0];
+  }
+
+  async updateReferenceRequest(id: string, updates: Partial<InsertReferenceRequest>): Promise<ReferenceRequest | undefined> {
+    const result = await db.update(referenceRequests)
+      .set(updates)
+      .where(eq(referenceRequests.id, id))
+      .returning();
+    return result[0];
+  }
+
+  async updateReferenceRequestStatus(id: string, status: string): Promise<ReferenceRequest | undefined> {
+    const updateData: any = { status };
+    
+    if (status === 'requested') {
+      updateData.requestedAt = new Date();
+    } else if (status === 'received') {
+      updateData.receivedAt = new Date();
+    }
+    
+    const result = await db.update(referenceRequests)
+      .set(updateData)
+      .where(eq(referenceRequests.id, id))
+      .returning();
+    return result[0];
+  }
+
+  async deleteReferenceRequest(id: string): Promise<boolean> {
+    const result = await db.delete(referenceRequests).where(eq(referenceRequests.id, id)).returning();
+    return result.length > 0;
+  }
+
+  // Service Improvement Plan (SIP) - DatabaseStorage implementations
+  async getAllServiceImprovementPlanItems(filters?: { status?: string; priority?: string; cqcDomain?: string; branch?: string }): Promise<ServiceImprovementPlanItem[]> {
+    let query = db.select().from(serviceImprovementPlanItems);
+    
+    const conditions = [];
+    if (filters?.status) conditions.push(eq(serviceImprovementPlanItems.status, filters.status));
+    if (filters?.priority) conditions.push(eq(serviceImprovementPlanItems.priority, filters.priority));
+    if (filters?.cqcDomain) conditions.push(eq(serviceImprovementPlanItems.cqcDomain, filters.cqcDomain));
+    if (filters?.branch) conditions.push(eq(serviceImprovementPlanItems.branch, filters.branch));
+    
+    if (conditions.length > 0) {
+      query = query.where(and(...conditions));
+    }
+    
+    return await query.orderBy(desc(serviceImprovementPlanItems.createdAt));
+  }
+
+  async getServiceImprovementPlanItem(id: string): Promise<ServiceImprovementPlanItem | undefined> {
+    const result = await db.select().from(serviceImprovementPlanItems)
+      .where(eq(serviceImprovementPlanItems.id, id))
+      .limit(1);
+    return result[0];
+  }
+
+  async createServiceImprovementPlanItem(item: InsertServiceImprovementPlanItem): Promise<ServiceImprovementPlanItem> {
+    const refNumber = await this.getNextSipReferenceNumber();
+    const result = await db.insert(serviceImprovementPlanItems).values({
+      ...item,
+      referenceNumber: refNumber,
+    }).returning();
+    return result[0];
+  }
+
+  async updateServiceImprovementPlanItem(id: string, updates: UpdateServiceImprovementPlanItem): Promise<ServiceImprovementPlanItem | undefined> {
+    const result = await db.update(serviceImprovementPlanItems)
+      .set({
+        ...updates,
+        updatedAt: new Date(),
+      })
+      .where(eq(serviceImprovementPlanItems.id, id))
+      .returning();
+    return result[0];
+  }
+
+  async completeServiceImprovementPlanItem(id: string, completedBy: string): Promise<ServiceImprovementPlanItem | undefined> {
+    const existing = await this.getServiceImprovementPlanItem(id);
+    if (!existing) return undefined;
+    
+    const now = new Date();
+    const updateEntry = {
+      date: now.toISOString(),
+      update: 'Marked as completed',
+      updatedBy: completedBy
+    };
+    
+    const result = await db.update(serviceImprovementPlanItems)
+      .set({
+        status: 'completed',
+        completedDate: now,
+        progressPercentage: 100,
+        updatedAt: now,
+        updateHistory: [...(existing.updateHistory || []), updateEntry],
+      })
+      .where(eq(serviceImprovementPlanItems.id, id))
+      .returning();
+    return result[0];
+  }
+
+  async deleteServiceImprovementPlanItem(id: string): Promise<boolean> {
+    const result = await db.delete(serviceImprovementPlanItems).where(eq(serviceImprovementPlanItems.id, id)).returning();
+    return result.length > 0;
+  }
+
+  async getNextSipReferenceNumber(): Promise<string> {
+    const year = new Date().getFullYear();
+    const allItems = await db.select().from(serviceImprovementPlanItems);
+    const yearItems = allItems.filter(i => i.referenceNumber.includes(`SIP-${year}`));
+    const nextNum = yearItems.length + 1;
+    return `SIP-${year}-${String(nextNum).padStart(3, '0')}`;
+  }
+
+  // CQC Feedback Campaigns
+  async getAllCqcFeedbackCampaigns(filters?: { category?: string; status?: string; branch?: string }): Promise<CqcFeedbackCampaign[]> {
+    const conditions = [];
+    if (filters?.category) conditions.push(eq(cqcFeedbackCampaigns.category, filters.category));
+    if (filters?.status) conditions.push(eq(cqcFeedbackCampaigns.status, filters.status));
+    if (filters?.branch) conditions.push(eq(cqcFeedbackCampaigns.branch, filters.branch));
+    
+    const query = conditions.length > 0
+      ? db.select().from(cqcFeedbackCampaigns).where(and(...conditions)).orderBy(desc(cqcFeedbackCampaigns.createdAt))
+      : db.select().from(cqcFeedbackCampaigns).orderBy(desc(cqcFeedbackCampaigns.createdAt));
+    
+    return await query;
+  }
+
+  async getCqcFeedbackCampaign(id: string): Promise<CqcFeedbackCampaign | undefined> {
+    const result = await db.select().from(cqcFeedbackCampaigns)
+      .where(eq(cqcFeedbackCampaigns.id, id))
+      .limit(1);
+    return result[0];
+  }
+
+  async getCqcFeedbackCampaignByToken(token: string): Promise<CqcFeedbackCampaign | undefined> {
+    const result = await db.select().from(cqcFeedbackCampaigns)
+      .where(eq(cqcFeedbackCampaigns.linkToken, token))
+      .limit(1);
+    return result[0];
+  }
+
+  async createCqcFeedbackCampaign(campaign: InsertCqcFeedbackCampaign): Promise<CqcFeedbackCampaign> {
+    const result = await db.insert(cqcFeedbackCampaigns).values(campaign).returning();
+    return result[0];
+  }
+
+  async updateCqcFeedbackCampaign(id: string, updates: UpdateCqcFeedbackCampaign): Promise<CqcFeedbackCampaign | undefined> {
+    const result = await db.update(cqcFeedbackCampaigns)
+      .set({ ...updates, updatedAt: new Date() })
+      .where(eq(cqcFeedbackCampaigns.id, id))
+      .returning();
+    return result[0];
+  }
+
+  async deleteCqcFeedbackCampaign(id: string): Promise<boolean> {
+    const result = await db.delete(cqcFeedbackCampaigns).where(eq(cqcFeedbackCampaigns.id, id)).returning();
+    return result.length > 0;
+  }
+
+  // CQC Feedback Responses
+  async getAllCqcFeedbackResponses(filters?: { campaignId?: string; branch?: string; source?: string; status?: string }): Promise<CqcFeedbackResponse[]> {
+    const conditions = [];
+    if (filters?.campaignId) conditions.push(eq(cqcFeedbackResponses.campaignId, filters.campaignId));
+    if (filters?.branch) conditions.push(eq(cqcFeedbackResponses.branch, filters.branch));
+    if (filters?.source) conditions.push(eq(cqcFeedbackResponses.source, filters.source));
+    if (filters?.status) conditions.push(eq(cqcFeedbackResponses.status, filters.status));
+    
+    const query = conditions.length > 0
+      ? db.select().from(cqcFeedbackResponses).where(and(...conditions)).orderBy(desc(cqcFeedbackResponses.createdAt))
+      : db.select().from(cqcFeedbackResponses).orderBy(desc(cqcFeedbackResponses.createdAt));
+    
+    return await query;
+  }
+
+  async getCqcFeedbackResponse(id: string): Promise<CqcFeedbackResponse | undefined> {
+    const result = await db.select().from(cqcFeedbackResponses)
+      .where(eq(cqcFeedbackResponses.id, id))
+      .limit(1);
+    return result[0];
+  }
+
+  async createCqcFeedbackResponse(response: InsertCqcFeedbackResponse): Promise<CqcFeedbackResponse> {
+    const result = await db.insert(cqcFeedbackResponses).values(response).returning();
+    // Increment campaign response count
+    await db.update(cqcFeedbackCampaigns)
+      .set({ responseCount: db.select({ count: cqcFeedbackResponses.id }).from(cqcFeedbackResponses).where(eq(cqcFeedbackResponses.campaignId, response.campaignId)) as any })
+      .where(eq(cqcFeedbackCampaigns.id, response.campaignId));
+    return result[0];
+  }
+
+  async updateCqcFeedbackResponse(id: string, updates: Partial<InsertCqcFeedbackResponse>): Promise<CqcFeedbackResponse | undefined> {
+    const result = await db.update(cqcFeedbackResponses)
+      .set(updates)
+      .where(eq(cqcFeedbackResponses.id, id))
+      .returning();
+    return result[0];
+  }
+
+  async deleteCqcFeedbackResponse(id: string): Promise<boolean> {
+    const result = await db.delete(cqcFeedbackResponses).where(eq(cqcFeedbackResponses.id, id)).returning();
+    return result.length > 0;
+  }
+
+  async getCqcFeedbackCampaignStats(campaignId: string): Promise<{
+    totalResponses: number;
+    averageRating: number;
+    npsScore: number;
+    ratingDistribution: Record<number, number>;
+    recommendPercentage: number;
+  }> {
+    const responses = await db.select().from(cqcFeedbackResponses)
+      .where(eq(cqcFeedbackResponses.campaignId, campaignId));
+    
+    const ratingsWithValue = responses.filter(r => r.overallRating !== null && r.overallRating !== undefined);
+    const npsResponses = responses.filter(r => r.npsScore !== null && r.npsScore !== undefined);
+    const recommendResponses = responses.filter(r => r.wouldRecommend !== null && r.wouldRecommend !== undefined);
+    
+    const ratingDistribution: Record<number, number> = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 };
+    let totalRating = 0;
+    ratingsWithValue.forEach(r => {
+      const rating = r.overallRating!;
+      ratingDistribution[rating] = (ratingDistribution[rating] || 0) + 1;
+      totalRating += rating;
+    });
+    
+    // Calculate NPS: (Promoters - Detractors) / Total * 100
+    const promoters = npsResponses.filter(r => r.npsScore! >= 9).length;
+    const detractors = npsResponses.filter(r => r.npsScore! <= 6).length;
+    const npsScore = npsResponses.length > 0 ? ((promoters - detractors) / npsResponses.length) * 100 : 0;
+    
+    const recommendYes = recommendResponses.filter(r => r.wouldRecommend === true).length;
+    const recommendPercentage = recommendResponses.length > 0 ? (recommendYes / recommendResponses.length) * 100 : 0;
+    
+    return {
+      totalResponses: responses.length,
+      averageRating: ratingsWithValue.length > 0 ? totalRating / ratingsWithValue.length : 0,
+      npsScore: Math.round(npsScore),
+      ratingDistribution,
+      recommendPercentage: Math.round(recommendPercentage),
+    };
+  }
+
+  // Audit Schedule Settings
+  async getAllAuditScheduleSettings(filters?: { branch?: string }): Promise<AuditScheduleSettings[]> {
+    const conditions = [];
+    if (filters?.branch) conditions.push(eq(auditScheduleSettings.branch, filters.branch));
+    
+    const query = conditions.length > 0
+      ? db.select().from(auditScheduleSettings).where(and(...conditions))
+      : db.select().from(auditScheduleSettings);
+    
+    return await query;
+  }
+
+  async getAuditScheduleSettings(id: string): Promise<AuditScheduleSettings | undefined> {
+    const result = await db.select().from(auditScheduleSettings)
+      .where(eq(auditScheduleSettings.id, id))
+      .limit(1);
+    return result[0];
+  }
+
+  async getAuditScheduleSettingsByCategory(category: string, branch: string): Promise<AuditScheduleSettings | undefined> {
+    const result = await db.select().from(auditScheduleSettings)
+      .where(and(
+        eq(auditScheduleSettings.category, category),
+        eq(auditScheduleSettings.branch, branch)
+      ))
+      .limit(1);
+    return result[0];
+  }
+
+  async createAuditScheduleSettings(settings: InsertAuditScheduleSettings): Promise<AuditScheduleSettings> {
+    const result = await db.insert(auditScheduleSettings).values(settings).returning();
+    return result[0];
+  }
+
+  async updateAuditScheduleSettings(id: string, updates: Partial<InsertAuditScheduleSettings>): Promise<AuditScheduleSettings | undefined> {
+    const result = await db.update(auditScheduleSettings)
+      .set({ ...updates, updatedAt: new Date() })
+      .where(eq(auditScheduleSettings.id, id))
+      .returning();
+    return result[0];
+  }
+
+  async upsertAuditScheduleSettings(settings: InsertAuditScheduleSettings): Promise<AuditScheduleSettings> {
+    const existing = await this.getAuditScheduleSettingsByCategory(settings.category, settings.branch);
+    if (existing) {
+      return (await this.updateAuditScheduleSettings(existing.id, settings))!;
+    }
+    return this.createAuditScheduleSettings(settings);
+  }
+
+  async deleteAuditScheduleSettings(id: string): Promise<boolean> {
+    const result = await db.delete(auditScheduleSettings)
+      .where(eq(auditScheduleSettings.id, id))
+      .returning();
+    return result.length > 0;
+  }
+
+  // CQC Audit Form Templates
+  async getAllCqcAuditFormTemplates(filters?: { isActive?: boolean }): Promise<CqcAuditFormTemplate[]> {
+    const conditions = [];
+    if (filters?.isActive !== undefined) conditions.push(eq(cqcAuditFormTemplates.isActive, filters.isActive));
+    
+    const query = conditions.length > 0
+      ? db.select().from(cqcAuditFormTemplates).where(and(...conditions))
+      : db.select().from(cqcAuditFormTemplates);
+    
+    return await query;
+  }
+
+  async getCqcAuditFormTemplate(id: string): Promise<CqcAuditFormTemplate | undefined> {
+    const result = await db.select().from(cqcAuditFormTemplates)
+      .where(eq(cqcAuditFormTemplates.id, id))
+      .limit(1);
+    return result[0];
+  }
+
+  async getCqcAuditFormTemplateByCategory(category: string): Promise<CqcAuditFormTemplate | undefined> {
+    const result = await db.select().from(cqcAuditFormTemplates)
+      .where(eq(cqcAuditFormTemplates.category, category))
+      .limit(1);
+    return result[0];
+  }
+
+  async createCqcAuditFormTemplate(template: InsertCqcAuditFormTemplate): Promise<CqcAuditFormTemplate> {
+    const result = await db.insert(cqcAuditFormTemplates).values(template).returning();
+    return result[0];
+  }
+
+  async updateCqcAuditFormTemplate(id: string, updates: Partial<InsertCqcAuditFormTemplate>): Promise<CqcAuditFormTemplate | undefined> {
+    const result = await db.update(cqcAuditFormTemplates)
+      .set({ ...updates, updatedAt: new Date() })
+      .where(eq(cqcAuditFormTemplates.id, id))
+      .returning();
+    return result[0];
+  }
+
+  async deleteCqcAuditFormTemplate(id: string): Promise<boolean> {
+    const result = await db.delete(cqcAuditFormTemplates)
+      .where(eq(cqcAuditFormTemplates.id, id))
+      .returning();
+    return result.length > 0;
+  }
+
+  // CQC Audit Form Items (Checklist Questions)
+  async getCqcAuditFormItems(templateId: string): Promise<CqcAuditFormItem[]> {
+    return await db.select().from(cqcAuditFormItems)
+      .where(eq(cqcAuditFormItems.templateId, templateId))
+      .orderBy(cqcAuditFormItems.sortOrder);
+  }
+
+  async getCqcAuditFormItem(id: string): Promise<CqcAuditFormItem | undefined> {
+    const result = await db.select().from(cqcAuditFormItems)
+      .where(eq(cqcAuditFormItems.id, id))
+      .limit(1);
+    return result[0];
+  }
+
+  async createCqcAuditFormItem(item: InsertCqcAuditFormItem): Promise<CqcAuditFormItem> {
+    const result = await db.insert(cqcAuditFormItems).values(item).returning();
+    return result[0];
+  }
+
+  async updateCqcAuditFormItem(id: string, updates: Partial<InsertCqcAuditFormItem>): Promise<CqcAuditFormItem | undefined> {
+    const result = await db.update(cqcAuditFormItems)
+      .set(updates)
+      .where(eq(cqcAuditFormItems.id, id))
+      .returning();
+    return result[0];
+  }
+
+  async deleteCqcAuditFormItem(id: string): Promise<boolean> {
+    const result = await db.delete(cqcAuditFormItems)
+      .where(eq(cqcAuditFormItems.id, id))
+      .returning();
+    return result.length > 0;
+  }
+
+  // CQC Audit Form Submissions
+  async getAllCqcAuditFormSubmissions(filters?: { branch?: string; category?: string; status?: string }): Promise<CqcAuditFormSubmission[]> {
+    const conditions = [];
+    if (filters?.branch) conditions.push(eq(cqcAuditFormSubmissions.branch, filters.branch));
+    if (filters?.category) conditions.push(eq(cqcAuditFormSubmissions.category, filters.category));
+    if (filters?.status) conditions.push(eq(cqcAuditFormSubmissions.status, filters.status));
+    
+    const query = conditions.length > 0
+      ? db.select().from(cqcAuditFormSubmissions).where(and(...conditions)).orderBy(desc(cqcAuditFormSubmissions.auditDate))
+      : db.select().from(cqcAuditFormSubmissions).orderBy(desc(cqcAuditFormSubmissions.auditDate));
+    
+    return await query;
+  }
+
+  async getCqcAuditFormSubmission(id: string): Promise<CqcAuditFormSubmission | undefined> {
+    const result = await db.select().from(cqcAuditFormSubmissions)
+      .where(eq(cqcAuditFormSubmissions.id, id))
+      .limit(1);
+    return result[0];
+  }
+
+  async createCqcAuditFormSubmission(submission: InsertCqcAuditFormSubmission): Promise<CqcAuditFormSubmission> {
+    const result = await db.insert(cqcAuditFormSubmissions).values(submission).returning();
+    return result[0];
+  }
+
+  async updateCqcAuditFormSubmission(id: string, updates: Partial<InsertCqcAuditFormSubmission>): Promise<CqcAuditFormSubmission | undefined> {
+    const result = await db.update(cqcAuditFormSubmissions)
+      .set({ ...updates, updatedAt: new Date() })
+      .where(eq(cqcAuditFormSubmissions.id, id))
+      .returning();
+    return result[0];
+  }
+
+  async deleteCqcAuditFormSubmission(id: string): Promise<boolean> {
+    const result = await db.delete(cqcAuditFormSubmissions)
+      .where(eq(cqcAuditFormSubmissions.id, id))
+      .returning();
+    return result.length > 0;
+  }
+
+  // CQC Audit Form Item Responses
+  async getCqcAuditFormItemResponses(submissionId: string): Promise<CqcAuditFormItemResponse[]> {
+    return await db.select().from(cqcAuditFormItemResponses)
+      .where(eq(cqcAuditFormItemResponses.submissionId, submissionId));
+  }
+
+  async getCqcAuditFormItemResponse(id: string): Promise<CqcAuditFormItemResponse | undefined> {
+    const result = await db.select().from(cqcAuditFormItemResponses)
+      .where(eq(cqcAuditFormItemResponses.id, id))
+      .limit(1);
+    return result[0];
+  }
+
+  async createCqcAuditFormItemResponse(response: InsertCqcAuditFormItemResponse): Promise<CqcAuditFormItemResponse> {
+    const result = await db.insert(cqcAuditFormItemResponses).values(response).returning();
+    return result[0];
+  }
+
+  async updateCqcAuditFormItemResponse(id: string, updates: Partial<InsertCqcAuditFormItemResponse>): Promise<CqcAuditFormItemResponse | undefined> {
+    const result = await db.update(cqcAuditFormItemResponses)
+      .set(updates)
+      .where(eq(cqcAuditFormItemResponses.id, id))
+      .returning();
+    return result[0];
+  }
+
+  async deleteCqcAuditFormItemResponse(id: string): Promise<boolean> {
+    const result = await db.delete(cqcAuditFormItemResponses)
+      .where(eq(cqcAuditFormItemResponses.id, id))
+      .returning();
+    return result.length > 0;
+  }
+
+  async deleteAllCqcAuditFormItemResponses(submissionId: string): Promise<boolean> {
+    await db.delete(cqcAuditFormItemResponses)
+      .where(eq(cqcAuditFormItemResponses.submissionId, submissionId));
+    return true;
+  }
+
+  // CQC Audit Form Evidence Files
+  async getCqcAuditFormEvidenceFiles(submissionId: string): Promise<CqcAuditFormEvidenceFile[]> {
+    return await db.select().from(cqcAuditFormEvidenceFiles)
+      .where(eq(cqcAuditFormEvidenceFiles.submissionId, submissionId));
+  }
+
+  async getCqcAuditFormEvidenceFile(id: string): Promise<CqcAuditFormEvidenceFile | undefined> {
+    const result = await db.select().from(cqcAuditFormEvidenceFiles)
+      .where(eq(cqcAuditFormEvidenceFiles.id, id))
+      .limit(1);
+    return result[0];
+  }
+
+  async createCqcAuditFormEvidenceFile(file: InsertCqcAuditFormEvidenceFile): Promise<CqcAuditFormEvidenceFile> {
+    const result = await db.insert(cqcAuditFormEvidenceFiles).values(file).returning();
+    return result[0];
+  }
+
+  async deleteCqcAuditFormEvidenceFile(id: string): Promise<boolean> {
+    const result = await db.delete(cqcAuditFormEvidenceFiles)
+      .where(eq(cqcAuditFormEvidenceFiles.id, id))
+      .returning();
+    return result.length > 0;
+  }
+
+  // Staff Assessment Topics
+  async getAllStaffAssessmentTopics(filters?: { isActive?: boolean }): Promise<StaffAssessmentTopic[]> {
+    const conditions = [];
+    if (filters?.isActive !== undefined) conditions.push(eq(staffAssessmentTopics.isActive, filters.isActive));
+    
+    const query = conditions.length > 0
+      ? db.select().from(staffAssessmentTopics).where(and(...conditions)).orderBy(staffAssessmentTopics.title)
+      : db.select().from(staffAssessmentTopics).orderBy(staffAssessmentTopics.title);
+    
+    return await query;
+  }
+
+  async getStaffAssessmentTopic(id: string): Promise<StaffAssessmentTopic | undefined> {
+    const result = await db.select().from(staffAssessmentTopics)
+      .where(eq(staffAssessmentTopics.id, id))
+      .limit(1);
+    return result[0];
+  }
+
+  async getStaffAssessmentTopicBySlug(slug: string): Promise<StaffAssessmentTopic | undefined> {
+    const result = await db.select().from(staffAssessmentTopics)
+      .where(eq(staffAssessmentTopics.slug, slug))
+      .limit(1);
+    return result[0];
+  }
+
+  async createStaffAssessmentTopic(topic: InsertStaffAssessmentTopic): Promise<StaffAssessmentTopic> {
+    const result = await db.insert(staffAssessmentTopics).values(topic).returning();
+    return result[0];
+  }
+
+  async updateStaffAssessmentTopic(id: string, updates: Partial<InsertStaffAssessmentTopic>): Promise<StaffAssessmentTopic | undefined> {
+    const result = await db.update(staffAssessmentTopics)
+      .set({ ...updates, updatedAt: new Date() })
+      .where(eq(staffAssessmentTopics.id, id))
+      .returning();
+    return result[0];
+  }
+
+  async deleteStaffAssessmentTopic(id: string): Promise<boolean> {
+    const result = await db.delete(staffAssessmentTopics)
+      .where(eq(staffAssessmentTopics.id, id))
+      .returning();
+    return result.length > 0;
+  }
+
+  // Staff Assessment Links (Branch-specific)
+  async getAllStaffAssessmentLinks(filters?: { topicId?: string; branch?: string; isActive?: boolean }): Promise<StaffAssessmentLink[]> {
+    const conditions = [];
+    if (filters?.topicId) conditions.push(eq(staffAssessmentLinks.topicId, filters.topicId));
+    if (filters?.branch) conditions.push(eq(staffAssessmentLinks.branch, filters.branch));
+    if (filters?.isActive !== undefined) conditions.push(eq(staffAssessmentLinks.isActive, filters.isActive));
+    
+    const query = conditions.length > 0
+      ? db.select().from(staffAssessmentLinks).where(and(...conditions)).orderBy(staffAssessmentLinks.branch)
+      : db.select().from(staffAssessmentLinks).orderBy(staffAssessmentLinks.branch);
+    
+    return await query;
+  }
+
+  async getStaffAssessmentLink(id: string): Promise<StaffAssessmentLink | undefined> {
+    const result = await db.select().from(staffAssessmentLinks)
+      .where(eq(staffAssessmentLinks.id, id))
+      .limit(1);
+    return result[0];
+  }
+
+  async getStaffAssessmentLinkByToken(token: string): Promise<StaffAssessmentLink | undefined> {
+    const result = await db.select().from(staffAssessmentLinks)
+      .where(eq(staffAssessmentLinks.token, token))
+      .limit(1);
+    return result[0];
+  }
+
+  async createStaffAssessmentLink(link: InsertStaffAssessmentLink): Promise<StaffAssessmentLink> {
+    const result = await db.insert(staffAssessmentLinks).values(link).returning();
+    return result[0];
+  }
+
+  async updateStaffAssessmentLink(id: string, updates: Partial<InsertStaffAssessmentLink>): Promise<StaffAssessmentLink | undefined> {
+    const result = await db.update(staffAssessmentLinks)
+      .set({ ...updates, updatedAt: new Date() })
+      .where(eq(staffAssessmentLinks.id, id))
+      .returning();
+    return result[0];
+  }
+
+  async deleteStaffAssessmentLink(id: string): Promise<boolean> {
+    const result = await db.delete(staffAssessmentLinks)
+      .where(eq(staffAssessmentLinks.id, id))
+      .returning();
+    return result.length > 0;
+  }
+
+  async regenerateStaffAssessmentLinkToken(id: string): Promise<StaffAssessmentLink | undefined> {
+    const newToken = randomUUID().replace(/-/g, '').substring(0, 16);
+    const result = await db.update(staffAssessmentLinks)
+      .set({ token: newToken, updatedAt: new Date() })
+      .where(eq(staffAssessmentLinks.id, id))
+      .returning();
+    return result[0];
+  }
+
+  // Staff Assessment Responses
+  async getAllStaffAssessmentResponses(filters?: { topicId?: string; branch?: string; linkId?: string }): Promise<StaffAssessmentResponse[]> {
+    const conditions = [];
+    if (filters?.topicId) conditions.push(eq(staffAssessmentResponses.topicId, filters.topicId));
+    if (filters?.branch) conditions.push(eq(staffAssessmentResponses.branch, filters.branch));
+    if (filters?.linkId) conditions.push(eq(staffAssessmentResponses.linkId, filters.linkId));
+    
+    const query = conditions.length > 0
+      ? db.select().from(staffAssessmentResponses).where(and(...conditions)).orderBy(desc(staffAssessmentResponses.completedAt))
+      : db.select().from(staffAssessmentResponses).orderBy(desc(staffAssessmentResponses.completedAt));
+    
+    return await query;
+  }
+
+  async getStaffAssessmentResponse(id: string): Promise<StaffAssessmentResponse | undefined> {
+    const result = await db.select().from(staffAssessmentResponses)
+      .where(eq(staffAssessmentResponses.id, id))
+      .limit(1);
+    return result[0];
+  }
+
+  async createStaffAssessmentResponse(response: InsertStaffAssessmentResponse): Promise<StaffAssessmentResponse> {
+    const result = await db.insert(staffAssessmentResponses).values(response).returning();
+    return result[0];
+  }
+
+  async deleteStaffAssessmentResponse(id: string): Promise<boolean> {
+    const result = await db.delete(staffAssessmentResponses)
+      .where(eq(staffAssessmentResponses.id, id))
+      .returning();
+    return result.length > 0;
+  }
+
+  async getStaffAssessmentStats(topicId: string, branch?: string): Promise<{
+    totalResponses: number;
+    averageScore: number;
+    passRate: number;
+    trainingNeededCount: number;
+  }> {
+    const conditions = [eq(staffAssessmentResponses.topicId, topicId)];
+    if (branch) conditions.push(eq(staffAssessmentResponses.branch, branch));
+    
+    const responses = await db.select().from(staffAssessmentResponses)
+      .where(and(...conditions));
+    
+    if (responses.length === 0) {
+      return { totalResponses: 0, averageScore: 0, passRate: 0, trainingNeededCount: 0 };
+    }
+    
+    const totalResponses = responses.length;
+    const totalScore = responses.reduce((sum, r) => sum + (r.percentageScore || 0), 0);
+    const averageScore = Math.round(totalScore / totalResponses);
+    const passedCount = responses.filter(r => r.passed).length;
+    const passRate = Math.round((passedCount / totalResponses) * 100);
+    const trainingNeededCount = responses.filter(r => r.needsFurtherTraining === 'yes').length;
+    
+    return { totalResponses, averageScore, passRate, trainingNeededCount };
   }
 }
 

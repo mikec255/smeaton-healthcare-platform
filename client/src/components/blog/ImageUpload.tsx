@@ -49,53 +49,26 @@ export default function ImageUpload({
     try {
       // Simulate upload progress
       const progressInterval = setInterval(() => {
-        setUploadProgress(prev => Math.min(prev + 10, 80));
+        setUploadProgress(prev => Math.min(prev + 10, 90));
       }, 100);
 
-      // Get upload URL from backend
-      const response = await fetch("/api/objects/upload", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        credentials: 'include',
-        body: JSON.stringify({
-          contentType: file.type,
-          prefix: 'blog-images'
-        }),
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to get upload URL');
-      }
-
-      const { uploadURL } = await response.json();
-
-      // Upload file directly to object storage
-      const uploadResponse = await fetch(uploadURL, {
-        method: 'PUT',
-        body: file,
-        headers: {
-          'Content-Type': file.type,
-        },
+      // Convert to base64 - works everywhere (Replit + Azure)
+      const reader = new FileReader();
+      const base64Data = await new Promise<string>((resolve, reject) => {
+        reader.onload = () => resolve(reader.result as string);
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
       });
 
       clearInterval(progressInterval);
       setUploadProgress(100);
-
-      if (!uploadResponse.ok) {
-        throw new Error('Upload failed');
-      }
-
-      // Extract the file URL from the upload URL (remove query parameters)
-      const fileUrl = uploadURL.split('?')[0];
       
       toast({
         title: "Upload Successful",
         description: "Your image has been uploaded successfully",
       });
 
-      onImageUploaded(fileUrl);
+      onImageUploaded(base64Data);
     } catch (error) {
       console.error('Upload error:', error);
       toast({
@@ -155,7 +128,7 @@ export default function ImageUpload({
             <img 
               src={currentImageUrl} 
               alt="Uploaded content" 
-              className="w-full h-auto rounded-lg border border-border"
+              className="w-3/4 max-w-md h-auto rounded-lg border border-border mx-auto"
             />
             <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity rounded-lg flex items-center justify-center gap-2">
               <Button

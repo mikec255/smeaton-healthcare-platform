@@ -2,6 +2,31 @@
 
 This is a full-stack healthcare staffing platform called "Smeaton Healthcare" built with React, Express, and PostgreSQL. The application serves as both a job board for healthcare positions across Devon and Cornwall, and a management system for applications and contact submissions. It features a modern UI built with shadcn/ui components, comprehensive job management capabilities, file upload functionality, and admin tools for managing listings and applications.
 
+# Recent Changes (November 26, 2025)
+
+## Comprehensive SEO Implementation
+- Dynamic sitemap.xml with all pages, jobs, and blog posts (auto-generated)
+- robots.txt for search engine crawler guidance
+- Structured data (JSON-LD) for Organisation, WebSite, JobPosting, Article, FAQ, and Breadcrumb schemas
+- Page-specific SEO with unique titles, descriptions, and keywords
+- Canonical URLs to prevent duplicate content issues
+- Open Graph and Twitter Card meta tags for social sharing
+- Jobs appear in Google Jobs search with full salary and location details
+
+## SEO Files Added
+- `server/routes-seo.ts` - Sitemap.xml and robots.txt generation
+- `client/src/components/seo/StructuredData.tsx` - JSON-LD structured data components
+- `client/src/components/seo/PageSEO.tsx` - Page-level meta tag management
+
+# Previous Changes (November 17, 2025)
+
+## PDF Export Enhancement
+- Implemented natural pagination for recruitment application PDFs that flows like a normal document
+- Content breaks at A4 page boundaries only when it doesn't fit (no forced section breaks)
+- Uses sandbox-based rendering approach to eliminate padding artifacts
+- Proper A4 page sizing with 10mm margins throughout
+- Robust cleanup handling to prevent DOM memory leaks
+
 # User Preferences
 
 Preferred communication style: Simple, everyday language.

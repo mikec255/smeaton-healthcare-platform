@@ -1,4 +1,4 @@
-modules = ["nodejs-20", "web", "python-3.11", "postgresql-16"]
+modules = ["nodejs-20", "web", "postgresql-16"]
 run = "npm run dev"
 hidden = [".config", ".git", "generated-icon.png", "node_modules", "dist"]
 
@@ -41,7 +41,42 @@ waitForPort = 5000
 localPort = 5000
 externalPort = 80
 
-[userenv]
+[[ports]]
+localPort = 36207
+externalPort = 6000
 
-[userenv.shared]
-CARELOGR_API_KEY = "clgr_e17439bf4d355423d437d047611f10e8124c5a9f15ac55aa7690da8df011a14a"
+[[ports]]
+localPort = 37801
+externalPort = 3002
+
+[[ports]]
+localPort = 37927
+externalPort = 8008
+
+[[ports]]
+localPort = 38669
+externalPort = 3001
+
+[[ports]]
+localPort = 40221
+externalPort = 3003
+
+[[ports]]
+localPort = 40365
+externalPort = 3000
+
+[[ports]]
+localPort = 44885
+externalPort = 6800
+
+[[ports]]
+localPort = 45351
+externalPort = 5173
+
+[[ports]]
+localPort = 46841
+externalPort = 5000
+
+[[ports]]
+localPort = 46847
+externalPort = 4200

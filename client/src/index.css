@@ -55,6 +55,22 @@
   --accent-bright: hsl(330, 87%, 56%);
 }
 
+/* Fix for radix-ui dropdowns */
+[data-radix-select-content] {
+  z-index: 9999 !important;
+  position: fixed !important;
+}
+
+[data-radix-popper-content-wrapper] {
+  z-index: 9999 !important;
+}
+
+.dark [data-radix-select-content] {
+  background: var(--popover) !important;
+  color: var(--popover-foreground) !important;
+  border: 1px solid var(--border) !important;
+}
+
 .dark {
   --background: hsl(222, 84%, 13%);
   --foreground: hsl(210, 33%, 98%);

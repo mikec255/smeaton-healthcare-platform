@@ -103,6 +103,14 @@ function Ticker() {
 
 export default function Home() {
 
+  // FAQ data for structured data
+  const homeFAQs = [
+    { question: "What areas do you cover?", answer: "We provide care services across Devon and Cornwall, including Plymouth, Exeter, Truro, and surrounding areas." },
+    { question: "What types of care do you offer?", answer: "We offer live-in care, short visits, respite care, condition-led care, enablement, supported living, and 24/7 care services." },
+    { question: "Are your carers trained and qualified?", answer: "Yes, all our carers are fully trained, DBS checked, and receive ongoing professional development to deliver the highest quality care." },
+    { question: "How quickly can care start?", answer: "We can often arrange care within 24-48 hours for urgent needs. Contact us for a free assessment." }
+  ];
+
   return (
     <div data-testid="home-page">
       <Seo title="Home Care Services in Devon & Cornwall" description="Smeaton Healthcare provides CQC Rated Good home care across Devon and Cornwall — short visits, live-in care, supported living, respite and 24/7 care. Call 0330 165 8880." path="/" />

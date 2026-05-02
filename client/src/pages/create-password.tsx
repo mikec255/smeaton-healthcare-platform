@@ -21,8 +21,8 @@ const CreatePasswordPage = () => {
   const [error, setError] = useState<string>('');
 
   useEffect(() => {
-    // Extract token from URL
-    const urlParams = new URLSearchParams(location.split('?')[1] || '');
+    // Extract token from URL query string
+    const urlParams = new URLSearchParams(window.location.search);
     const tokenParam = urlParams.get('token');
     
     if (!tokenParam) {
@@ -36,8 +36,7 @@ const CreatePasswordPage = () => {
     // Validate token and get user info
     const validateToken = async () => {
       try {
-        console.log('Validating token:', tokenParam);
-        const response = await fetch(`/api/auth/password-creation-info/${tokenParam}`);
+        const response = await fetch(`/api/auth/password-creation-info/${encodeURIComponent(tokenParam)}`);
         const data = await response.json();
         console.log('Token validation response:', response.status, data);
         
@@ -55,7 +54,7 @@ const CreatePasswordPage = () => {
     };
     
     validateToken();
-  }, [location]);
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

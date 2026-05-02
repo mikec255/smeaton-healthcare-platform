@@ -45,8 +45,31 @@ export function ImageBlock({
     if (!file) return;
 
     try {
-      // Get upload URL
-      const response = await fetch('/api/objects/upload', { method: 'POST' });
+      // Get upload URL with authentication
+      const headers: Record<string, string> = {
+        "Content-Type": "application/json",
+      };
+      
+      // Add Authorization header with token for authentication
+      const token = localStorage.getItem('auth_token');
+      if (token) {
+        headers.Authorization = `Bearer ${token}`;
+      }
+
+      const response = await fetch('/api/blog-images/upload', { 
+        method: 'POST',
+        headers,
+        credentials: 'include',
+        body: JSON.stringify({
+          contentType: file.type,
+          prefix: 'blog-images'
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to get upload URL');
+      }
+
       const { uploadURL } = await response.json();
 
       // Upload the file
@@ -59,8 +82,24 @@ export function ImageBlock({
       });
 
       if (uploadResponse.ok) {
-        // Extract the public URL from the upload URL
+        // Extract the base URL (remove query params which expire)
         const imageUrl = uploadURL.split('?')[0];
+        
+        // Make the image publicly readable in Google Cloud Storage
+        try {
+          await fetch('/api/blog-images/make-public', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${token}`
+            },
+            credentials: 'include',
+            body: JSON.stringify({ fileUrl: imageUrl })
+          });
+        } catch (e) {
+          console.warn('Could not make image public', e);
+        }
+        
         handleContentUpdate({ src: imageUrl });
       }
     } catch (error) {
@@ -211,8 +250,13 @@ export function ImageBlock({
           <img 
             src={content.src} 
             alt={content.alt || "Image"} 
-            className="max-w-full h-auto rounded"
-            style={{ width: getImageWidth() }}
+            className="rounded"
+            style={{ 
+              width: getImageWidth(), 
+              height: 'auto',
+              maxHeight: '100%',
+              objectFit: 'contain'
+            }}
           />
         ) : (
           <div 

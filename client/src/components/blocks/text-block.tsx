@@ -1,11 +1,8 @@
-import { useState } from "react";
-import { Textarea } from "@/components/ui/textarea";
-import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Settings, Trash2, Bold, Italic, Link } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Settings, Trash2 } from "lucide-react";
 import { type NewsletterBlock } from "@shared/schema";
-import { createSafeFormattedHTML } from "@/lib/utils";
+import { RichTextEditor } from "@/components/blog/RichTextEditor";
 
 interface TextBlockProps {
   block: NewsletterBlock;
@@ -28,22 +25,23 @@ export function TextBlock({
 }: TextBlockProps) {
   const content = (block.content || {}) as { 
     text?: string; 
-    alignment?: 'left' | 'center' | 'right' | 'justify';
-    fontSize?: 'small' | 'medium' | 'large';
+    html?: string;
   };
 
-  const handleContentUpdate = (updates: Partial<typeof content>) => {
+  const handleContentUpdate = (html: string) => {
     onUpdate({
-      content: { ...content, ...updates }
+      content: { ...content, html, text: html }
     });
   };
-
 
   if (isEditing) {
     return (
       <Card 
         className={`mb-4 border-2 ${isSelected ? 'border-blue-500' : 'border-gray-200'} cursor-pointer`}
-        onClick={onSelect}
+        onClick={(e) => {
+          if ((e.target as HTMLElement).closest('.ProseMirror')) return;
+          onSelect();
+        }}
         data-testid={`text-block-${block.id}`}
       >
         <CardContent className="p-4">
@@ -59,64 +57,11 @@ export function TextBlock({
             </div>
           </div>
           
-          <div className="space-y-3">
-            <div>
-              <label className="block text-xs font-medium text-gray-700 mb-1">
-                Content
-              </label>
-              <Textarea
-                value={content.text || ""}
-                onChange={(e) => handleContentUpdate({ text: e.target.value })}
-                placeholder="Enter your text content here. Use **bold**, *italic*, and [link text](url) for formatting."
-                rows={4}
-                data-testid="text-content-textarea"
-              />
-              <p className="text-xs text-gray-500 mt-1">
-                Formatting: **bold**, *italic*, [link text](url)
-              </p>
-            </div>
-            
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <label className="block text-xs font-medium text-gray-700 mb-1">
-                  Font Size
-                </label>
-                <Select 
-                  value={content.fontSize || 'medium'} 
-                  onValueChange={(value: 'small' | 'medium' | 'large') => handleContentUpdate({ fontSize: value })}
-                >
-                  <SelectTrigger data-testid="text-fontsize-select">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="small">Small</SelectItem>
-                    <SelectItem value="medium">Medium</SelectItem>
-                    <SelectItem value="large">Large</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              
-              <div>
-                <label className="block text-xs font-medium text-gray-700 mb-1">
-                  Alignment
-                </label>
-                <Select 
-                  value={content.alignment || 'left'} 
-                  onValueChange={(value: 'left' | 'center' | 'right' | 'justify') => handleContentUpdate({ alignment: value })}
-                >
-                  <SelectTrigger data-testid="text-alignment-select">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="left">Left</SelectItem>
-                    <SelectItem value="center">Center</SelectItem>
-                    <SelectItem value="right">Right</SelectItem>
-                    <SelectItem value="justify">Justify</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-          </div>
+          <RichTextEditor
+            content={content.html || content.text || ''}
+            onChange={handleContentUpdate}
+            placeholder="Start typing your content..."
+          />
         </CardContent>
       </Card>
     );
@@ -130,15 +75,8 @@ export function TextBlock({
       data-testid={`text-block-preview-${block.id}`}
     >
       <div 
-        className={`text-foreground whitespace-pre-wrap leading-relaxed ${
-          content.alignment === 'center' ? 'text-center' : 
-          content.alignment === 'right' ? 'text-right' : 
-          content.alignment === 'justify' ? 'text-justify' : 'text-left'
-        } ${
-          content.fontSize === 'small' ? 'text-sm' :
-          content.fontSize === 'large' ? 'text-lg' : 'text-base'
-        }`}
-        dangerouslySetInnerHTML={createSafeFormattedHTML(content.text || "Add your text content here...")}
+        className="prose prose-sm max-w-none"
+        dangerouslySetInnerHTML={{ __html: content.html || content.text || '<p>Add your text content here...</p>' }}
       />
     </div>
   );

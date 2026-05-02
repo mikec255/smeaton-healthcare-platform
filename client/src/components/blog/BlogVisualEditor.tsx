@@ -42,6 +42,7 @@ import {
 import { type BlogBlock, type BlogBlockType } from "@shared/schema";
 import BlockStylePanel from "./BlockStylePanel";
 import ImageUpload from "./ImageUpload";
+import { RichTextEditor } from "./RichTextEditor";
 
 interface BlogVisualEditorProps {
   blocks: BlogBlock[];
@@ -148,6 +149,7 @@ function SortableBlock({
           <div className="flex items-center justify-between mb-3 opacity-0 group-hover:opacity-100 transition-opacity">
             <div className="flex items-center gap-2">
               <button
+                type="button"
                 {...attributes}
                 {...listeners}
                 className="cursor-grab hover:cursor-grabbing p-1 hover:bg-muted rounded"
@@ -161,27 +163,42 @@ function SortableBlock({
             </div>
             <div className="flex items-center gap-1">
               <Button
+                type="button"
                 size="sm"
                 variant="ghost"
-                onClick={() => onStyleEdit(block.id)}
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  onStyleEdit(block.id);
+                }}
                 className="h-8 w-8 p-0"
                 data-testid={`style-${block.id}`}
               >
                 <Palette className="h-3 w-3" />
               </Button>
               <Button
+                type="button"
                 size="sm"
                 variant="ghost"
-                onClick={() => {/* TODO: Open settings */}}
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  /* TODO: Open settings */
+                }}
                 className="h-8 w-8 p-0"
                 data-testid={`settings-${block.id}`}
               >
                 <Settings className="h-3 w-3" />
               </Button>
               <Button
+                type="button"
                 size="sm"
                 variant="ghost"
-                onClick={() => onDelete(block.id)}
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  onDelete(block.id);
+                }}
                 className="h-8 w-8 p-0 text-destructive hover:text-destructive"
                 data-testid={`delete-${block.id}`}
               >
@@ -213,6 +230,17 @@ function BlockRenderer({
     });
   };
 
+  // Dynamic heading styles based on level
+  const getHeaderClassName = (level: string) => {
+    const baseClasses = "w-full font-bold bg-transparent border-none outline-none resize-none";
+    switch (level) {
+      case "h1": return `${baseClasses} text-4xl`;
+      case "h2": return `${baseClasses} text-3xl`;
+      case "h3": return `${baseClasses} text-2xl`;
+      default: return `${baseClasses} text-2xl`;
+    }
+  };
+
   switch (block.type) {
     case "header":
       return (
@@ -222,7 +250,7 @@ function BlockRenderer({
             placeholder="Enter header text..."
             value={block.content.text || ""}
             onChange={(e) => updateContent({ text: e.target.value })}
-            className="w-full text-2xl font-bold bg-transparent border-none outline-none resize-none"
+            className={getHeaderClassName(block.content.level || "h1")}
             style={block.style}
             data-testid={`header-input-${block.id}`}
           />
@@ -241,15 +269,41 @@ function BlockRenderer({
 
     case "text":
       return (
-        <textarea
-          placeholder="Enter your text content..."
-          value={block.content.text || ""}
-          onChange={(e) => updateContent({ text: e.target.value })}
-          rows={4}
-          className="w-full bg-transparent border-none outline-none resize-none"
-          style={block.style}
-          data-testid={`text-input-${block.id}`}
-        />
+        <div className="space-y-3">
+          <RichTextEditor
+            content={block.content.html || block.content.text || ''}
+            onChange={(html) => updateContent({ html, text: html })}
+            placeholder="Start typing your content..."
+          />
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="text-xs font-medium text-muted-foreground mb-1 block">Width</label>
+              <select
+                value={block.width || "100%"}
+                onChange={(e) => onUpdate({ ...block, width: e.target.value })}
+                className="w-full text-sm border border-border rounded px-3 py-2"
+                data-testid={`text-width-${block.id}`}
+              >
+                <option value="100%">Full Width</option>
+                <option value="50%">Half (50%)</option>
+                <option value="33%">Third (33%)</option>
+                <option value="66%">Two Thirds (66%)</option>
+              </select>
+            </div>
+            <div>
+              <label className="text-xs font-medium text-muted-foreground mb-1 block">Layout</label>
+              <select
+                value={block.layout || "full"}
+                onChange={(e) => onUpdate({ ...block, layout: e.target.value as "inline" | "full" })}
+                className="w-full text-sm border border-border rounded px-3 py-2"
+                data-testid={`text-layout-${block.id}`}
+              >
+                <option value="full">Full Width</option>
+                <option value="inline">Inline (Side-by-side)</option>
+              </select>
+            </div>
+          </div>
+        </div>
       );
 
     case "image":
@@ -260,6 +314,34 @@ function BlockRenderer({
             onImageUploaded={(url) => updateContent({ url })}
             onImageRemoved={() => updateContent({ url: "" })}
           />
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="text-xs font-medium text-muted-foreground mb-1 block">Image Size</label>
+              <select
+                value={block.imageWidth || "full"}
+                onChange={(e) => onUpdate({ ...block, imageWidth: e.target.value })}
+                className="w-full text-sm border border-border rounded px-3 py-2"
+                data-testid={`image-width-${block.id}`}
+              >
+                <option value="small">Small (25%)</option>
+                <option value="medium">Medium (50%)</option>
+                <option value="large">Large (75%)</option>
+                <option value="full">Full Width</option>
+              </select>
+            </div>
+            <div>
+              <label className="text-xs font-medium text-muted-foreground mb-1 block">Layout</label>
+              <select
+                value={block.layout || "full"}
+                onChange={(e) => onUpdate({ ...block, layout: e.target.value as "inline" | "full" })}
+                className="w-full text-sm border border-border rounded px-3 py-2"
+                data-testid={`image-layout-${block.id}`}
+              >
+                <option value="full">Full Width</option>
+                <option value="inline">Inline (Side-by-side)</option>
+              </select>
+            </div>
+          </div>
           <input
             type="text"
             placeholder="Alt text (for accessibility)"
@@ -267,6 +349,14 @@ function BlockRenderer({
             onChange={(e) => updateContent({ alt: e.target.value })}
             className="w-full text-sm border border-border rounded px-3 py-2"
             data-testid={`image-alt-${block.id}`}
+          />
+          <input
+            type="text"
+            placeholder="Caption (optional)"
+            value={block.content.caption || ""}
+            onChange={(e) => updateContent({ caption: e.target.value })}
+            className="w-full text-sm border border-border rounded px-3 py-2"
+            data-testid={`image-caption-${block.id}`}
           />
         </div>
       );
@@ -358,7 +448,7 @@ function BlockRenderer({
             data-testid={`button-url-${block.id}`}
           />
           <div className="flex justify-center">
-            <Button style={block.style} data-testid={`button-preview-${block.id}`}>
+            <Button type="button" style={block.style} data-testid={`button-preview-${block.id}`}>
               {block.content.text || "Button"}
             </Button>
           </div>
@@ -429,10 +519,15 @@ export default function BlogVisualEditor({ blocks, onChange }: BlogVisualEditorP
         <div className="space-y-2">
           {BLOCK_TYPES.map((blockType) => (
             <Button
+              type="button"
               key={blockType.type}
               variant="outline"
               className="w-full justify-start h-auto p-3"
-              onClick={() => addBlock(blockType.type)}
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                addBlock(blockType.type);
+              }}
               data-testid={`add-${blockType.type}-block`}
             >
               <div className="flex items-start gap-3">

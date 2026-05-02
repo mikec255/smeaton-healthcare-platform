@@ -14,11 +14,11 @@ import { apiRequest } from "@/lib/queryClient";
 import { Heart, Users, Clock, MapPin, Phone, Mail } from "lucide-react";
 
 const referralFormSchema = z.object({
-  // Person making the referral
-  referrerName: z.string().min(1, "Your name is required"),
-  referrerEmail: z.string().email("Valid email is required"),
-  referrerPhone: z.string().min(1, "Phone number is required"),
-  relationship: z.string().min(1, "Please specify your relationship"),
+  // Person making the referral (optional for self-referrals)
+  referrerName: z.string().optional(),
+  referrerEmail: z.string().email("Valid email format required").or(z.literal("")),
+  referrerPhone: z.string().optional(),
+  relationship: z.string().optional(),
   
   // Person needing care
   clientName: z.string().min(1, "Client name is required"),
@@ -147,14 +147,15 @@ export default function Referral() {
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
               {/* Referrer Information */}
               <div className="space-y-6">
-                <h3 className="text-lg font-semibold border-b pb-2">Your Information</h3>
+                <h3 className="text-lg font-semibold border-b pb-2">Referrer's Information</h3>
+                <p className="text-sm text-red-600">Leave blank if you are making a self referral</p>
                 <div className="grid md:grid-cols-2 gap-4">
                   <FormField
                     control={form.control}
                     name="referrerName"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Your Full Name *</FormLabel>
+                        <FormLabel>Your Full Name</FormLabel>
                         <FormControl>
                           <Input placeholder="Enter your full name" {...field} data-testid="referrer-name" />
                         </FormControl>
@@ -167,7 +168,7 @@ export default function Referral() {
                     name="referrerEmail"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Your Email *</FormLabel>
+                        <FormLabel>Your Email</FormLabel>
                         <FormControl>
                           <Input type="email" placeholder="Enter your email address" {...field} data-testid="referrer-email" />
                         </FormControl>
@@ -180,7 +181,7 @@ export default function Referral() {
                     name="referrerPhone"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Your Phone Number *</FormLabel>
+                        <FormLabel>Your Phone Number</FormLabel>
                         <FormControl>
                           <Input placeholder="Enter your phone number" {...field} data-testid="referrer-phone" />
                         </FormControl>
@@ -193,7 +194,7 @@ export default function Referral() {
                     name="relationship"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Your Relationship to Client *</FormLabel>
+                        <FormLabel>Your Relationship to Client</FormLabel>
                         <Select onValueChange={field.onChange} defaultValue={field.value}>
                           <FormControl>
                             <SelectTrigger data-testid="relationship-select">

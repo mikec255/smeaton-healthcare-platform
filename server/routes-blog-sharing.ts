@@ -1,0 +1,132 @@
+import express from "express";
+import type { BlogPost } from "@shared/schema";
+
+// Common social media and search engine crawler user agents
+const CRAWLER_USER_AGENTS = [
+  'facebookexternalhit',
+  'Facebot',
+  'Twitterbot',
+  'LinkedInBot',
+  'Pinterest',
+  'Slackbot',
+  'WhatsApp',
+  'TelegramBot',
+  'Discordbot',
+  'Googlebot',
+  'bingbot',
+  'Baiduspider',
+  'YandexBot',
+];
+
+function isCrawler(userAgent: string | undefined): boolean {
+  if (!userAgent) return false;
+  return CRAWLER_USER_AGENTS.some(crawler => 
+    userAgent.toLowerCase().includes(crawler.toLowerCase())
+  );
+}
+
+// Server-side rendered page for blog posts (for Facebook/social media scraping)
+export function registerBlogSharingRoutes(app: express.Application) {
+  app.get("/blog/:slug", async (req, res, next) => {
+    const userAgent = req.headers['user-agent'];
+    
+    // If not a crawler, let the request pass through to the SPA
+    if (!isCrawler(userAgent)) {
+      return next();
+    }
+    
+    try {
+      const { storage } = await import("./storage");
+      const post = await storage.getBlogPostBySlug(req.params.slug);
+      
+      if (!post || !post.isPublished) {
+        return res.redirect("/resources/blog");
+      }
+      
+      // Find featured image from multiple sources
+      let hasImage = false;
+      
+      // 1. Check for explicitly marked featured image in images array
+      const featuredImage = post.images?.find(img => img.isFeatured);
+      if (featuredImage?.url) {
+        hasImage = true;
+      }
+      
+      // 2. Fallback: Check if there are any images in images array
+      if (!hasImage && post.images && post.images.length > 0) {
+        hasImage = true;
+      }
+      
+      // 3. Fallback: Check for images in visual editor blocks
+      if (!hasImage && post.blocks && Array.isArray(post.blocks)) {
+        const imageBlock = post.blocks.find((block: any) => 
+          block.type === 'image' && block.content?.url
+        );
+        if (imageBlock) {
+          hasImage = true;
+        }
+      }
+      
+      // Always use HTTPS for external URLs (Replit proxy handles SSL)
+      const protocol = req.headers['x-forwarded-proto'] || 'https';
+      const host = req.get('host');
+      
+      const imageUrl = hasImage
+        ? `${protocol}://${host}/api/blog-images/${post.id}/featured`
+        : `${protocol}://${host}/og-default.jpg`;
+      
+      const pageUrl = `${protocol}://${host}/blog/${post.slug}`;
+      
+      // Escape HTML to prevent meta tag injection
+      const escapeHtml = (text: string) => text
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+      
+      const safeTitle = escapeHtml(post.title);
+      const safeExcerpt = escapeHtml(post.excerpt || post.title);
+      
+      // Return HTML with meta tags for social media crawlers
+      res.send(`
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>${safeTitle} | Smeaton Healthcare Blog</title>
+    <meta name="description" content="${safeExcerpt}" />
+    
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="article" />
+    <meta property="og:site_name" content="Smeaton Healthcare" />
+    <meta property="og:url" content="${pageUrl}" />
+    <meta property="og:title" content="${safeTitle}" />
+    <meta property="og:description" content="${safeExcerpt}" />
+    <meta property="og:image" content="${imageUrl}" />
+    <meta property="og:image:type" content="image/jpeg" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="${safeTitle}" />
+    
+    <!-- Twitter -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:url" content="${pageUrl}" />
+    <meta name="twitter:title" content="${safeTitle}" />
+    <meta name="twitter:description" content="${safeExcerpt}" />
+    <meta name="twitter:image" content="${imageUrl}" />
+  </head>
+  <body>
+    <h1>${safeTitle}</h1>
+    <p>${safeExcerpt}</p>
+    <p>Visit <a href="${pageUrl}">${pageUrl}</a> to read the full article.</p>
+  </body>
+</html>
+      `);
+    } catch (error) {
+      console.error("Error generating blog share page:", error);
+      res.redirect("/resources/blog");
+    }
+  });
+}

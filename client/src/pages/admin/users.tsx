@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   Table,
@@ -49,11 +50,30 @@ import { Plus, Edit, UserX, UserCheck, ArrowLeft, Shield, User as UserIcon } fro
 import { type User, type InsertUser, insertUserSchema } from "@shared/schema";
 import { z } from "zod";
 
-const createUserSchema = insertUserSchema.omit({ password: true, passwordToken: true, tokenExpiresAt: true });
+const createUserSchema = insertUserSchema.omit({ password: true, passwordToken: true, tokenExpiresAt: true }).extend({
+  permissions: z.object({
+    overview: z.boolean().optional(),
+    recruitment: z.boolean().optional(),
+    customerRelations: z.boolean().optional(),
+    feedback: z.boolean().optional(),
+    tools: z.boolean().optional(),
+    resources: z.boolean().optional(),
+    system: z.boolean().optional(),
+  }).optional(),
+});
 
 const editUserSchema = z.object({
   username: z.string().email("Please enter a valid email address"),
   role: z.enum(["admin", "superadmin"]),
+  permissions: z.object({
+    overview: z.boolean().optional(),
+    recruitment: z.boolean().optional(),
+    customerRelations: z.boolean().optional(),
+    feedback: z.boolean().optional(),
+    tools: z.boolean().optional(),
+    resources: z.boolean().optional(),
+    system: z.boolean().optional(),
+  }).optional(),
   isActive: z.boolean(),
 });
 
@@ -100,6 +120,15 @@ export default function UsersAdmin() {
     defaultValues: {
       username: "",
       role: "admin",
+      permissions: {
+        overview: true,
+        recruitment: true,
+        customerRelations: true,
+        feedback: true,
+        tools: false,
+        resources: false,
+        system: false,
+      },
       isActive: true,
     },
   });
@@ -109,6 +138,15 @@ export default function UsersAdmin() {
     defaultValues: {
       username: "",
       role: "admin",
+      permissions: {
+        overview: true,
+        recruitment: true,
+        customerRelations: true,
+        feedback: true,
+        tools: false,
+        resources: false,
+        system: false,
+      },
       isActive: true,
     },
   });
@@ -198,6 +236,15 @@ export default function UsersAdmin() {
     editForm.reset({
       username: user.username,
       role: user.role as "admin" | "superadmin",
+      permissions: user.permissions || {
+        overview: true,
+        recruitment: true,
+        customerRelations: true,
+        feedback: true,
+        tools: false,
+        resources: false,
+        system: false,
+      },
       isActive: user.isActive ?? true,
     });
     setShowEditModal(true);
@@ -223,33 +270,28 @@ export default function UsersAdmin() {
   }
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16" data-testid="users-admin-page">
-      {/* Header */}
-      <div className="flex justify-between items-center mb-8">
-        <div className="flex items-center gap-4">
-          <Link href="/admin">
-            <Button variant="outline" size="sm" data-testid="button-back">
-              <ArrowLeft className="h-4 w-4 mr-2" />
-              Back to Admin
-            </Button>
-          </Link>
-          <div>
-            <h1 className="text-4xl font-bold text-foreground mb-2" data-testid="users-title">
-              Manage Users
-            </h1>
-            <p className="text-xl text-muted-foreground" data-testid="users-subtitle">
-              Create and manage admin users with role-based access control
-            </p>
-          </div>
+    <div className="container mx-auto py-8 space-y-6" data-testid="users-admin-page">
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Manage Users</h1>
+          <p className="text-gray-600 dark:text-gray-400 mt-2">
+            Create and manage admin users with role-based access control
+          </p>
         </div>
-        <Button
-          onClick={() => setShowCreateModal(true)}
-          data-testid="button-create-user"
-          className="bg-primary hover:bg-primary/90"
-        >
-          <Plus className="h-4 w-4 mr-2" />
-          Add User
-        </Button>
+        <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2">
+            <Shield className="h-8 w-8 text-pink-600" />
+            <span className="text-sm text-gray-500">User Management</span>
+          </div>
+          <Button
+            onClick={() => setShowCreateModal(true)}
+            data-testid="button-create-user"
+            className="gap-2"
+          >
+            <Plus className="h-4 w-4" />
+            Add User
+          </Button>
+        </div>
       </div>
 
       {/* Users Table */}
@@ -372,7 +414,7 @@ export default function UsersAdmin() {
 
       {/* Create User Modal */}
       <Dialog open={showCreateModal} onOpenChange={setShowCreateModal}>
-        <DialogContent className="sm:max-w-md">
+        <DialogContent className="sm:max-w-lg">
           <DialogHeader>
             <DialogTitle>Add New Admin User</DialogTitle>
             <DialogDescription>
@@ -405,7 +447,24 @@ export default function UsersAdmin() {
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Role</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <Select 
+                      onValueChange={(value) => {
+                        field.onChange(value);
+                        // Auto-set permissions based on role
+                        if (value === "superadmin") {
+                          form.setValue("permissions", {
+                            overview: true,
+                            recruitment: true,
+                            customerRelations: true,
+                            feedback: true,
+                            tools: true,
+                            resources: true,
+                            system: true,
+                          });
+                        }
+                      }} 
+                      defaultValue={field.value}
+                    >
                       <FormControl>
                         <SelectTrigger data-testid="select-role">
                           <SelectValue placeholder="Select a role" />
@@ -420,6 +479,150 @@ export default function UsersAdmin() {
                   </FormItem>
                 )}
               />
+
+              {/* Permissions Section */}
+              <div className="space-y-3">
+                <Label className="text-sm font-medium">Admin Section Access</Label>
+                <div className="grid grid-cols-2 gap-3">
+                  <FormField
+                    control={form.control}
+                    name="permissions.overview"
+                    render={({ field }) => (
+                      <FormItem className="flex flex-row items-start space-x-3 space-y-0">
+                        <FormControl>
+                          <Checkbox
+                            checked={field.value}
+                            onCheckedChange={field.onChange}
+                            disabled={form.watch("role") === "superadmin"}
+                            data-testid="checkbox-overview"
+                          />
+                        </FormControl>
+                        <div className="space-y-1 leading-none">
+                          <FormLabel className="text-sm">Overview</FormLabel>
+                        </div>
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="permissions.recruitment"
+                    render={({ field }) => (
+                      <FormItem className="flex flex-row items-start space-x-3 space-y-0">
+                        <FormControl>
+                          <Checkbox
+                            checked={field.value}
+                            onCheckedChange={field.onChange}
+                            disabled={form.watch("role") === "superadmin"}
+                            data-testid="checkbox-recruitment"
+                          />
+                        </FormControl>
+                        <div className="space-y-1 leading-none">
+                          <FormLabel className="text-sm">Recruitment</FormLabel>
+                        </div>
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="permissions.customerRelations"
+                    render={({ field }) => (
+                      <FormItem className="flex flex-row items-start space-x-3 space-y-0">
+                        <FormControl>
+                          <Checkbox
+                            checked={field.value}
+                            onCheckedChange={field.onChange}
+                            disabled={form.watch("role") === "superadmin"}
+                            data-testid="checkbox-customer-relations"
+                          />
+                        </FormControl>
+                        <div className="space-y-1 leading-none">
+                          <FormLabel className="text-sm">Customer Relations</FormLabel>
+                        </div>
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="permissions.feedback"
+                    render={({ field }) => (
+                      <FormItem className="flex flex-row items-start space-x-3 space-y-0">
+                        <FormControl>
+                          <Checkbox
+                            checked={field.value}
+                            onCheckedChange={field.onChange}
+                            disabled={form.watch("role") === "superadmin"}
+                            data-testid="checkbox-feedback"
+                          />
+                        </FormControl>
+                        <div className="space-y-1 leading-none">
+                          <FormLabel className="text-sm">Feedback</FormLabel>
+                        </div>
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="permissions.tools"
+                    render={({ field }) => (
+                      <FormItem className="flex flex-row items-start space-x-3 space-y-0">
+                        <FormControl>
+                          <Checkbox
+                            checked={field.value}
+                            onCheckedChange={field.onChange}
+                            disabled={form.watch("role") === "superadmin"}
+                            data-testid="checkbox-tools"
+                          />
+                        </FormControl>
+                        <div className="space-y-1 leading-none">
+                          <FormLabel className="text-sm">Tools & Compliance</FormLabel>
+                        </div>
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="permissions.resources"
+                    render={({ field }) => (
+                      <FormItem className="flex flex-row items-start space-x-3 space-y-0">
+                        <FormControl>
+                          <Checkbox
+                            checked={field.value}
+                            onCheckedChange={field.onChange}
+                            disabled={form.watch("role") === "superadmin"}
+                            data-testid="checkbox-resources"
+                          />
+                        </FormControl>
+                        <div className="space-y-1 leading-none">
+                          <FormLabel className="text-sm">Resources</FormLabel>
+                        </div>
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="permissions.system"
+                    render={({ field }) => (
+                      <FormItem className="flex flex-row items-start space-x-3 space-y-0">
+                        <FormControl>
+                          <Checkbox
+                            checked={field.value}
+                            onCheckedChange={field.onChange}
+                            disabled={true}
+                            data-testid="checkbox-system"
+                          />
+                        </FormControl>
+                        <div className="space-y-1 leading-none">
+                          <FormLabel className="text-sm">System (Superadmin Only)</FormLabel>
+                        </div>
+                      </FormItem>
+                    )}
+                  />
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Superadmin users automatically have access to all sections
+                </p>
+              </div>
+
               <DialogFooter>
                 <Button
                   type="button"
@@ -444,7 +647,7 @@ export default function UsersAdmin() {
 
       {/* Edit User Modal */}
       <Dialog open={showEditModal} onOpenChange={setShowEditModal}>
-        <DialogContent className="sm:max-w-md">
+        <DialogContent className="sm:max-w-lg">
           <DialogHeader>
             <DialogTitle>Edit User</DialogTitle>
             <DialogDescription>
@@ -477,7 +680,24 @@ export default function UsersAdmin() {
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Role</FormLabel>
-                    <Select onValueChange={field.onChange} value={field.value}>
+                    <Select 
+                      onValueChange={(value) => {
+                        field.onChange(value);
+                        // Auto-set permissions based on role
+                        if (value === "superadmin") {
+                          editForm.setValue("permissions", {
+                            overview: true,
+                            recruitment: true,
+                            customerRelations: true,
+                            feedback: true,
+                            tools: true,
+                            resources: true,
+                            system: true,
+                          });
+                        }
+                      }} 
+                      value={field.value}
+                    >
                       <FormControl>
                         <SelectTrigger data-testid="edit-select-role">
                           <SelectValue placeholder="Select a role" />
@@ -492,6 +712,150 @@ export default function UsersAdmin() {
                   </FormItem>
                 )}
               />
+
+              {/* Permissions Section */}
+              <div className="space-y-3">
+                <Label className="text-sm font-medium">Admin Section Access</Label>
+                <div className="grid grid-cols-2 gap-3">
+                  <FormField
+                    control={editForm.control}
+                    name="permissions.overview"
+                    render={({ field }) => (
+                      <FormItem className="flex flex-row items-start space-x-3 space-y-0">
+                        <FormControl>
+                          <Checkbox
+                            checked={field.value}
+                            onCheckedChange={field.onChange}
+                            disabled={editForm.watch("role") === "superadmin"}
+                            data-testid="edit-checkbox-overview"
+                          />
+                        </FormControl>
+                        <div className="space-y-1 leading-none">
+                          <FormLabel className="text-sm">Overview</FormLabel>
+                        </div>
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={editForm.control}
+                    name="permissions.recruitment"
+                    render={({ field }) => (
+                      <FormItem className="flex flex-row items-start space-x-3 space-y-0">
+                        <FormControl>
+                          <Checkbox
+                            checked={field.value}
+                            onCheckedChange={field.onChange}
+                            disabled={editForm.watch("role") === "superadmin"}
+                            data-testid="edit-checkbox-recruitment"
+                          />
+                        </FormControl>
+                        <div className="space-y-1 leading-none">
+                          <FormLabel className="text-sm">Recruitment</FormLabel>
+                        </div>
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={editForm.control}
+                    name="permissions.customerRelations"
+                    render={({ field }) => (
+                      <FormItem className="flex flex-row items-start space-x-3 space-y-0">
+                        <FormControl>
+                          <Checkbox
+                            checked={field.value}
+                            onCheckedChange={field.onChange}
+                            disabled={editForm.watch("role") === "superadmin"}
+                            data-testid="edit-checkbox-customer-relations"
+                          />
+                        </FormControl>
+                        <div className="space-y-1 leading-none">
+                          <FormLabel className="text-sm">Customer Relations</FormLabel>
+                        </div>
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={editForm.control}
+                    name="permissions.feedback"
+                    render={({ field }) => (
+                      <FormItem className="flex flex-row items-start space-x-3 space-y-0">
+                        <FormControl>
+                          <Checkbox
+                            checked={field.value}
+                            onCheckedChange={field.onChange}
+                            disabled={editForm.watch("role") === "superadmin"}
+                            data-testid="edit-checkbox-feedback"
+                          />
+                        </FormControl>
+                        <div className="space-y-1 leading-none">
+                          <FormLabel className="text-sm">Feedback</FormLabel>
+                        </div>
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={editForm.control}
+                    name="permissions.tools"
+                    render={({ field }) => (
+                      <FormItem className="flex flex-row items-start space-x-3 space-y-0">
+                        <FormControl>
+                          <Checkbox
+                            checked={field.value}
+                            onCheckedChange={field.onChange}
+                            disabled={editForm.watch("role") === "superadmin"}
+                            data-testid="edit-checkbox-tools"
+                          />
+                        </FormControl>
+                        <div className="space-y-1 leading-none">
+                          <FormLabel className="text-sm">Tools & Compliance</FormLabel>
+                        </div>
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={editForm.control}
+                    name="permissions.resources"
+                    render={({ field }) => (
+                      <FormItem className="flex flex-row items-start space-x-3 space-y-0">
+                        <FormControl>
+                          <Checkbox
+                            checked={field.value}
+                            onCheckedChange={field.onChange}
+                            disabled={editForm.watch("role") === "superadmin"}
+                            data-testid="edit-checkbox-resources"
+                          />
+                        </FormControl>
+                        <div className="space-y-1 leading-none">
+                          <FormLabel className="text-sm">Resources</FormLabel>
+                        </div>
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={editForm.control}
+                    name="permissions.system"
+                    render={({ field }) => (
+                      <FormItem className="flex flex-row items-start space-x-3 space-y-0">
+                        <FormControl>
+                          <Checkbox
+                            checked={field.value}
+                            onCheckedChange={field.onChange}
+                            disabled={true}
+                            data-testid="edit-checkbox-system"
+                          />
+                        </FormControl>
+                        <div className="space-y-1 leading-none">
+                          <FormLabel className="text-sm">System (Superadmin Only)</FormLabel>
+                        </div>
+                      </FormItem>
+                    )}
+                  />
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Superadmin users automatically have access to all sections
+                </p>
+              </div>
+
               <FormField
                 control={editForm.control}
                 name="isActive"

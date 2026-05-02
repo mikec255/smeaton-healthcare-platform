@@ -30,26 +30,7 @@ class BrevoService {
     return trimmed.length > 50 && /^x(keys|smtps)ib-/.test(trimmed);
   }
 
-  // Method to set API key at runtime (bypasses environment variables)
-  setApiKey(apiKey: string): boolean {
-    const trimmed = apiKey.trim();
-    
-    if (!this.isValidApiKey(trimmed)) {
-      console.error('Invalid Brevo API key format');
-      return false;
-    }
-
-    try {
-      this.emailApi.setApiKey(TransactionalEmailsApiApiKeys.apiKey, trimmed);
-      this.isConfigured = true;
-      console.log('Brevo service configured successfully via runtime');
-      return true;
-    } catch (error) {
-      console.error('Failed to configure Brevo service:', error);
-      this.isConfigured = false;
-      return false;
-    }
-  }
+  // SECURITY: Runtime API key configuration removed - environment variables only
 
   // Check if email service is properly configured
   isEmailConfigured(): boolean {
@@ -77,7 +58,7 @@ class BrevoService {
         htmlContent: this.getWelcomeEmailHtml(username, email, password, role),
         textContent: this.getWelcomeEmailText(username, email, password, role),
         sender: {
-          email: 'admin@smeatonhealthcare.co.uk',
+          email: 'recruitment@smeatonhealthcare.co.uk',
           name: 'Smeaton Healthcare'
         }
       });
@@ -106,7 +87,7 @@ class BrevoService {
         htmlContent: this.getPasswordCreationEmailHtml(username, email, token, role),
         textContent: this.getPasswordCreationEmailText(username, email, token, role),
         sender: {
-          email: 'admin@smeatonhealthcare.co.uk',
+          email: 'recruitment@smeatonhealthcare.co.uk',
           name: 'Smeaton Healthcare'
         }
       });
@@ -141,8 +122,8 @@ class BrevoService {
         htmlContent: this.getContactFormEmailHtml(contactData),
         textContent: this.getContactFormEmailText(contactData),
         sender: {
-          email: 'noreply@smeatonhealthcare.co.uk',
-          name: 'Smeaton Healthcare Website'
+          email: 'recruitment@smeatonhealthcare.co.uk',
+          name: 'Smeaton Healthcare'
         },
         replyTo: {
           email: contactData.email,
@@ -174,12 +155,8 @@ class BrevoService {
         htmlContent: this.getReferralEmailHtml(referralData),
         textContent: this.getReferralEmailText(referralData),
         sender: {
-          email: 'admin@smeatonhealthcare.co.uk',
-          name: 'Smeaton Healthcare Website'
-        },
-        replyTo: {
-          email: referralData.referrerEmail,
-          name: referralData.referrerName
+          email: 'recruitment@smeatonhealthcare.co.uk',
+          name: 'Smeaton Healthcare'
         }
       });
 
@@ -187,6 +164,54 @@ class BrevoService {
       return result;
     } catch (error) {
       console.error('Failed to send referral email:', error);
+      throw error;
+    }
+  }
+
+  async sendPreScreenApplicationEmail(applicationData: {
+    firstName: string;
+    lastName: string;
+    email: string;
+    phone: string;
+    location: string;
+    jobTitle: string;
+    branch: string;
+    experience?: string;
+    currentlyWorking?: boolean;
+    currentEmployer?: string;
+    referralSource?: string;
+    shiftPreferences?: string[];
+    hasDBS?: boolean;
+    hasMHCertificate?: boolean;
+    additionalInfo?: string;
+  }) {
+    if (!this.isConfigured) {
+      console.warn('Brevo not configured - skipping pre-screen application email send');
+      return;
+    }
+
+    try {
+      const applicantName = `${applicationData.firstName} ${applicationData.lastName}`;
+      const subject = `${applicationData.branch} Branch - ${applicantName}`;
+
+      const result = await this.emailApi.sendTransacEmail({
+        to: [{
+          email: 'recruitment@smeatonhealthcare.co.uk',
+          name: 'Smeaton Healthcare Recruitment'
+        }],
+        subject: subject,
+        htmlContent: this.getPreScreenApplicationEmailHtml(applicationData),
+        textContent: this.getPreScreenApplicationEmailText(applicationData),
+        sender: {
+          email: 'recruitment@smeatonhealthcare.co.uk',
+          name: 'Smeaton Healthcare'
+        }
+      });
+
+      console.log('Pre-screen application email sent successfully:', result.body?.messageId || 'Email sent');
+      return result;
+    } catch (error) {
+      console.error('Failed to send pre-screen application email:', error);
       throw error;
     }
   }
@@ -228,7 +253,7 @@ class BrevoService {
             </div>
             
             <p>You can access the admin portal at:</p>
-            <a href="${process.env.REPLIT_DEV_DOMAIN ? `https://${process.env.REPLIT_DEV_DOMAIN}/admin` : 'https://your-domain.com/admin'}" class="button">
+            <a href="https://www.smeatonhealthcare.co.uk/admin" class="button">
               Access Admin Portal
             </a>
             
@@ -265,7 +290,7 @@ Your Login Details:
 - Password: ${password}
 - Role: ${role}
 
-You can access the admin portal at: ${process.env.REPLIT_DEV_DOMAIN ? `https://${process.env.REPLIT_DEV_DOMAIN}/admin` : 'https://your-domain.com/admin'}
+You can access the admin portal at: https://www.smeatonhealthcare.co.uk/admin
 
 Important Security Notes:
 - Please change your password after your first login
@@ -280,8 +305,7 @@ Healthcare staffing solutions across Devon and Cornwall
   }
 
   private getPasswordCreationEmailHtml(username: string, email: string, token: string, role: string): string {
-    const passwordCreationUrl = `${process.env.REPLIT_DEV_DOMAIN ? `https://${process.env.REPLIT_DEV_DOMAIN}` : 'https://your-domain.com'}/create-password?token=${token}`;
-    console.log('Generated password creation URL:', passwordCreationUrl);
+    const passwordCreationUrl = `https://www.smeatonhealthcare.co.uk/create-password?token=${encodeURIComponent(token)}`;
     
     return `
       <!DOCTYPE html>
@@ -348,7 +372,7 @@ Healthcare staffing solutions across Devon and Cornwall
   }
 
   private getPasswordCreationEmailText(username: string, email: string, token: string, role: string): string {
-    const passwordCreationUrl = `${process.env.REPLIT_DEV_DOMAIN ? `https://${process.env.REPLIT_DEV_DOMAIN}` : 'https://your-domain.com'}/create-password?token=${token}`;
+    const passwordCreationUrl = `https://www.smeatonhealthcare.co.uk/create-password?token=${encodeURIComponent(token)}`;
     
     return `
 Welcome to Smeaton Healthcare Admin Portal!
@@ -415,7 +439,7 @@ Healthcare staffing solutions across Devon and Cornwall
       <body>
         <div class="container">
           <div class="header">
-            <h1>New Contact Form Submission</h1>
+            <h1>Website Contact Form</h1>
             <p>Smeaton Healthcare Website</p>
           </div>
           
@@ -636,6 +660,659 @@ Primary Contact: ${referralData.referrerEmail} or ${referralData.referrerPhone}
 
 This referral was submitted through the Smeaton Healthcare website.
 
+© ${new Date().getFullYear()} Smeaton Healthcare. All rights reserved.
+Healthcare staffing solutions across Devon and Cornwall
+    `;
+  }
+
+  private getPreScreenApplicationEmailHtml(applicationData: {
+    firstName: string;
+    lastName: string;
+    email: string;
+    phone: string;
+    location: string;
+    jobTitle: string;
+    branch: string;
+    experience?: string;
+    currentlyWorking?: boolean;
+    currentEmployer?: string;
+    referralSource?: string;
+    shiftPreferences?: string[];
+    hasDBS?: boolean;
+    hasMHCertificate?: boolean;
+    additionalInfo?: string;
+  }): string {
+    const timestamp = new Date().toLocaleString('en-GB', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+      timeZone: 'Europe/London'
+    });
+
+    return `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <meta charset="utf-8">
+        <title>New Job Application</title>
+        <style>
+          body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+          .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+          .header { background-color: #EF2587; color: white; padding: 20px; text-align: center; }
+          .content { padding: 20px; background-color: #f9f9f9; }
+          .info-section { background-color: white; padding: 15px; margin: 15px 0; border-left: 4px solid #275799; }
+          .footer { text-align: center; padding: 20px; color: #666; font-size: 14px; }
+          .highlight { background-color: #fff3cd; padding: 10px; border-radius: 5px; margin: 10px 0; }
+          h3 { color: #275799; margin-top: 0; }
+          .badge { display: inline-block; background-color: #275799; color: white; padding: 4px 8px; border-radius: 4px; font-size: 12px; margin: 2px; }
+        </style>
+      </head>
+      <body>
+        <div class="container">
+          <div class="header">
+            <h1>💼 New Job Application</h1>
+            <p>Received: ${timestamp}</p>
+          </div>
+          
+          <div class="content">
+            <div class="highlight">
+              <h2>Application for: ${applicationData.jobTitle}</h2>
+              <p><strong>Branch:</strong> ${applicationData.branch}</p>
+              <p><strong>Applicant:</strong> ${applicationData.firstName} ${applicationData.lastName}</p>
+            </div>
+
+            <div class="info-section">
+              <h3>👤 Contact Information</h3>
+              <p><strong>Name:</strong> ${applicationData.firstName} ${applicationData.lastName}</p>
+              <p><strong>Email:</strong> ${applicationData.email}</p>
+              <p><strong>Phone:</strong> ${applicationData.phone}</p>
+              <p><strong>Location:</strong> ${applicationData.location}</p>
+            </div>
+
+            <div class="info-section">
+              <h3>💼 Employment Details</h3>
+              ${applicationData.currentlyWorking !== undefined ? `<p><strong>Currently Working:</strong> ${applicationData.currentlyWorking ? 'Yes' : 'No'}</p>` : ''}
+              ${applicationData.currentEmployer ? `<p><strong>Current Employer:</strong> ${applicationData.currentEmployer}</p>` : ''}
+              ${applicationData.experience ? `<p><strong>Experience:</strong> ${applicationData.experience}</p>` : ''}
+              ${applicationData.referralSource ? `<p><strong>How they heard about us:</strong> ${applicationData.referralSource}</p>` : ''}
+            </div>
+
+            ${applicationData.shiftPreferences && applicationData.shiftPreferences.length > 0 ? `
+            <div class="info-section">
+              <h3>⏰ Shift Preferences</h3>
+              <p>${applicationData.shiftPreferences.map(pref => `<span class="badge">${pref}</span>`).join('')}</p>
+            </div>
+            ` : ''}
+
+            <div class="info-section">
+              <h3>📋 Certifications</h3>
+              <p><strong>DBS Check:</strong> ${applicationData.hasDBS === true ? 'Yes' : applicationData.hasDBS === false ? 'No' : 'Not specified'}</p>
+              <p><strong>Mental Health Certificate:</strong> ${applicationData.hasMHCertificate === true ? 'Yes' : applicationData.hasMHCertificate === false ? 'No' : 'Not specified'}</p>
+            </div>
+
+            ${applicationData.additionalInfo ? `
+            <div class="info-section">
+              <h3>📝 Additional Information</h3>
+              <p>${applicationData.additionalInfo}</p>
+            </div>
+            ` : ''}
+
+            <div class="info-section">
+              <h3>⚡ Next Steps</h3>
+              <p>Please review this application and contact the candidate within 24 hours.</p>
+              <p><strong>Primary Contact:</strong> ${applicationData.email} or ${applicationData.phone}</p>
+            </div>
+          </div>
+          
+          <div class="footer">
+            <p>&copy; ${new Date().getFullYear()} Smeaton Healthcare. All rights reserved.</p>
+            <p>Healthcare staffing solutions across Devon and Cornwall</p>
+          </div>
+        </div>
+      </body>
+      </html>
+    `;
+  }
+
+  private getPreScreenApplicationEmailText(applicationData: {
+    firstName: string;
+    lastName: string;
+    email: string;
+    phone: string;
+    location: string;
+    jobTitle: string;
+    branch: string;
+    experience?: string;
+    currentlyWorking?: boolean;
+    currentEmployer?: string;
+    referralSource?: string;
+    shiftPreferences?: string[];
+    hasDBS?: boolean;
+    hasMHCertificate?: boolean;
+    additionalInfo?: string;
+  }): string {
+    const timestamp = new Date().toLocaleString('en-GB', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+      timeZone: 'Europe/London'
+    });
+
+    return `
+New Job Application - Smeaton Healthcare
+Received: ${timestamp}
+
+===== APPLICATION FOR: ${applicationData.jobTitle} =====
+Branch: ${applicationData.branch}
+Applicant: ${applicationData.firstName} ${applicationData.lastName}
+
+===== CONTACT INFORMATION =====
+Name: ${applicationData.firstName} ${applicationData.lastName}
+Email: ${applicationData.email}
+Phone: ${applicationData.phone}
+Location: ${applicationData.location}
+
+===== EMPLOYMENT DETAILS =====
+${applicationData.currentlyWorking !== undefined ? `Currently Working: ${applicationData.currentlyWorking ? 'Yes' : 'No'}` : ''}
+${applicationData.currentEmployer ? `Current Employer: ${applicationData.currentEmployer}` : ''}
+${applicationData.experience ? `Experience: ${applicationData.experience}` : ''}
+${applicationData.referralSource ? `How they heard about us: ${applicationData.referralSource}` : ''}
+
+${applicationData.shiftPreferences && applicationData.shiftPreferences.length > 0 ? `===== SHIFT PREFERENCES =====
+${applicationData.shiftPreferences.join(', ')}
+
+` : ''}===== CERTIFICATIONS =====
+DBS Check: ${applicationData.hasDBS === true ? 'Yes' : applicationData.hasDBS === false ? 'No' : 'Not specified'}
+Mental Health Certificate: ${applicationData.hasMHCertificate === true ? 'Yes' : applicationData.hasMHCertificate === false ? 'No' : 'Not specified'}
+
+${applicationData.additionalInfo ? `===== ADDITIONAL INFORMATION =====
+${applicationData.additionalInfo}
+
+` : ''}===== NEXT STEPS =====
+Please review this application and contact the candidate within 24 hours.
+Primary Contact: ${applicationData.email} or ${applicationData.phone}
+
+This application was submitted through the Smeaton Healthcare website.
+
+© ${new Date().getFullYear()} Smeaton Healthcare. All rights reserved.
+Healthcare staffing solutions across Devon and Cornwall
+    `;
+  }
+
+  async sendAuditReviewReminderEmail(auditData: {
+    auditTitle: string;
+    auditType: string;
+    serviceType: string;
+    completedDate: string;
+    nextReviewDate: string;
+    daysUntilDue: number;
+    auditorName: string;
+    overallRating?: string;
+    areasForImprovement?: string;
+  }) {
+    if (!this.isConfigured) {
+      console.warn('Brevo not configured - skipping audit reminder email send');
+      return;
+    }
+
+    try {
+      const result = await this.emailApi.sendTransacEmail({
+        to: [{
+          email: 'michael@smeatonhealthcare.co.uk',
+          name: 'Michael Smeaton'
+        }],
+        sender: {
+          email: 'noreply@brevosend.com',
+          name: 'Smeaton Healthcare CQC System'
+        },
+        subject: `CQC Audit Review Due in ${auditData.daysUntilDue} days - ${auditData.auditTitle}`,
+        htmlContent: this.getAuditReminderEmailHtml(auditData),
+        textContent: this.getAuditReminderEmailText(auditData)
+      });
+
+      console.log('Audit review reminder email sent successfully:', result.response);
+    } catch (error) {
+      console.error('Failed to send audit review reminder email:', error);
+      throw error;
+    }
+  }
+
+  private getAuditReminderEmailHtml(auditData: {
+    auditTitle: string;
+    auditType: string;
+    serviceType: string;
+    completedDate: string;
+    nextReviewDate: string;
+    daysUntilDue: number;
+    auditorName: string;
+    overallRating?: string;
+    areasForImprovement?: string;
+  }): string {
+    return `
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>CQC Audit Review Reminder</title>
+    <style>
+        body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px; }
+        .header { background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%); color: white; padding: 30px; text-align: center; border-radius: 8px 8px 0 0; }
+        .logo { font-size: 24px; font-weight: bold; margin-bottom: 10px; }
+        .content { background: #f8fafc; padding: 30px; border-radius: 0 0 8px 8px; border: 1px solid #e2e8f0; }
+        .audit-details { background: white; padding: 20px; border-radius: 6px; margin: 20px 0; border-left: 4px solid #f59e0b; }
+        .urgency-notice { background: #fef3c7; border: 1px solid #f59e0b; padding: 15px; border-radius: 6px; margin: 20px 0; }
+        .footer { text-align: center; margin-top: 30px; padding: 20px; color: #64748b; font-size: 14px; }
+        .btn { display: inline-block; background: #1e40af; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; margin: 10px 0; }
+        .rating-badge { display: inline-block; padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: bold; text-transform: uppercase; }
+        .outstanding { background: #dcfce7; color: #166534; }
+        .good { background: #dbeafe; color: #1d4ed8; }
+        .requires_improvement { background: #fef3c7; color: #b45309; }
+        .inadequate { background: #fee2e2; color: #dc2626; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="logo">🏥 Smeaton Healthcare</div>
+        <h1>CQC Audit Review Reminder</h1>
+    </div>
+    
+    <div class="content">
+        <div class="urgency-notice">
+            <strong>⚠️ Review Required in ${auditData.daysUntilDue} days</strong><br>
+            This CQC audit is due for review on <strong>${auditData.nextReviewDate}</strong>
+        </div>
+
+        <p>Dear Michael,</p>
+        
+        <p>This is an automated reminder that one of your CQC audits is approaching its review date. Please ensure this audit is reviewed and updated as necessary to maintain compliance.</p>
+
+        <div class="audit-details">
+            <h3>📋 Audit Details</h3>
+            <table style="width: 100%; border-collapse: collapse;">
+                <tr>
+                    <td style="padding: 8px 0; border-bottom: 1px solid #e2e8f0;"><strong>Audit Title:</strong></td>
+                    <td style="padding: 8px 0; border-bottom: 1px solid #e2e8f0;">${auditData.auditTitle}</td>
+                </tr>
+                <tr>
+                    <td style="padding: 8px 0; border-bottom: 1px solid #e2e8f0;"><strong>Audit Type:</strong></td>
+                    <td style="padding: 8px 0; border-bottom: 1px solid #e2e8f0;">${auditData.auditType.replace('_', ' ').toUpperCase()}</td>
+                </tr>
+                <tr>
+                    <td style="padding: 8px 0; border-bottom: 1px solid #e2e8f0;"><strong>Service Type:</strong></td>
+                    <td style="padding: 8px 0; border-bottom: 1px solid #e2e8f0;">${auditData.serviceType.replace('_', ' ').toUpperCase()}</td>
+                </tr>
+                <tr>
+                    <td style="padding: 8px 0; border-bottom: 1px solid #e2e8f0;"><strong>Completed Date:</strong></td>
+                    <td style="padding: 8px 0; border-bottom: 1px solid #e2e8f0;">${auditData.completedDate}</td>
+                </tr>
+                <tr>
+                    <td style="padding: 8px 0; border-bottom: 1px solid #e2e8f0;"><strong>Auditor:</strong></td>
+                    <td style="padding: 8px 0; border-bottom: 1px solid #e2e8f0;">${auditData.auditorName}</td>
+                </tr>
+                ${auditData.overallRating ? `
+                <tr>
+                    <td style="padding: 8px 0; border-bottom: 1px solid #e2e8f0;"><strong>Current Rating:</strong></td>
+                    <td style="padding: 8px 0; border-bottom: 1px solid #e2e8f0;">
+                        <span class="rating-badge ${auditData.overallRating}">${auditData.overallRating.replace('_', ' ').toUpperCase()}</span>
+                    </td>
+                </tr>
+                ` : ''}
+                <tr>
+                    <td style="padding: 8px 0;"><strong>Review Due:</strong></td>
+                    <td style="padding: 8px 0; color: #f59e0b; font-weight: bold;">${auditData.nextReviewDate}</td>
+                </tr>
+            </table>
+        </div>
+
+        ${auditData.areasForImprovement ? `
+        <div style="background: #fef3c7; padding: 15px; border-radius: 6px; margin: 20px 0;">
+            <h4>📝 Areas for Improvement (from last review):</h4>
+            <p style="margin: 0;">${auditData.areasForImprovement}</p>
+        </div>
+        ` : ''}
+
+        <div style="margin: 30px 0; text-align: center;">
+            <a href="${process.env.REPLIT_DOMAIN || 'https://your-domain.com'}/admin/cqc-toolkit" class="btn">
+                Review Audit in CQC Toolkit
+            </a>
+        </div>
+
+        <p><strong>Next Steps:</strong></p>
+        <ul>
+            <li>Review the current audit findings and evidence</li>
+            <li>Update any areas for improvement that have been addressed</li>
+            <li>Collect new evidence if required</li>
+            <li>Schedule the next review date</li>
+            <li>Ensure all documentation is CQC-ready</li>
+        </ul>
+
+        <p><strong>Important:</strong> Regular audit reviews are essential for maintaining CQC compliance and ensuring continuous improvement in care quality.</p>
+    </div>
+
+    <div class="footer">
+        <p>This automated reminder was sent from the Smeaton Healthcare CQC Compliance System</p>
+        <p>© ${new Date().getFullYear()} Smeaton Healthcare. All rights reserved.</p>
+        <p>Healthcare staffing solutions across Devon and Cornwall</p>
+    </div>
+</body>
+</html>
+    `;
+  }
+
+  private getAuditReminderEmailText(auditData: {
+    auditTitle: string;
+    auditType: string;
+    serviceType: string;
+    completedDate: string;
+    nextReviewDate: string;
+    daysUntilDue: number;
+    auditorName: string;
+    overallRating?: string;
+    areasForImprovement?: string;
+  }): string {
+    return `
+CQC AUDIT REVIEW REMINDER
+
+Dear Michael,
+
+This is an automated reminder that one of your CQC audits is approaching its review date in ${auditData.daysUntilDue} days.
+
+AUDIT DETAILS:
+- Title: ${auditData.auditTitle}
+- Type: ${auditData.auditType.replace('_', ' ').toUpperCase()}
+- Service: ${auditData.serviceType.replace('_', ' ').toUpperCase()}
+- Completed: ${auditData.completedDate}
+- Auditor: ${auditData.auditorName}
+${auditData.overallRating ? `- Current Rating: ${auditData.overallRating.replace('_', ' ').toUpperCase()}` : ''}
+- REVIEW DUE: ${auditData.nextReviewDate}
+
+${auditData.areasForImprovement ? `AREAS FOR IMPROVEMENT (from last review):
+${auditData.areasForImprovement}
+
+` : ''}NEXT STEPS:
+1. Review the current audit findings and evidence
+2. Update any areas for improvement that have been addressed
+3. Collect new evidence if required
+4. Schedule the next review date
+5. Ensure all documentation is CQC-ready
+
+Access the CQC Toolkit: ${process.env.REPLIT_DOMAIN || 'https://your-domain.com'}/admin/cqc-toolkit
+
+Regular audit reviews are essential for maintaining CQC compliance and ensuring continuous improvement in care quality.
+
+---
+This automated reminder was sent from the Smeaton Healthcare CQC Compliance System
+© ${new Date().getFullYear()} Smeaton Healthcare. All rights reserved.
+Healthcare staffing solutions across Devon and Cornwall
+    `;
+  }
+
+  async sendRecruitmentApplicationConfirmation(applicationData: {
+    to: string;
+    applicantName: string;
+    applicationId: string;
+  }) {
+    if (!this.isConfigured) {
+      console.warn('Brevo not configured - skipping recruitment application confirmation email send');
+      return;
+    }
+
+    try {
+      const result = await this.emailApi.sendTransacEmail({
+        to: [{
+          email: applicationData.to,
+          name: applicationData.applicantName
+        }],
+        subject: 'Application Received - Smeaton Healthcare',
+        htmlContent: this.getRecruitmentApplicationConfirmationHtml(applicationData),
+        textContent: this.getRecruitmentApplicationConfirmationText(applicationData),
+        sender: {
+          email: 'recruitment@smeatonhealthcare.co.uk',
+          name: 'Smeaton Healthcare Recruitment'
+        }
+      });
+
+      console.log('Recruitment application confirmation email sent successfully:', result.body?.messageId || 'Email sent');
+      return result;
+    } catch (error) {
+      console.error('Failed to send recruitment application confirmation email:', error);
+      throw error;
+    }
+  }
+
+  private getRecruitmentApplicationConfirmationHtml(applicationData: {
+    applicantName: string;
+    applicationId: string;
+  }): string {
+    return `
+    <html>
+    <head>
+      <style>
+        body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+        .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+        .header { background-color: #0066cc; color: white; text-align: center; padding: 20px; border-radius: 8px 8px 0 0; }
+        .content { background-color: #ffffff; padding: 30px; border: 1px solid #ddd; }
+        .footer { background-color: #f8f9fa; padding: 20px; text-align: center; border-radius: 0 0 8px 8px; font-size: 12px; color: #666; }
+        .button { display: inline-block; background-color: #0066cc; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; margin: 15px 0; }
+        .highlight { background-color: #e8f4f8; padding: 15px; border-radius: 5px; margin: 15px 0; border-left: 4px solid #0066cc; }
+      </style>
+    </head>
+    <body>
+      <div class="container">
+        <div class="header">
+          <h1>Application Received</h1>
+          <p>Thank you for your interest in Smeaton Healthcare</p>
+        </div>
+        
+        <div class="content">
+          <p>Dear ${applicationData.applicantName},</p>
+          
+          <p>Thank you for submitting your application to Smeaton Healthcare. We have successfully received your application and it is now being reviewed by our recruitment team.</p>
+          
+          <div class="highlight">
+            <strong>Application Reference:</strong> ${applicationData.applicationId}
+          </div>
+          
+          <h3>What happens next?</h3>
+          <ul>
+            <li><strong>Application Review:</strong> Our team will carefully review your application and experience</li>
+            <li><strong>Initial Contact:</strong> If your application matches our requirements, we will contact you within 5-7 business days</li>
+            <li><strong>Interview Process:</strong> Suitable candidates will be invited for an interview (phone/video or in-person)</li>
+            <li><strong>Final Steps:</strong> Successful candidates will receive a formal offer with next steps</li>
+          </ul>
+          
+          <p>We appreciate your interest in joining our team and providing exceptional healthcare services across Devon and Cornwall.</p>
+          
+          <p>If you have any questions about your application, please don't hesitate to contact our recruitment team:</p>
+          <ul>
+            <li>Email: <a href="mailto:recruitment@smeatonhealthcare.co.uk">recruitment@smeatonhealthcare.co.uk</a></li>
+            <li>Phone: 01752 123456</li>
+          </ul>
+          
+          <p>Best regards,<br>
+          <strong>Smeaton Healthcare Recruitment Team</strong></p>
+        </div>
+        
+        <div class="footer">
+          <p>© ${new Date().getFullYear()} Smeaton Healthcare. All rights reserved.<br>
+          Healthcare staffing solutions across Devon and Cornwall</p>
+        </div>
+      </div>
+    </body>
+    </html>
+    `;
+  }
+
+  private getRecruitmentApplicationConfirmationText(applicationData: {
+    applicantName: string;
+    applicationId: string;
+  }): string {
+    return `
+APPLICATION RECEIVED
+
+Dear ${applicationData.applicantName},
+
+Thank you for submitting your application to Smeaton Healthcare. We have successfully received your application and it is now being reviewed by our recruitment team.
+
+Application Reference: ${applicationData.applicationId}
+
+WHAT HAPPENS NEXT?
+- Application Review: Our team will carefully review your application and experience
+- Initial Contact: If your application matches our requirements, we will contact you within 5-7 business days  
+- Interview Process: Suitable candidates will be invited for an interview (phone/video or in-person)
+- Final Steps: Successful candidates will receive a formal offer with next steps
+
+We appreciate your interest in joining our team and providing exceptional healthcare services across Devon and Cornwall.
+
+If you have any questions about your application, please don't hesitate to contact our recruitment team:
+- Email: recruitment@smeatonhealthcare.co.uk
+- Phone: 01752 123456
+
+Best regards,
+Smeaton Healthcare Recruitment Team
+
+---
+© ${new Date().getFullYear()} Smeaton Healthcare. All rights reserved.
+Healthcare staffing solutions across Devon and Cornwall
+    `;
+  }
+
+  async sendProfessionalReferenceConfirmation(referenceData: {
+    to: string;
+    referenceProviderName: string;
+    candidateName: string;
+    referenceId: string;
+  }) {
+    if (!this.isConfigured) {
+      console.warn('Brevo not configured - skipping professional reference confirmation email send');
+      return;
+    }
+
+    try {
+      const result = await this.emailApi.sendTransacEmail({
+        to: [{
+          email: referenceData.to,
+          name: referenceData.referenceProviderName
+        }],
+        subject: 'Reference Confirmation - Smeaton Healthcare',
+        htmlContent: this.getProfessionalReferenceConfirmationHtml(referenceData),
+        textContent: this.getProfessionalReferenceConfirmationText(referenceData),
+        sender: {
+          email: 'recruitment@smeatonhealthcare.co.uk',
+          name: 'Smeaton Healthcare Recruitment'
+        }
+      });
+
+      console.log('Professional reference confirmation email sent successfully:', result.body?.messageId || 'Email sent');
+      return result;
+    } catch (error) {
+      console.error('Failed to send professional reference confirmation email:', error);
+      throw error;
+    }
+  }
+
+  private getProfessionalReferenceConfirmationHtml(referenceData: {
+    referenceProviderName: string;
+    candidateName: string;
+    referenceId: string;
+  }): string {
+    return `
+    <html>
+    <head>
+      <style>
+        body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+        .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+        .header { background-color: #0066cc; color: white; text-align: center; padding: 20px; border-radius: 8px 8px 0 0; }
+        .content { background-color: #ffffff; padding: 30px; border: 1px solid #ddd; }
+        .footer { background-color: #f8f9fa; padding: 20px; text-align: center; border-radius: 0 0 8px 8px; font-size: 12px; color: #666; }
+        .button { display: inline-block; background-color: #0066cc; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; margin: 15px 0; }
+        .highlight { background-color: #e8f4f8; padding: 15px; border-radius: 5px; margin: 15px 0; border-left: 4px solid #0066cc; }
+      </style>
+    </head>
+    <body>
+      <div class="container">
+        <div class="header">
+          <h1>Reference Received</h1>
+          <p>Thank you for providing a professional reference</p>
+        </div>
+        
+        <div class="content">
+          <p>Dear ${referenceData.referenceProviderName},</p>
+          
+          <p>Thank you for submitting a professional reference for <strong>${referenceData.candidateName}</strong>. We have successfully received your reference and it is now part of their application file with Smeaton Healthcare.</p>
+          
+          <div class="highlight">
+            <strong>Reference ID:</strong> ${referenceData.referenceId}
+          </div>
+          
+          <h3>What happens next?</h3>
+          <ul>
+            <li><strong>Reference Review:</strong> Our recruitment team will review your reference as part of the candidate's application</li>
+            <li><strong>Follow-up Contact:</strong> We may contact you for additional information if needed</li>
+            <li><strong>Confidentiality:</strong> Your reference will be treated with strict confidentiality and used solely for recruitment purposes</li>
+            <li><strong>Updates:</strong> We will keep the reference on file for the candidate's current application</li>
+          </ul>
+          
+          <p>Your professional insights are valuable to us in ensuring we make the right hiring decisions and maintain our high standards of healthcare staffing.</p>
+          
+          <p>If you have any questions about this reference or need to make any amendments, please contact our recruitment team:</p>
+          <ul>
+            <li>Email: <a href="mailto:recruitment@smeatonhealthcare.co.uk">recruitment@smeatonhealthcare.co.uk</a></li>
+            <li>Phone: 01752 123456</li>
+          </ul>
+          
+          <p>Thank you again for taking the time to provide this reference.</p>
+          
+          <p>Best regards,<br>
+          <strong>Smeaton Healthcare Recruitment Team</strong></p>
+        </div>
+        
+        <div class="footer">
+          <p>© ${new Date().getFullYear()} Smeaton Healthcare. All rights reserved.<br>
+          Healthcare staffing solutions across Devon and Cornwall</p>
+        </div>
+      </div>
+    </body>
+    </html>
+    `;
+  }
+
+  private getProfessionalReferenceConfirmationText(referenceData: {
+    referenceProviderName: string;
+    candidateName: string;
+    referenceId: string;
+  }): string {
+    return `
+REFERENCE RECEIVED
+
+Dear ${referenceData.referenceProviderName},
+
+Thank you for submitting a professional reference for ${referenceData.candidateName}. We have successfully received your reference and it is now part of their application file with Smeaton Healthcare.
+
+Reference ID: ${referenceData.referenceId}
+
+WHAT HAPPENS NEXT?
+- Reference Review: Our recruitment team will review your reference as part of the candidate's application
+- Follow-up Contact: We may contact you for additional information if needed  
+- Confidentiality: Your reference will be treated with strict confidentiality and used solely for recruitment purposes
+- Updates: We will keep the reference on file for the candidate's current application
+
+Your professional insights are valuable to us in ensuring we make the right hiring decisions and maintain our high standards of healthcare staffing.
+
+If you have any questions about this reference or need to make any amendments, please contact our recruitment team:
+- Email: recruitment@smeatonhealthcare.co.uk
+- Phone: 01752 123456
+
+Thank you again for taking the time to provide this reference.
+
+Best regards,
+Smeaton Healthcare Recruitment Team
+
+---
 © ${new Date().getFullYear()} Smeaton Healthcare. All rights reserved.
 Healthcare staffing solutions across Devon and Cornwall
     `;

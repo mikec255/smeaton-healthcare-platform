@@ -1,8 +1,9 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -19,6 +20,7 @@ const jobSchema = z.object({
   type: z.string().min(1, "Job type is required"),
   location: z.string().min(1, "Location is required"),
   department: z.string().optional(),
+  branch: z.string().min(1, "Branch is required"),
   salaryType: z.string().min(1, "Salary type is required"),
   salaryMin: z.number().min(0, "Minimum salary is required"),
   salaryMax: z.number().optional(),
@@ -49,6 +51,7 @@ export default function JobFormModal({ job, isOpen, onClose }: JobFormModalProps
       type: job.type,
       location: job.location,
       department: job.department || "",
+      branch: job.branch || "Plymouth",
       salaryType: job.salaryType,
       salaryMin: job.salaryMin,
       salaryMax: job.salaryMax || undefined,
@@ -64,6 +67,7 @@ export default function JobFormModal({ job, isOpen, onClose }: JobFormModalProps
       type: "",
       location: "",
       department: "",
+      branch: "Plymouth",
       salaryType: "",
       salaryMin: 0,
       salaryMax: undefined,
@@ -76,6 +80,48 @@ export default function JobFormModal({ job, isOpen, onClose }: JobFormModalProps
       isActive: true,
     },
   });
+
+  // Reset form when job prop changes (for editing existing jobs)
+  useEffect(() => {
+    if (job) {
+      form.reset({
+        title: job.title,
+        type: job.type,
+        location: job.location,
+        department: job.department || "",
+        branch: job.branch || "Plymouth",
+        salaryType: job.salaryType,
+        salaryMin: job.salaryMin,
+        salaryMax: job.salaryMax || undefined,
+        summary: job.summary,
+        description: job.description,
+        requirements: job.requirements || "",
+        benefits: job.benefits || "",
+        reportsTo: job.reportsTo || "",
+        experienceLevel: job.experienceLevel || "",
+        isActive: job.isActive ?? true,
+      });
+    } else {
+      // Reset to empty form for creating new jobs
+      form.reset({
+        title: "",
+        type: "",
+        location: "",
+        department: "",
+        branch: "Plymouth",
+        salaryType: "",
+        salaryMin: 0,
+        salaryMax: undefined,
+        summary: "",
+        description: "",
+        requirements: "",
+        benefits: "",
+        reportsTo: "",
+        experienceLevel: "",
+        isActive: true,
+      });
+    }
+  }, [job, form]);
 
   const createJobMutation = useMutation({
     mutationFn: async (data: z.infer<typeof jobSchema>) => {
@@ -132,15 +178,19 @@ export default function JobFormModal({ job, isOpen, onClose }: JobFormModalProps
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto" data-testid="job-form-modal">
-        <DialogHeader>
-          <DialogTitle className="text-2xl font-bold" data-testid="job-form-title">
+      <DialogContent className="w-[95vw] max-w-4xl h-[90vh] p-4 sm:p-6" data-testid="job-form-modal">
+        <DialogHeader className="pb-4">
+          <DialogTitle className="text-xl sm:text-2xl font-bold" data-testid="job-form-title">
             {isEditing ? "Edit Job Listing" : "Create New Job Listing"}
           </DialogTitle>
+          <DialogDescription className="sr-only">
+            {isEditing ? "Edit the details of an existing job listing" : "Create a new job listing with all required details"}
+          </DialogDescription>
         </DialogHeader>
         
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+        <div className="flex-1 overflow-y-auto pr-2">
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 sm:space-y-6" id="job-form">
             <div className="grid md:grid-cols-2 gap-6">
               <FormField
                 control={form.control}
@@ -217,6 +267,30 @@ export default function JobFormModal({ job, isOpen, onClose }: JobFormModalProps
               />
             </div>
             
+            <div className="grid md:grid-cols-1 gap-6">
+              <FormField
+                control={form.control}
+                name="branch"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Branch *</FormLabel>
+                    <Select onValueChange={field.onChange} value={field.value}>
+                      <FormControl>
+                        <SelectTrigger data-testid="select-branch">
+                          <SelectValue placeholder="Select branch..." />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="Plymouth">Plymouth</SelectItem>
+                        <SelectItem value="Truro">Truro</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+            
             <div className="grid md:grid-cols-3 gap-4">
               <FormField
                 control={form.control}
@@ -245,14 +319,14 @@ export default function JobFormModal({ job, isOpen, onClose }: JobFormModalProps
                 name="salaryMin"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Salary Min (pence) *</FormLabel>
+                    <FormLabel>Minimum Salary (£) *</FormLabel>
                     <FormControl>
                       <Input 
                         type="number" 
-                        step="1" 
+                        step="0.01" 
                         {...field}
-                        onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
-                        placeholder="e.g., 1130 for £11.30"
+                        onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
+                        placeholder="e.g., 11.50 or 30000"
                         data-testid="input-salary-min"
                       />
                     </FormControl>
@@ -265,14 +339,14 @@ export default function JobFormModal({ job, isOpen, onClose }: JobFormModalProps
                 name="salaryMax"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Salary Max (pence)</FormLabel>
+                    <FormLabel>Maximum Salary (£)</FormLabel>
                     <FormControl>
                       <Input 
                         type="number" 
-                        step="1" 
+                        step="0.01" 
                         {...field}
-                        onChange={(e) => field.onChange(e.target.value ? parseInt(e.target.value) : undefined)}
-                        placeholder="e.g., 1300 for £13.00"
+                        onChange={(e) => field.onChange(e.target.value ? parseFloat(e.target.value) : undefined)}
+                        placeholder="e.g., 13.00 or 35000"
                         data-testid="input-salary-max"
                       />
                     </FormControl>
@@ -416,29 +490,33 @@ export default function JobFormModal({ job, isOpen, onClose }: JobFormModalProps
               )}
             />
             
-            <div className="flex gap-4 pt-4 border-t border-border">
-              <Button 
-                type="submit" 
-                className="flex-1 bg-primary text-primary-foreground hover:bg-primary/90"
-                disabled={createJobMutation.isPending || updateJobMutation.isPending}
-                data-testid="button-save-job"
-              >
-                {isEditing ? <Save className="mr-2 h-5 w-5" /> : <Plus className="mr-2 h-5 w-5" />}
-                {createJobMutation.isPending || updateJobMutation.isPending 
-                  ? "Saving..." 
-                  : isEditing ? "Update Job Listing" : "Create Job Listing"}
-              </Button>
-              <Button 
-                type="button" 
-                variant="outline"
-                onClick={onClose}
-                data-testid="button-cancel"
-              >
-                Cancel
-              </Button>
-            </div>
-          </form>
-        </Form>
+            </form>
+          </Form>
+        </div>
+
+        <div className="flex flex-col sm:flex-row gap-3 pt-4 border-t border-border sticky bottom-0 bg-background">
+          <Button 
+            type="submit"
+            form="job-form"
+            className="w-full sm:flex-1 bg-primary text-primary-foreground hover:bg-primary/90"
+            disabled={createJobMutation.isPending || updateJobMutation.isPending}
+            data-testid="button-save-job"
+          >
+            {isEditing ? <Save className="mr-2 h-4 w-4 sm:h-5 sm:w-5" /> : <Plus className="mr-2 h-4 w-4 sm:h-5 sm:w-5" />}
+            {createJobMutation.isPending || updateJobMutation.isPending 
+              ? "Saving..." 
+              : isEditing ? "Update Job" : "Create Job"}
+          </Button>
+          <Button 
+            type="button" 
+            variant="outline"
+            onClick={onClose}
+            className="w-full sm:w-auto"
+            data-testid="button-cancel"
+          >
+            Cancel
+          </Button>
+        </div>
       </DialogContent>
     </Dialog>
   );

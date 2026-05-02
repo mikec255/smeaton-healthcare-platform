@@ -3,6 +3,56 @@ import { Link, useLocation } from "wouter";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, Menu, Phone, ChevronDown, ArrowRight, BookOpen, PoundSterling, Mail, Users, Globe } from "lucide-react";
 import logoImage from "@/assets/logo.png";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+import { useToast } from "@/hooks/use-toast";
+import { useMutation } from "@tanstack/react-query";
+import { apiRequest } from "@/lib/queryClient";
+
+type NavItem = {
+  id: string;
+  label: string;
+  href?: string;
+  dropdown?: { href: string; label: string }[];
+  priority: number;
+  isButton?: boolean;
+  isPrimary?: boolean;
+  isPhone?: boolean;
+};
+
+const callbackRequestSchema = z.object({
+  name: z.string().min(2, "Name must be at least 2 characters"),
+  phone: z.string().min(10, "Please enter a valid phone number"),
+  service: z.string().min(1, "Please select a service"),
+  preferredTime: z.string().optional(),
+});
+
+type CallbackRequest = z.infer<typeof callbackRequestSchema>;
 
 const SERVICES_MENU = [
   { href: "/services/short-visits", name: "Short Visits", desc: "Flexible care visits from one hour upwards, built around your daily routine." },

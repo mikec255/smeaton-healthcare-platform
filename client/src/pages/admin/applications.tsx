@@ -7,27 +7,32 @@ import { Separator } from "@/components/ui/separator";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { Users, Mail, Phone, MapPin, Clock, FileText, Briefcase, ArrowLeft, UserCheck, Calendar, Car, Zap, Shield, CheckCircle, XCircle, Info, Filter, Edit, NotebookPen } from "lucide-react";
+import { Users, Mail, Phone, MapPin, Clock, FileText, Briefcase, ArrowLeft, UserCheck, Calendar, Car, Zap, Shield, CheckCircle, XCircle, Info, Filter, Edit, NotebookPen, Download } from "lucide-react";
+import { useLocation } from "wouter";
 import { type Application, type Job } from "@shared/schema";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+import jsPDF from "jspdf";
 
 type JobWithApplications = Job & {
   applicationsCount?: number;
 };
 
 export default function ApplicationsAdmin() {
+  const [location] = useLocation();
+  
   const [selectedJob, setSelectedJob] = useState<Job | null>(null);
   const [selectedApplication, setSelectedApplication] = useState<Application | null>(null);
   const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [branchFilter, setBranchFilter] = useState<string>("all");
   const [notes, setNotes] = useState<string>("");
   const { toast } = useToast();
 
   // Fetch all jobs
   const { data: jobs, isLoading: jobsLoading, error: jobsError } = useQuery<JobWithApplications[]>({
-    queryKey: ["/api/jobs"],
+    queryKey: ["/api/admin/jobs"],
     queryFn: async () => {
-      const response = await fetch("/api/jobs");
+      const response = await fetch("/api/admin/jobs");
       if (!response.ok) {
         throw new Error("Failed to fetch jobs");
       }
@@ -119,6 +124,13 @@ export default function ApplicationsAdmin() {
     }
   });
 
+  // Filter jobs by branch
+  const filteredJobs = useMemo(() => {
+    if (!jobs) return [];
+    if (branchFilter === "all") return jobs;
+    return jobs.filter(job => (job.branch || "Plymouth") === branchFilter);
+  }, [jobs, branchFilter]);
+
   // Filter applications by status
   const filteredApplications = useMemo(() => {
     if (!applications) return [];
@@ -165,9 +177,217 @@ export default function ApplicationsAdmin() {
     });
   };
 
+  // Download application as PDF
+  const downloadPrescreenPDF = () => {
+    if (!selectedApplication || !selectedJob) return;
+
+    const doc = new jsPDF();
+    const app = selectedApplication;
+    let yPos = 20;
+    const lineHeight = 7;
+    const pageWidth = doc.internal.pageSize.width;
+    const margin = 20;
+
+    // Header
+    doc.setFillColor(236, 72, 153); // Pink color
+    doc.rect(0, 0, pageWidth, 30, 'F');
+    doc.setTextColor(255, 255, 255);
+    doc.setFontSize(20);
+    doc.text('Pre-Screen Application', margin, 20);
+    
+    yPos = 40;
+    doc.setTextColor(0, 0, 0);
+
+    // Job Title
+    doc.setFontSize(16);
+    doc.text(selectedJob.title, margin, yPos);
+    yPos += lineHeight + 3;
+    
+    doc.setFontSize(10);
+    doc.setTextColor(100, 100, 100);
+    doc.text(`${selectedJob.location} | ${selectedJob.branch || 'Plymouth'}`, margin, yPos);
+    yPos += lineHeight + 5;
+
+    // Candidate Name
+    doc.setFontSize(14);
+    doc.setTextColor(0, 0, 0);
+    doc.text(`${app.firstName} ${app.lastName}`, margin, yPos);
+    yPos += lineHeight + 2;
+
+    // Status Badge
+    doc.setFontSize(9);
+    doc.setTextColor(255, 255, 255);
+    doc.setFillColor(app.status === 'approved' ? 34 : app.status === 'rejected' ? 220 : 100, 
+                     app.status === 'approved' ? 197 : app.status === 'rejected' ? 38 : 100, 
+                     app.status === 'approved' ? 94 : app.status === 'rejected' ? 38 : 100);
+    doc.roundedRect(margin, yPos - 5, 30, 7, 2, 2, 'F');
+    doc.text((app.status || 'pending').toUpperCase(), margin + 3, yPos);
+    yPos += lineHeight + 8;
+
+    // Contact Information Section
+    doc.setFontSize(12);
+    doc.setTextColor(0, 0, 0);
+    doc.text('Contact Information', margin, yPos);
+    yPos += lineHeight;
+    
+    doc.setFontSize(10);
+    doc.setTextColor(60, 60, 60);
+    doc.text(`Email: ${app.email}`, margin + 5, yPos);
+    yPos += lineHeight;
+    doc.text(`Phone: ${app.phone || 'Not provided'}`, margin + 5, yPos);
+    yPos += lineHeight;
+    doc.text(`Location: ${app.location || 'Not provided'}`, margin + 5, yPos);
+    yPos += lineHeight + 5;
+
+    // Referral Source
+    if (app.referralSource) {
+      doc.setFontSize(12);
+      doc.setTextColor(0, 0, 0);
+      doc.text('How They Found Us', margin, yPos);
+      yPos += lineHeight;
+      doc.setFontSize(10);
+      doc.setTextColor(60, 60, 60);
+      doc.text(app.referralSource, margin + 5, yPos);
+      yPos += lineHeight + 5;
+    }
+
+    // Current Employment
+    doc.setFontSize(12);
+    doc.setTextColor(0, 0, 0);
+    doc.text('Current Employment', margin, yPos);
+    yPos += lineHeight;
+    doc.setFontSize(10);
+    doc.setTextColor(60, 60, 60);
+    doc.text(`Currently Working: ${app.currentlyWorking === true ? 'Yes' : app.currentlyWorking === false ? 'No' : 'Not specified'}`, margin + 5, yPos);
+    yPos += lineHeight;
+    if (app.currentlyWorking && app.currentEmployer) {
+      doc.text(`Current Employer: ${app.currentEmployer}`, margin + 5, yPos);
+      yPos += lineHeight;
+      if (app.employmentDuration) {
+        doc.text(`Employment Duration: ${app.employmentDuration}`, margin + 5, yPos);
+        yPos += lineHeight;
+      }
+      if (app.noticePeriod) {
+        doc.text(`Notice Period: ${app.noticePeriod}`, margin + 5, yPos);
+        yPos += lineHeight;
+      }
+    }
+    yPos += 5;
+
+    // Care Experience
+    doc.setFontSize(12);
+    doc.setTextColor(0, 0, 0);
+    doc.text('Care Experience', margin, yPos);
+    yPos += lineHeight;
+    doc.setFontSize(10);
+    doc.setTextColor(60, 60, 60);
+    const experienceText = app.experience || 'No experience provided';
+    const experienceLines = doc.splitTextToSize(experienceText, pageWidth - (margin * 2) - 5);
+    doc.text(experienceLines, margin + 5, yPos);
+    yPos += (experienceLines.length * lineHeight) + 5;
+
+    // Check if we need a new page
+    if (yPos > 250) {
+      doc.addPage();
+      yPos = 20;
+    }
+
+    // Holiday Information
+    doc.setFontSize(12);
+    doc.setTextColor(0, 0, 0);
+    doc.text('Holiday Information', margin, yPos);
+    yPos += lineHeight;
+    doc.setFontSize(10);
+    doc.setTextColor(60, 60, 60);
+    doc.text(`Pre-booked Holiday: ${app.hasPreBookedHoliday === true ? 'Yes' : app.hasPreBookedHoliday === false ? 'No' : 'Not specified'}`, margin + 5, yPos);
+    yPos += lineHeight;
+    if (app.hasPreBookedHoliday && app.holidayDates) {
+      doc.text(`Holiday Dates: ${app.holidayDates}`, margin + 5, yPos);
+      yPos += lineHeight;
+    }
+    yPos += 5;
+
+    // Transport
+    doc.setFontSize(12);
+    doc.setTextColor(0, 0, 0);
+    doc.text('Transport', margin, yPos);
+    yPos += lineHeight;
+    doc.setFontSize(10);
+    doc.setTextColor(60, 60, 60);
+    doc.text(`Can Drive: ${app.canDrive === true ? 'Yes' : app.canDrive === false ? 'No' : 'Not specified'}`, margin + 5, yPos);
+    yPos += lineHeight + 5;
+
+    // Availability (removed - fields don't exist in schema)
+    yPos += 0;
+
+    // Additional Info
+    if (app.additionalInfo) {
+      if (yPos > 250) {
+        doc.addPage();
+        yPos = 20;
+      }
+      doc.setFontSize(12);
+      doc.setTextColor(0, 0, 0);
+      doc.text('Additional Information', margin, yPos);
+      yPos += lineHeight;
+      doc.setFontSize(10);
+      doc.setTextColor(60, 60, 60);
+      const additionalLines = doc.splitTextToSize(app.additionalInfo, pageWidth - (margin * 2) - 5);
+      doc.text(additionalLines, margin + 5, yPos);
+      yPos += (additionalLines.length * lineHeight) + 5;
+    }
+
+    // Notes
+    if (app.notes) {
+      if (yPos > 250) {
+        doc.addPage();
+        yPos = 20;
+      }
+      doc.setFontSize(12);
+      doc.setTextColor(0, 0, 0);
+      doc.text('Internal Notes', margin, yPos);
+      yPos += lineHeight;
+      doc.setFontSize(10);
+      doc.setTextColor(60, 60, 60);
+      const notesLines = doc.splitTextToSize(app.notes, pageWidth - (margin * 2) - 5);
+      doc.text(notesLines, margin + 5, yPos);
+    }
+
+    // Footer
+    const pageCount = doc.getNumberOfPages();
+    for (let i = 1; i <= pageCount; i++) {
+      doc.setPage(i);
+      doc.setFontSize(8);
+      doc.setTextColor(150, 150, 150);
+      doc.text(`Generated: ${new Date().toLocaleDateString('en-GB')}`, margin, doc.internal.pageSize.height - 10);
+      doc.text(`Page ${i} of ${pageCount}`, pageWidth - margin - 20, doc.internal.pageSize.height - 10);
+    }
+
+    // Save the PDF
+    const fileName = `Prescreen_${app.firstName}_${app.lastName}_${selectedJob.title.replace(/\s+/g, '_')}.pdf`;
+    doc.save(fileName);
+
+    toast({
+      title: "PDF Downloaded",
+      description: `Pre-screen for ${app.firstName} ${app.lastName} has been downloaded.`,
+    });
+  };
+
   if (jobsLoading) {
     return (
-      <div className="p-8">
+      <div className="container mx-auto py-8 space-y-6">
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Pre-Screens</h1>
+            <p className="text-gray-600 dark:text-gray-400 mt-2">
+              Manage job applications and candidate screening
+            </p>
+          </div>
+          <div className="flex items-center gap-2">
+            <Users className="h-8 w-8 text-pink-600" />
+            <span className="text-sm text-gray-500">Applications Dashboard</span>
+          </div>
+        </div>
         <div className="flex items-center justify-center py-12">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
           <span className="ml-2 text-muted-foreground">Loading jobs...</span>
@@ -178,7 +398,19 @@ export default function ApplicationsAdmin() {
 
   if (jobsError) {
     return (
-      <div className="p-8">
+      <div className="container mx-auto py-8 space-y-6">
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Pre-Screens</h1>
+            <p className="text-gray-600 dark:text-gray-400 mt-2">
+              Manage job applications and candidate screening
+            </p>
+          </div>
+          <div className="flex items-center gap-2">
+            <Users className="h-8 w-8 text-pink-600" />
+            <span className="text-sm text-gray-500">Applications Dashboard</span>
+          </div>
+        </div>
         <div className="text-center py-12">
           <p className="text-red-600">Error loading jobs. Please try again.</p>
         </div>
@@ -187,56 +419,67 @@ export default function ApplicationsAdmin() {
   }
 
   return (
-    <div className="p-8 max-w-7xl mx-auto">
-      <div className="mb-6">
-        {!selectedJob ? (
-          <>
-            <h1 className="text-3xl font-bold flex items-center gap-2">
-              <Users className="h-8 w-8 text-primary" />
-              Pre-Screens Management
-            </h1>
-            <p className="text-muted-foreground mt-2">
-              Select a job position to view and manage candidate pre-screens
-            </p>
-          </>
-        ) : (
-          <>
-            <div className="flex items-center gap-4 mb-4">
-              <Button 
-                variant="ghost" 
-                onClick={() => {
-                  setSelectedJob(null);
-                  setSelectedApplication(null);
-                }}
-                className="flex items-center gap-2"
-                data-testid="button-back-to-jobs"
-              >
-                <ArrowLeft className="h-4 w-4" />
-                Back to Jobs
-              </Button>
-            </div>
-            <h1 className="text-3xl font-bold flex items-center gap-2">
-              <Briefcase className="h-8 w-8 text-primary" />
-              {selectedJob.title} - Pre-Screens
-            </h1>
-            <p className="text-muted-foreground mt-2">
-              Review candidate pre-screens for {selectedJob.title} position
-            </p>
-          </>
-        )}
+    <div className="container mx-auto py-8 space-y-6">
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
+            {!selectedJob ? "Pre-Screens" : `${selectedJob.title} - Pre-Screens`}
+          </h1>
+          <p className="text-gray-600 dark:text-gray-400 mt-2">
+            {!selectedJob 
+              ? "Select a job position to view and manage candidate pre-screens"
+              : `Review candidate pre-screens for ${selectedJob.title} position`
+            }
+          </p>
+        </div>
+        <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2">
+            <Users className="h-8 w-8 text-pink-600" />
+            <span className="text-sm text-gray-500">Applications Dashboard</span>
+          </div>
+          {selectedJob && (
+            <Button 
+              variant="ghost" 
+              onClick={() => {
+                setSelectedJob(null);
+                setSelectedApplication(null);
+              }}
+              className="flex items-center gap-2"
+              data-testid="button-back-to-jobs"
+            >
+              <ArrowLeft className="h-4 w-4" />
+              Back to Jobs
+            </Button>
+          )}
+        </div>
       </div>
 
       {!selectedJob ? (
         // Jobs List View
         <div className="space-y-4">
-          <h2 className="text-xl font-semibold">Available Positions</h2>
+          <div className="flex items-center justify-between">
+            <h2 className="text-xl font-semibold">Available Positions</h2>
+            <div className="flex items-center gap-2">
+              <Filter className="h-4 w-4 text-muted-foreground" />
+              <Select value={branchFilter} onValueChange={setBranchFilter}>
+                <SelectTrigger className="w-48" data-testid="select-branch-filter">
+                  <SelectValue placeholder="Filter by branch" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Branches</SelectItem>
+                  <SelectItem value="Plymouth">Plymouth</SelectItem>
+                  <SelectItem value="Truro">Truro</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
           
-          {jobs && jobs.length > 0 ? (
+          {filteredJobs && filteredJobs.length > 0 ? (
             <div className="grid gap-4">
-              {jobs.map((job) => (
+              {filteredJobs.map((job) => (
                 <Card 
                   key={job.id} 
-                  className="cursor-pointer transition-all hover:shadow-md hover:border-primary/50"
+                  className="cursor-pointer transition-all hover:border-primary/50"
                   onClick={() => setSelectedJob(job)}
                 >
                   <CardContent className="p-6">
@@ -254,6 +497,12 @@ export default function ApplicationsAdmin() {
                             <Briefcase className="h-4 w-4" />
                             {job.type}
                           </div>
+                          <Badge 
+                            variant="outline" 
+                            className="bg-secondary/10 text-secondary border-secondary/20 text-xs"
+                          >
+                            {job.branch || "Plymouth"}
+                          </Badge>
                         </div>
                         <p className="text-sm text-muted-foreground line-clamp-2">
                           {job.summary}
@@ -370,7 +619,21 @@ export default function ApplicationsAdmin() {
 
           {/* Application Details */}
           <div className="space-y-4">
-            <h2 className="text-xl font-semibold">Application Details</h2>
+            <div className="flex items-center justify-between">
+              <h2 className="text-xl font-semibold">Application Details</h2>
+              {selectedApplication && (
+                <Button
+                  onClick={downloadPrescreenPDF}
+                  variant="outline"
+                  size="sm"
+                  className="flex items-center gap-2"
+                  data-testid="download-pdf-button"
+                >
+                  <Download className="h-4 w-4" />
+                  Download PDF
+                </Button>
+              )}
+            </div>
             
             {selectedApplication ? (
               <Card>

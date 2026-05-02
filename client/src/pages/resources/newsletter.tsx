@@ -57,15 +57,45 @@ function Ticker() {
   );
 }
 
-export default function Newsletter() {
+export default function NewsletterPage() {
   const [email, setEmail] = useState("");
-  const [subscribed, setSubscribed] = useState(false);
+  const { toast } = useToast();
+
+  const { data: newsletters = [], isLoading } = useQuery<Newsletter[]>({
+    queryKey: ["/api/newsletters"],
+  });
+
+  const subscribeMutation = useMutation({
+    mutationFn: async (email: string) => {
+      return apiRequest("POST", "/api/subscribers", { 
+        email,
+        status: "pending",
+        source: "newsletter_page"
+      });
+    },
+    onSuccess: () => {
+      toast({
+        title: "Subscribed!",
+        description: "Thank you for subscribing to our newsletter.",
+      });
+      setEmail("");
+      queryClient.invalidateQueries({ queryKey: ["/api/subscribers"] });
+    },
+    onError: () => {
+      toast({
+        title: "Error",
+        description: "Failed to subscribe. Please try again.",
+        variant: "destructive",
+      });
+    },
+  });
 
 
   const handleSubscribe = (e: React.FormEvent) => {
     e.preventDefault();
-    setSubscribed(true);
-    setEmail("");
+    if (email) {
+      subscribeMutation.mutate(email);
+    }
   };
 
   return (

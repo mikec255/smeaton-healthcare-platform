@@ -1,5 +1,5 @@
 import { sql } from "drizzle-orm";
-import { pgTable, text, varchar, integer, boolean, timestamp, json } from "drizzle-orm/pg-core";
+import { pgTable, text, varchar, integer, boolean, timestamp, json, doublePrecision, date, time, unique, index } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
@@ -32,6 +32,9 @@ export interface BlogBlock {
   content: Record<string, any>; // Content varies by block type
   style?: BlogBlockStyle;
   order: number;
+  width?: string; // Width for side-by-side layout: "33%", "50%", "66%", "100%"
+  imageWidth?: string; // For image blocks: "small", "medium", "large", "full"
+  layout?: "inline" | "full"; // Whether block is inline (side-by-side) or full width
 }
 
 export const users = pgTable("users", {
@@ -41,6 +44,15 @@ export const users = pgTable("users", {
   passwordToken: text("password_token"),
   tokenExpiresAt: timestamp("token_expires_at"),
   role: text("role").notNull().default("admin"), // superadmin, admin
+  permissions: json("permissions").$type<{
+    overview?: boolean;           // Dashboard access
+    recruitment?: boolean;        // Jobs and applications
+    customerRelations?: boolean;  // Referrals and contact enquiries
+    feedback?: boolean;           // Customer feedback
+    tools?: boolean;              // Calculators, CQC toolkit, audit logs
+    resources?: boolean;          // Blog and newsletters
+    system?: boolean;             // User management (superadmin only)
+  }>(),
   isActive: boolean("is_active").default(true),
   createdAt: timestamp("created_at").defaultNow(),
 });
@@ -51,6 +63,7 @@ export const jobs = pgTable("jobs", {
   type: text("type").notNull(), // permanent, care-at-home, temporary
   location: text("location").notNull(),
   department: text("department"),
+  branch: text("branch").notNull().default("Plymouth"), // Plymouth, Truro
   salaryType: text("salary_type").notNull(), // hourly, weekly, annual
   salaryMin: integer("salary_min").notNull(),
   salaryMax: integer("salary_max"),
@@ -112,6 +125,124 @@ export const applications = pgTable("applications", {
   status: text("status").default("pending"), // pending, reviewed, interview, hired, rejected
   notes: text("notes"), // Admin notes about the candidate
   createdAt: timestamp("created_at").defaultNow(),
+});
+
+// Full Job Applications (comprehensive application form - separate from pre-screens)
+export const fullApplications = pgTable("full_applications", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  jobId: varchar("job_id").references(() => jobs.id),
+  preScreenApplicationId: varchar("pre_screen_application_id").references(() => applications.id),
+  
+  // Personal Information
+  firstName: text("first_name").notNull(),
+  lastName: text("last_name").notNull(),
+  dateOfBirth: date("date_of_birth").notNull(),
+  email: text("email").notNull(),
+  phone: text("phone").notNull(),
+  address: text("address").notNull(),
+  postcode: text("postcode").notNull(),
+  nationalInsuranceNumber: text("national_insurance_number"),
+  gender: text("gender"), // Male, Female, Other, Prefer not to say
+  maritalStatus: text("marital_status"),
+  ethnicOrigin: text("ethnic_origin"),
+  nationality: text("nationality"),
+  
+  // Next of Kin
+  nextOfKinName: text("next_of_kin_name"),
+  nextOfKinPhone: text("next_of_kin_phone"),
+  nextOfKinAddress: text("next_of_kin_address"),
+  
+  // Payroll Information
+  payrollType: text("payroll_type"), // PAYE, Self-employed
+  bankName: text("bank_name"),
+  accountType: text("account_type"), // Personal, Business
+  accountName: text("account_name"),
+  accountNumber: text("account_number"),
+  sortCode: text("sort_code"),
+  
+  // Worker Profile
+  workerTypes: json("worker_types").$type<string[]>(), // ["Carer", "Support Worker", "Nurse", etc.]
+  travelMethod: text("travel_method"),
+  travelDistance: text("travel_distance"), // How far willing to travel
+  leadSkills: json("lead_skills").$type<string[]>(), // ["Elderly", "Dementia", "Learning Disabilities", etc.]
+  shiftPreferences: text("shift_preferences"), // Any, Days, Nights, etc.
+  availableDays: json("available_days").$type<string[]>(), // ["Monday", "Tuesday", etc.]
+  
+  // Health & Compliance
+  medicalConditions: json("medical_conditions").$type<string[]>(), // List of conditions or "None"
+  medicationAffectsDriving: boolean("medication_affects_driving"),
+  medicalAffectsNightWork: boolean("medical_affects_night_work"),
+  hasCriminalConvictions: boolean("has_criminal_convictions"),
+  convictionDetails: text("conviction_details"),
+  dbsConsent: boolean("dbs_consent").notNull(),
+  workingTimeDirectiveOptOut: boolean("working_time_directive_opt_out"),
+  
+  // Data Protection
+  dataProtectionConsent: boolean("data_protection_consent").notNull(),
+  dataTypesConsented: json("data_types_consented").$type<string[]>(),
+  dataHoldingConsent: boolean("data_holding_consent").notNull(),
+  
+  // Application Management
+  status: text("status").default("submitted"), // submitted, under-review, interview, offer-made, hired, rejected
+  adminNotes: text("admin_notes"),
+  submittedAt: timestamp("submitted_at").defaultNow(),
+  reviewedAt: timestamp("reviewed_at"),
+  reviewedBy: varchar("reviewed_by").references(() => users.id),
+});
+
+// Employment History (multiple entries per application)
+export const employmentHistory = pgTable("employment_history", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  applicationId: varchar("application_id").references(() => fullApplications.id, { onDelete: "cascade" }).notNull(),
+  companyName: text("company_name").notNull(),
+  jobTitle: text("job_title").notNull(),
+  startDate: date("start_date").notNull(),
+  endDate: date("end_date"),
+  currentlyEmployed: boolean("currently_employed").default(false),
+  reasonForLeaving: text("reason_for_leaving"),
+  managerName: text("manager_name"),
+  managerPhone: text("manager_phone"),
+  managerEmail: text("manager_email"),
+  orderIndex: integer("order_index").notNull().default(0),
+});
+
+// Education Records (multiple entries per application)
+export const educationRecords = pgTable("education_records", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  applicationId: varchar("application_id").references(() => fullApplications.id, { onDelete: "cascade" }).notNull(),
+  qualificationType: text("qualification_type").notNull(), // NVQ, Diploma, GCSE, Degree, etc.
+  qualificationName: text("qualification_name").notNull(),
+  institution: text("institution"),
+  yearObtained: text("year_obtained"),
+  orderIndex: integer("order_index").notNull().default(0),
+});
+
+// Application References (2-3 references per application)
+export const applicationReferences = pgTable("application_references", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  applicationId: varchar("application_id").references(() => fullApplications.id, { onDelete: "cascade" }).notNull(),
+  referenceType: text("reference_type").notNull(), // Professional, Character
+  fullName: text("full_name").notNull(),
+  company: text("company"),
+  jobTitle: text("job_title"),
+  relationship: text("relationship"), // For character references
+  startDate: date("start_date"),
+  endDate: date("end_date"),
+  applicantJobTitle: text("applicant_job_title"),
+  email: text("email").notNull(),
+  phone: text("phone").notNull(),
+  orderIndex: integer("order_index").notNull().default(0),
+});
+
+// Application Documents (multiple file uploads per application)
+export const applicationDocuments = pgTable("application_documents", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  applicationId: varchar("application_id").references(() => fullApplications.id, { onDelete: "cascade" }).notNull(),
+  documentType: text("document_type").notNull(), // proof-of-address, id, qualification, cv, dbs, other
+  fileName: text("file_name").notNull(),
+  filePath: text("file_path").notNull(),
+  fileSize: integer("file_size"),
+  uploadedAt: timestamp("uploaded_at").defaultNow(),
 });
 
 export const contactSubmissions = pgTable("contact_submissions", {
@@ -250,6 +381,13 @@ export const blogCategories = pgTable("blog_categories", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
+export interface BlogImage {
+  id: string;
+  url: string;
+  isFeatured: boolean;
+  uploadedAt?: string;
+}
+
 export const blogPosts = pgTable("blog_posts", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   title: text("title").notNull(),
@@ -258,7 +396,8 @@ export const blogPosts = pgTable("blog_posts", {
   content: text("content"), // Legacy content field for backwards compatibility
   blocks: json("blocks").$type<BlogBlock[]>(), // New structured content blocks
   categoryId: varchar("category_id").references(() => blogCategories.id).notNull(),
-  imagePath: text("image_path"), // path to uploaded image in object storage
+  images: json("images").$type<BlogImage[]>(), // Array of images with featured status
+  imagePath: text("image_path"), // Legacy: path to single featured image (deprecated in favor of images array)
   readTime: text("read_time"), // e.g., "5 min read"
   author: text("author").notNull(),
   isPublished: boolean("is_published").default(false),
@@ -266,6 +405,21 @@ export const blogPosts = pgTable("blog_posts", {
   viewCount: integer("view_count").default(0),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
+  views: integer("views").default(0).notNull(), // Track number of views
+});
+
+// GDPR Audit Logging Table
+export const auditLogs = pgTable("audit_logs", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").references(() => users.id).notNull(),
+  username: text("username").notNull(), // Denormalized for faster queries
+  action: text("action").notNull(), // view, create, update, delete, export, etc.
+  resourceType: text("resource_type").notNull(), // job, application, contact, user, etc.
+  resourceId: varchar("resource_id"), // ID of the affected resource
+  details: json("details").$type<Record<string, any>>(), // Additional context
+  ipAddress: text("ip_address"),
+  userAgent: text("user_agent"),
+  createdAt: timestamp("created_at").defaultNow(),
 });
 
 export const insertUserSchema = createInsertSchema(users).omit({
@@ -291,6 +445,30 @@ export const insertJobSchema = createInsertSchema(jobs).omit({
 export const insertApplicationSchema = createInsertSchema(applications).omit({
   id: true,
   createdAt: true,
+});
+
+export const insertFullApplicationSchema = createInsertSchema(fullApplications).omit({
+  id: true,
+  submittedAt: true,
+  reviewedAt: true,
+  reviewedBy: true,
+});
+
+export const insertEmploymentHistorySchema = createInsertSchema(employmentHistory).omit({
+  id: true,
+});
+
+export const insertEducationRecordSchema = createInsertSchema(educationRecords).omit({
+  id: true,
+});
+
+export const insertApplicationReferenceSchema = createInsertSchema(applicationReferences).omit({
+  id: true,
+});
+
+export const insertApplicationDocumentSchema = createInsertSchema(applicationDocuments).omit({
+  id: true,
+  uploadedAt: true,
 });
 
 export const insertContactSubmissionSchema = createInsertSchema(contactSubmissions).omit({
@@ -346,6 +524,12 @@ export const insertBlogPostSchema = createInsertSchema(blogPosts).omit({
   updatedAt: true,
   publishedAt: true,
 }).extend({
+  images: z.array(z.object({
+    id: z.string(),
+    url: z.string(),
+    isFeatured: z.boolean(),
+    uploadedAt: z.string().optional(),
+  })).optional(),
   blocks: z.array(z.object({
     id: z.string(),
     type: z.enum(["header", "text", "image", "quote", "list", "divider", "spacer", "button"]),
@@ -365,12 +549,622 @@ export const insertBlogPostSchema = createInsertSchema(blogPosts).omit({
   })).optional(),
 });
 
+export const insertAuditLogSchema = createInsertSchema(auditLogs).omit({
+  id: true,
+  createdAt: true,
+});
+
+// CQC Audit and Compliance Tables (2024 Single Assessment Framework)
+export const cqcAudits = pgTable("cqc_audits", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  title: text("title").notNull(),
+  branch: text("branch").notNull().default("Plymouth"), // Plymouth, Truro
+  auditType: text("audit_type").notNull(), // single_assessment, targeted_inspection, comprehensive_inspection
+  category: text("category").notNull(), // insurance, safeguarding, health_safety, etc.
+  serviceType: text("service_type").notNull(), // domiciliary_care, residential_care, supported_living, community_health
+  keyQuestion: text("key_question").notNull(), // safe, effective, caring, responsive, well_led, overall
+  status: text("status").default("draft"), // draft, in_progress, completed, approved, submitted_to_cqc
+  auditDate: timestamp("audit_date").notNull(),
+  auditorId: varchar("auditor_id").references(() => users.id).notNull(),
+  auditorName: text("auditor_name").notNull(), // Denormalized for faster queries
+  inspectorName: text("inspector_name"), // CQC inspector if external inspection
+  overallRating: text("overall_rating"), // outstanding, good, requires_improvement, inadequate
+  findings: text("findings"), // General audit findings
+  areasOfStrength: text("areas_of_strength"), // What's working well
+  areasForImprovement: text("areas_for_improvement"), // What needs improvement
+  actionPlan: text("action_plan"), // Improvement action plan
+  nextAuditDue: timestamp("next_audit_due"),
+  evidenceSubmitted: boolean("evidence_submitted").default(false),
+  cqcSubmissionDate: timestamp("cqc_submission_date"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const cqcAuditCategories = pgTable("cqc_audit_categories", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  name: text("name").notNull(),
+  description: text("description").notNull(),
+  auditType: text("audit_type").notNull(), // fundamental_standards, compliance_specific
+  isActive: boolean("is_active").default(true),
+  sortOrder: integer("sort_order").default(0),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// CQC Quality Statements (2024 Framework - 34 statements)
+export const cqcQualityStatements = pgTable("cqc_quality_statements", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  keyQuestion: text("key_question").notNull(), // safe, effective, caring, responsive, well_led
+  statementNumber: text("statement_number").notNull(), // e.g., "S1.1", "E2.3"
+  statementText: text("statement_text").notNull(), // The actual "We" statement
+  description: text("description").notNull(), // Detailed description of what this means
+  regulationReferences: json("regulation_references").$type<string[]>(), // Associated regulations
+  evidenceTypes: json("evidence_types").$type<string[]>(), // What evidence is needed
+  applicableServices: json("applicable_services").$type<string[]>(), // Which service types this applies to
+  priorityLevel: text("priority_level").default("standard"), // high, standard, low
+  isActive: boolean("is_active").default(true),
+  sortOrder: integer("sort_order").default(0),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// Evidence Categories (6 categories from 2024 framework)
+export const cqcEvidenceCategories = pgTable("cqc_evidence_categories", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  categoryName: text("category_name").notNull(), // people_experience, staff_feedback, leadership_feedback, partner_feedback, observations, processes_outcomes
+  displayName: text("display_name").notNull(), // Human-readable name
+  description: text("description").notNull(),
+  exampleEvidence: json("example_evidence").$type<string[]>(), // Examples of evidence for this category
+  isActive: boolean("is_active").default(true),
+  sortOrder: integer("sort_order").default(0),
+});
+
+// Evidence Files Upload System
+export const cqcAuditEvidence = pgTable("cqc_audit_evidence", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  auditId: varchar("audit_id").references(() => cqcAudits.id, { onDelete: "cascade" }).notNull(),
+  qualityStatementId: varchar("quality_statement_id").references(() => cqcQualityStatements.id),
+  evidenceCategoryId: varchar("evidence_category_id").references(() => cqcEvidenceCategories.id).notNull(),
+  title: text("title").notNull(),
+  description: text("description"),
+  fileType: text("file_type"), // document, image, video, audio
+  filePath: text("file_path"), // Path to uploaded file
+  fileName: text("file_name").notNull(),
+  fileSize: integer("file_size"), // File size in bytes
+  uploadedBy: varchar("uploaded_by").references(() => users.id).notNull(),
+  tags: json("tags").$type<string[]>(), // Searchable tags
+  isConfidential: boolean("is_confidential").default(false),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// Legacy table - temporarily kept to prevent rename detection during schema push
+export const cqcAuditResponses = pgTable("cqc_audit_responses", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  auditId: varchar("audit_id").references(() => cqcAudits.id, { onDelete: "cascade" }).notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// CQC Quality Statement Assessments (replaces audit responses)
+export const cqcQualityAssessments = pgTable("cqc_quality_assessments", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  auditId: varchar("audit_id").references(() => cqcAudits.id, { onDelete: "cascade" }).notNull(),
+  qualityStatementId: varchar("quality_statement_id").references(() => cqcQualityStatements.id).notNull(),
+  complianceLevel: text("compliance_level").notNull(), // outstanding, good, requires_improvement, inadequate, not_assessed
+  evidenceSummary: text("evidence_summary"), // Summary of evidence for this statement
+  strengths: text("strengths"), // What's working well for this statement
+  concernsRisks: text("concerns_risks"), // Areas of concern or risk
+  actionRequired: text("action_required"), // What action is needed
+  actionOwner: text("action_owner"), // Who is responsible
+  actionDueDate: timestamp("action_due_date"),
+  actionStatus: text("action_status").default("pending"), // pending, in_progress, completed, overdue
+  actionCompletedDate: timestamp("action_completed_date"),
+  evidenceAttached: boolean("evidence_attached").default(false), // Whether evidence files are attached
+  inspectorNotes: text("inspector_notes"), // CQC inspector notes if applicable
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const cqcComplianceRecords = pgTable("cqc_compliance_records", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  branch: text("branch").notNull().default("Plymouth"), // Plymouth, Truro
+  staffId: text("staff_id"), // If related to specific staff member
+  staffName: text("staff_name"), // Name of staff member
+  recordType: text("record_type").notNull(), // dbs_check, training_record, supervision_record, reference_check, professional_registration
+  title: text("title").notNull(),
+  issueDate: timestamp("issue_date"),
+  expiryDate: timestamp("expiry_date"),
+  renewalDue: timestamp("renewal_due"),
+  status: text("status").default("active"), // active, expired, pending_renewal, overdue
+  certificateNumber: text("certificate_number"),
+  issuingBody: text("issuing_body"),
+  documentPath: text("document_path"), // Path to uploaded document
+  notes: text("notes"),
+  reminderSent: boolean("reminder_sent").default(false),
+  lastReminderDate: timestamp("last_reminder_date"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Staff Knowledge Assessment Tables
+export const knowledgeQuestionnaires = pgTable("knowledge_questionnaires", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  title: text("title").notNull(),
+  description: text("description").notNull(),
+  category: text("category").notNull(), // mandatory_core, care_specific, professional_standards, specialized, scenario_testing
+  subcategory: text("subcategory").notNull(), // safeguarding, mental_capacity, health_safety, etc.
+  isActive: boolean("is_active").default(true),
+  timeLimit: integer("time_limit"), // Time limit in minutes (optional)
+  passingScore: integer("passing_score").default(70), // Percentage required to pass
+  instructions: text("instructions"), // Instructions for completing the assessment
+  shareableLink: text("shareable_link").unique(), // UUID for shareable link
+  qrCode: text("qr_code"), // Base64 encoded QR code
+  emailTemplate: text("email_template"), // Pre-filled email template
+  createdBy: varchar("created_by").references(() => users.id).notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const knowledgeQuestions = pgTable("knowledge_questions", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  questionnaireId: varchar("questionnaire_id").references(() => knowledgeQuestionnaires.id, { onDelete: "cascade" }).notNull(),
+  questionText: text("question_text").notNull(),
+  questionType: text("question_type").notNull(), // multiple_choice, scenario_based, true_false, short_answer
+  options: json("options").$type<string[]>(), // For multiple choice questions
+  correctAnswer: text("correct_answer"), // Correct answer for objective questions
+  explanation: text("explanation"), // Explanation of the correct answer
+  points: integer("points").default(1), // Points awarded for correct answer
+  sortOrder: integer("sort_order").default(0),
+  isRequired: boolean("is_required").default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const knowledgeSessions = pgTable("knowledge_sessions", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  questionnaireId: varchar("questionnaire_id").references(() => knowledgeQuestionnaires.id, { onDelete: "cascade" }).notNull(),
+  staffEmail: text("staff_email").notNull(),
+  staffName: text("staff_name").notNull(),
+  status: text("status").default("in_progress"), // in_progress, completed, abandoned
+  startedAt: timestamp("started_at").defaultNow(),
+  completedAt: timestamp("completed_at"),
+  timeSpent: integer("time_spent"), // Time spent in minutes
+  totalScore: integer("total_score"), // Total points scored
+  maxScore: integer("max_score"), // Maximum possible points
+  percentageScore: integer("percentage_score"), // Percentage score
+  passed: boolean("passed"), // Whether they passed based on passing score
+  ipAddress: text("ip_address"),
+  userAgent: text("user_agent"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const knowledgeResponses = pgTable("knowledge_responses", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  sessionId: varchar("session_id").references(() => knowledgeSessions.id, { onDelete: "cascade" }).notNull(),
+  questionId: varchar("question_id").references(() => knowledgeQuestions.id).notNull(),
+  answer: text("answer").notNull(), // The staff member's answer
+  isCorrect: boolean("is_correct"), // Whether the answer is correct (for objective questions)
+  pointsAwarded: integer("points_awarded").default(0), // Points awarded for this answer
+  timeSpent: integer("time_spent"), // Time spent on this question in seconds
+  reviewNotes: text("review_notes"), // Notes for manual review (subjective questions)
+  needsReview: boolean("needs_review").default(false), // Whether this response needs manual review
+  reviewedBy: varchar("reviewed_by").references(() => users.id),
+  reviewedAt: timestamp("reviewed_at"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const knowledgeActions = pgTable("knowledge_actions", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  sessionId: varchar("session_id").references(() => knowledgeSessions.id, { onDelete: "cascade" }).notNull(),
+  actionType: text("action_type").notNull(), // training_required, follow_up_needed, competency_check, no_action
+  actionDescription: text("action_description").notNull(),
+  actionDueDate: timestamp("action_due_date"),
+  assignedTo: varchar("assigned_to").references(() => users.id),
+  status: text("status").default("pending"), // pending, in_progress, completed, overdue
+  completedAt: timestamp("completed_at"),
+  notes: text("notes"),
+  createdBy: varchar("created_by").references(() => users.id).notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Staff Assessment Topics - Branch-specific knowledge assessments with unique links
+export interface AssessmentQuestion {
+  id: string;
+  section: string; // "your_understanding", "practical_application", "scenarios", "confirmation", "final"
+  questionText: string;
+  questionType: "text" | "yes_no" | "multiple_choice";
+  options?: string[];
+  isRequired: boolean;
+  isScored: boolean;
+  points: number;
+  order: number;
+}
+
+export const staffAssessmentTopics = pgTable("staff_assessment_topics", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  title: text("title").notNull(),
+  slug: text("slug").notNull().unique(), // URL-friendly slug e.g. "dignity-person-centred-care"
+  description: text("description").notNull(),
+  introduction: text("introduction"), // Intro text explaining purpose of the assessment
+  questions: json("questions").$type<AssessmentQuestion[]>().notNull(),
+  totalPoints: integer("total_points").default(0), // Total possible points
+  passingScore: integer("passing_score").default(70), // Percentage required to pass
+  isActive: boolean("is_active").default(true),
+  createdBy: varchar("created_by").references(() => users.id),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Branch-specific links for each assessment topic
+export const staffAssessmentLinks = pgTable("staff_assessment_links", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  topicId: varchar("topic_id").references(() => staffAssessmentTopics.id, { onDelete: "cascade" }).notNull(),
+  branch: text("branch").notNull(), // Plymouth, Truro
+  token: text("token").notNull().unique(), // Unique URL token for this branch/topic combination
+  isActive: boolean("is_active").default(true),
+  createdBy: varchar("created_by").references(() => users.id),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+}, (table) => ({
+  uniqueBranchTopic: unique().on(table.topicId, table.branch), // Only one link per branch per topic
+}));
+
+// Responses from staff completing assessments
+export const staffAssessmentResponses = pgTable("staff_assessment_responses", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  linkId: varchar("link_id").references(() => staffAssessmentLinks.id, { onDelete: "cascade" }).notNull(),
+  topicId: varchar("topic_id").references(() => staffAssessmentTopics.id).notNull(),
+  branch: text("branch").notNull(), // Denormalized for easy filtering
+  
+  // Respondent information
+  staffName: text("staff_name").notNull(),
+  jobTitle: text("job_title").notNull(),
+  
+  // Answers stored as JSON object { questionId: answer }
+  answers: json("answers").$type<Record<string, string>>().notNull(),
+  
+  // Scoring
+  totalScore: integer("total_score").default(0),
+  maxScore: integer("max_score").default(0),
+  percentageScore: integer("percentage_score").default(0),
+  passed: boolean("passed").default(false),
+  
+  // Training needs
+  needsFurtherTraining: text("needs_further_training"), // "yes", "no", "i_dont_know"
+  feedback: text("feedback"), // Additional feedback/comments
+  
+  // Confirmation flags
+  agreedToParticipate: boolean("agreed_to_participate").default(false),
+  understandsPurpose: boolean("understands_purpose").default(false),
+  understandsOwnTime: boolean("understands_own_time").default(false),
+  
+  // Metadata
+  completedAt: timestamp("completed_at").defaultNow(),
+  ipAddress: text("ip_address"),
+  userAgent: text("user_agent"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// Full Recruitment Applications (separate from job-specific pre-screening applications)
+export const recruitmentApplications = pgTable("recruitment_applications", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  
+  // Personal Information
+  firstName: text("first_name").notNull(),
+  lastName: text("last_name").notNull(),
+  email: text("email").notNull(),
+  phone: text("phone").notNull(),
+  
+  // Application data (stored as JSON to allow flexible form structure)
+  applicationData: json("application_data").$type<Record<string, any>>(),
+  
+  // File uploads
+  cvPath: text("cv_path"), // path to uploaded CV file
+  documentsPath: json("documents_path").$type<string[]>(), // paths to other uploaded documents
+  
+  // Application management
+  status: text("status").default("pending"), // pending, under_review, interview_scheduled, hired, rejected, withdrawn
+  adminNotes: text("admin_notes"), // Admin notes about the application
+  reviewedBy: varchar("reviewed_by").references(() => users.id),
+  reviewedAt: timestamp("reviewed_at"),
+  
+  // Source tracking
+  source: text("source").default("direct_application"), // direct_application, referral, website, etc.
+  
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Professional References (for job applicants)
+export const professionalReferences = pgTable("professional_references", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  
+  // Person being referenced
+  candidateName: text("candidate_name").notNull(),
+  candidateEmail: text("candidate_email").notNull(),
+  positionAppliedFor: text("position_applied_for").notNull(),
+  
+  // Reference provider information
+  referenceProviderName: text("reference_provider_name").notNull(),
+  referenceProviderTitle: text("reference_provider_title").notNull(),
+  referenceProviderCompany: text("reference_provider_company").notNull(),
+  referenceProviderEmail: text("reference_provider_email").notNull(),
+  referenceProviderPhone: text("reference_provider_phone").notNull(),
+  
+  // Reference details (stored as JSON to allow flexible structure)
+  referenceData: json("reference_data").$type<Record<string, any>>(),
+  
+  // Reference management
+  status: text("status").default("pending"), // pending, reviewed, verified, flagged
+  adminNotes: text("admin_notes"), // Admin notes about the reference
+  reviewedBy: varchar("reviewed_by").references(() => users.id),
+  reviewedAt: timestamp("reviewed_at"),
+  
+  // Source tracking
+  source: text("source").default("direct_submission"), // direct_submission, email_invite, etc.
+  
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Route Planning Tables for Domiciliary Care Service
+
+// Time slot enum values
+export const timeSlotEnum = ["Morning", "Lunch", "Tea", "Bed"] as const;
+export type TimeSlot = typeof timeSlotEnum[number];
+
+// Status enum values for visits and runs
+export const visitStatusEnum = ["scheduled", "completed", "cancelled", "no_access"] as const;
+export type VisitStatus = typeof visitStatusEnum[number];
+
+export const runStatusEnum = ["draft", "optimized", "final", "completed"] as const;
+export type RunStatus = typeof runStatusEnum[number];
+
+// Clients table for storing client addresses and information
+export const clients = pgTable("clients", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  name: text("name").notNull(),
+  addressLine: text("address_line").notNull(),
+  postcode: text("postcode").notNull(),
+  normalizedPostcode: text("normalized_postcode"), // For reliable postcode searches
+  latitude: doublePrecision("latitude"), // Better precision for coordinates
+  longitude: doublePrecision("longitude"),
+  phone: text("phone"),
+  notes: text("notes"),
+  isActive: boolean("is_active").default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+}, (table) => ({
+  postcodeIdx: index("clients_postcode_idx").on(table.normalizedPostcode),
+  isActiveIdx: index("clients_active_idx").on(table.isActive),
+}));
+
+// Visits table for storing scheduled visits
+export const visits = pgTable("visits", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  clientId: varchar("client_id").notNull().references(() => clients.id),
+  visitDate: date("visit_date").notNull(),
+  timeSlot: text("time_slot").notNull(), // 'AM', 'Lunch', 'Tea', 'Bed'
+  windowStart: time("window_start"), // Start of time window (e.g., '08:00:00')
+  windowEnd: time("window_end"), // End of time window (e.g., '10:00:00')
+  durationMinutes: integer("duration_minutes").notNull().default(30),
+  notes: text("notes"),
+  status: text("status").notNull().default("scheduled"), // scheduled, completed, cancelled, no_access
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+}, (table) => ({
+  visitDateIdx: index("visits_date_idx").on(table.visitDate),
+  clientDateIdx: index("visits_client_date_idx").on(table.clientId, table.visitDate),
+  statusIdx: index("visits_status_idx").on(table.status),
+  // Unique constraint to prevent duplicate visits
+  uniqueClientDateSlot: unique("visits_client_date_slot").on(table.clientId, table.visitDate, table.timeSlot),
+}));
+
+// Runs table for storing planned routes
+export const runs = pgTable("runs", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  name: text("name").notNull(),
+  runDate: date("run_date").notNull(),
+  travelMode: text("travel_mode").notNull().default("walking"), // 'walking', 'driving'
+  totalDistanceMeters: integer("total_distance_meters").default(0),
+  totalTravelMinutes: integer("total_travel_minutes").default(0),
+  totalServiceMinutes: integer("total_service_minutes").default(0),
+  departureTime: time("departure_time").default("08:00:00"), // Proper time type
+  status: text("status").notNull().default("draft"), // draft, optimized, final, completed
+  options: json("options").$type<Record<string, any>>(), // slot windows, preferences, etc.
+  createdBy: varchar("created_by").references(() => users.id),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+}, (table) => ({
+  runDateIdx: index("runs_date_idx").on(table.runDate),
+  createdByIdx: index("runs_created_by_idx").on(table.createdBy),
+  statusIdx: index("runs_status_idx").on(table.status),
+  travelModeIdx: index("runs_travel_mode_idx").on(table.travelMode),
+}));
+
+// Run stops table for storing ordered visits in each run
+export const runStops = pgTable("run_stops", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  runId: varchar("run_id").notNull().references(() => runs.id, { onDelete: "cascade" }),
+  visitId: varchar("visit_id").references(() => visits.id), // Nullable for ad-hoc stops
+  stopOrder: integer("stop_order").notNull(), // Sequence in the run
+  
+  // For ad-hoc stops (when visitId is null)
+  adHocAddress: text("ad_hoc_address"),
+  adHocLatitude: doublePrecision("ad_hoc_latitude"),
+  adHocLongitude: doublePrecision("ad_hoc_longitude"),
+  adHocDuration: integer("ad_hoc_duration"), // Duration in minutes for ad-hoc stops
+  
+  // Timing information
+  estimatedArrival: time("estimated_arrival"), // Proper time type
+  estimatedDeparture: time("estimated_departure"), // Proper time type
+  legDistanceMeters: integer("leg_distance_meters").default(0), // distance from previous stop
+  legTravelMinutes: integer("leg_travel_minutes").default(0), // travel time from previous stop
+  waitMinutes: integer("wait_minutes").default(0), // waiting time if arriving early
+  lateMinutes: integer("late_minutes").default(0), // lateness if arriving after time window
+  createdAt: timestamp("created_at").defaultNow(),
+}, (table) => ({
+  runIdIdx: index("run_stops_run_id_idx").on(table.runId),
+  uniqueRunOrder: unique("run_stops_run_order").on(table.runId, table.stopOrder),
+  // Check constraint to ensure either visitId OR ad-hoc coordinates exist
+  // This will be added via raw SQL in migrations if needed
+}));
+
+// Geocoding cache to store Google Maps results
+export const geocodeCache = pgTable("geocode_cache", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  cacheKey: text("cache_key").notNull().unique(), // Normalized query key (address/postcode)
+  originalQuery: text("original_query").notNull(), // Original user input
+  latitude: doublePrecision("latitude").notNull(),
+  longitude: doublePrecision("longitude").notNull(),
+  formattedAddress: text("formatted_address").notNull(),
+  postcode: text("postcode"), // Extracted postcode
+  placeId: text("place_id"), // Google Place ID for reference
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(), // For TTL/refresh policy
+}, (table) => ({
+  cacheKeyIdx: index("geocode_cache_key_idx").on(table.cacheKey),
+  updatedAtIdx: index("geocode_cache_updated_idx").on(table.updatedAt),
+}));
+
+export const insertCqcAuditSchema = createInsertSchema(cqcAudits).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertCqcAuditCategorySchema = createInsertSchema(cqcAuditCategories).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertCqcQualityStatementSchema = createInsertSchema(cqcQualityStatements).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertCqcEvidenceCategorySchema = createInsertSchema(cqcEvidenceCategories).omit({
+  id: true,
+});
+
+export const insertCqcAuditEvidenceSchema = createInsertSchema(cqcAuditEvidence).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertCqcQualityAssessmentSchema = createInsertSchema(cqcQualityAssessments).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertCqcComplianceRecordSchema = createInsertSchema(cqcComplianceRecords).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+// Note: If cqcChecklistItems table doesn't exist, this schema acts as a placeholder
+// The actual implementation might need to reference a different table or be removed
+export const insertCqcChecklistItemSchema = createInsertSchema(cqcComplianceRecords).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+// Legacy audit responses schema (for backward compatibility)
+export const insertCqcAuditResponseSchema = createInsertSchema(cqcAuditResponses).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertKnowledgeQuestionnaireSchema = createInsertSchema(knowledgeQuestionnaires).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertKnowledgeQuestionSchema = createInsertSchema(knowledgeQuestions).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertKnowledgeSessionSchema = createInsertSchema(knowledgeSessions).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertKnowledgeResponseSchema = createInsertSchema(knowledgeResponses).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertKnowledgeActionSchema = createInsertSchema(knowledgeActions).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertRecruitmentApplicationSchema = createInsertSchema(recruitmentApplications).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+  reviewedAt: true,
+  adminNotes: true,
+  reviewedBy: true,
+});
+
+export const insertProfessionalReferenceSchema = createInsertSchema(professionalReferences).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+  reviewedAt: true,
+  adminNotes: true,
+  reviewedBy: true,
+});
+
+// Route Planning Insert Schemas
+export const insertClientSchema = createInsertSchema(clients).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertVisitSchema = createInsertSchema(visits).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertRunSchema = createInsertSchema(runs).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertRunStopSchema = createInsertSchema(runStops).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertGeocodeSchema = createInsertSchema(geocodeCache).omit({
+  id: true,
+  createdAt: true,
+});
+
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type User = typeof users.$inferSelect;
 export type InsertJob = z.infer<typeof insertJobSchema>;
 export type Job = typeof jobs.$inferSelect;
 export type InsertApplication = z.infer<typeof insertApplicationSchema>;
 export type Application = typeof applications.$inferSelect;
+export type InsertFullApplication = z.infer<typeof insertFullApplicationSchema>;
+export type FullApplication = typeof fullApplications.$inferSelect;
+export type InsertEmploymentHistory = z.infer<typeof insertEmploymentHistorySchema>;
+export type EmploymentHistory = typeof employmentHistory.$inferSelect;
+export type InsertEducationRecord = z.infer<typeof insertEducationRecordSchema>;
+export type EducationRecord = typeof educationRecords.$inferSelect;
+export type InsertApplicationReference = z.infer<typeof insertApplicationReferenceSchema>;
+export type ApplicationReference = typeof applicationReferences.$inferSelect;
+export type InsertApplicationDocument = z.infer<typeof insertApplicationDocumentSchema>;
+export type ApplicationDocument = typeof applicationDocuments.$inferSelect;
 export type InsertContactSubmission = z.infer<typeof insertContactSubmissionSchema>;
 export type ContactSubmission = typeof contactSubmissions.$inferSelect;
 export type InsertNewsletter = z.infer<typeof insertNewsletterSchema>;
@@ -391,3 +1185,549 @@ export type InsertBlogCategory = z.infer<typeof insertBlogCategorySchema>;
 export type BlogCategory = typeof blogCategories.$inferSelect;
 export type InsertBlogPost = z.infer<typeof insertBlogPostSchema>;
 export type BlogPost = typeof blogPosts.$inferSelect;
+export type InsertAuditLog = z.infer<typeof insertAuditLogSchema>;
+export type AuditLog = typeof auditLogs.$inferSelect;
+export type InsertCqcAudit = z.infer<typeof insertCqcAuditSchema>;
+export type CqcAudit = typeof cqcAudits.$inferSelect;
+export type InsertCqcAuditCategory = z.infer<typeof insertCqcAuditCategorySchema>;
+export type CqcAuditCategory = typeof cqcAuditCategories.$inferSelect;
+export type InsertCqcQualityStatement = z.infer<typeof insertCqcQualityStatementSchema>;
+export type CqcQualityStatement = typeof cqcQualityStatements.$inferSelect;
+export type InsertCqcEvidenceCategory = z.infer<typeof insertCqcEvidenceCategorySchema>;
+export type CqcEvidenceCategory = typeof cqcEvidenceCategories.$inferSelect;
+export type InsertCqcAuditEvidence = z.infer<typeof insertCqcAuditEvidenceSchema>;
+export type CqcAuditEvidence = typeof cqcAuditEvidence.$inferSelect;
+export type InsertCqcQualityAssessment = z.infer<typeof insertCqcQualityAssessmentSchema>;
+export type CqcQualityAssessment = typeof cqcQualityAssessments.$inferSelect;
+export type InsertCqcComplianceRecord = z.infer<typeof insertCqcComplianceRecordSchema>;
+export type CqcComplianceRecord = typeof cqcComplianceRecords.$inferSelect;
+export type InsertCqcChecklistItem = z.infer<typeof insertCqcChecklistItemSchema>;
+export type CqcChecklistItem = typeof cqcComplianceRecords.$inferSelect; // Using compliance records as base
+export type InsertCqcAuditResponse = z.infer<typeof insertCqcAuditResponseSchema>;
+export type CqcAuditResponse = typeof cqcAuditResponses.$inferSelect;
+export type InsertKnowledgeQuestionnaire = z.infer<typeof insertKnowledgeQuestionnaireSchema>;
+export type KnowledgeQuestionnaire = typeof knowledgeQuestionnaires.$inferSelect;
+export type InsertKnowledgeQuestion = z.infer<typeof insertKnowledgeQuestionSchema>;
+export type KnowledgeQuestion = typeof knowledgeQuestions.$inferSelect;
+export type InsertKnowledgeSession = z.infer<typeof insertKnowledgeSessionSchema>;
+export type KnowledgeSession = typeof knowledgeSessions.$inferSelect;
+export type InsertKnowledgeResponse = z.infer<typeof insertKnowledgeResponseSchema>;
+export type KnowledgeResponse = typeof knowledgeResponses.$inferSelect;
+export type InsertKnowledgeAction = z.infer<typeof insertKnowledgeActionSchema>;
+export type KnowledgeAction = typeof knowledgeActions.$inferSelect;
+export type InsertRecruitmentApplication = z.infer<typeof insertRecruitmentApplicationSchema>;
+export type RecruitmentApplication = typeof recruitmentApplications.$inferSelect;
+export type InsertProfessionalReference = z.infer<typeof insertProfessionalReferenceSchema>;
+export type ProfessionalReference = typeof professionalReferences.$inferSelect;
+
+// Route Planning Types
+export type InsertClient = z.infer<typeof insertClientSchema>;
+export type Client = typeof clients.$inferSelect;
+export type InsertVisit = z.infer<typeof insertVisitSchema>;
+export type Visit = typeof visits.$inferSelect;
+export type InsertRun = z.infer<typeof insertRunSchema>;
+export type Run = typeof runs.$inferSelect;
+export type InsertRunStop = z.infer<typeof insertRunStopSchema>;
+export type RunStop = typeof runStops.$inferSelect;
+export type InsertGeocode = z.infer<typeof insertGeocodeSchema>;
+export type Geocode = typeof geocodeCache.$inferSelect;
+
+// Finance Reports
+export const financeReports = pgTable("finance_reports", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  reportMonth: date("report_month").notNull(), // Month and year this report is for
+  
+  // Carers Section
+  trainingELearning: doublePrecision("training_e_learning").default(0),
+  trainingPractical: doublePrecision("training_practical").default(0),
+  shadowShifts: doublePrecision("shadow_shifts").default(0),
+  hoursDays: doublePrecision("hours_days").default(0),
+  nightsWakings: doublePrecision("nights_wakings").default(0),
+  nightsSleeping: doublePrecision("nights_sleeping").default(0),
+  drivesCarers: doublePrecision("drives_carers").default(0),
+  millageCarers: doublePrecision("millage_carers").default(0),
+  expensesCarers: doublePrecision("expenses_carers").default(0),
+  
+  // Office Section
+  officeOvertime: doublePrecision("office_overtime").default(0),
+  officeExpense: doublePrecision("office_expense").default(0),
+  officeTravel: doublePrecision("office_travel").default(0),
+  officeOncall: doublePrecision("office_oncall").default(0),
+  
+  // Drivers Section
+  drivers: doublePrecision("drivers").default(0),
+  
+  // Company Overheads Section
+  holiday: doublePrecision("holiday").default(0),
+  costToEmployer: doublePrecision("cost_to_employer").default(0),
+  
+  // Invoice Values
+  invoiceValues: doublePrecision("invoice_values").default(0),
+  
+  createdBy: varchar("created_by").references(() => users.id),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+}, (table) => ({
+  uniqueMonth: unique().on(table.reportMonth),
+}));
+
+export const insertFinanceReportSchema = createInsertSchema(financeReports).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export type InsertFinanceReport = z.infer<typeof insertFinanceReportSchema>;
+export type FinanceReport = typeof financeReports.$inferSelect;
+
+// Reference Requests - for external reference collection
+export const referenceRequests = pgTable("reference_requests", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  token: varchar("token").notNull().unique(),
+  status: text("status").notNull().default("draft"), // draft, requested, received
+  
+  // Prefilled by admin
+  employeeName: text("employee_name").notNull(),
+  employeeJobTitle: text("employee_job_title"),
+  refereeEmail: text("referee_email"),
+  refereeName: text("referee_name"),
+  refereeCompany: text("referee_company"),
+  
+  // Filled by referee (only dates mandatory when submitting)
+  employmentStartDate: date("employment_start_date"),
+  employmentEndDate: date("employment_end_date"),
+  jobTitle: text("job_title"),
+  reasonForLeaving: text("reason_for_leaving"),
+  wouldReemploy: boolean("would_reemploy"),
+  performanceRating: text("performance_rating"), // excellent, good, satisfactory, poor
+  additionalComments: text("additional_comments"),
+  
+  // Metadata
+  recruitmentApplicationId: varchar("recruitment_application_id").references(() => recruitmentApplications.id),
+  createdAt: timestamp("created_at").defaultNow(),
+  requestedAt: timestamp("requested_at"),
+  receivedAt: timestamp("received_at"),
+  createdBy: varchar("created_by").references(() => users.id),
+});
+
+export const insertReferenceRequestSchema = createInsertSchema(referenceRequests).omit({
+  id: true,
+  createdAt: true,
+  requestedAt: true,
+  receivedAt: true,
+});
+
+export const submitReferenceFormSchema = z.object({
+  employmentStartDate: z.string().min(1, "Start date is required"),
+  employmentEndDate: z.string().min(1, "End date is required"),
+  jobTitle: z.string().optional(),
+  reasonForLeaving: z.string().optional(),
+  wouldReemploy: z.boolean().optional(),
+  performanceRating: z.string().optional(),
+  additionalComments: z.string().optional(),
+});
+
+export type InsertReferenceRequest = z.infer<typeof insertReferenceRequestSchema>;
+export type ReferenceRequest = typeof referenceRequests.$inferSelect;
+export type SubmitReferenceForm = z.infer<typeof submitReferenceFormSchema>;
+
+// Service Improvement Plan (SIP) - CQC Quality Improvement Tracking
+export const serviceImprovementPlanItems = pgTable("service_improvement_plan_items", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  referenceNumber: text("reference_number").notNull(), // Auto-generated: SIP-2024-001
+  branch: text("branch").notNull().default("Plymouth"), // Plymouth, Truro
+  
+  // Core Details
+  title: text("title").notNull(),
+  description: text("description").notNull(),
+  priority: text("priority").notNull().default("should_do"), // must_do, should_do
+  
+  // CQC Alignment
+  cqcDomain: text("cqc_domain"), // safe, effective, caring, responsive, well_led
+  keyQuestion: text("key_question"), // Which key question this relates to
+  regulation: text("regulation"), // e.g., "Regulation 12: Safe Care and Treatment"
+  serviceArea: text("service_area"), // Department or function affected
+  
+  // Source - where this improvement came from
+  sourceType: text("source_type").notNull(), // audit, inspection, complaint, incident, self_identified
+  sourceAuditId: varchar("source_audit_id").references(() => cqcAudits.id),
+  sourceAuditType: text("source_audit_type"), // Type of audit it came from
+  sourceDetails: text("source_details"), // Additional source context
+  
+  // Actions
+  improvementObjective: text("improvement_objective"), // Expected outcome
+  actionsRequired: text("actions_required"), // Specific steps to achieve
+  evidenceMeasures: text("evidence_measures"), // How will we know it's achieved
+  
+  // Responsibility
+  leadResponsiblePerson: text("lead_responsible_person"), // Executive lead
+  operationalLead: text("operational_lead"), // Day-to-day responsible person
+  
+  // Dates
+  identifiedDate: timestamp("identified_date").defaultNow(),
+  targetDate: timestamp("target_date"),
+  completedDate: timestamp("completed_date"),
+  
+  // Status
+  status: text("status").notNull().default("open"), // open, in_progress, completed, cancelled
+  progressPercentage: integer("progress_percentage").default(0),
+  
+  // Updates & Evidence
+  latestUpdate: text("latest_update"),
+  updateHistory: json("update_history").$type<Array<{
+    date: string;
+    update: string;
+    updatedBy: string;
+  }>>(),
+  evidenceLinks: json("evidence_links").$type<string[]>(), // Links to evidence documents
+  
+  // Metadata
+  createdBy: varchar("created_by").references(() => users.id),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const insertServiceImprovementPlanItemSchema = createInsertSchema(serviceImprovementPlanItems).omit({
+  id: true,
+  referenceNumber: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const updateServiceImprovementPlanItemSchema = createInsertSchema(serviceImprovementPlanItems).omit({
+  id: true,
+  referenceNumber: true,
+  createdAt: true,
+}).partial();
+
+export type InsertServiceImprovementPlanItem = z.infer<typeof insertServiceImprovementPlanItemSchema>;
+export type UpdateServiceImprovementPlanItem = z.infer<typeof updateServiceImprovementPlanItemSchema>;
+export type ServiceImprovementPlanItem = typeof serviceImprovementPlanItems.$inferSelect;
+
+// Audit Schedule Settings - Configure how often each audit category should be completed
+export const auditScheduleSettings = pgTable("audit_schedule_settings", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  branch: text("branch").notNull().default("Plymouth"), // Plymouth, Truro
+  category: text("category").notNull(), // Matches audit categories: medication_management, infection_control, etc.
+  
+  // Frequency settings
+  frequency: text("frequency").notNull().default("monthly"), // weekly, fortnightly, monthly, quarterly, biannually, annually
+  
+  // Schedule details
+  startDate: timestamp("start_date"), // When the schedule starts
+  isActive: boolean("is_active").default(true), // Whether this schedule is active
+  
+  // Notification settings
+  reminderDays: integer("reminder_days").default(14), // Days before due to send reminder
+  
+  // Metadata
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const insertAuditScheduleSettingsSchema = createInsertSchema(auditScheduleSettings).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export type InsertAuditScheduleSettings = z.infer<typeof insertAuditScheduleSettingsSchema>;
+export type AuditScheduleSettings = typeof auditScheduleSettings.$inferSelect;
+
+// CQC Feedback Campaigns - For collecting structured feedback (C=Caring, S=Safe, P=People, F=Friends & Family)
+export const cqcFeedbackCampaigns = pgTable("cqc_feedback_campaigns", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  name: text("name").notNull(),
+  description: text("description"),
+  branch: text("branch").notNull().default("Plymouth"), // Plymouth, Truro
+  
+  // Feedback category: C (Caring), S (Safe), P (People/Staff), F (Friends & Family)
+  category: text("category").notNull(), // C, S, P, F
+  
+  // Campaign settings
+  status: text("status").notNull().default("draft"), // draft, active, paused, closed
+  startDate: timestamp("start_date"),
+  endDate: timestamp("end_date"),
+  
+  // Public link token for collecting responses
+  linkToken: text("link_token").notNull().unique(),
+  
+  // Custom questions (optional - stored as JSON array)
+  customQuestions: json("custom_questions").$type<Array<{
+    id: string;
+    question: string;
+    type: "rating" | "text" | "choice";
+    required: boolean;
+    options?: string[]; // For choice type
+  }>>(),
+  
+  // Response count cache for performance
+  responseCount: integer("response_count").default(0),
+  
+  // Metadata
+  createdBy: varchar("created_by").references(() => users.id),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// CQC Feedback Responses - Individual feedback entries
+export const cqcFeedbackResponses = pgTable("cqc_feedback_responses", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  campaignId: varchar("campaign_id").references(() => cqcFeedbackCampaigns.id, { onDelete: "cascade" }).notNull(),
+  branch: text("branch").notNull().default("Plymouth"), // Inherited from campaign
+  
+  // Source of feedback
+  source: text("source").notNull().default("link"), // link, manual, email, phone, in_person, letter
+  
+  // Respondent information (optional for anonymous submissions)
+  respondentName: text("respondent_name"),
+  respondentEmail: text("respondent_email"),
+  respondentPhone: text("respondent_phone"),
+  respondentRelationship: text("respondent_relationship"), // service_user, family_member, carer, staff, professional
+  
+  // When feedback was received (for manual entries)
+  receivedAt: timestamp("received_at").defaultNow(),
+  
+  // Rating (1-5 stars)
+  overallRating: integer("overall_rating"), // 1-5
+  
+  // Category-specific ratings
+  categoryRatings: json("category_ratings").$type<Record<string, number>>(), // e.g., { "compassion": 5, "dignity": 4 }
+  
+  // Free text feedback
+  positiveComments: text("positive_comments"),
+  improvementComments: text("improvement_comments"),
+  additionalComments: text("additional_comments"),
+  
+  // Custom question responses
+  customResponses: json("custom_responses").$type<Record<string, any>>(),
+  
+  // Net Promoter Score (0-10)
+  npsScore: integer("nps_score"),
+  
+  // Would recommend? (boolean for simpler analysis)
+  wouldRecommend: boolean("would_recommend"),
+  
+  // Consent
+  consentToContact: boolean("consent_to_contact").default(false),
+  consentToPublish: boolean("consent_to_publish").default(false),
+  
+  // Admin processing
+  status: text("status").default("new"), // new, reviewed, actioned, closed
+  adminNotes: text("admin_notes"),
+  actionTaken: text("action_taken"),
+  
+  // File attachment for manual entries (e.g., scanned email)
+  attachmentPath: text("attachment_path"),
+  
+  // Metadata
+  submittedVia: text("submitted_via").default("web"), // web, admin, import
+  ipAddress: text("ip_address"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const insertCqcFeedbackCampaignSchema = createInsertSchema(cqcFeedbackCampaigns).omit({
+  id: true,
+  responseCount: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const updateCqcFeedbackCampaignSchema = createInsertSchema(cqcFeedbackCampaigns).omit({
+  id: true,
+  createdAt: true,
+}).partial();
+
+export const insertCqcFeedbackResponseSchema = createInsertSchema(cqcFeedbackResponses).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const publicFeedbackSubmissionSchema = z.object({
+  overallRating: z.number().min(1).max(5).optional(),
+  npsScore: z.number().min(0).max(10).optional(),
+  wouldRecommend: z.boolean().optional(),
+  positiveComments: z.string().optional(),
+  improvementComments: z.string().optional(),
+  additionalComments: z.string().optional(),
+  respondentName: z.string().optional(),
+  respondentEmail: z.string().email().optional().or(z.literal("")),
+  respondentRelationship: z.string().optional(),
+  consentToContact: z.boolean().optional(),
+  consentToPublish: z.boolean().optional(),
+  customResponses: z.record(z.any()).optional(),
+});
+
+export type InsertCqcFeedbackCampaign = z.infer<typeof insertCqcFeedbackCampaignSchema>;
+export type UpdateCqcFeedbackCampaign = z.infer<typeof updateCqcFeedbackCampaignSchema>;
+export type CqcFeedbackCampaign = typeof cqcFeedbackCampaigns.$inferSelect;
+export type InsertCqcFeedbackResponse = z.infer<typeof insertCqcFeedbackResponseSchema>;
+export type CqcFeedbackResponse = typeof cqcFeedbackResponses.$inferSelect;
+export type PublicFeedbackSubmission = z.infer<typeof publicFeedbackSubmissionSchema>;
+
+// CQC Quick Audit Form Templates - Category-specific audit forms
+export const cqcAuditFormTemplates = pgTable("cqc_audit_form_templates", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  category: text("category").notNull().unique(), // medication_management, infection_control, etc.
+  displayName: text("display_name").notNull(), // "Medication Audit", "Infection Control Audit"
+  description: text("description"),
+  version: integer("version").default(1),
+  isActive: boolean("is_active").default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// CQC Audit Form Checklist Items - Questions for each audit template
+export const cqcAuditFormItems = pgTable("cqc_audit_form_items", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  templateId: varchar("template_id").references(() => cqcAuditFormTemplates.id, { onDelete: "cascade" }).notNull(),
+  section: text("section"), // Group items by section e.g., "Storage", "Administration"
+  questionText: text("question_text").notNull(),
+  questionType: text("question_type").notNull().default("yes_no"), // yes_no, yes_no_na, rating, text, number
+  helpText: text("help_text"), // Guidance for the auditor
+  isRequired: boolean("is_required").default(true),
+  weight: integer("weight").default(1), // Points for scoring
+  sortOrder: integer("sort_order").default(0),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// CQC Audit Form Submissions - Completed audit forms
+export const cqcAuditFormSubmissions = pgTable("cqc_audit_form_submissions", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  templateId: varchar("template_id").references(() => cqcAuditFormTemplates.id).notNull(),
+  branch: text("branch").notNull().default("Plymouth"), // Plymouth, Truro
+  category: text("category").notNull(), // Denormalised for faster queries
+  
+  // Audit details
+  auditDate: timestamp("audit_date").notNull(),
+  auditorId: varchar("auditor_id").references(() => users.id).notNull(),
+  auditorName: text("auditor_name").notNull(),
+  
+  // Scoring
+  totalScore: integer("total_score").default(0),
+  maxScore: integer("max_score").default(0),
+  percentageScore: integer("percentage_score").default(0),
+  
+  // Status
+  status: text("status").default("draft"), // draft, completed
+  
+  // Findings and Actions
+  findings: text("findings"),
+  areasOfStrength: text("areas_of_strength"),
+  areasForImprovement: text("areas_for_improvement"),
+  actionPlan: text("action_plan"),
+  
+  // Next audit
+  nextAuditDue: timestamp("next_audit_due"),
+  
+  // Metadata
+  completedAt: timestamp("completed_at"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// CQC Audit Form Responses - Answers to checklist items
+export const cqcAuditFormItemResponses = pgTable("cqc_audit_form_item_responses", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  submissionId: varchar("submission_id").references(() => cqcAuditFormSubmissions.id, { onDelete: "cascade" }).notNull(),
+  itemId: varchar("item_id").references(() => cqcAuditFormItems.id).notNull(),
+  
+  // Response value
+  response: text("response"), // "yes", "no", "n/a", rating number, or text
+  isCompliant: boolean("is_compliant"), // Derived from response
+  pointsAwarded: integer("points_awarded").default(0),
+  
+  // Notes for this item
+  notes: text("notes"),
+  
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// CQC Audit Form Evidence - Files uploaded for audit submissions
+export const cqcAuditFormEvidenceFiles = pgTable("cqc_audit_form_evidence_files", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  submissionId: varchar("submission_id").references(() => cqcAuditFormSubmissions.id, { onDelete: "cascade" }).notNull(),
+  itemId: varchar("item_id").references(() => cqcAuditFormItems.id), // Optional - can be linked to specific question
+  
+  // File details
+  fileName: text("file_name").notNull(),
+  filePath: text("file_path").notNull(),
+  fileData: text("file_data"), // Base64 encoded file content
+  fileSize: integer("file_size"),
+  mimeType: text("mime_type"),
+  
+  // Description
+  description: text("description"),
+  
+  // Metadata
+  uploadedBy: varchar("uploaded_by").references(() => users.id).notNull(),
+  uploadedAt: timestamp("uploaded_at").defaultNow(),
+});
+
+// Insert schemas for new audit form tables
+export const insertCqcAuditFormTemplateSchema = createInsertSchema(cqcAuditFormTemplates).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertCqcAuditFormItemSchema = createInsertSchema(cqcAuditFormItems).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertCqcAuditFormSubmissionSchema = createInsertSchema(cqcAuditFormSubmissions).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+  completedAt: true,
+});
+
+export const insertCqcAuditFormItemResponseSchema = createInsertSchema(cqcAuditFormItemResponses).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertCqcAuditFormEvidenceFileSchema = createInsertSchema(cqcAuditFormEvidenceFiles).omit({
+  id: true,
+  uploadedAt: true,
+});
+
+// Types for new audit form tables
+export type InsertCqcAuditFormTemplate = z.infer<typeof insertCqcAuditFormTemplateSchema>;
+export type CqcAuditFormTemplate = typeof cqcAuditFormTemplates.$inferSelect;
+export type InsertCqcAuditFormItem = z.infer<typeof insertCqcAuditFormItemSchema>;
+export type CqcAuditFormItem = typeof cqcAuditFormItems.$inferSelect;
+export type InsertCqcAuditFormSubmission = z.infer<typeof insertCqcAuditFormSubmissionSchema>;
+export type CqcAuditFormSubmission = typeof cqcAuditFormSubmissions.$inferSelect;
+export type InsertCqcAuditFormItemResponse = z.infer<typeof insertCqcAuditFormItemResponseSchema>;
+export type CqcAuditFormItemResponse = typeof cqcAuditFormItemResponses.$inferSelect;
+export type InsertCqcAuditFormEvidenceFile = z.infer<typeof insertCqcAuditFormEvidenceFileSchema>;
+export type CqcAuditFormEvidenceFile = typeof cqcAuditFormEvidenceFiles.$inferSelect;
+
+// Staff Assessment Insert Schemas
+export const insertStaffAssessmentTopicSchema = createInsertSchema(staffAssessmentTopics).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertStaffAssessmentLinkSchema = createInsertSchema(staffAssessmentLinks).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertStaffAssessmentResponseSchema = createInsertSchema(staffAssessmentResponses).omit({
+  id: true,
+  createdAt: true,
+  completedAt: true,
+});
+
+// Staff Assessment Types
+export type InsertStaffAssessmentTopic = z.infer<typeof insertStaffAssessmentTopicSchema>;
+export type StaffAssessmentTopic = typeof staffAssessmentTopics.$inferSelect;
+export type InsertStaffAssessmentLink = z.infer<typeof insertStaffAssessmentLinkSchema>;
+export type StaffAssessmentLink = typeof staffAssessmentLinks.$inferSelect;
+export type InsertStaffAssessmentResponse = z.infer<typeof insertStaffAssessmentResponseSchema>;
+export type StaffAssessmentResponse = typeof staffAssessmentResponses.$inferSelect;
