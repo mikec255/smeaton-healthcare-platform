@@ -213,32 +213,25 @@ export default function About() {
       </section>
 
       {/* CTA */}
-      <section style={{ backgroundColor: PINK }} className="relative overflow-hidden py-20 sm:py-24">
-        <div className="absolute inset-0 opacity-5">
-          {[...Array(4)].map((_, i) => (
-            <div key={i} className="absolute rounded-full" style={{
-              width: `${200 + i * 100}px`, height: `${200 + i * 100}px`,
-              border: "1px solid white",
-              top: "50%", left: "50%",
-              transform: "translate(-50%, -50%)",
-            }} />
-          ))}
-        </div>
-        <div className="relative max-w-7xl mx-auto px-5 sm:px-8">
-          <FadeIn className="max-w-xl">
-            <h2 className="text-3xl font-extrabold text-white mb-2 tracking-tight">Ready to find out more?</h2>
-            <div className="mb-6" style={{ ...SCRIPT, fontSize: "clamp(2rem, 4vw, 3rem)", color: "rgba(255,255,255,0.9)" }}>We'd love to hear from you.</div>
-            <p className="text-white/70 mb-8 leading-relaxed">Whether you're looking for care for yourself or a loved one, or thinking about joining our team.</p>
-            <div className="flex flex-col sm:flex-row gap-4">
+      <section className="bg-white relative overflow-hidden py-20 sm:py-24">
+        <div className="absolute -top-20 -right-20 w-80 h-80 rounded-full opacity-[0.06] pointer-events-none" style={{ backgroundColor: PINK }} />
+        <div className="absolute -bottom-20 -left-20 w-72 h-72 rounded-full opacity-[0.05] pointer-events-none" style={{ backgroundColor: BLUE }} />
+        <div className="relative max-w-7xl mx-auto px-5 sm:px-8 text-center">
+          <FadeIn>
+            <p className="text-xs font-bold tracking-widest uppercase mb-4" style={{ color: PINK }}>Get in touch</p>
+            <h2 className="text-4xl sm:text-5xl font-extrabold mb-2 tracking-tight" style={{ color: NAVY }}>Ready to find out more?</h2>
+            <div className="mb-6" style={{ ...SCRIPT, fontSize: "clamp(2rem, 4vw, 3rem)", color: PINK }}>We'd love to hear from you.</div>
+            <p className="text-gray-500 mb-10 leading-relaxed max-w-xl mx-auto">Whether you're looking for care for yourself or a loved one, or thinking about joining our team.</p>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Link href="/referral"
-                className="inline-flex items-center justify-center gap-2 px-7 py-4 text-white font-bold rounded-xl hover:scale-105 transition-all"
-                style={{ backgroundColor: PINK, boxShadow: "0 8px 24px rgba(239,42,134,0.4)" }}
+                className="inline-flex items-center justify-center gap-2 px-7 py-4 text-white font-bold rounded-2xl hover:scale-105 transition-all"
+                style={{ backgroundColor: PINK, boxShadow: "0 8px 32px rgba(239,42,134,0.4)" }}
                 data-testid="about-referral-cta">
                 Request a Free Assessment <ArrowRight size={18} />
               </Link>
               <Link href="/contact"
-                className="inline-flex items-center justify-center gap-2 px-7 py-4 font-bold rounded-xl text-white hover:bg-white/10 transition-all"
-                style={{ border: "2px solid rgba(255,255,255,0.4)" }}
+                className="inline-flex items-center justify-center gap-2 px-7 py-4 font-bold rounded-2xl hover:opacity-80 transition-all"
+                style={{ color: NAVY, border: "2px solid rgba(5,22,61,0.2)" }}
                 data-testid="about-contact-cta">
                 Contact us
               </Link>
