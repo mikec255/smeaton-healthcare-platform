@@ -149,7 +149,7 @@ export default function Sponsorship() {
       </section>
 
       {/* CTA */}
-      <section style={{ backgroundColor: NAVY }} className="py-14">
+      <section style={{ backgroundColor: BLUE }} className="py-14">
         <div className="max-w-3xl mx-auto px-5 sm:px-8 text-center">
           <h2 className="text-3xl font-extrabold text-white mb-2 tracking-tight">Ready to join our UK care teams?</h2>
           <div className="mb-5" style={{ ...SCRIPT, fontSize: "clamp(1.8rem, 3.5vw, 2.8rem)", color: "rgba(239,42,134,0.9)" }}>We'd love to hear from you.</div>

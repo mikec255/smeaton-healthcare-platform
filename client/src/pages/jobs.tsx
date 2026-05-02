@@ -96,7 +96,7 @@ export default function Jobs() {
   if (isLoading) {
     return (
       <div>
-        <section style={{ backgroundColor: NAVY }} className="py-16">
+        <section style={{ backgroundColor: BLUE }} className="py-16">
           <div className="max-w-7xl mx-auto px-5 sm:px-8 text-center">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white mx-auto mb-3"></div>
             <p className="text-white/60 text-sm" data-testid="jobs-loading">Loading job opportunities...</p>
@@ -109,7 +109,7 @@ export default function Jobs() {
   return (
     <div data-testid="jobs-page">
       {/* HERO */}
-      <section style={{ backgroundColor: NAVY }} className="relative py-16 sm:py-20 overflow-hidden">
+      <section style={{ backgroundColor: BLUE }} className="relative py-16 sm:py-20 overflow-hidden">
         <div className="absolute inset-0 opacity-[0.04] pointer-events-none">
           {[0,1,2,3].map(i => <div key={i} className="absolute rounded-full border border-white" style={{ width:`${200+i*150}px`,height:`${200+i*150}px`,top:"50%",left:"50%",transform:"translate(-50%,-50%)" }} />)}
         </div>

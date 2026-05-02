@@ -266,7 +266,7 @@ export default function Home() {
           <FadeIn className="flex justify-center">
             <Link href="/services"
               className="inline-flex items-center gap-2.5 px-8 py-4 rounded-full font-bold text-sm transition-all hover:gap-4 hover:shadow-lg"
-              style={{ backgroundColor: NAVY, color: "#fff" }}
+              style={{ backgroundColor: BLUE, color: "#fff" }}
               data-testid="home-all-services-link">
               View all our services <ArrowRight size={15} />
             </Link>
@@ -341,7 +341,7 @@ export default function Home() {
             {TESTIMONIALS.map((t, i) => (
               <FadeIn key={i} delay={i * 0.08}>
                 <div className={`rounded-3xl p-8 h-full flex flex-col ${i === 1 ? "" : "bg-white"}`}
-                  style={i === 1 ? { backgroundColor: NAVY } : { border: "2px solid rgba(0,0,0,0.04)" }}>
+                  style={i === 1 ? { backgroundColor: BLUE } : { border: "2px solid rgba(0,0,0,0.04)" }}>
                   <div className="text-[80px] leading-none select-none"
                     style={{ color: i === 1 ? "rgba(239,42,134,0.2)" : "rgba(239,42,134,0.12)", fontFamily: "Georgia, serif", lineHeight: 0.75 }}>"</div>
                   <p className={`text-base leading-relaxed flex-1 italic mt-4 ${i === 1 ? "text-white/80" : "text-gray-600"}`}>{t.quote}</p>

@@ -145,7 +145,7 @@ export default function Contact() {
       </section>
 
       {/* BOTTOM CTA */}
-      <section style={{ backgroundColor: NAVY }} className="py-16 sm:py-20">
+      <section style={{ backgroundColor: BLUE }} className="py-16 sm:py-20">
         <div className="max-w-3xl mx-auto px-5 sm:px-8 text-center">
           <FadeIn>
             <h2 className="text-3xl font-extrabold text-white mb-2">Need to speak to someone?</h2>
