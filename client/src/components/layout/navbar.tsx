@@ -81,7 +81,7 @@ export default function Navbar() {
           </Link>
 
           {/* Nav links — left side, next to logo */}
-          <div className="hidden md:flex items-center gap-6">
+          <div className="hidden md:flex items-center gap-6" style={{ marginLeft: "150px" }}>
             <button
               onClick={handleServicesClick}
               className="flex items-center gap-1 text-sm font-semibold transition-colors duration-200"
