@@ -1,7 +1,7 @@
 import { useRef, useEffect } from "react";
 import { Link } from "wouter";
 import { motion, useInView } from "framer-motion";
-import { ArrowRight, CheckCircle2, Phone, ShieldCheck, Award, Clock } from "lucide-react";
+import { ArrowRight, CheckCircle2, Phone, ShieldCheck, Award, Clock, Star } from "lucide-react";
 import { SiGoogle, SiTrustpilot } from "react-icons/si";
 import nhsLogoImg from "@assets/nhs_logo.png";
 import googleLogoImg from "@assets/google_logo_white.svg";
@@ -83,6 +83,7 @@ function Ticker() {
 
         {/* Care */}
         <span className="hidden sm:inline-flex items-center gap-2 shrink-0">
+          <Clock size={15} className="text-white shrink-0" />
           <span className="text-white text-sm font-medium whitespace-nowrap">Care within 24 hours</span>
         </span>
 
@@ -90,7 +91,8 @@ function Ticker() {
 
         {/* Private Care */}
         <span className="hidden sm:inline-flex items-center gap-2 shrink-0">
-          <span className="text-white text-sm font-medium whitespace-nowrap">Private Care</span>
+          <Star size={15} className="text-white shrink-0" />
+          <span className="text-white text-sm font-medium whitespace-nowrap">Private Care Available</span>
         </span>
 
       </div>
@@ -109,7 +111,7 @@ export default function Home() {
       <section className="relative overflow-hidden" style={{ backgroundColor: CREAM, minHeight: "88vh" }}>
         <div className="grid grid-cols-1 lg:grid-cols-[55%_45%]" style={{ minHeight: "84vh" }}>
 
-          <div className="flex flex-col justify-center py-16 px-5 sm:px-8 lg:pl-[68px]">
+          <div className="flex flex-col justify-center pt-8 pb-16 px-5 sm:px-8 lg:pl-[68px]">
             <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}
               className="inline-flex items-center gap-2 self-start rounded-full px-4 py-1.5 mb-8"
               style={{ backgroundColor: "#EF2A8618" }}>
