@@ -79,7 +79,7 @@ export default function LiveInCare() {
       <section className="relative overflow-hidden" style={{ backgroundColor: CREAM }}>
         <div className="absolute -top-24 -right-24 w-96 h-96 rounded-full opacity-[0.15] pointer-events-none" style={{ backgroundColor: PINK }} />
         <div className="absolute -bottom-32 -left-16 w-80 h-80 rounded-full opacity-[0.08] pointer-events-none" style={{ backgroundColor: PINK }} />
-        <div className="relative max-w-7xl mx-auto px-5 sm:px-8 py-20 sm:py-28">
+        <div className="relative max-w-7xl mx-auto px-5 sm:px-8 pt-8 pb-20 sm:pt-10 sm:pb-28">
           <Link href="/services" className="inline-flex items-center gap-1.5 text-sm font-semibold mb-10 hover:opacity-80 transition-opacity" style={{ color: PINK }}>← All Services</Link>
           <div className="grid lg:grid-cols-[1fr_400px] gap-12 xl:gap-20 items-center">
             <div>
