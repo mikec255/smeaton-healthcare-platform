@@ -101,7 +101,7 @@ export function registerCarelogrRoutes(app: Express) {
       service: "Smeaton Healthcare API",
       version: API_VERSION,
       timestamp: new Date().toISOString(),
-      resources: ["enquiries", "jobs", "applications"],
+      resources: ["enquiries", "jobs", "applications", "blog"],
     });
   });
 
