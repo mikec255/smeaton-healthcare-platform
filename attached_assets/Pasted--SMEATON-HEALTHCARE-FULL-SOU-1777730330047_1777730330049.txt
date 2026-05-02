@@ -1,0 +1,2618 @@
+======================================================================
+SMEATON HEALTHCARE — FULL SOURCE CODE
+Copy each section into the matching file path in your new Replit.
+======================================================================
+
+======================================================================
+FILE: package.json
+======================================================================
+{
+  "name": "@workspace/smeaton-healthcare",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite --config vite.config.ts --host 0.0.0.0",
+    "build": "vite build --config vite.config.ts",
+    "serve": "vite preview --config vite.config.ts --host 0.0.0.0",
+    "typecheck": "tsc -p tsconfig.json --noEmit"
+  },
+  "devDependencies": {
+    "@hookform/resolvers": "^3.10.0",
+    "@radix-ui/react-accordion": "^1.2.4",
+    "@radix-ui/react-alert-dialog": "^1.1.7",
+    "@radix-ui/react-aspect-ratio": "^1.1.3",
+    "@radix-ui/react-avatar": "^1.1.4",
+    "@radix-ui/react-checkbox": "^1.1.5",
+    "@radix-ui/react-collapsible": "^1.1.4",
+    "@radix-ui/react-context-menu": "^2.2.7",
+    "@radix-ui/react-dialog": "^1.1.7",
+    "@radix-ui/react-dropdown-menu": "^2.1.7",
+    "@radix-ui/react-hover-card": "^1.1.7",
+    "@radix-ui/react-label": "^2.1.3",
+    "@radix-ui/react-menubar": "^1.1.7",
+    "@radix-ui/react-navigation-menu": "^1.2.6",
+    "@radix-ui/react-popover": "^1.1.7",
+    "@radix-ui/react-progress": "^1.1.3",
+    "@radix-ui/react-radio-group": "^1.2.4",
+    "@radix-ui/react-scroll-area": "^1.2.4",
+    "@radix-ui/react-select": "^2.1.7",
+    "@radix-ui/react-separator": "^1.1.3",
+    "@radix-ui/react-slider": "^1.2.4",
+    "@radix-ui/react-slot": "^1.2.0",
+    "@radix-ui/react-switch": "^1.1.4",
+    "@radix-ui/react-tabs": "^1.1.4",
+    "@radix-ui/react-toast": "^1.2.7",
+    "@radix-ui/react-toggle": "^1.1.3",
+    "@radix-ui/react-toggle-group": "^1.1.3",
+    "@radix-ui/react-tooltip": "^1.2.0",
+    "@replit/vite-plugin-cartographer": "catalog:",
+    "@replit/vite-plugin-dev-banner": "catalog:",
+    "@replit/vite-plugin-runtime-error-modal": "catalog:",
+    "@tailwindcss/typography": "^0.5.15",
+    "@tailwindcss/vite": "catalog:",
+    "@tanstack/react-query": "catalog:",
+    "@types/node": "catalog:",
+    "@types/react": "catalog:",
+    "@types/react-dom": "catalog:",
+    "@vitejs/plugin-react": "catalog:",
+    "@workspace/api-client-react": "workspace:*",
+    "class-variance-authority": "catalog:",
+    "clsx": "catalog:",
+    "cmdk": "^1.1.1",
+    "date-fns": "^3.6.0",
+    "embla-carousel-react": "^8.6.0",
+    "framer-motion": "catalog:",
+    "input-otp": "^1.4.2",
+    "lucide-react": "catalog:",
+    "next-themes": "^0.4.6",
+    "react": "catalog:",
+    "react-day-picker": "^9.11.1",
+    "react-dom": "catalog:",
+    "react-hook-form": "^7.55.0",
+    "react-icons": "^5.4.0",
+    "react-resizable-panels": "^2.1.7",
+    "recharts": "^2.15.2",
+    "sonner": "^2.0.7",
+    "tailwind-merge": "catalog:",
+    "tailwindcss": "catalog:",
+    "tw-animate-css": "^1.4.0",
+    "vaul": "^1.1.2",
+    "vite": "catalog:",
+    "wouter": "^3.3.5",
+    "zod": "catalog:"
+  }
+}
+
+
+======================================================================
+FILE: index.html
+======================================================================
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1" />
+
+    <title>Home Care Devon &amp; Cornwall | Smeaton Healthcare | CQC Rated Good</title>
+    <meta name="description" content="Professional home care across Devon and Cornwall. CQC-rated Good in Plymouth and Cornwall. Trusted by families since 2019. Call 0330 165 8880 for a free, no-obligation care assessment." />
+    <meta name="keywords" content="home care Devon, home care Cornwall, home care Plymouth, care at home Devon, elderly care Devon, care agency Cornwall, homecare Plymouth, domiciliary care Devon, supported living Cornwall, respite care Devon" />
+    <meta name="robots" content="index, follow" />
+    <meta name="geo.region" content="GB-DEV" />
+    <meta name="geo.placename" content="Plymouth, Devon" />
+
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Home Care Devon &amp; Cornwall | Smeaton Healthcare" />
+    <meta property="og:description" content="Professional, CQC-rated home care across Devon and Cornwall. Trusted by families since 2019." />
+    <meta property="og:url" content="https://smeatonhealthcare.co.uk" />
+    <meta property="og:image" content="https://www.smeatonhealthcare.co.uk/assets/logo-B4_I79mo.png" />
+
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Home Care Devon &amp; Cornwall | Smeaton Healthcare" />
+    <meta name="twitter:description" content="Professional, CQC-rated home care across Devon and Cornwall." />
+
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Dancing+Script:wght@600;700&display=swap" rel="stylesheet">
+
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "HomeAndConstructionBusiness",
+      "@id": "https://smeatonhealthcare.co.uk",
+      "name": "Smeaton Healthcare",
+      "description": "Professional home care services across Devon and Cornwall. CQC-rated Good for Plymouth and Cornwall offices.",
+      "url": "https://smeatonhealthcare.co.uk",
+      "telephone": "03301658880",
+      "email": "info@smeatonhealthcare.co.uk",
+      "foundingDate": "2019",
+      "areaServed": [
+        { "@type": "State", "name": "Devon" },
+        { "@type": "State", "name": "Cornwall" }
+      ],
+      "hasOfferCatalog": {
+        "@type": "OfferCatalog",
+        "name": "Home Care Services",
+        "itemListElement": [
+          { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "Short Visit Home Care" } },
+          { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "Supported Living" } },
+          { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "24/7 Home Care" } },
+          { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "Enabling Care" } },
+          { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "Respite Care" } }
+        ]
+      },
+      "address": [
+        {
+          "@type": "PostalAddress",
+          "addressLocality": "Plymouth",
+          "addressRegion": "Devon",
+          "addressCountry": "GB"
+        },
+        {
+          "@type": "PostalAddress",
+          "addressLocality": "Cornwall",
+          "addressRegion": "Cornwall",
+          "addressCountry": "GB"
+        }
+      ]
+    }
+    </script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>
+
+
+======================================================================
+FILE: vite.config.ts
+======================================================================
+import { defineConfig } from "vite";
+import react from "@vitejs/plugin-react";
+import tailwindcss from "@tailwindcss/vite";
+import path from "path";
+import runtimeErrorOverlay from "@replit/vite-plugin-runtime-error-modal";
+
+const rawPort = process.env.PORT;
+
+if (!rawPort) {
+  throw new Error(
+    "PORT environment variable is required but was not provided.",
+  );
+}
+
+const port = Number(rawPort);
+
+if (Number.isNaN(port) || port <= 0) {
+  throw new Error(`Invalid PORT value: "${rawPort}"`);
+}
+
+const basePath = process.env.BASE_PATH;
+
+if (!basePath) {
+  throw new Error(
+    "BASE_PATH environment variable is required but was not provided.",
+  );
+}
+
+export default defineConfig({
+  base: basePath,
+  plugins: [
+    react(),
+    tailwindcss(),
+    runtimeErrorOverlay(),
+    ...(process.env.NODE_ENV !== "production" &&
+    process.env.REPL_ID !== undefined
+      ? [
+          await import("@replit/vite-plugin-cartographer").then((m) =>
+            m.cartographer({
+              root: path.resolve(import.meta.dirname, ".."),
+            }),
+          ),
+          await import("@replit/vite-plugin-dev-banner").then((m) =>
+            m.devBanner(),
+          ),
+        ]
+      : []),
+  ],
+  resolve: {
+    alias: {
+      "@": path.resolve(import.meta.dirname, "src"),
+      "@assets": path.resolve(import.meta.dirname, "..", "..", "attached_assets"),
+    },
+    dedupe: ["react", "react-dom"],
+  },
+  root: path.resolve(import.meta.dirname),
+  build: {
+    outDir: path.resolve(import.meta.dirname, "dist/public"),
+    emptyOutDir: true,
+  },
+  server: {
+    port,
+    strictPort: true,
+    host: "0.0.0.0",
+    allowedHosts: true,
+    fs: {
+      strict: true,
+    },
+  },
+  preview: {
+    port,
+    host: "0.0.0.0",
+    allowedHosts: true,
+  },
+});
+
+
+======================================================================
+FILE: src/main.tsx
+======================================================================
+import { createRoot } from "react-dom/client";
+import App from "./App";
+import "./index.css";
+
+createRoot(document.getElementById("root")!).render(<App />);
+
+
+======================================================================
+FILE: src/index.css
+======================================================================
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Dancing+Script:wght@600;700&display=swap');
+@import "tailwindcss";
+@import "tw-animate-css";
+@plugin "@tailwindcss/typography";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --color-background: hsl(var(--background));
+  --color-foreground: hsl(var(--foreground));
+  --color-border: hsl(var(--border));
+  --color-input: hsl(var(--input));
+  --color-ring: hsl(var(--ring));
+
+  --color-card: hsl(var(--card));
+  --color-card-foreground: hsl(var(--card-foreground));
+  --color-card-border: hsl(var(--card-border));
+
+  --color-popover: hsl(var(--popover));
+  --color-popover-foreground: hsl(var(--popover-foreground));
+  --color-popover-border: hsl(var(--popover-border));
+
+  --color-primary: hsl(var(--primary));
+  --color-primary-foreground: hsl(var(--primary-foreground));
+  --color-primary-border: var(--primary-border);
+
+  --color-secondary: hsl(var(--secondary));
+  --color-secondary-foreground: hsl(var(--secondary-foreground));
+  --color-secondary-border: var(--secondary-border);
+
+  --color-muted: hsl(var(--muted));
+  --color-muted-foreground: hsl(var(--muted-foreground));
+  --color-muted-border: var(--muted-border);
+
+  --color-accent: hsl(var(--accent));
+  --color-accent-foreground: hsl(var(--accent-foreground));
+  --color-accent-border: var(--accent-border);
+
+  --color-destructive: hsl(var(--destructive));
+  --color-destructive-foreground: hsl(var(--destructive-foreground));
+  --color-destructive-border: var(--destructive-border);
+
+  --color-chart-1: hsl(var(--chart-1));
+  --color-chart-2: hsl(var(--chart-2));
+  --color-chart-3: hsl(var(--chart-3));
+  --color-chart-4: hsl(var(--chart-4));
+  --color-chart-5: hsl(var(--chart-5));
+
+  --color-sidebar: hsl(var(--sidebar));
+  --color-sidebar-foreground: hsl(var(--sidebar-foreground));
+  --color-sidebar-border: hsl(var(--sidebar-border));
+  --color-sidebar-primary: hsl(var(--sidebar-primary));
+  --color-sidebar-primary-foreground: hsl(var(--sidebar-primary-foreground));
+  --color-sidebar-primary-border: var(--sidebar-primary-border);
+  --color-sidebar-accent: hsl(var(--sidebar-accent));
+  --color-sidebar-accent-foreground: hsl(var(--sidebar-accent-foreground));
+  --color-sidebar-accent-border: var(--sidebar-accent-border);
+  --color-sidebar-ring: hsl(var(--sidebar-ring));
+
+  --font-sans: var(--app-font-sans);
+  --font-serif: var(--app-font-serif);
+  --font-mono: var(--app-font-mono);
+
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+}
+
+/* LIGHT MODE */
+:root {
+  --button-outline: rgba(0,0,0, .10);
+  --badge-outline: rgba(0,0,0, .05);
+
+  --opaque-button-border-intensity: -8;
+
+  --elevate-1: rgba(0,0,0, .03);
+  --elevate-2: rgba(0,0,0, .08);
+
+  --background: 210 33% 98%;
+  --foreground: 222 84% 13%;
+  --border: 214 32% 91%;
+  
+  --card: 0 0% 100%;
+  --card-foreground: 222 84% 13%;
+  --card-border: 214 32% 91%;
+  
+  --popover: 0 0% 100%;
+  --popover-foreground: 222 84% 13%;
+  --popover-border: 214 32% 91%;
+
+  --primary: 213 59% 37%;
+  --primary-foreground: 0 0% 100%;
+  
+  --secondary: 222 84% 13%;
+  --secondary-foreground: 0 0% 100%;
+  
+  --muted: 210 20% 94%;
+  --muted-foreground: 215 16% 47%;
+  
+  --accent: 330 87% 56%;
+  --accent-foreground: 0 0% 100%;
+  
+  --destructive: 0 84% 60%;
+  --destructive-foreground: 0 0% 100%;
+  
+  --input: 214 32% 91%;
+  --ring: 213 59% 37%;
+  
+  --chart-1: 213 59% 37%;
+  --chart-2: 330 87% 56%;
+  --chart-3: 222 84% 13%;
+  --chart-4: 210 20% 94%;
+  --chart-5: 215 16% 47%;
+  
+  --sidebar: 0 0% 100%;
+  --sidebar-foreground: 222 84% 13%;
+  --sidebar-border: 214 32% 91%;
+  --sidebar-primary: 213 59% 37%;
+  --sidebar-primary-foreground: 0 0% 100%;
+  --sidebar-accent: 210 20% 94%;
+  --sidebar-accent-foreground: 222 84% 13%;
+  --sidebar-ring: 213 59% 37%;
+
+  --app-font-sans: 'Inter', sans-serif;
+  --app-font-serif: Georgia, serif;
+  --app-font-mono: Menlo, monospace;
+  --radius: .5rem;
+  
+  --shadow-2xs: 0px 2px 0px 0px rgba(5,22,61,0.02);
+  --shadow-xs: 0px 2px 0px 0px rgba(5,22,61,0.04);
+  --shadow-sm: 0px 2px 0px 0px rgba(5,22,61,0.02), 0px 1px 2px -1px rgba(5,22,61,0.05);
+  --shadow: 0px 2px 0px 0px rgba(5,22,61,0.02), 0px 1px 2px -1px rgba(5,22,61,0.05);
+  --shadow-md: 0px 2px 0px 0px rgba(5,22,61,0.02), 0px 2px 4px -1px rgba(5,22,61,0.05);
+  --shadow-lg: 0px 2px 0px 0px rgba(5,22,61,0.02), 0px 4px 6px -1px rgba(5,22,61,0.05);
+  --shadow-xl: 0px 2px 0px 0px rgba(5,22,61,0.02), 0px 8px 10px -1px rgba(5,22,61,0.05);
+  --shadow-2xl: 0px 2px 0px 0px rgba(5,22,61,0.02);
+  --tracking-normal: 0em;
+  --spacing: 0.25rem;
+
+  --sidebar-primary-border: hsl(from hsl(var(--sidebar-primary)) h s calc(l + var(--opaque-button-border-intensity)) / alpha);
+  --sidebar-accent-border: hsl(from hsl(var(--sidebar-accent)) h s calc(l + var(--opaque-button-border-intensity)) / alpha);
+  --primary-border: hsl(from hsl(var(--primary)) h s calc(l + var(--opaque-button-border-intensity)) / alpha);
+  --secondary-border: hsl(from hsl(var(--secondary)) h s calc(l + var(--opaque-button-border-intensity)) / alpha);
+  --muted-border: hsl(from hsl(var(--muted)) h s calc(l + var(--opaque-button-border-intensity)) / alpha);
+  --accent-border: hsl(from hsl(var(--accent)) h s calc(l + var(--opaque-button-border-intensity)) / alpha);
+  --destructive-border: hsl(from hsl(var(--destructive)) h s calc(l + var(--opaque-button-border-intensity)) / alpha);
+}
+
+.dark {
+  --button-outline: rgba(255,255,255, .10);
+  --badge-outline: rgba(255,255,255, .05);
+
+  --opaque-button-border-intensity: 9;
+
+  --elevate-1: rgba(255,255,255, .04);
+  --elevate-2: rgba(255,255,255, .09);
+
+  --background: 222 84% 13%;
+  --foreground: 210 33% 98%;
+  --border: 215 27.9% 16.9%;
+  
+  --card: 222 84% 13%;
+  --card-foreground: 210 33% 98%;
+  --card-border: 215 27.9% 16.9%;
+  
+  --popover: 222 84% 13%;
+  --popover-foreground: 210 33% 98%;
+  --popover-border: 215 27.9% 16.9%;
+
+  --primary: 213 59% 37%;
+  --primary-foreground: 0 0% 100%;
+  
+  --secondary: 215 27.9% 16.9%;
+  --secondary-foreground: 0 0% 100%;
+  
+  --muted: 215 27.9% 16.9%;
+  --muted-foreground: 210 33% 98%;
+  
+  --accent: 330 87% 56%;
+  --accent-foreground: 0 0% 100%;
+  
+  --destructive: 0 62.8% 30.6%;
+  --destructive-foreground: 0 0% 100%;
+  
+  --input: 215 27.9% 16.9%;
+  --ring: 213 59% 37%;
+  
+  --chart-1: 213 59% 37%;
+  --chart-2: 330 87% 56%;
+  --chart-3: 210 33% 98%;
+  --chart-4: 215 27.9% 16.9%;
+  --chart-5: 222 84% 13%;
+  
+  --sidebar: 222 84% 13%;
+  --sidebar-foreground: 210 33% 98%;
+  --sidebar-border: 215 27.9% 16.9%;
+  --sidebar-primary: 213 59% 37%;
+  --sidebar-primary-foreground: 0 0% 100%;
+  --sidebar-accent: 215 27.9% 16.9%;
+  --sidebar-accent-foreground: 210 33% 98%;
+  --sidebar-ring: 213 59% 37%;
+
+  --shadow-2xs: 0px 2px 0px 0px rgba(0,0,0,0.2);
+  --shadow-xs: 0px 2px 0px 0px rgba(0,0,0,0.2);
+  --shadow-sm: 0px 2px 0px 0px rgba(0,0,0,0.2), 0px 1px 2px -1px rgba(0,0,0,0.2);
+  --shadow: 0px 2px 0px 0px rgba(0,0,0,0.2), 0px 1px 2px -1px rgba(0,0,0,0.2);
+  --shadow-md: 0px 2px 0px 0px rgba(0,0,0,0.2), 0px 2px 4px -1px rgba(0,0,0,0.2);
+  --shadow-lg: 0px 2px 0px 0px rgba(0,0,0,0.2), 0px 4px 6px -1px rgba(0,0,0,0.2);
+  --shadow-xl: 0px 2px 0px 0px rgba(0,0,0,0.2), 0px 8px 10px -1px rgba(0,0,0,0.2);
+  --shadow-2xl: 0px 2px 0px 0px rgba(0,0,0,0.2);
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply font-sans antialiased bg-background text-foreground;
+  }
+}
+
+/**
+ * Using the elevate system.
+ * Automatic contrast adjustment.
+ *
+ * <element className="hover-elevate" />
+ * <element className="active-elevate-2" />
+ *
+ * // Using the tailwind utility when a data attribute is "on"
+ * <element className="toggle-elevate data-[state=on]:toggle-elevated" />
+ * // Or manually controlling the toggle state
+ * <element className="toggle-elevate toggle-elevated" />
+ *
+ * Elevation systems have to handle many states.
+ * - not-hovered, vs. hovered vs. active  (three mutually exclusive states)
+ * - toggled or not
+ * - focused or not (this is not handled with these utilities)
+ *
+ * Even without handling focused or not, this is six possible combinations that
+ * need to be distinguished from eachother visually.
+ */
+@layer utilities {
+
+  /* Hide ugly search cancel button in Chrome until we can style it properly */
+  input[type="search"]::-webkit-search-cancel-button {
+    @apply hidden;
+  }
+
+  /* Placeholder styling for contentEditable div */
+  [contenteditable][data-placeholder]:empty::before {
+    content: attr(data-placeholder);
+    color: hsl(var(--muted-foreground));
+    pointer-events: none;
+  }
+
+  /* .no-default-hover-elevate/no-default-active-elevate is an escape hatch so consumers of
+   * buttons/badges can remove the automatic brightness adjustment on interactions
+   * and program their own. */
+  .no-default-hover-elevate {}
+
+  .no-default-active-elevate {}
+
+
+  /**
+   * Toggleable backgrounds go behind the content. Hoverable/active goes on top.
+   * This way they can stack/compound. Both will overlap the parent's borders!
+   * So borders will be automatically adjusted both on toggle, and hover/active,
+   * and they will be compounded.
+   */
+  .toggle-elevate::before,
+  .toggle-elevate-2::before {
+    content: "";
+    pointer-events: none;
+    position: absolute;
+    inset: 0px;
+    /*border-radius: inherit;   match rounded corners */
+    border-radius: inherit;
+    z-index: -1;
+    /* sits behind content but above backdrop */
+  }
+
+  .toggle-elevate.toggle-elevated::before {
+    background-color: var(--elevate-2);
+  }
+
+  /* If there's a 1px border, adjust the inset so that it covers that parent's border */
+  .border.toggle-elevate::before {
+    inset: -1px;
+  }
+
+  /* Does not work on elements with overflow:hidden! */
+  .hover-elevate:not(.no-default-hover-elevate),
+  .active-elevate:not(.no-default-active-elevate),
+  .hover-elevate-2:not(.no-default-hover-elevate),
+  .active-elevate-2:not(.no-default-active-elevate) {
+    position: relative;
+    z-index: 0;
+  }
+
+  .hover-elevate:not(.no-default-hover-elevate)::after,
+  .active-elevate:not(.no-default-active-elevate)::after,
+  .hover-elevate-2:not(.no-default-hover-elevate)::after,
+  .active-elevate-2:not(.no-default-active-elevate)::after {
+    content: "";
+    pointer-events: none;
+    position: absolute;
+    inset: 0px;
+    /*border-radius: inherit;   match rounded corners */
+    border-radius: inherit;
+    z-index: 999;
+    /* sits in front of content */
+  }
+
+  .hover-elevate:hover:not(.no-default-hover-elevate)::after,
+  .active-elevate:active:not(.no-default-active-elevate)::after {
+    background-color: var(--elevate-1);
+  }
+
+  .hover-elevate-2:hover:not(.no-default-hover-elevate)::after,
+  .active-elevate-2:active:not(.no-default-active-elevate)::after {
+    background-color: var(--elevate-2);
+  }
+
+  /* If there's a 1px border, adjust the inset so that it covers that parent's border */
+  .border.hover-elevate:not(.no-hover-interaction-elevate)::after,
+  .border.active-elevate:not(.no-active-interaction-elevate)::after,
+  .border.hover-elevate-2:not(.no-hover-interaction-elevate)::after,
+  .border.active-elevate-2:not(.no-active-interaction-elevate)::after,
+  .border.hover-elevate:not(.no-hover-interaction-elevate)::after {
+    inset: -1px;
+  }
+}
+
+======================================================================
+FILE: src/App.tsx
+======================================================================
+import { Switch, Route, Router as WouterRouter } from "wouter";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { Toaster } from "@/components/ui/toaster";
+import { TooltipProvider } from "@/components/ui/tooltip";
+import Home from "@/pages/home";
+import Services from "@/pages/services";
+import ServiceDetail from "@/pages/service-detail";
+import Jobs from "@/pages/jobs";
+import JobDetail from "@/pages/job-detail";
+import JobApply from "@/pages/job-apply";
+import About from "@/pages/about";
+import Contact from "@/pages/contact";
+import Referral from "@/pages/referral";
+import Feedback from "@/pages/feedback";
+import NotFound from "@/pages/not-found";
+
+const queryClient = new QueryClient({
+  defaultOptions: { queries: { retry: 1, staleTime: 30_000 } },
+});
+
+function App() {
+  return (
+    <QueryClientProvider client={queryClient}>
+      <TooltipProvider>
+        <WouterRouter base={import.meta.env.BASE_URL.replace(/\/$/, "")}>
+          <Switch>
+            <Route path="/" component={Home} />
+            <Route path="/services" component={Services} />
+            <Route path="/services/:slug" component={ServiceDetail} />
+            <Route path="/jobs" component={Jobs} />
+            <Route path="/jobs/:id/apply" component={JobApply} />
+            <Route path="/jobs/:id" component={JobDetail} />
+            <Route path="/about" component={About} />
+            <Route path="/contact" component={Contact} />
+            <Route path="/referral" component={Referral} />
+            <Route path="/feedback" component={Feedback} />
+            <Route component={NotFound} />
+          </Switch>
+        </WouterRouter>
+        <Toaster />
+      </TooltipProvider>
+    </QueryClientProvider>
+  );
+}
+
+export default App;
+
+
+======================================================================
+FILE: src/components/layout.tsx
+======================================================================
+import { useState, useEffect, useRef } from "react";
+import { Link, useLocation } from "wouter";
+import { motion, AnimatePresence } from "framer-motion";
+import { X, Menu, Phone, ChevronDown, ArrowRight } from "lucide-react";
+
+const SERVICES_MENU = [
+  {
+    href: "/services/short-visits",
+    name: "Short Visits",
+    desc: "Flexible care visits from one hour upwards, built around your daily routine.",
+    img: "/images/smeaton-108.jpg",
+  },
+  {
+    href: "/services/supported-living",
+    name: "Supported Living",
+    desc: "Helping adults live independently with exactly the right level of support.",
+    img: "/images/smeaton-131.jpg",
+  },
+  {
+    href: "/services/24-7-care",
+    name: "24/7 Care",
+    desc: "Round-the-clock care for people with complex, high-dependency needs.",
+    img: "/images/smeaton-117.jpg",
+  },
+  {
+    href: "/services/enabling",
+    name: "Enabling",
+    desc: "Building independence, not dependency — helping people achieve their own goals.",
+    img: "/images/smeaton-124.jpg",
+  },
+  {
+    href: "/services/respite-care",
+    name: "Respite Care",
+    desc: "Short-term relief for family carers, delivered by our trusted team.",
+    img: "/images/smeaton-131.jpg",
+  },
+];
+
+const OTHER_NAV = [
+  { href: "/about", label: "About Us" },
+  { href: "/jobs", label: "Careers" },
+  { href: "/contact", label: "Contact" },
+];
+
+export function Navbar() {
+  const [mobileOpen, setMobileOpen] = useState(false);
+  const [servicesOpen, setServicesOpen] = useState(false);
+  const [location] = useLocation();
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    setMobileOpen(false);
+    setServicesOpen(false);
+  }, [location]);
+
+  useEffect(() => {
+    document.body.style.overflow = mobileOpen ? "hidden" : "";
+    return () => { document.body.style.overflow = ""; };
+  }, [mobileOpen]);
+
+  useEffect(() => {
+    function handleClick(e: MouseEvent) {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
+        setServicesOpen(false);
+      }
+    }
+    if (servicesOpen) document.addEventListener("mousedown", handleClick);
+    return () => document.removeEventListener("mousedown", handleClick);
+  }, [servicesOpen]);
+
+  return (
+    <>
+      <header
+        className="fixed left-0 right-0 top-0 z-40"
+        style={{ backgroundColor: "white", boxShadow: "0 1px 0 rgba(0,0,0,0.07)" }}
+        ref={dropdownRef}
+      >
+        <div className="px-12 sm:px-20 h-[80px] sm:h-[96px] flex items-center justify-between gap-8">
+
+          {/* LEFT — logo */}
+          <Link href="/" data-testid="nav-logo" className="shrink-0">
+            <img
+              src="https://www.smeatonhealthcare.co.uk/assets/logo-B4_I79mo.png"
+              alt="Smeaton Healthcare"
+              style={{ width: "185px", height: "auto" }}
+            />
+          </Link>
+
+          {/* RIGHT — nav links + phone + CTA */}
+          <div className="hidden lg:flex items-center gap-7 ml-auto">
+
+            {/* Our Services — mega dropdown trigger */}
+            <button
+              onClick={() => setServicesOpen(!servicesOpen)}
+              className="flex items-center gap-1 text-sm font-semibold transition-colors duration-200"
+              style={{ color: servicesOpen ? "#EF2A86" : "#05163D" }}
+              data-testid="nav-services-trigger"
+            >
+              Our Services
+              <motion.span animate={{ rotate: servicesOpen ? 180 : 0 }} transition={{ duration: 0.2 }}>
+                <ChevronDown size={14} strokeWidth={2.5} />
+              </motion.span>
+            </button>
+
+            {OTHER_NAV.map((l) => (
+              <Link
+                key={l.href}
+                href={l.href}
+                className="text-sm font-semibold text-[#05163D] hover:text-[#EF2A86] transition-colors duration-200"
+                data-testid={`nav-${l.label.split(" ")[0].toLowerCase()}`}
+              >
+                {l.label}
+              </Link>
+            ))}
+
+            <a
+              href="tel:03301658880"
+              className="text-sm font-bold flex items-center gap-1.5 hover:text-[#EF2A86] transition-colors"
+              style={{ color: "#265597" }}
+            >
+              <Phone size={14} />
+              0330 165 8880
+            </a>
+            <Link
+              href="/referral"
+              className="px-5 py-2.5 text-sm font-bold rounded-lg text-white transition-all hover:opacity-90 hover:scale-105"
+              style={{ backgroundColor: "#EF2A86", boxShadow: "0 4px 16px rgba(239,42,134,0.35)" }}
+              data-testid="nav-referral-cta"
+            >
+              Free Assessment
+            </Link>
+          </div>
+
+          {/* Mobile toggle */}
+          <button
+            onClick={() => setMobileOpen(!mobileOpen)}
+            className="lg:hidden p-2 text-[#05163D]"
+            aria-label="Toggle menu"
+            data-testid="mobile-menu-toggle"
+          >
+            {mobileOpen ? <X size={24} /> : <Menu size={24} />}
+          </button>
+        </div>
+
+        {/* Mega dropdown panel */}
+        <AnimatePresence>
+          {servicesOpen && (
+            <motion.div
+              initial={{ opacity: 0, y: -8 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -8 }}
+              transition={{ duration: 0.22, ease: "easeOut" }}
+              className="absolute left-0 right-0 border-t"
+              style={{
+                backgroundColor: "white",
+                borderColor: "rgba(0,0,0,0.06)",
+                boxShadow: "0 24px 48px rgba(5,22,61,0.14)",
+              }}
+            >
+              <div className="max-w-7xl mx-auto px-12 sm:px-20 py-10 flex gap-12">
+
+                {/* Left intro column */}
+                <div className="w-56 shrink-0 flex flex-col justify-between">
+                  <div>
+                    <p className="text-xs font-bold tracking-widest uppercase mb-3" style={{ color: "#EF2A86" }}>
+                      Our Services
+                    </p>
+                    <h3 className="text-xl font-extrabold leading-snug mb-3" style={{ color: "#05163D" }}>
+                      Care that fits your life
+                    </h3>
+                    <p className="text-sm text-gray-500 leading-relaxed">
+                      Five specialist services, designed around the individual — not a one-size-fits-all package.
+                    </p>
+                  </div>
+                  <Link
+                    href="/services"
+                    className="inline-flex items-center gap-1.5 text-sm font-bold mt-8 hover:gap-2.5 transition-all"
+                    style={{ color: "#EF2A86" }}
+                  >
+                    View all services <ArrowRight size={14} />
+                  </Link>
+                </div>
+
+                {/* Divider */}
+                <div className="w-px shrink-0" style={{ backgroundColor: "rgba(0,0,0,0.07)" }} />
+
+                {/* Service cards grid */}
+                <div className="flex-1 grid grid-cols-3 gap-5">
+                  {SERVICES_MENU.map((s, i) => (
+                    <Link
+                      key={s.href}
+                      href={s.href}
+                      className="group flex flex-col rounded-xl overflow-hidden border hover:border-[#EF2A86] transition-all duration-200"
+                      style={{ borderColor: "rgba(0,0,0,0.08)" }}
+                    >
+                      <div className="relative overflow-hidden" style={{ height: "110px" }}>
+                        <img
+                          src={s.img}
+                          alt={s.name}
+                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                        />
+                        <div
+                          className="absolute inset-0"
+                          style={{ background: "linear-gradient(to top, rgba(5,22,61,0.35) 0%, transparent 60%)" }}
+                        />
+                      </div>
+                      <div className="p-4 flex flex-col gap-1.5 flex-1">
+                        <p className="text-sm font-bold" style={{ color: i % 2 === 0 ? "#EF2A86" : "#265597" }}>
+                          {s.name}
+                        </p>
+                        <p className="text-xs text-gray-500 leading-relaxed">{s.desc}</p>
+                      </div>
+                    </Link>
+                  ))}
+                </div>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </header>
+
+      {/* Mobile drawer */}
+      <AnimatePresence>
+        {mobileOpen && (
+          <motion.div
+            className="fixed inset-0 z-40 flex flex-col"
+            style={{ backgroundColor: "#05163D" }}
+            initial={{ x: "100%" }}
+            animate={{ x: 0 }}
+            exit={{ x: "100%" }}
+            transition={{ type: "tween", duration: 0.3, ease: "easeInOut" }}
+          >
+            <div className="flex items-center justify-between px-5 h-[72px] sm:h-[84px] border-b border-white/10">
+              <img
+                src="https://www.smeatonhealthcare.co.uk/assets/logo-B4_I79mo.png"
+                alt="Smeaton Healthcare"
+                className="h-12 w-auto"
+                style={{ filter: "brightness(0) invert(1)" }}
+              />
+              <button onClick={() => setMobileOpen(false)} className="p-2 text-white" aria-label="Close menu">
+                <X size={24} />
+              </button>
+            </div>
+            <div className="flex-1 flex flex-col justify-center px-8">
+              <div className="space-y-1">
+                <Link href="/" className="block text-3xl font-bold text-white py-4 border-b border-white/10 hover:text-[#EF2A86] transition-colors" data-testid="mobile-nav-home">Home</Link>
+                <Link href="/services" className="block text-3xl font-bold text-white py-4 border-b border-white/10 hover:text-[#EF2A86] transition-colors" data-testid="mobile-nav-our">Our Services</Link>
+                {OTHER_NAV.map((l) => (
+                  <Link
+                    key={l.href}
+                    href={l.href}
+                    className="block text-3xl font-bold text-white py-4 border-b border-white/10 hover:text-[#EF2A86] transition-colors"
+                    data-testid={`mobile-nav-${l.label.split(" ")[0].toLowerCase()}`}
+                  >
+                    {l.label}
+                  </Link>
+                ))}
+              </div>
+              <div className="mt-10 flex flex-col gap-4">
+                <Link
+                  href="/referral"
+                  className="w-full py-4 text-center text-lg font-bold text-white rounded-xl"
+                  style={{ backgroundColor: "#EF2A86" }}
+                  data-testid="mobile-nav-referral"
+                >
+                  Request a Free Assessment
+                </Link>
+                <a href="tel:03301658880" className="flex items-center justify-center gap-2 py-3 text-white/60 text-base">
+                  <Phone size={16} /> 0330 165 8880
+                </a>
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </>
+  );
+}
+
+export function Footer() {
+  return (
+    <footer style={{ backgroundColor: "#05163D" }} className="text-white">
+      <div className="max-w-7xl mx-auto px-5 sm:px-8 py-14">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10">
+          <div className="lg:col-span-2">
+            <img
+              src="https://www.smeatonhealthcare.co.uk/assets/logo-B4_I79mo.png"
+              alt="Smeaton Healthcare"
+              className="h-12 w-auto mb-4"
+              style={{ filter: "brightness(0) invert(1)" }}
+            />
+            <p className="text-white/60 text-sm leading-relaxed max-w-xs mb-5">
+              Home care you can trust, delivered by people who care — across Devon &amp; Cornwall since 2019.
+            </p>
+            <a href="tel:03301658880" className="inline-flex items-center gap-2 text-white font-bold text-base hover:text-[#EF2A86] transition-colors">
+              <Phone size={16} /> 0330 165 8880
+            </a>
+          </div>
+
+          <div>
+            <p className="text-xs font-bold tracking-widest text-white/30 uppercase mb-4">Services</p>
+            <ul className="space-y-2.5">
+              {[
+                { href: "/services/short-visits", label: "Short Visits" },
+                { href: "/services/supported-living", label: "Supported Living" },
+                { href: "/services/24-7-care", label: "24/7 Care" },
+                { href: "/services/enabling", label: "Enabling" },
+                { href: "/services/respite-care", label: "Respite Care" },
+              ].map((s) => (
+                <li key={s.href}><Link href={s.href} className="text-white/50 hover:text-white text-sm transition-colors">{s.label}</Link></li>
+              ))}
+            </ul>
+          </div>
+
+          <div>
+            <p className="text-xs font-bold tracking-widest text-white/30 uppercase mb-4">Company</p>
+            <ul className="space-y-2.5">
+              {[
+                { href: "/about", label: "About Us" },
+                { href: "/referral", label: "Request Care" },
+                { href: "/jobs", label: "Careers" },
+                { href: "/feedback", label: "Leave Feedback" },
+                { href: "/contact", label: "Contact" },
+              ].map((l) => (
+                <li key={l.href}><Link href={l.href} className="text-white/50 hover:text-white text-sm transition-colors">{l.label}</Link></li>
+              ))}
+            </ul>
+          </div>
+        </div>
+
+        <div className="mt-12 pt-8 border-t border-white/10 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+          <p className="text-white/30 text-sm">© {new Date().getFullYear()} Smeaton Healthcare Ltd. All rights reserved.</p>
+          <p className="text-white/30 text-xs">CQC Rated Good — Plymouth (April 2022) &amp; Cornwall (January 2022)</p>
+        </div>
+      </div>
+    </footer>
+  );
+}
+
+export function Layout({ children }: { children: React.ReactNode }) {
+  return (
+    <>
+      <Navbar />
+      <main>{children}</main>
+      <Footer />
+    </>
+  );
+}
+
+
+======================================================================
+FILE: src/pages/home.tsx
+======================================================================
+import { useRef, useEffect } from "react";
+import { Link } from "wouter";
+import { motion, useInView } from "framer-motion";
+import { ArrowRight, CheckCircle2, Phone, ShieldCheck, Award, Clock, Heart } from "lucide-react";
+import { Layout } from "@/components/layout";
+
+const SCRIPT = { fontFamily: "'Dancing Script', cursive" };
+const CREAM = "#FDF7F0";
+
+const P108 = "/images/smeaton-108.jpg";
+const P124 = "/images/smeaton-124.jpg";
+const P117 = "/images/smeaton-117.jpg";
+const P131 = "/images/smeaton-131.jpg";
+
+const SERVICES = [
+  { num: "01", name: "Short Visits", slug: "short-visits", desc: "Personal care, medication, meals and companionship — built around your day, not ours.", color: "#EF2A86" },
+  { num: "02", name: "Supported Living", slug: "supported-living", desc: "Specialist support helping adults live independently and confidently.", color: "#265597" },
+  { num: "03", name: "24/7 Care", slug: "24-7-care", desc: "Around-the-clock care for complex needs — consistent, trained, reliable.", color: "#EF2A86" },
+  { num: "04", name: "Enabling", slug: "enabling", desc: "Building independence rather than dependency. Care that empowers.", color: "#265597" },
+  { num: "05", name: "Respite Care", slug: "respite-care", desc: "Trusted short-term cover so family carers can rest and recharge.", color: "#EF2A86" },
+];
+
+const TESTIMONIALS = [
+  { quote: "The carers from Smeaton are wonderful — Mum knows them by name and actually looks forward to their visits.", name: "Sarah T.", relation: "Daughter of service user, Plymouth" },
+  { quote: "After years of struggling on my own, having the right support has genuinely given me my life back.", name: "Brian M.", relation: "Service user, Cornwall" },
+  { quote: "We tried another agency first. The difference with Smeaton was immediate — consistent carers, real warmth.", name: "Rachel K.", relation: "Family carer, Devon" },
+];
+
+const COVERAGE = ["Plymouth","Saltash","Liskeard","Tavistock","Ivybridge","Kingsbridge","Totnes","Truro","Falmouth","Penzance","Newquay","Bodmin","Camborne","Redruth","St Austell","Wadebridge","Launceston","Helston","Hayle","St Ives"];
+
+
+function FadeIn({ children, delay = 0, className = "" }: { children: React.ReactNode; delay?: number; className?: string }) {
+  const ref = useRef(null);
+  const inView = useInView(ref, { once: true, margin: "-50px" });
+  return (
+    <motion.div ref={ref} initial={{ opacity: 0, y: 28 }} animate={inView ? { opacity: 1, y: 0 } : {}}
+      transition={{ duration: 0.65, delay, ease: [0.22, 1, 0.36, 1] }} className={className}>
+      {children}
+    </motion.div>
+  );
+}
+
+function Ticker() {
+  return (
+    <div style={{ backgroundColor: "#EF2A86", padding: "15px 0" }}>
+      <div className="pl-16 sm:pl-24 pr-5 flex items-center justify-start flex-nowrap gap-x-7 sm:gap-x-9">
+
+        {/* Google Reviews */}
+        <span className="inline-flex items-center gap-2 shrink-0">
+          <img src="/images/google-logo.png" alt="Google" style={{ height: 17, width: "auto", filter: "brightness(0) invert(1)" }} />
+          <span className="text-yellow-200 text-sm leading-none">★★★★★</span>
+          <span className="text-white font-bold text-sm">4.9</span>
+        </span>
+
+        <span className="text-white/30 shrink-0 text-base">|</span>
+
+        {/* Trustpilot */}
+        <span className="inline-flex items-center gap-2 shrink-0">
+          <img src="/images/trustpilot-white.svg" alt="Trustpilot" style={{ height: 20, width: "auto" }} />
+          <span className="text-white/90 text-sm font-medium hidden xs:inline">Rated Excellent</span>
+        </span>
+
+        <span className="text-white/30 shrink-0 text-base">|</span>
+
+        {/* Care within 24 hours — sm+ only */}
+        <span className="hidden sm:inline-flex items-center gap-2 shrink-0">
+          <span className="text-white/90 text-sm font-medium whitespace-nowrap">♥ Care within 24 hours</span>
+        </span>
+
+        <span className="text-white/30 hidden sm:inline shrink-0 text-base">|</span>
+
+        {/* CQC — desktop only */}
+        <span className="hidden sm:inline-flex items-center gap-2 shrink-0">
+          <img src="/images/cqc-logo.svg" alt="CQC" style={{ height: 19, width: "auto" }} />
+          <span className="text-white/90 text-sm font-medium">Rated Good</span>
+        </span>
+
+        <span className="text-white/30 hidden sm:inline shrink-0 text-base">|</span>
+
+        {/* NHS — desktop only */}
+        <span className="hidden sm:inline-flex items-center gap-2 shrink-0">
+          <span className="bg-white text-xs font-black px-2 py-0.5 rounded" style={{ color: "#005EB8" }}>NHS</span>
+          <span className="text-white/90 text-sm font-medium">Approved Provider</span>
+        </span>
+
+        <span className="text-white/30 hidden sm:inline shrink-0 text-base">|</span>
+
+        {/* Competitive rates — desktop only */}
+        <span className="hidden sm:inline-flex items-center gap-2 shrink-0">
+          <span className="text-white/90 text-sm font-medium whitespace-nowrap">★ Competitive rates</span>
+        </span>
+
+      </div>
+    </div>
+  );
+}
+
+export default function Home() {
+  useEffect(() => { document.title = "Home Care Devon & Cornwall | Smeaton Healthcare | CQC Rated Good"; }, []);
+
+  return (
+    <Layout>
+      {/* ═══════════════════════════════════════════
+          HERO — split: cream text left, photo right
+      ═══════════════════════════════════════════ */}
+      {/* Trust ticker — sits directly below the navbar, home page only */}
+      <div style={{ paddingTop: "96px" }}>
+        <Ticker />
+      </div>
+
+      <section className="relative overflow-hidden" style={{ backgroundColor: CREAM, minHeight: "92vh" }}>
+
+
+        <div className="grid grid-cols-1 lg:grid-cols-[55%_45%]" style={{ minHeight: "88vh" }}>
+
+          {/* LEFT — cream bg, navy text */}
+          <div className="flex flex-col justify-start pt-14 sm:pt-20 pb-16 pl-16 sm:pl-24 pr-8">
+            <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}
+              className="inline-flex items-center gap-2 self-start rounded-full px-4 py-1.5 mb-10"
+              style={{ backgroundColor: "#EF2A8618" }}>
+              <ShieldCheck size={13} style={{ color: "#EF2A86" }} />
+              <span className="text-xs font-bold tracking-widest uppercase" style={{ color: "#EF2A86" }}>CQC Rated Good · Since 2019</span>
+            </motion.div>
+
+            {/* "Home care that" — all on ONE line, navy */}
+            <motion.span initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.7, delay: 0.1, ease: [0.22, 1, 0.36, 1] }}
+              className="block font-extrabold leading-[0.92] tracking-tight whitespace-nowrap"
+              style={{ fontSize: "clamp(28px, 3.8vw, 58px)", color: "#265597" }}>
+              Home care that
+            </motion.span>
+
+            {/* Script line — pink */}
+            <motion.span initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8, delay: 0.2, ease: [0.22, 1, 0.36, 1] }}
+              className="block leading-[1.05]"
+              style={{ ...SCRIPT, fontSize: "clamp(40px, 5.2vw, 80px)", color: "#EF2A86" }}>
+              feels like it should.
+            </motion.span>
+
+            <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.6, delay: 0.38 }}
+              className="text-gray-500 text-base sm:text-lg leading-relaxed max-w-sm mt-7 mb-10">
+              Trusted by families across Devon &amp; Cornwall since 2019. CQC-rated Good, NHS approved.
+            </motion.p>
+
+            <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.48 }}
+              className="flex flex-col sm:flex-row gap-3 mb-10">
+              <Link href="/referral"
+                className="inline-flex items-center justify-center gap-2 px-7 py-4 text-white font-bold rounded-xl transition-all hover:scale-105"
+                style={{ backgroundColor: "#EF2A86", boxShadow: "0 12px 40px rgba(239,42,134,0.35)" }}
+                data-testid="hero-referral-cta">
+                Free Assessment <ArrowRight size={17} />
+              </Link>
+              <a href="tel:03301658880"
+                className="inline-flex items-center justify-center gap-2 px-7 py-4 font-semibold rounded-xl text-[#05163D] transition-all hover:bg-black/5 border-2 border-[#05163D]/15">
+                <Phone size={16} /> 0330 165 8880
+              </a>
+            </motion.div>
+
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.64 }}
+              className="flex flex-wrap gap-6 pt-8 border-t border-black/08">
+              {[{ icon: ShieldCheck, t: "CQC Rated Good" }, { icon: Award, t: "NHS Approved" }, { icon: Clock, t: "Est. 2019" }].map(({ icon: Icon, t }) => (
+                <span key={t} className="flex items-center gap-2 text-xs font-bold text-gray-400 uppercase tracking-wider">
+                  <Icon size={14} style={{ color: "#EF2A86" }} /> {t}
+                </span>
+              ))}
+            </motion.div>
+          </div>
+
+          {/* RIGHT — full-bleed branded photo, blending into cream on the left edge */}
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.9, delay: 0.1 }}
+            className="hidden lg:block relative" style={{ marginLeft: "-80px" }}>
+            <img src={P124} alt="Smeaton carer and client gardening" className="absolute inset-0 w-full h-full object-cover" />
+            {/* Gradient fade — covers the seam and blends photo into cream */}
+            <div className="absolute inset-0 pointer-events-none"
+              style={{ background: `linear-gradient(to right, ${CREAM} 0%, transparent 22%)` }} />
+            {/* Floating CQC card */}
+            <div className="absolute bottom-6 right-6 bg-white rounded-2xl px-5 py-4 shadow-2xl">
+              <div className="flex gap-0.5 mb-1.5">
+                {[...Array(5)].map((_, i) => <svg key={i} width="12" height="12" viewBox="0 0 24 24" fill="#EF2A86"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" /></svg>)}
+              </div>
+              <p className="text-xs font-extrabold text-[#05163D]">CQC Rated Good</p>
+              <p className="text-xs text-gray-400 mt-0.5">Plymouth &amp; Cornwall</p>
+            </div>
+          </motion.div>
+        </div>
+      </section>
+
+      {/* ═══════════════════════════════════════════
+          ABOUT — cream bg
+      ═══════════════════════════════════════════ */}
+      <section style={{ backgroundColor: "white" }} className="py-20 sm:py-28">
+        <div className="max-w-7xl mx-auto px-5 sm:px-8">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 lg:gap-24 items-center">
+            <FadeIn>
+              <p className="text-xs font-bold tracking-widest text-[#EF2A86] uppercase mb-5">Who we are</p>
+              <h2 className="text-4xl sm:text-5xl font-extrabold text-[#05163D] leading-tight mb-2 tracking-tight">Your family deserves</h2>
+              <div className="mb-8" style={{ ...SCRIPT, fontSize: "clamp(2rem, 4vw, 3.2rem)", color: "#EF2A86", lineHeight: 1.1 }}>
+                more than a rota and a stranger.
+              </div>
+              <p className="text-gray-500 text-base leading-relaxed mb-6">
+                When you're looking for care for someone you love, you're not looking for ticked boxes. You're looking for people you can trust — who will show up, every time, and treat your family member like a person, not a task. That's what we've built since 2019.
+              </p>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 mb-8">
+                {["Consistent carers — familiar faces", "CQC Rated Good — both offices", "No waiting lists for private clients", "Transparent pricing — no surprises"].map((item) => (
+                  <span key={item} className="flex items-start gap-2 text-sm text-gray-600">
+                    <CheckCircle2 size={14} style={{ color: "#EF2A86" }} className="shrink-0 mt-0.5" /> {item}
+                  </span>
+                ))}
+              </div>
+              <Link href="/about" className="inline-flex items-center gap-2 text-sm font-bold text-[#05163D] border-b-2 border-[#EF2A86] pb-0.5 hover:gap-3 transition-all" data-testid="home-about-link">
+                Our story <ArrowRight size={15} />
+              </Link>
+            </FadeIn>
+
+            <FadeIn delay={0.1}>
+              <div className="relative">
+                <div className="rounded-3xl overflow-hidden aspect-[3/4] shadow-2xl">
+                  <img src={P131} alt="Smeaton carer supporting client in garden" className="w-full h-full object-cover" />
+                </div>
+                <div className="absolute -bottom-5 -left-5 bg-white rounded-2xl p-5 shadow-xl border border-gray-100">
+                  <div className="text-3xl font-extrabold text-[#05163D] mb-0.5">Since 2019</div>
+                  <div className="text-sm text-gray-400">Serving Devon &amp; Cornwall</div>
+                </div>
+                <div className="absolute -top-4 -right-4 w-20 h-20 rounded-2xl flex flex-col items-center justify-center text-white" style={{ backgroundColor: "#EF2A86" }}>
+                  <div className="text-2xl font-extrabold leading-none">7+</div>
+                  <div className="text-xs font-semibold opacity-80">Years</div>
+                </div>
+              </div>
+            </FadeIn>
+          </div>
+        </div>
+      </section>
+
+      {/* ═══════════════════════════════════════════
+          SERVICES — white
+      ═══════════════════════════════════════════ */}
+      <section className="bg-white py-20 sm:py-28">
+        <div className="max-w-7xl mx-auto px-5 sm:px-8">
+          <FadeIn className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-14">
+            <div>
+              <p className="text-xs font-bold tracking-widest text-[#EF2A86] uppercase mb-3">What we offer</p>
+              <h2 className="text-4xl sm:text-5xl font-extrabold text-[#05163D] tracking-tight">Five ways we</h2>
+              <div style={{ ...SCRIPT, fontSize: "clamp(2.5rem, 5vw, 3.8rem)", color: "#EF2A86" }}>can help.</div>
+            </div>
+            <Link href="/services" className="flex items-center gap-2 text-sm font-bold text-[#05163D] border-b-2 border-[#05163D]/15 pb-0.5 hover:gap-3 transition-all shrink-0" data-testid="home-all-services-link">
+              All services <ArrowRight size={15} />
+            </Link>
+          </FadeIn>
+
+          <div className="space-y-1">
+            {SERVICES.map((s, i) => (
+              <FadeIn key={s.slug} delay={i * 0.06}>
+                <Link href={`/services/${s.slug}`}
+                  className="group flex items-center gap-6 sm:gap-10 py-5 px-6 sm:px-8 rounded-2xl transition-all hover:shadow-md"
+                  style={{ backgroundColor: CREAM }}
+                  data-testid={`service-row-${s.slug}`}>
+                  <span className="text-4xl sm:text-5xl font-bold shrink-0 w-14 text-right leading-none"
+                    style={{ ...SCRIPT, color: s.color, opacity: 0.45 }}>{s.num}</span>
+                  <div className="flex-1 min-w-0">
+                    <h3 className="text-lg sm:text-xl font-extrabold text-[#05163D] group-hover:text-[#265597] transition-colors mb-1 tracking-tight">{s.name}</h3>
+                    <p className="text-gray-400 text-sm leading-relaxed">{s.desc}</p>
+                  </div>
+                  <ArrowRight size={16} className="hidden sm:block transition-all group-hover:translate-x-1 text-gray-300 group-hover:text-[#EF2A86] shrink-0" />
+                </Link>
+              </FadeIn>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ═══════════════════════════════════════════
+          FULL-BLEED PHOTO QUOTE
+      ═══════════════════════════════════════════ */}
+      <section className="relative overflow-hidden" style={{ minHeight: "520px" }}>
+        <div className="absolute inset-0">
+          <img src={P108} alt="Smeaton carer with client" className="w-full h-full object-cover object-top" />
+          <div className="absolute inset-0" style={{ background: "linear-gradient(135deg, rgba(5,22,61,0.88) 0%, rgba(5,22,61,0.5) 60%, transparent 100%)" }} />
+        </div>
+        <div className="relative max-w-7xl mx-auto px-5 sm:px-8 py-24 sm:py-32 flex items-end" style={{ minHeight: "520px" }}>
+          <FadeIn>
+            <div className="max-w-2xl">
+              <div className="text-[90px] select-none mb-1"
+                style={{ color: "rgba(239,42,134,0.4)", fontFamily: "Georgia, serif", lineHeight: 0.7, fontWeight: 700 }}>"</div>
+              <p className="text-2xl sm:text-3xl font-bold text-white leading-snug mb-6 italic">
+                "The carers from Smeaton are wonderful — Mum knows them by name and actually looks forward to their visits. That means everything."
+              </p>
+              <p className="text-white/60 font-semibold text-sm">Sarah T. · Daughter of service user, Plymouth</p>
+            </div>
+          </FadeIn>
+        </div>
+      </section>
+
+      {/* ═══════════════════════════════════════════
+          PRIVATE CLIENTS — cream
+      ═══════════════════════════════════════════ */}
+      <section style={{ backgroundColor: CREAM }} className="py-20 sm:py-28">
+        <div className="max-w-7xl mx-auto px-5 sm:px-8">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 lg:gap-24 items-center">
+            <FadeIn>
+              <p className="text-xs font-bold tracking-widest text-[#EF2A86] uppercase mb-5">Self-funded care</p>
+              <h2 className="text-4xl sm:text-5xl font-extrabold text-[#05163D] leading-tight mb-2 tracking-tight">Funding your own</h2>
+              <div className="mb-8" style={{ ...SCRIPT, fontSize: "clamp(2rem, 4vw, 3.2rem)", color: "#EF2A86", lineHeight: 1.1 }}>
+                care, your way.
+              </div>
+              <p className="text-gray-500 text-base leading-relaxed mb-8">
+                Many families choose to fund care privately — no waiting lists, no rigid rotas. We welcome private clients and can usually begin within days of your assessment.
+              </p>
+              <div className="grid grid-cols-2 gap-3 mb-10">
+                {[
+                  { num: "No", label: "waiting lists" },
+                  { num: "Same", label: "carers every visit" },
+                  { num: "Your", label: "hours, your routine" },
+                  { num: "Clear", label: "transparent pricing" },
+                ].map((s) => (
+                  <div key={s.label} className="flex items-center gap-4 p-4 rounded-xl bg-white">
+                    <div className="text-lg font-extrabold" style={{ color: "#EF2A86" }}>{s.num}</div>
+                    <div className="text-sm font-semibold text-[#05163D]">{s.label}</div>
+                  </div>
+                ))}
+              </div>
+              <Link href="/referral"
+                className="inline-flex items-center gap-2 px-7 py-4 text-white font-bold rounded-xl hover:scale-105 transition-all"
+                style={{ backgroundColor: "#EF2A86", boxShadow: "0 12px 40px rgba(239,42,134,0.28)" }}
+                data-testid="home-private-cta">
+                Talk to us about your options <ArrowRight size={16} />
+              </Link>
+            </FadeIn>
+
+            <FadeIn delay={0.1}>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="col-span-2 rounded-3xl overflow-hidden shadow-md" style={{ aspectRatio: "16/8" }}>
+                  <img src={P117} alt="Smeaton carer arriving at client home" className="w-full h-full object-cover object-top" />
+                </div>
+                <div className="rounded-2xl p-7 text-white text-center" style={{ backgroundColor: "#EF2A86" }}>
+                  <div className="text-4xl font-extrabold mb-1">Good</div>
+                  <div className="text-xs text-white/70 font-bold uppercase tracking-widest">CQC Rating</div>
+                </div>
+                <div className="rounded-2xl p-7 text-center bg-white">
+                  <div className="text-4xl font-extrabold text-[#05163D] mb-1">7+</div>
+                  <div className="text-xs text-gray-400 font-bold uppercase tracking-widest">Years</div>
+                </div>
+              </div>
+            </FadeIn>
+          </div>
+        </div>
+      </section>
+
+      {/* ═══════════════════════════════════════════
+          TESTIMONIALS — white
+      ═══════════════════════════════════════════ */}
+      <section className="bg-white py-20 sm:py-28">
+        <div className="max-w-7xl mx-auto px-5 sm:px-8">
+          <FadeIn className="mb-14">
+            <p className="text-xs font-bold tracking-widest text-[#EF2A86] uppercase mb-3">In their own words</p>
+            <h2 className="text-4xl sm:text-5xl font-extrabold text-[#05163D] tracking-tight">Real people.</h2>
+            <div style={{ ...SCRIPT, fontSize: "clamp(2.5rem, 5vw, 3.8rem)", color: "#265597" }}>Real stories.</div>
+          </FadeIn>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+            {TESTIMONIALS.map((t, i) => (
+              <FadeIn key={i} delay={i * 0.08}>
+                <div className={`rounded-3xl p-8 h-full flex flex-col ${i === 1 ? "bg-[#05163D]" : ""}`}
+                  style={i !== 1 ? { backgroundColor: CREAM, border: "2px solid rgba(0,0,0,0.04)" } : {}}>
+                  <div className="text-[80px] leading-none select-none"
+                    style={{ color: i === 1 ? "rgba(239,42,134,0.2)" : "rgba(239,42,134,0.12)", fontFamily: "Georgia, serif", lineHeight: 0.75 }}>"</div>
+                  <p className={`text-base leading-relaxed flex-1 italic mt-4 ${i === 1 ? "text-white/80" : "text-gray-600"}`}>{t.quote}</p>
+                  <div className={`mt-6 pt-5 border-t ${i === 1 ? "border-white/10" : "border-black/06"}`}>
+                    <p className={`text-sm font-extrabold ${i === 1 ? "text-white" : "text-[#05163D]"}`}>{t.name}</p>
+                    <p className={`text-xs mt-0.5 ${i === 1 ? "text-white/40" : "text-gray-400"}`}>{t.relation}</p>
+                  </div>
+                </div>
+              </FadeIn>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ═══════════════════════════════════════════
+          COVERAGE — cream
+      ═══════════════════════════════════════════ */}
+      <section style={{ backgroundColor: CREAM }} className="py-16 sm:py-20">
+        <div className="max-w-7xl mx-auto px-5 sm:px-8">
+          <FadeIn className="grid grid-cols-1 lg:grid-cols-3 gap-12 items-start">
+            <div>
+              <p className="text-xs font-bold tracking-widest text-[#EF2A86] uppercase mb-3">Where we work</p>
+              <h2 className="text-3xl font-extrabold text-[#05163D] tracking-tight mb-1">Home care across</h2>
+              <div style={{ ...SCRIPT, fontSize: "clamp(2rem, 4vw, 3rem)", color: "#265597" }}>Devon &amp; Cornwall</div>
+              <p className="text-gray-400 text-sm leading-relaxed mt-4">
+                Don't see your town? <a href="tel:03301658880" className="font-bold hover:underline" style={{ color: "#EF2A86" }}>Call us</a> — we're always expanding.
+              </p>
+            </div>
+            <div className="lg:col-span-2 flex flex-wrap gap-2">
+              {COVERAGE.map((town) => (
+                <span key={town} className="px-4 py-2 rounded-full text-sm font-semibold text-[#05163D] border-2 border-[#05163D]/10 hover:border-[#EF2A86] hover:text-[#EF2A86] cursor-default transition-all bg-white">
+                  {town}
+                </span>
+              ))}
+            </div>
+          </FadeIn>
+        </div>
+      </section>
+
+      {/* ═══════════════════════════════════════════
+          FINAL CTA — pink
+      ═══════════════════════════════════════════ */}
+      <section className="relative overflow-hidden py-24" style={{ backgroundColor: "#EF2A86" }}>
+        <div className="absolute inset-0 flex items-center justify-center pointer-events-none overflow-hidden select-none">
+          <span className="text-[180px] font-extrabold text-white opacity-[0.05] leading-none tracking-tight whitespace-nowrap">Smeaton</span>
+        </div>
+        <div className="absolute -top-16 -right-16 w-72 h-72 rounded-full bg-white opacity-[0.06] pointer-events-none" />
+        <div className="relative max-w-4xl mx-auto px-5 sm:px-8 text-center">
+          <FadeIn>
+            <div className="inline-flex items-center gap-2 mb-8 rounded-full px-4 py-1.5 bg-white/10">
+              <Heart size={13} className="text-white" />
+              <span className="text-xs font-bold tracking-widest uppercase text-white/80">Family-focused home care</span>
+            </div>
+            <h2 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold text-white mb-2 tracking-tight">Ready to talk?</h2>
+            <div className="mb-8" style={{ ...SCRIPT, fontSize: "clamp(2.8rem, 6vw, 5rem)", color: "rgba(255,255,255,0.9)" }}>We'd love to help.</div>
+            <p className="text-white/75 mb-12 text-lg leading-relaxed max-w-xl mx-auto">
+              Call us or request a free home assessment. No pressure. No obligation. Just an honest conversation about what you need.
+            </p>
+            <div className="flex flex-col sm:flex-row justify-center gap-4">
+              <Link href="/referral"
+                className="inline-flex items-center justify-center gap-2 px-9 py-5 font-extrabold text-lg rounded-xl bg-white hover:scale-105 transition-all"
+                style={{ color: "#EF2A86" }}
+                data-testid="home-referral-cta">
+                Request a Free Assessment <ArrowRight size={18} />
+              </Link>
+              <a href="tel:03301658880"
+                className="inline-flex items-center justify-center gap-2 px-9 py-5 font-extrabold text-lg rounded-xl text-white hover:bg-white/15 transition-all"
+                style={{ border: "2px solid rgba(255,255,255,0.4)" }}>
+                <Phone size={18} /> 0330 165 8880
+              </a>
+            </div>
+            <p className="text-white/40 text-sm mt-10">
+              Looking to join our team? <Link href="/jobs" className="text-white font-bold hover:underline">View open roles →</Link>
+            </p>
+          </FadeIn>
+        </div>
+      </section>
+    </Layout>
+  );
+}
+
+
+======================================================================
+FILE: src/pages/services.tsx
+======================================================================
+import { useRef } from "react";
+import { Link } from "wouter";
+import { motion, useInView } from "framer-motion";
+import { ArrowRight, CheckCircle2, Phone } from "lucide-react";
+import { Layout } from "@/components/layout";
+
+const SCRIPT = { fontFamily: "'Dancing Script', cursive" };
+const CREAM = "#FDF7F0";
+
+const P108 = "/images/smeaton-108.jpg";
+const P124 = "/images/smeaton-124.jpg";
+const P117 = "/images/smeaton-117.jpg";
+const P131 = "/images/smeaton-131.jpg";
+
+const SERVICES = [
+  { slug: "short-visits", num: "01", name: "Short Visits", color: "#EF2A86", img: P108,
+    summary: "Flexible care visits from one hour upwards, built entirely around your daily routine and personal preferences.",
+    details: ["Personal Care", "Household Support", "Companionship", "Medication Support"] },
+  { slug: "supported-living", num: "02", name: "Supported Living", color: "#265597", img: P131,
+    summary: "Helping adults live independently in their own home or a supported living setting, with exactly the right level of support.",
+    details: ["Independent Living Skills", "Community Participation", "Personal Care", "Life Skills Development"] },
+  { slug: "24-7-care", num: "03", name: "24/7 Care", color: "#EF2A86", img: P117,
+    summary: "Round-the-clock specialist care for people with complex, high-dependency needs — delivered with consistency and expertise.",
+    details: ["Complex Care", "Overnight Support", "Live-In Care", "Clinical Monitoring"] },
+  { slug: "enabling", num: "04", name: "Enabling", color: "#265597", img: P124,
+    summary: "A care philosophy built around building independence, not creating dependency. We help people achieve their own goals.",
+    details: ["Goal-Setting Support", "Community Integration", "Confidence Building", "Skill Development"] },
+  { slug: "respite-care", num: "05", name: "Respite Care", color: "#EF2A86", img: P131,
+    summary: "Short-term relief for family carers, delivered by our trusted team so you can rest while your loved one is in safe hands.",
+    details: ["Planned Respite", "Emergency Cover", "Overnight Respite", "Consistent Carers"] },
+];
+
+function FadeIn({ children, delay = 0, className = "" }: { children: React.ReactNode; delay?: number; className?: string }) {
+  const ref = useRef(null);
+  const inView = useInView(ref, { once: true, margin: "-50px" });
+  return (
+    <motion.div ref={ref} initial={{ opacity: 0, y: 22 }} animate={inView ? { opacity: 1, y: 0 } : {}}
+      transition={{ duration: 0.6, delay, ease: [0.22, 1, 0.36, 1] }} className={className}>
+      {children}
+    </motion.div>
+  );
+}
+
+export default function Services() {
+  return (
+    <Layout>
+      {/* Hero */}
+      <section className="relative overflow-hidden bg-white" style={{ paddingTop: "76px" }}>
+        <div className="absolute left-0 top-0 bottom-0 w-1.5" style={{ backgroundColor: "#EF2A86" }} />
+        <div className="max-w-7xl mx-auto px-8 sm:px-14 pt-16 pb-14">
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}>
+            <p className="text-xs font-bold tracking-widest text-[#EF2A86] uppercase mb-5">What we offer</p>
+            <h1 className="text-4xl sm:text-5xl font-extrabold text-[#05163D] mb-1 leading-tight tracking-tight">Five services,</h1>
+            <div className="mb-5" style={{ ...SCRIPT, fontSize: "clamp(2.5rem, 5.5vw, 4rem)", color: "#EF2A86" }}>one focus — you.</div>
+            <p className="text-gray-400 text-lg max-w-2xl leading-relaxed">
+              Whether you need a visit once a day or support around the clock, we have the expertise and the right people — across Devon &amp; Cornwall.
+            </p>
+          </motion.div>
+        </div>
+      </section>
+
+      {/* Service panels */}
+      <section style={{ backgroundColor: CREAM }}>
+        <div className="max-w-7xl mx-auto px-5 sm:px-8 py-8">
+          {SERVICES.map((s, i) => (
+            <FadeIn key={s.slug} delay={0.05}>
+              <Link href={`/services/${s.slug}`}
+                className="group grid grid-cols-1 lg:grid-cols-2 gap-12 py-14 border-b border-black/06 last:border-0 hover:no-underline items-center"
+                data-testid={`service-panel-${s.slug}`}>
+                <div className={`flex flex-col justify-center ${i % 2 === 1 ? "lg:order-2 lg:pl-8" : "lg:pr-8"}`}>
+                  <div className="flex items-center gap-4 mb-5">
+                    <span className="text-6xl font-bold leading-none" style={{ ...SCRIPT, color: s.color, opacity: 0.3 }}>{s.num}</span>
+                    <div className="flex-1 h-px opacity-15" style={{ backgroundColor: s.color }} />
+                  </div>
+                  <h2 className="text-3xl sm:text-4xl font-extrabold text-[#05163D] group-hover:text-[#265597] transition-colors mb-4 tracking-tight">{s.name}</h2>
+                  <p className="text-gray-500 leading-relaxed mb-6">{s.summary}</p>
+                  <div className="flex flex-wrap gap-2 mb-7">
+                    {s.details.map((d) => (
+                      <span key={d} className="flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-full bg-white text-gray-500 border border-gray-200">
+                        <CheckCircle2 size={11} style={{ color: s.color }} /> {d}
+                      </span>
+                    ))}
+                  </div>
+                  <span className="inline-flex items-center gap-2 text-sm font-bold transition-all group-hover:gap-3" style={{ color: s.color }}>
+                    Find out more <ArrowRight size={15} />
+                  </span>
+                </div>
+                <div className={`hidden lg:block rounded-3xl overflow-hidden shadow-lg ${i % 2 === 1 ? "lg:order-1" : ""}`} style={{ aspectRatio: "4/3" }}>
+                  <img src={s.img} alt={s.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
+                </div>
+              </Link>
+            </FadeIn>
+          ))}
+        </div>
+      </section>
+
+      {/* CTA */}
+      <section className="relative overflow-hidden py-20" style={{ backgroundColor: "#EF2A86" }}>
+        <div className="absolute inset-0 flex items-center justify-center pointer-events-none overflow-hidden select-none">
+          <span className="text-[160px] font-extrabold text-white opacity-[0.05] leading-none whitespace-nowrap">care</span>
+        </div>
+        <div className="relative max-w-3xl mx-auto px-5 sm:px-8 text-center">
+          <h2 className="text-3xl font-extrabold text-white mb-2 tracking-tight">Need help choosing?</h2>
+          <div className="mb-6" style={{ ...SCRIPT, fontSize: "clamp(2.2rem, 5vw, 3.5rem)", color: "rgba(255,255,255,0.9)" }}>We'll guide you through it.</div>
+          <p className="text-white/75 mb-10 leading-relaxed">Our team will help you find the right fit — with a free, no-obligation home assessment.</p>
+          <div className="flex flex-col sm:flex-row justify-center gap-4">
+            <Link href="/referral"
+              className="inline-flex items-center justify-center gap-2 px-8 py-4 font-bold text-lg rounded-xl bg-white hover:scale-105 transition-all"
+              style={{ color: "#EF2A86" }}
+              data-testid="services-referral-cta">
+              Request a Free Assessment <ArrowRight size={18} />
+            </Link>
+            <a href="tel:03301658880"
+              className="inline-flex items-center justify-center gap-2 px-8 py-4 font-bold text-lg rounded-xl text-white hover:bg-white/15 transition-all"
+              style={{ border: "2px solid rgba(255,255,255,0.4)" }}>
+              <Phone size={16} /> 0330 165 8880
+            </a>
+          </div>
+        </div>
+      </section>
+    </Layout>
+  );
+}
+
+
+======================================================================
+FILE: src/pages/service-detail.tsx
+======================================================================
+import { Link, useParams } from "wouter";
+import { motion } from "framer-motion";
+import { ArrowRight, CheckCircle2, ArrowLeft } from "lucide-react";
+import { Layout } from "@/components/layout";
+
+const SERVICES: Record<string, {
+  num: string; name: string; summary: string; intro: string;
+  supports: string[]; benefits: string[]; image: string;
+}> = {
+  "short-visits": {
+    num: "01", name: "Short Visits",
+    summary: "Flexible care visits from one hour upwards, shaped entirely around your daily routine.",
+    intro: "Our short visit service is designed for people who want to maintain their independence at home but need a little extra support at key points of the day. Whether it's help getting ready in the morning, medication reminders, or simply a friendly face for companionship — we build the visit around you, not the other way around.\n\nOur carers are consistent, trusted, and fully trained. You'll get the same carer as often as possible, so they become a genuine part of your routine rather than a stranger at the door.",
+    supports: ["Personal Care & Hygiene", "Medication Reminders & Administration", "Meal Preparation", "Household Support", "Shopping & Errands", "Companionship"],
+    benefits: ["Visits from 1 hour upwards — no minimum beyond that", "Consistent, trusted carers who know your preferences", "Fully trained, DBS-checked team", "Flexible scheduling — morning, afternoon, or evening", "Regular reviews to adapt as your needs change"],
+    image: "https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?w=900&auto=format&fit=crop&q=80",
+  },
+  "supported-living": {
+    num: "02", name: "Supported Living",
+    summary: "Helping adults live independently, with the right support for their individual needs.",
+    intro: "Supported living is about enabling people — particularly those with learning disabilities, mental health needs, or complex conditions — to live in their own home or a shared house with the support they need to thrive. It's not care in the traditional sense. It's partnership.\n\nOur supported living team works closely with each individual, their families, and relevant professionals to create a support plan that promotes independence, participation in the community, and personal growth.",
+    supports: ["Daily Living Skills", "Community Participation & Social Activities", "Personal Care", "Medication Support", "Financial & Administrative Support", "Health Appointments"],
+    benefits: ["Person-centred support plans reviewed regularly", "Dedicated keyworker for each individual", "Close working with families and health professionals", "Support to develop skills and independence", "Accredited as a Supported Living Framework Provider"],
+    image: "https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?w=900&auto=format&fit=crop&q=80",
+  },
+  "24-7-care": {
+    num: "03", name: "24/7 Care",
+    summary: "Round-the-clock specialist care for complex, high-dependency needs.",
+    intro: "Some people need care that never switches off. Our 24/7 care service is designed for people with complex health needs, high-dependency conditions, or those who simply cannot be left alone safely. Our team is trained to the highest clinical standards and works in close partnership with NHS professionals.\n\nWhether it's overnight support, live-in care, or a rotating team providing continuous cover, we'll find the right model for your situation and make sure it works — every hour of every day.",
+    supports: ["Complex Clinical Care", "Overnight & Waking Night Support", "Live-In Care", "Stoma, Catheter & PEG Care", "Seizure Management", "End-of-Life Care"],
+    benefits: ["Highly trained specialist carers", "NHS Approved supplier", "Close co-ordination with clinical teams", "Consistent rota to ensure familiar faces", "24/7 management on-call support"],
+    image: "https://images.unsplash.com/photo-1551601651-2a8555f1a136?w=900&auto=format&fit=crop&q=80",
+  },
+  "enabling": {
+    num: "04", name: "Enabling",
+    summary: "Building independence rather than creating dependency — care that empowers.",
+    intro: "The enabling approach is fundamentally different from traditional care. Instead of doing things for people, we support people to do things for themselves — building skills, confidence, and independence over time.\n\nWe work with people who have the potential to live more independently but need structured support to get there. You might be recovering from an illness, working through a period of difficulty, or simply wanting to build skills you've never had the opportunity to develop. Our enabling team is trained to coach rather than care — and the difference is profound.",
+    supports: ["Daily Living Skill Building", "Cooking & Nutrition", "Money Management", "Community Navigation", "Social Skill Development", "Employment Support"],
+    benefits: ["Outcome-focused support plans", "Regular progress reviews", "Works towards reduction in support over time", "Links with community resources and activities", "Experienced enabling practitioners"],
+    image: "https://images.unsplash.com/photo-1559839914-17aae19cec71?w=900&auto=format&fit=crop&q=80",
+  },
+  "respite-care": {
+    num: "05", name: "Respite Care",
+    summary: "Short-term relief for family carers, delivered with warmth and professionalism.",
+    intro: "Caring for a loved one is one of the most selfless things a person can do — but it comes at a cost. Exhaustion, stress, and isolation are common among unpaid family carers. Respite care exists to give carers a proper break, knowing their loved one is in safe, experienced hands.\n\nOur respite service is flexible, planned or emergency, and delivered by the same quality team that provides our permanent services. We take the time to understand your loved one's routines, preferences, and needs so that the transition is as smooth and comfortable as possible.",
+    supports: ["Planned Respite Breaks", "Emergency & Short-Notice Cover", "Overnight Respite", "Day Sitting", "Hospital-to-Home Support", "Companionship During Carer's Absence"],
+    benefits: ["Flexible arrangements — hours to weeks", "Consistent carer allocation where possible", "Full handover from family carers", "Regular updates during placement", "CQC-rated Good for both our offices"],
+    image: "https://images.unsplash.com/photo-1491013516836-7db643ee125a?w=900&auto=format&fit=crop&q=80",
+  },
+};
+
+export default function ServiceDetail() {
+  const { slug } = useParams<{ slug: string }>();
+  const service = SERVICES[slug ?? ""];
+
+  if (!service) {
+    return (
+      <Layout>
+        <section className="min-h-screen flex items-center justify-center" style={{ backgroundColor: "#05163D" }}>
+          <div className="text-center px-5">
+            <h1 className="text-3xl font-bold text-white mb-4">Service not found</h1>
+            <Link href="/services" className="text-[#EF2A86] font-semibold">View all services →</Link>
+          </div>
+        </section>
+      </Layout>
+    );
+  }
+
+  return (
+    <Layout>
+      {/* Hero */}
+      <section style={{ backgroundColor: "#05163D" }} className="pt-36 pb-20">
+        <div className="max-w-7xl mx-auto px-5 sm:px-8">
+          <Link href="/services" className="inline-flex items-center gap-2 text-white/40 hover:text-white text-sm mb-8 transition-colors" data-testid="service-back-link">
+            <ArrowLeft size={14} /> All services
+          </Link>
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}>
+            <span className="text-6xl font-bold text-white/10">{service.num}</span>
+            <h1 className="text-5xl sm:text-6xl font-bold text-white mt-2 mb-5">{service.name}</h1>
+            <p className="text-white/60 text-xl max-w-2xl">{service.summary}</p>
+          </motion.div>
+        </div>
+      </section>
+
+      {/* Content */}
+      <section className="bg-white">
+        <div className="max-w-7xl mx-auto px-5 sm:px-8 py-20">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-start">
+            <motion.div initial={{ opacity: 0, y: 24 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.6 }}>
+              <h2 className="text-2xl font-bold text-[#05163D] mb-6">About this service</h2>
+              {service.intro.split("\n\n").map((para, i) => (
+                <p key={i} className="text-gray-600 leading-relaxed mb-5">{para}</p>
+              ))}
+
+              <h3 className="text-lg font-bold text-[#05163D] mt-10 mb-5">We can support with:</h3>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                {service.supports.map((s) => (
+                  <div key={s} className="flex items-center gap-3">
+                    <CheckCircle2 size={16} className="text-[#EF2A86] shrink-0" />
+                    <span className="text-gray-600 text-sm">{s}</span>
+                  </div>
+                ))}
+              </div>
+            </motion.div>
+
+            <motion.div initial={{ opacity: 0, y: 24 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.6, delay: 0.1 }}>
+              <div className="aspect-[4/3] rounded-3xl overflow-hidden mb-8">
+                <img src={service.image} alt={service.name} className="w-full h-full object-cover" />
+              </div>
+
+              <div className="rounded-2xl p-8 border border-gray-100">
+                <h3 className="text-lg font-bold text-[#05163D] mb-5">Key benefits</h3>
+                <ul className="space-y-4">
+                  {service.benefits.map((b) => (
+                    <li key={b} className="flex items-start gap-3">
+                      <div className="w-5 h-5 rounded-full shrink-0 mt-0.5 flex items-center justify-center" style={{ backgroundColor: "#EF2A86" }}>
+                        <CheckCircle2 size={11} className="text-white" />
+                      </div>
+                      <span className="text-gray-600 text-sm leading-relaxed">{b}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </motion.div>
+          </div>
+        </div>
+      </section>
+
+      {/* CTA */}
+      <section style={{ backgroundColor: "#05163D" }} className="py-20">
+        <div className="max-w-3xl mx-auto px-5 sm:px-8 text-center">
+          <h2 className="text-3xl sm:text-4xl font-bold text-white mb-5">Ready to get started?</h2>
+          <p className="text-white/60 mb-10">Make a referral today. Our team will arrange a free, no-obligation assessment at a time that suits you.</p>
+          <div className="flex flex-col sm:flex-row justify-center gap-4">
+            <Link
+              href="/referral"
+              className="inline-flex items-center justify-center gap-2 px-8 py-4 text-white font-bold rounded-xl hover:opacity-90 transition-opacity"
+              style={{ backgroundColor: "#EF2A86" }}
+              data-testid="service-referral-cta"
+            >
+              Make a Referral <ArrowRight size={18} />
+            </Link>
+            <a href="tel:03301658880" className="inline-flex items-center justify-center px-8 py-4 font-semibold rounded-xl text-white transition-all" style={{ border: "2px solid rgba(255,255,255,0.3)" }}>
+              Call 0330 165 8880
+            </a>
+          </div>
+        </div>
+      </section>
+    </Layout>
+  );
+}
+
+
+======================================================================
+FILE: src/pages/about.tsx
+======================================================================
+import { useRef } from "react";
+import { motion, useInView } from "framer-motion";
+import { Link } from "wouter";
+import { ArrowRight, CheckCircle2, Heart, Users, Star, Award } from "lucide-react";
+import { Layout } from "@/components/layout";
+
+const SCRIPT = { fontFamily: "'Dancing Script', cursive" };
+const CREAM = "#FDF7F0";
+
+const P124 = "/images/smeaton-124.jpg";
+const P131 = "/images/smeaton-131.jpg";
+const P108 = "/images/smeaton-108.jpg";
+
+const VALUES = [
+  { icon: Star,  name: "Innovation",    desc: "We take risks, encourage curiosity and new ideas, learn from our mistakes, and constantly strive to move forward.", color: "#EF2A86" },
+  { icon: Heart, name: "Community",     desc: "We provide a haven of inclusion, trust and support to colleagues, service users, and all stakeholders.", color: "#265597" },
+  { icon: Users, name: "Collaboration", desc: "We navigate in partnership — listening to one another and working collaboratively to achieve better outcomes.", color: "#EF2A86" },
+  { icon: Award, name: "Excellence",    desc: "We adapt through vigilance and integrity, ensuring every interaction meets the highest standards of care.", color: "#265597" },
+  { icon: Star,  name: "Leadership",    desc: "We maintain a culture that empowers colleagues to realise the importance of their contribution.", color: "#EF2A86" },
+];
+
+function FadeIn({ children, delay = 0, className = "" }: { children: React.ReactNode; delay?: number; className?: string }) {
+  const ref = useRef(null);
+  const inView = useInView(ref, { once: true, margin: "-50px" });
+  return (
+    <motion.div ref={ref} initial={{ opacity: 0, y: 22 }} animate={inView ? { opacity: 1, y: 0 } : {}}
+      transition={{ duration: 0.6, delay, ease: [0.22, 1, 0.36, 1] }} className={className}>
+      {children}
+    </motion.div>
+  );
+}
+
+export default function About() {
+  return (
+    <Layout>
+      {/* Hero */}
+      <section className="relative overflow-hidden bg-white" style={{ paddingTop: "76px" }}>
+        <div className="absolute left-0 top-0 bottom-0 w-1.5" style={{ backgroundColor: "#EF2A86" }} />
+        <div className="max-w-7xl mx-auto px-8 sm:px-14 pt-16 pb-14">
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}>
+            <p className="text-xs font-bold tracking-widest text-[#EF2A86] uppercase mb-5">Our story</p>
+            <h1 className="text-4xl sm:text-5xl font-extrabold text-[#05163D] mb-1 leading-tight tracking-tight">Built on one</h1>
+            <div className="mb-5" style={{ ...SCRIPT, fontSize: "clamp(2.5rem, 5.5vw, 4rem)", color: "#EF2A86" }}>simple belief.</div>
+            <p className="text-gray-400 text-xl leading-relaxed max-w-2xl">
+              That every person deserves care that genuinely respects who they are — delivered by people who chose this work because they care about people, not just a paycheque.
+            </p>
+          </motion.div>
+        </div>
+      </section>
+
+      {/* Mission */}
+      <section style={{ backgroundColor: CREAM }} className="py-20 sm:py-24">
+        <div className="max-w-7xl mx-auto px-5 sm:px-8">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
+            <FadeIn>
+              <div className="relative">
+                <div className="aspect-[4/3] rounded-3xl overflow-hidden shadow-2xl">
+                  <img src={P124} alt="Smeaton carer and client enjoying garden" className="w-full h-full object-cover" />
+                </div>
+                <div className="absolute -bottom-5 -right-4 bg-white rounded-2xl px-6 py-5 shadow-2xl border border-gray-100">
+                  <div className="text-3xl font-extrabold text-[#05163D] mb-0.5">Since 2019</div>
+                  <div className="text-sm text-gray-400">Serving Devon &amp; Cornwall</div>
+                </div>
+              </div>
+            </FadeIn>
+            <FadeIn delay={0.1}>
+              <p className="text-xs font-bold tracking-widest text-[#EF2A86] uppercase mb-4">Who we are</p>
+              <h2 className="text-3xl font-extrabold text-[#05163D] mb-1 tracking-tight">Devon &amp; Cornwall's</h2>
+              <div className="mb-6" style={{ ...SCRIPT, fontSize: "clamp(2rem, 4.5vw, 3.5rem)", color: "#EF2A86" }}>trusted homecare provider</div>
+              <div className="space-y-4 text-gray-500 leading-relaxed">
+                <p>Smeaton Healthcare was founded with a clear purpose: to provide professional, deeply human homecare services to people across Devon &amp; Cornwall. Since 2019, we've grown from a small local team into one of the region's most trusted care providers — with CQC-rated Good offices in both Plymouth and Cornwall.</p>
+                <p>We work with elderly people, adults with learning disabilities, those with complex health conditions, and families navigating some of the most difficult moments of their lives.</p>
+                <p>Our carers aren't just employees. They're professionals who chose this work because it matters — and we invest heavily in their training, wellbeing, and development.</p>
+              </div>
+            </FadeIn>
+          </div>
+        </div>
+      </section>
+
+      {/* Second photo section */}
+      <section className="bg-white py-20">
+        <div className="max-w-7xl mx-auto px-5 sm:px-8">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
+            <FadeIn>
+              <p className="text-xs font-bold tracking-widest text-[#EF2A86] uppercase mb-4">Our approach</p>
+              <h2 className="text-3xl font-extrabold text-[#05163D] mb-1 tracking-tight">Care that feels like</h2>
+              <div className="mb-6" style={{ ...SCRIPT, fontSize: "clamp(2rem, 4.5vw, 3.5rem)", color: "#265597" }}>coming home.</div>
+              <p className="text-gray-500 leading-relaxed mb-6">
+                We believe in consistency. The same carers visiting the same clients builds real relationships — and that's where genuine care happens. Our service users aren't just a name on a schedule; they're people with preferences, routines, and stories that matter to us.
+              </p>
+              <div className="flex flex-col gap-3">
+                {["Matched carers — we consider personalities, not just availability", "Handover notes so every carer knows what matters to you", "Regular reviews to ensure your care plan stays right"].map((item) => (
+                  <span key={item} className="flex items-start gap-2 text-sm text-gray-600">
+                    <CheckCircle2 size={14} style={{ color: "#EF2A86" }} className="shrink-0 mt-0.5" /> {item}
+                  </span>
+                ))}
+              </div>
+            </FadeIn>
+            <FadeIn delay={0.1}>
+              <div className="aspect-[4/3] rounded-3xl overflow-hidden shadow-xl">
+                <img src={P131} alt="Smeaton carer supporting client in garden" className="w-full h-full object-cover" />
+              </div>
+            </FadeIn>
+          </div>
+        </div>
+      </section>
+
+      {/* Accreditations */}
+      <section style={{ backgroundColor: CREAM }} className="py-20">
+        <div className="max-w-7xl mx-auto px-5 sm:px-8">
+          <FadeIn className="mb-12">
+            <p className="text-xs font-bold tracking-widest text-[#EF2A86] uppercase mb-3">Trusted &amp; regulated</p>
+            <h2 className="text-3xl font-extrabold text-[#05163D] mb-1 tracking-tight">Professional</h2>
+            <div style={{ ...SCRIPT, fontSize: "clamp(2rem, 4.5vw, 3.5rem)", color: "#265597" }}>accreditations</div>
+          </FadeIn>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+            {[
+              { title: "CQC Rated Good", sub: "Plymouth office", detail: "28 April 2022", color: "#EF2A86" },
+              { title: "CQC Rated Good", sub: "Cornwall office", detail: "14 January 2022", color: "#EF2A86" },
+              { title: "NHS Approved", sub: "Pre-Qualification Scheme", detail: "Nationally recognised standard", color: "#265597" },
+              { title: "Supported Living", sub: "Approved provider", detail: "Accredited framework", color: "#265597" },
+            ].map((item, i) => (
+              <FadeIn key={i} delay={i * 0.07}>
+                <div className="rounded-2xl p-7 h-full bg-white border-2 border-gray-100 hover:border-gray-200 transition-colors">
+                  <div className="w-10 h-10 rounded-xl mb-5 flex items-center justify-center" style={{ backgroundColor: item.color }}>
+                    <CheckCircle2 size={18} className="text-white" />
+                  </div>
+                  <h3 className="font-extrabold text-[#05163D] text-lg mb-1">{item.title}</h3>
+                  <p className="text-sm text-gray-400 mb-1">{item.sub}</p>
+                  <p className="text-xs font-bold" style={{ color: item.color }}>{item.detail}</p>
+                </div>
+              </FadeIn>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Values */}
+      <section className="bg-white py-20 sm:py-24">
+        <div className="max-w-7xl mx-auto px-5 sm:px-8">
+          <FadeIn className="mb-14">
+            <p className="text-xs font-bold tracking-widest text-[#EF2A86] uppercase mb-3">What drives us</p>
+            <h2 className="text-3xl font-extrabold text-[#05163D] mb-1 tracking-tight">The values we</h2>
+            <div style={{ ...SCRIPT, fontSize: "clamp(2rem, 4.5vw, 3.5rem)", color: "#265597" }}>work by every day</div>
+          </FadeIn>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+            {VALUES.map((v, i) => {
+              const Icon = v.icon;
+              return (
+                <FadeIn key={i} delay={i * 0.07} className={i === 4 ? "md:col-span-2 lg:col-span-1" : ""}>
+                  <div className="rounded-2xl p-7 h-full border-2 border-gray-100 hover:border-gray-200 transition-colors" style={{ backgroundColor: CREAM }}>
+                    <div className="w-10 h-10 rounded-xl flex items-center justify-center mb-5" style={{ backgroundColor: v.color }}>
+                      <Icon size={18} className="text-white" />
+                    </div>
+                    <h3 className="text-xl font-extrabold text-[#05163D] mb-3">{v.name}</h3>
+                    <p className="text-gray-500 text-sm leading-relaxed">{v.desc}</p>
+                  </div>
+                </FadeIn>
+              );
+            })}
+          </div>
+        </div>
+      </section>
+
+      {/* Photo + CTA */}
+      <section className="relative overflow-hidden" style={{ minHeight: "400px" }}>
+        <div className="absolute inset-0">
+          <img src={P108} alt="Smeaton carer with client" className="w-full h-full object-cover object-top" />
+          <div className="absolute inset-0" style={{ background: "linear-gradient(to right, rgba(5,22,61,0.88) 0%, rgba(5,22,61,0.5) 50%, transparent 100%)" }} />
+        </div>
+        <div className="relative max-w-7xl mx-auto px-5 sm:px-8 py-20 flex items-center" style={{ minHeight: "400px" }}>
+          <FadeIn className="max-w-xl">
+            <h2 className="text-3xl font-extrabold text-white mb-2 tracking-tight">Ready to find out more?</h2>
+            <div className="mb-6" style={{ ...SCRIPT, fontSize: "clamp(2rem, 4vw, 3rem)", color: "rgba(239,42,134,0.9)" }}>We'd love to hear from you.</div>
+            <p className="text-white/70 mb-8 leading-relaxed">Whether you're looking for care for yourself or a loved one, or thinking about joining our team.</p>
+            <div className="flex flex-col sm:flex-row gap-4">
+              <Link href="/referral"
+                className="inline-flex items-center justify-center gap-2 px-7 py-4 text-white font-bold rounded-xl hover:scale-105 transition-all"
+                style={{ backgroundColor: "#EF2A86", boxShadow: "0 8px 24px rgba(239,42,134,0.4)" }}
+                data-testid="about-referral-cta">
+                Request a Free Assessment <ArrowRight size={18} />
+              </Link>
+              <Link href="/contact"
+                className="inline-flex items-center justify-center gap-2 px-7 py-4 font-bold rounded-xl text-white hover:bg-white/10 transition-all"
+                style={{ border: "2px solid rgba(255,255,255,0.4)" }}
+                data-testid="about-contact-cta">
+                Contact us
+              </Link>
+            </div>
+          </FadeIn>
+        </div>
+      </section>
+    </Layout>
+  );
+}
+
+
+======================================================================
+FILE: src/pages/contact.tsx
+======================================================================
+import { useRef } from "react";
+import { motion, useInView } from "framer-motion";
+import { Phone, Mail, MapPin, Clock, ArrowRight } from "lucide-react";
+import { Link } from "wouter";
+import { Layout } from "@/components/layout";
+
+const SCRIPT = { fontFamily: "'Dancing Script', cursive" };
+
+const OFFICES = [
+  { name: "Plymouth Office", address: "Smeaton Healthcare, Plymouth, Devon", phone: "0330 165 8880", email: "info@smeatonhealthcare.co.uk", cqc: "CQC Rated Good — April 2022", color: "#EF2A86" },
+  { name: "Cornwall Office", address: "Smeaton Healthcare, Cornwall", phone: "0330 165 8880", email: "info@smeatonhealthcare.co.uk", cqc: "CQC Rated Good — January 2022", color: "#265597" },
+];
+
+function FadeIn({ children, delay = 0, className = "" }: { children: React.ReactNode; delay?: number; className?: string }) {
+  const ref = useRef(null);
+  const inView = useInView(ref, { once: true, margin: "-50px" });
+  return (
+    <motion.div ref={ref} initial={{ opacity: 0, y: 22 }} animate={inView ? { opacity: 1, y: 0 } : {}}
+      transition={{ duration: 0.6, delay, ease: [0.22, 1, 0.36, 1] }} className={className}>
+      {children}
+    </motion.div>
+  );
+}
+
+export default function Contact() {
+  return (
+    <Layout>
+      {/* Hero — light */}
+      <section className="relative overflow-hidden bg-white" style={{ paddingTop: "76px" }}>
+        <div className="absolute -top-10 -right-10 w-[350px] h-[350px] rounded-full pointer-events-none"
+          style={{ background: "radial-gradient(circle, rgba(38,85,151,0.06) 0%, transparent 70%)" }} />
+        <div className="max-w-7xl mx-auto px-5 sm:px-8 pt-16 pb-14">
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}>
+            <p className="text-xs font-bold tracking-widest text-[#EF2A86] uppercase mb-5">Get in touch</p>
+            <h1 className="text-4xl sm:text-5xl font-bold text-[#05163D] mb-1 leading-tight">We'd love to</h1>
+            <h1 className="text-5xl sm:text-6xl mb-5" style={{ ...SCRIPT, color: "#EF2A86" }}>hear from you.</h1>
+            <p className="text-gray-500 text-lg max-w-xl leading-relaxed">
+              Whether you have a question about our services, want to arrange a free assessment, or are interested in joining our team — we're here.
+            </p>
+          </motion.div>
+        </div>
+      </section>
+
+      {/* Contact cards */}
+      <section style={{ backgroundColor: "#F4F6FA" }} className="py-20">
+        <div className="max-w-7xl mx-auto px-5 sm:px-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+            {OFFICES.map((office, i) => (
+              <FadeIn key={i} delay={i * 0.1}>
+                <div className="bg-white rounded-3xl p-8 h-full border-2 border-gray-100 hover:border-gray-200 transition-all">
+                  <div className="flex items-center gap-3 mb-6">
+                    <div className="w-2 h-8 rounded-full" style={{ backgroundColor: office.color }} />
+                    <h2 className="text-xl font-bold text-[#05163D]">{office.name}</h2>
+                  </div>
+                  <div className="space-y-5">
+                    {[
+                      { Icon: MapPin, label: "Address", value: office.address, href: undefined },
+                      { Icon: Phone, label: "Phone", value: office.phone, href: `tel:${office.phone.replace(/\s/g, "")}` },
+                      { Icon: Mail, label: "Email", value: office.email, href: `mailto:${office.email}` },
+                    ].map(({ Icon, label, value, href }) => (
+                      <div key={label} className="flex items-start gap-4">
+                        <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0" style={{ backgroundColor: `${office.color}15` }}>
+                          <Icon size={16} style={{ color: office.color }} />
+                        </div>
+                        <div>
+                          <p className="text-xs text-gray-400 font-semibold uppercase tracking-wider mb-1">{label}</p>
+                          {href ? (
+                            <a href={href} className="text-sm font-bold transition-opacity hover:opacity-70" style={{ color: office.color }}>{value}</a>
+                          ) : (
+                            <p className="text-sm font-medium text-[#05163D]">{value}</p>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                    <div className="pt-5 border-t border-gray-100 flex items-center gap-2">
+                      <div className="w-2 h-2 rounded-full" style={{ backgroundColor: office.color }} />
+                      <p className="text-xs font-bold" style={{ color: office.color }}>{office.cqc}</p>
+                    </div>
+                  </div>
+                </div>
+              </FadeIn>
+            ))}
+          </div>
+
+          <FadeIn delay={0.2}>
+            <div className="bg-white rounded-3xl p-8 border border-gray-100">
+              <div className="flex flex-col sm:flex-row items-start gap-6">
+                <div className="w-12 h-12 rounded-2xl flex items-center justify-center shrink-0" style={{ backgroundColor: "#EF2A8615" }}>
+                  <Clock size={20} style={{ color: "#EF2A86" }} />
+                </div>
+                <div className="flex-1">
+                  <h2 className="text-xl font-bold text-[#05163D] mb-5">Office hours</h2>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    {[
+                      { day: "Monday – Friday", hours: "8:00am – 6:00pm", highlight: false },
+                      { day: "Saturday", hours: "9:00am – 4:00pm", highlight: false },
+                      { day: "Sunday", hours: "On-call only", highlight: false },
+                      { day: "Emergencies", hours: "24/7 on-call", highlight: true },
+                    ].map((h) => (
+                      <div key={h.day} className={`flex justify-between items-center px-4 py-3 rounded-xl ${h.highlight ? "" : "bg-gray-50"}`}
+                        style={h.highlight ? { backgroundColor: "#EF2A8612" } : {}}>
+                        <span className="text-sm text-gray-400">{h.day}</span>
+                        <span className="text-sm font-bold" style={h.highlight ? { color: "#EF2A86" } : { color: "#05163D" }}>{h.hours}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </FadeIn>
+        </div>
+      </section>
+
+      {/* Quick links — light version */}
+      <section className="bg-white py-16">
+        <div className="max-w-7xl mx-auto px-5 sm:px-8">
+          <FadeIn className="mb-8">
+            <h2 className="text-2xl font-bold text-[#05163D] mb-1">Other ways we can help</h2>
+            <p className="text-gray-400 text-sm">Quick links to our most popular pages</p>
+          </FadeIn>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            {[
+              { href: "/referral", label: "Request a Free Assessment", desc: "Arrange a no-obligation care visit", color: "#EF2A86" },
+              { href: "/jobs", label: "View Open Roles", desc: "Join our care team in Devon & Cornwall", color: "#265597" },
+              { href: "/feedback", label: "Leave Feedback", desc: "Help us improve our services", color: "#05163D" },
+            ].map((item) => (
+              <Link key={item.href} href={item.href}
+                className="group flex items-center justify-between p-6 rounded-2xl border-2 border-gray-100 hover:border-[#EF2A86] bg-gray-50 hover:bg-white transition-all"
+                data-testid={`contact-quick-${item.href.replace("/", "")}`}>
+                <div>
+                  <h3 className="font-bold text-[#05163D] mb-1">{item.label}</h3>
+                  <p className="text-gray-400 text-sm">{item.desc}</p>
+                </div>
+                <ArrowRight size={20} className="text-gray-300 group-hover:text-[#EF2A86] group-hover:translate-x-1 transition-all shrink-0 ml-4" />
+              </Link>
+            ))}
+          </div>
+        </div>
+      </section>
+    </Layout>
+  );
+}
+
+
+======================================================================
+FILE: src/pages/jobs.tsx
+======================================================================
+import { useRef, useState } from "react";
+import { Link } from "wouter";
+import { motion, useInView } from "framer-motion";
+import { MapPin, Clock, ArrowRight, AlertCircle, Briefcase, CheckCircle2 } from "lucide-react";
+import { useListJobs, useGetJobStats, getListJobsQueryKey, getGetJobStatsQueryKey } from "@workspace/api-client-react";
+import { Layout } from "@/components/layout";
+
+const SCRIPT = { fontFamily: "'Dancing Script', cursive" };
+const LOCATIONS = ["All Locations", "Plymouth", "Cornwall", "Devon (Various)"];
+const TYPES = ["All Types", "full-time", "part-time", "bank"];
+const TYPE_LABELS: Record<string, string> = { "full-time": "Full Time", "part-time": "Part Time", "bank": "Bank" };
+const PERKS = ["Competitive pay rates", "Paid mileage & travel time", "Full training & induction", "Ongoing professional development", "Supportive management team", "Flexible shift patterns"];
+
+function FadeIn({ children, delay = 0, className = "" }: { children: React.ReactNode; delay?: number; className?: string }) {
+  const ref = useRef(null);
+  const inView = useInView(ref, { once: true, margin: "-50px" });
+  return (
+    <motion.div ref={ref} initial={{ opacity: 0, y: 22 }} animate={inView ? { opacity: 1, y: 0 } : {}}
+      transition={{ duration: 0.6, delay, ease: [0.22, 1, 0.36, 1] }} className={className}>
+      {children}
+    </motion.div>
+  );
+}
+
+export default function Jobs() {
+  const [location, setLocation] = useState("");
+  const [jobType, setJobType] = useState("");
+  const { data: jobs, isLoading } = useListJobs(
+    { location: location || undefined, jobType: (jobType as "full-time" | "part-time" | "bank" | "any") || undefined },
+    { query: { queryKey: getListJobsQueryKey({ location: location || undefined, jobType: (jobType as "full-time" | "part-time" | "bank" | "any") || undefined }) } }
+  );
+  const { data: stats } = useGetJobStats({ query: { queryKey: getGetJobStatsQueryKey() } });
+
+  return (
+    <Layout>
+      {/* Hero — light */}
+      <section className="relative overflow-hidden bg-white" style={{ paddingTop: "76px" }}>
+        <div className="absolute -top-10 -right-10 w-[400px] h-[400px] rounded-full pointer-events-none"
+          style={{ background: "radial-gradient(circle, rgba(239,42,134,0.06) 0%, transparent 70%)" }} />
+        <div className="max-w-7xl mx-auto px-5 sm:px-8 pt-16 pb-14">
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}>
+            <p className="text-xs font-bold tracking-widest text-[#EF2A86] uppercase mb-5">Join our team</p>
+            <h1 className="text-4xl sm:text-5xl font-bold text-[#05163D] mb-1 leading-tight">A career that</h1>
+            <h1 className="text-5xl sm:text-6xl mb-5" style={{ ...SCRIPT, color: "#EF2A86" }}>genuinely matters.</h1>
+            <p className="text-gray-500 text-lg max-w-xl leading-relaxed">
+              We're always looking for compassionate, dedicated people to join us across Devon &amp; Cornwall. No experience needed for many roles — just the right values.
+            </p>
+          </motion.div>
+
+          {stats && (
+            <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}
+              className="mt-10 flex flex-wrap gap-4">
+              <div className="bg-gray-50 border border-gray-100 rounded-2xl px-7 py-4">
+                <div className="text-4xl font-bold text-[#05163D]">{stats.totalJobs}</div>
+                <div className="text-gray-400 text-xs mt-1 uppercase tracking-wider font-semibold">Open roles</div>
+              </div>
+              <div className="rounded-2xl px-7 py-4 text-white" style={{ backgroundColor: "#EF2A86", boxShadow: "0 8px 20px rgba(239,42,134,0.3)" }}>
+                <div className="text-4xl font-bold">{stats.urgentCount}</div>
+                <div className="text-white/70 text-xs mt-1 uppercase tracking-wider font-semibold">Urgent</div>
+              </div>
+              <div className="bg-gray-50 border border-gray-100 rounded-2xl px-7 py-4">
+                <div className="text-4xl font-bold text-[#05163D]">{stats.byLocation.length}</div>
+                <div className="text-gray-400 text-xs mt-1 uppercase tracking-wider font-semibold">Locations</div>
+              </div>
+            </motion.div>
+          )}
+        </div>
+      </section>
+
+      {/* Perks strip */}
+      <section className="bg-white border-y border-gray-100">
+        <div className="max-w-7xl mx-auto px-5 sm:px-8 py-5">
+          <div className="flex flex-wrap gap-x-6 gap-y-2">
+            {PERKS.map((p) => (
+              <span key={p} className="flex items-center gap-2 text-sm text-gray-500">
+                <CheckCircle2 size={13} style={{ color: "#EF2A86" }} className="shrink-0" /> {p}
+              </span>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Jobs */}
+      <section style={{ backgroundColor: "#F4F6FA" }} className="min-h-[60vh] py-12">
+        <div className="max-w-7xl mx-auto px-5 sm:px-8">
+          <div className="flex flex-col sm:flex-row gap-3 mb-8">
+            <select value={location} onChange={(e) => setLocation(e.target.value === "All Locations" ? "" : e.target.value)}
+              className="flex-1 sm:flex-none sm:w-52 px-4 py-3 rounded-xl border border-gray-200 bg-white text-sm font-medium text-[#05163D] focus:outline-none focus:ring-2 focus:ring-[#265597] shadow-sm"
+              data-testid="filter-location">
+              {LOCATIONS.map((l) => <option key={l}>{l}</option>)}
+            </select>
+            <select value={jobType} onChange={(e) => setJobType(e.target.value === "All Types" ? "" : e.target.value)}
+              className="flex-1 sm:flex-none sm:w-52 px-4 py-3 rounded-xl border border-gray-200 bg-white text-sm font-medium text-[#05163D] focus:outline-none focus:ring-2 focus:ring-[#265597] shadow-sm"
+              data-testid="filter-job-type">
+              {TYPES.map((t) => <option key={t}>{t}</option>)}
+            </select>
+            {(location || jobType) && (
+              <button onClick={() => { setLocation(""); setJobType(""); }}
+                className="px-4 py-3 text-sm text-gray-400 hover:text-[#05163D] transition-colors font-medium"
+                data-testid="filter-clear">
+                Clear filters
+              </button>
+            )}
+            <div className="flex-1" />
+            {jobs && <span className="flex items-center text-sm text-gray-400 font-medium">{jobs.length} role{jobs.length !== 1 ? "s" : ""} found</span>}
+          </div>
+
+          {isLoading ? (
+            <div className="space-y-3">{[...Array(4)].map((_, i) => <div key={i} className="h-24 bg-white rounded-2xl animate-pulse" />)}</div>
+          ) : !jobs || jobs.length === 0 ? (
+            <div className="text-center py-20 bg-white rounded-3xl">
+              <Briefcase size={40} className="mx-auto text-gray-200 mb-4" />
+              <h3 className="text-xl font-bold text-[#05163D] mb-2">No roles found</h3>
+              <p className="text-gray-400 text-sm">Try adjusting your filters or check back soon.</p>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {jobs.map((job, i) => (
+                <motion.div key={job.id} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.04 }}>
+                  <Link href={`/jobs/${job.id}`}
+                    className="group flex flex-col sm:flex-row sm:items-center gap-4 bg-white rounded-2xl px-6 py-5 hover:shadow-md transition-all border-2 border-transparent hover:border-[#EF2A86]/20"
+                    data-testid={`job-row-${job.id}`}>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex flex-wrap items-center gap-2 mb-2">
+                        {job.isUrgent && (
+                          <span className="inline-flex items-center gap-1 text-xs font-bold px-2.5 py-1 rounded-full text-white" style={{ backgroundColor: "#EF2A86" }}>
+                            <AlertCircle size={10} /> Urgent
+                          </span>
+                        )}
+                        <span className="inline-block text-xs font-semibold px-2.5 py-1 rounded-full bg-gray-100 text-gray-500">{TYPE_LABELS[job.jobType] || job.jobType}</span>
+                        <span className="inline-block text-xs font-semibold px-2.5 py-1 rounded-full text-[#265597]" style={{ backgroundColor: "#26559715" }}>{job.category}</span>
+                      </div>
+                      <h3 className="text-lg font-bold text-[#05163D] group-hover:text-[#265597] transition-colors">{job.title}</h3>
+                      <div className="flex flex-wrap items-center gap-4 mt-1.5">
+                        <span className="flex items-center gap-1.5 text-sm text-gray-400"><MapPin size={13} /> {job.location}</span>
+                        <span className="flex items-center gap-1.5 text-sm text-gray-400"><Clock size={13} /> {job.salaryRange}</span>
+                      </div>
+                    </div>
+                    <span className="hidden sm:inline-flex items-center gap-1.5 text-xs font-bold px-4 py-2 rounded-lg transition-all shrink-0 text-[#EF2A86] group-hover:bg-[#EF2A86] group-hover:text-white"
+                      style={{ backgroundColor: "#EF2A8612" }}>
+                      Apply <ArrowRight size={12} />
+                    </span>
+                  </Link>
+                </motion.div>
+              ))}
+            </div>
+          )}
+        </div>
+      </section>
+
+      {/* Bottom CTA — pink */}
+      <section className="relative overflow-hidden py-16" style={{ backgroundColor: "#EF2A86" }}>
+        <div className="absolute -top-10 right-10 w-52 h-52 rounded-full bg-white opacity-5 pointer-events-none" />
+        <div className="relative max-w-3xl mx-auto px-5 sm:px-8 text-center">
+          <FadeIn>
+            <h2 className="text-3xl font-bold text-white mb-1">Don't see the right role?</h2>
+            <h2 className="text-4xl sm:text-5xl text-white mb-5" style={SCRIPT}>Get in touch anyway.</h2>
+            <p className="text-white/70 mb-8 leading-relaxed">We're always growing. Send us a message and we'll be in touch when a suitable role comes up.</p>
+            <Link href="/contact"
+              className="inline-flex items-center gap-2 px-8 py-4 font-bold rounded-xl bg-white hover:scale-105 transition-all"
+              style={{ color: "#EF2A86" }}
+              data-testid="jobs-contact-cta">
+              Get in touch <ArrowRight size={18} />
+            </Link>
+          </FadeIn>
+        </div>
+      </section>
+    </Layout>
+  );
+}
+
+
+======================================================================
+FILE: src/pages/referral.tsx
+======================================================================
+import { motion } from "framer-motion";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+import { ArrowRight, CheckCircle2 } from "lucide-react";
+import { Link } from "wouter";
+import { useSubmitReferral } from "@workspace/api-client-react";
+import { useToast } from "@/hooks/use-toast";
+import { Layout } from "@/components/layout";
+import { useState } from "react";
+
+const SERVICES = ["Short Visits", "Supported Living", "24/7 Care", "Enabling", "Respite Care", "Not sure — please advise"];
+
+const schema = z.object({
+  firstName: z.string().min(1, "First name is required"),
+  lastName: z.string().min(1, "Last name is required"),
+  email: z.string().email("Valid email required"),
+  phone: z.string().min(6, "Phone number is required"),
+  serviceRequired: z.string().min(1, "Please select a service"),
+  additionalInfo: z.string().optional(),
+});
+type FormData = z.infer<typeof schema>;
+
+function Field({ label, children, error }: { label: string; children: React.ReactNode; error?: string }) {
+  return (
+    <div>
+      <label className="block text-sm font-semibold text-[#05163D] mb-2">{label}</label>
+      {children}
+      {error && <p className="text-red-500 text-xs mt-1">{error}</p>}
+    </div>
+  );
+}
+
+const inputCls = "w-full px-4 py-3 rounded-xl border border-gray-200 text-sm text-[#05163D] focus:outline-none focus:ring-2 focus:ring-[#265597] transition-shadow bg-white";
+
+export default function Referral() {
+  const { toast } = useToast();
+  const [submitted, setSubmitted] = useState(false);
+  const { mutate: submitReferral, isPending } = useSubmitReferral();
+
+  const { register, handleSubmit, formState: { errors } } = useForm<FormData>({
+    resolver: zodResolver(schema),
+    mode: "onChange",
+  });
+
+  const onSubmit = (data: FormData) => {
+    submitReferral(
+      { data },
+      {
+        onSuccess: () => setSubmitted(true),
+        onError: () => toast({ title: "Something went wrong", description: "Please try again or call us on 0330 165 8880", variant: "destructive" }),
+      }
+    );
+  };
+
+  if (submitted) {
+    return (
+      <Layout>
+        <section className="min-h-screen flex items-center justify-center py-36 px-5" style={{ backgroundColor: "#05163D" }}>
+          <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="text-center max-w-md">
+            <div className="w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6" style={{ backgroundColor: "#EF2A86" }}>
+              <CheckCircle2 size={36} className="text-white" />
+            </div>
+            <h1 className="text-3xl font-bold text-white mb-4">Referral received</h1>
+            <p className="text-white/60 leading-relaxed mb-10">
+              Thank you for getting in touch. A member of our team will contact you within 1–2 working days to arrange a free assessment at a time that suits you.
+            </p>
+            <Link href="/" className="inline-flex items-center gap-2 px-8 py-4 text-white font-bold rounded-xl hover:opacity-90 transition-opacity" style={{ backgroundColor: "#EF2A86" }} data-testid="referral-success-home-link">
+              Back to home <ArrowRight size={18} />
+            </Link>
+          </motion.div>
+        </section>
+      </Layout>
+    );
+  }
+
+  return (
+    <Layout>
+      <section style={{ backgroundColor: "#05163D" }} className="pt-36 pb-20">
+        <div className="max-w-2xl mx-auto px-5 sm:px-8">
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}>
+            <div className="flex items-center gap-3 mb-6">
+              <div className="h-px w-10 bg-[#EF2A86]" />
+              <span className="text-sm font-medium tracking-widest text-white/60 uppercase">Get started</span>
+            </div>
+            <h1 className="text-4xl sm:text-5xl font-bold text-white mb-5">Make a Referral</h1>
+            <p className="text-white/60 leading-relaxed">
+              Fill in the form below and our team will be in touch to arrange a free, no-obligation care assessment. No waiting lists, no pressure.
+            </p>
+          </motion.div>
+        </div>
+      </section>
+
+      <section className="bg-gray-50 py-16">
+        <div className="max-w-2xl mx-auto px-5 sm:px-8">
+          <motion.form
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.1 }}
+            onSubmit={handleSubmit(onSubmit)}
+            className="bg-white rounded-3xl p-8 sm:p-10 space-y-6"
+            noValidate
+          >
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+              <Field label="First name" error={errors.firstName?.message}>
+                <input {...register("firstName")} className={inputCls} placeholder="Jane" data-testid="referral-first-name" />
+              </Field>
+              <Field label="Last name" error={errors.lastName?.message}>
+                <input {...register("lastName")} className={inputCls} placeholder="Smith" data-testid="referral-last-name" />
+              </Field>
+            </div>
+
+            <Field label="Email address" error={errors.email?.message}>
+              <input {...register("email")} type="email" className={inputCls} placeholder="jane@example.com" data-testid="referral-email" />
+            </Field>
+
+            <Field label="Phone number" error={errors.phone?.message}>
+              <input {...register("phone")} type="tel" className={inputCls} placeholder="07700 000000" data-testid="referral-phone" />
+            </Field>
+
+            <Field label="Service required" error={errors.serviceRequired?.message}>
+              <select {...register("serviceRequired")} className={inputCls} data-testid="referral-service">
+                <option value="">Select a service...</option>
+                {SERVICES.map((s) => <option key={s} value={s}>{s}</option>)}
+              </select>
+            </Field>
+
+            <Field label="Additional information (optional)">
+              <textarea
+                {...register("additionalInfo")}
+                rows={4}
+                className={inputCls}
+                placeholder="Tell us anything that would help us understand the care needed..."
+                data-testid="referral-additional-info"
+              />
+            </Field>
+
+            <button
+              type="submit"
+              disabled={isPending}
+              className="w-full py-4 text-white font-bold text-base rounded-xl transition-opacity hover:opacity-90 disabled:opacity-60 flex items-center justify-center gap-2"
+              style={{ backgroundColor: "#EF2A86" }}
+              data-testid="referral-submit"
+            >
+              {isPending ? "Submitting..." : <>Send Referral <ArrowRight size={18} /></>}
+            </button>
+
+            <p className="text-center text-xs text-gray-400">
+              Or call us directly: <a href="tel:03301658880" className="font-semibold text-[#265597]">0330 165 8880</a>
+            </p>
+          </motion.form>
+        </div>
+      </section>
+    </Layout>
+  );
+}
+
+
+======================================================================
+FILE: src/pages/feedback.tsx
+======================================================================
+import { useState } from "react";
+import { motion } from "framer-motion";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+import { ArrowRight, CheckCircle2, Star } from "lucide-react";
+import { Link } from "wouter";
+import { useSubmitFeedback } from "@workspace/api-client-react";
+import { useToast } from "@/hooks/use-toast";
+import { Layout } from "@/components/layout";
+
+const SERVICES = ["Care at Home", "Supported Living", "24/7 Care", "Enabling", "Respite Care", "Other"];
+
+const schema = z.object({
+  firstName: z.string().min(1, "First name is required"),
+  lastName: z.string().min(1, "Last name is required"),
+  rating: z.number().min(1, "Please select a rating").max(5),
+  serviceUsed: z.string().min(1, "Please select a service"),
+  comments: z.string().optional(),
+});
+type FormData = z.infer<typeof schema>;
+
+const inputCls = "w-full px-4 py-3 rounded-xl border border-gray-200 text-sm text-[#05163D] focus:outline-none focus:ring-2 focus:ring-[#265597] transition-shadow bg-white";
+
+function Field({ label, children, error }: { label: string; children: React.ReactNode; error?: string }) {
+  return (
+    <div>
+      <label className="block text-sm font-semibold text-[#05163D] mb-2">{label}</label>
+      {children}
+      {error && <p className="text-red-500 text-xs mt-1">{error}</p>}
+    </div>
+  );
+}
+
+export default function Feedback() {
+  const { toast } = useToast();
+  const [submitted, setSubmitted] = useState(false);
+  const [hoverRating, setHoverRating] = useState(0);
+  const { mutate: submitFeedback, isPending } = useSubmitFeedback();
+
+  const { register, handleSubmit, setValue, watch, formState: { errors } } = useForm<FormData>({
+    resolver: zodResolver(schema),
+    mode: "onChange",
+    defaultValues: { rating: 0 },
+  });
+
+  const rating = watch("rating");
+
+  const onSubmit = (data: FormData) => {
+    submitFeedback(
+      { data },
+      {
+        onSuccess: () => setSubmitted(true),
+        onError: () => toast({ title: "Something went wrong", description: "Please try again or call us on 0330 165 8880", variant: "destructive" }),
+      }
+    );
+  };
+
+  if (submitted) {
+    return (
+      <Layout>
+        <section className="min-h-screen flex items-center justify-center py-36 px-5" style={{ backgroundColor: "#05163D" }}>
+          <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="text-center max-w-md">
+            <div className="w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6" style={{ backgroundColor: "#EF2A86" }}>
+              <CheckCircle2 size={36} className="text-white" />
+            </div>
+            <h1 className="text-3xl font-bold text-white mb-4">Thank you!</h1>
+            <p className="text-white/60 leading-relaxed mb-10">
+              Your feedback means a great deal to us. We read every submission and use it to continuously improve our services.
+            </p>
+            <Link href="/" className="inline-flex items-center gap-2 px-8 py-4 text-white font-bold rounded-xl hover:opacity-90 transition-opacity" style={{ backgroundColor: "#EF2A86" }} data-testid="feedback-success-home-link">
+              Back to home <ArrowRight size={18} />
+            </Link>
+          </motion.div>
+        </section>
+      </Layout>
+    );
+  }
+
+  return (
+    <Layout>
+      <section style={{ backgroundColor: "#05163D" }} className="pt-36 pb-20">
+        <div className="max-w-2xl mx-auto px-5 sm:px-8">
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}>
+            <div className="flex items-center gap-3 mb-6">
+              <div className="h-px w-10 bg-[#EF2A86]" />
+              <span className="text-sm font-medium tracking-widest text-white/60 uppercase">Your experience</span>
+            </div>
+            <h1 className="text-4xl sm:text-5xl font-bold text-white mb-5">Leave Feedback</h1>
+            <p className="text-white/60 leading-relaxed">
+              Your feedback helps us maintain the highest standards of care and meet CQC requirements. We value every response.
+            </p>
+          </motion.div>
+        </div>
+      </section>
+
+      <section className="bg-gray-50 py-16">
+        <div className="max-w-2xl mx-auto px-5 sm:px-8">
+          <motion.form
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.1 }}
+            onSubmit={handleSubmit(onSubmit)}
+            className="bg-white rounded-3xl p-8 sm:p-10 space-y-6"
+            noValidate
+          >
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+              <Field label="First name" error={errors.firstName?.message}>
+                <input {...register("firstName")} className={inputCls} placeholder="Jane" data-testid="feedback-first-name" />
+              </Field>
+              <Field label="Last name" error={errors.lastName?.message}>
+                <input {...register("lastName")} className={inputCls} placeholder="Smith" data-testid="feedback-last-name" />
+              </Field>
+            </div>
+
+            <Field label="Service used" error={errors.serviceUsed?.message}>
+              <select {...register("serviceUsed")} className={inputCls} data-testid="feedback-service">
+                <option value="">Select a service...</option>
+                {SERVICES.map((s) => <option key={s} value={s}>{s}</option>)}
+              </select>
+            </Field>
+
+            <Field label="Overall rating" error={errors.rating?.message}>
+              <div className="flex items-center gap-2 mt-1" data-testid="feedback-rating">
+                {[1, 2, 3, 4, 5].map((star) => (
+                  <button
+                    key={star}
+                    type="button"
+                    onClick={() => setValue("rating", star, { shouldValidate: true })}
+                    onMouseEnter={() => setHoverRating(star)}
+                    onMouseLeave={() => setHoverRating(0)}
+                    className="p-1 transition-transform hover:scale-110"
+                    data-testid={`rating-star-${star}`}
+                  >
+                    <Star
+                      size={32}
+                      fill={(hoverRating || rating) >= star ? "#EF2A86" : "none"}
+                      stroke={(hoverRating || rating) >= star ? "#EF2A86" : "#d1d5db"}
+                      className="transition-colors"
+                    />
+                  </button>
+                ))}
+                {rating > 0 && (
+                  <span className="text-sm text-gray-400 ml-2">
+                    {["", "Poor", "Fair", "Good", "Very Good", "Excellent"][rating]}
+                  </span>
+                )}
+              </div>
+            </Field>
+
+            <Field label="Comments (optional)">
+              <textarea
+                {...register("comments")}
+                rows={5}
+                className={inputCls}
+                placeholder="Tell us about your experience with Smeaton Healthcare..."
+                data-testid="feedback-comments"
+              />
+            </Field>
+
+            <button
+              type="submit"
+              disabled={isPending}
+              className="w-full py-4 text-white font-bold text-base rounded-xl transition-opacity hover:opacity-90 disabled:opacity-60 flex items-center justify-center gap-2"
+              style={{ backgroundColor: "#EF2A86" }}
+              data-testid="feedback-submit"
+            >
+              {isPending ? "Submitting..." : <>Submit Feedback <ArrowRight size={18} /></>}
+            </button>
+          </motion.form>
+        </div>
+      </section>
+    </Layout>
+  );
+}
+
+
+======================================================================
+FILE: src/pages/not-found.tsx
+======================================================================
+import { Link } from "wouter";
+import { Layout } from "@/components/layout";
+
+export default function NotFound() {
+  return (
+    <Layout>
+      <section className="min-h-screen flex items-center justify-center" style={{ backgroundColor: "#05163D" }}>
+        <div className="text-center px-5">
+          <div className="text-[140px] font-bold text-white/10 leading-none">404</div>
+          <h1 className="text-3xl font-bold text-white mt-4">Page not found</h1>
+          <p className="text-white/60 mt-3 mb-8">This page doesn't exist or has been moved.</p>
+          <Link href="/" className="inline-block px-8 py-4 text-white font-semibold rounded-xl" style={{ backgroundColor: "#EF2A86" }}>
+            Go home
+          </Link>
+        </div>
+      </section>
+    </Layout>
+  );
+}
+
