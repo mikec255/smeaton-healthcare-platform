@@ -232,22 +232,17 @@ export default function Home() {
       {/* SERVICES */}
       <section className="py-20 sm:py-28" style={{ backgroundColor: CREAM }}>
         <div className="max-w-7xl mx-auto px-5 sm:px-8">
-          <FadeIn className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-14">
-            <div>
-              <p className="text-xs font-bold tracking-widest uppercase mb-3" style={{ color: PINK }}>What we offer</p>
-              <h2 className="text-4xl sm:text-5xl font-extrabold tracking-tight" style={{ color: NAVY }}>Seven ways we</h2>
-              <div style={{ ...SCRIPT, fontSize: "clamp(2.5rem, 5vw, 3.8rem)", color: PINK }}>can help.</div>
-            </div>
-            <Link href="/services" className="flex items-center gap-2 text-sm font-bold pb-0.5 hover:gap-3 transition-all shrink-0 border-b-2" style={{ color: NAVY, borderColor: "rgba(5,22,61,0.15)" }} data-testid="home-all-services-link">
-              All services <ArrowRight size={15} />
-            </Link>
+          <FadeIn className="mb-12">
+            <p className="text-xs font-bold tracking-widest uppercase mb-3" style={{ color: PINK }}>What we offer</p>
+            <h2 className="text-4xl sm:text-5xl font-extrabold tracking-tight" style={{ color: NAVY }}>Ways we</h2>
+            <div style={{ ...SCRIPT, fontSize: "clamp(2.5rem, 5vw, 3.8rem)", color: PINK }}>can help.</div>
           </FadeIn>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-            {SERVICES.map((s, i) => {
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-5 mb-10">
+            {SERVICES.slice(0, 3).map((s, i) => {
               const Icon = s.icon;
               return (
-                <FadeIn key={s.slug} delay={i * 0.06}>
+                <FadeIn key={s.slug} delay={i * 0.08}>
                   <Link href={`/services/${s.slug}`}
                     className="group flex flex-col h-full bg-white rounded-2xl p-7 transition-all hover:shadow-lg hover:-translate-y-0.5"
                     data-testid={`service-card-${s.slug}`}>
@@ -265,6 +260,15 @@ export default function Home() {
               );
             })}
           </div>
+
+          <FadeIn className="flex justify-center">
+            <Link href="/services"
+              className="inline-flex items-center gap-2.5 px-8 py-4 rounded-full font-bold text-sm transition-all hover:gap-4 hover:shadow-lg"
+              style={{ backgroundColor: NAVY, color: "#fff" }}
+              data-testid="home-all-services-link">
+              View all our services <ArrowRight size={15} />
+            </Link>
+          </FadeIn>
         </div>
       </section>
 
