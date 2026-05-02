@@ -3,6 +3,7 @@ import { Link } from "wouter";
 import { motion, useInView } from "framer-motion";
 import { ArrowRight, CheckCircle2, Phone, ShieldCheck, Award, Clock } from "lucide-react";
 import { SiGoogle, SiTrustpilot } from "react-icons/si";
+import nhsLogoImg from "@assets/nhs_logo.png";
 import img108 from "@assets/Smeaton-108_1777730894016.jpg";
 import img117 from "@assets/Smeaton-117_1777730894016.jpg";
 import img124 from "@assets/Smeaton-124_1777730894017.jpg";
@@ -51,7 +52,6 @@ function Ticker() {
         {/* Google */}
         <span className="inline-flex items-center gap-2 shrink-0">
           <SiGoogle className="text-white" style={{ fontSize: "15px" }} />
-          <span className="text-yellow-200 text-sm">★★★★★</span>
           <span className="text-white font-semibold text-sm">4.9</span>
         </span>
 
@@ -60,7 +60,6 @@ function Ticker() {
         {/* Trustpilot */}
         <span className="hidden sm:inline-flex items-center gap-2 shrink-0">
           <SiTrustpilot style={{ color: "#00B67A", fontSize: "16px" }} />
-          <span className="text-yellow-200 text-sm">★★★★★</span>
           <span className="text-white font-semibold text-sm">Trustpilot</span>
         </span>
 
@@ -68,11 +67,7 @@ function Ticker() {
 
         {/* NHS */}
         <span className="hidden sm:inline-flex items-center gap-2 shrink-0">
-          <span className="inline-flex items-center gap-1 bg-white rounded px-2 py-0.5" style={{ lineHeight: 1 }}>
-            <span className="font-black text-xs tracking-tight" style={{ color: "#003087" }}>N</span>
-            <span className="font-black text-xs tracking-tight" style={{ color: "#005EB8" }}>H</span>
-            <span className="font-black text-xs tracking-tight" style={{ color: "#003087" }}>S</span>
-          </span>
+          <img src={nhsLogoImg} alt="NHS" style={{ height: "20px", width: "auto", filter: "brightness(0) invert(1)" }} />
           <span className="text-white/90 text-sm font-medium">Approved Provider</span>
         </span>
 
