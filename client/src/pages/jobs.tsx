@@ -90,6 +90,7 @@ export default function Jobs() {
   const isAdmin = authUser?.user && ["admin", "superadmin"].includes(authUser.user.role);
 
   const NAVY = "#05163D";
+  const BLUE = "#275799";
   const PINK = "#EF2A86";
   const SCRIPT = { fontFamily: "'Dancing Script', cursive" };
 
