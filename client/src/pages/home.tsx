@@ -274,26 +274,6 @@ export default function Home() {
         </div>
       </section>
 
-      {/* FULL-BLEED QUOTE */}
-      <section className="relative overflow-hidden" style={{ minHeight: "440px" }}>
-        <div className="absolute inset-0">
-          <img src={img108} alt="Smeaton carer with client" className="w-full h-full object-cover object-top" />
-          <div className="absolute inset-0" style={{ background: "linear-gradient(135deg, rgba(5,22,61,0.90) 0%, rgba(5,22,61,0.55) 65%, transparent 100%)" }} />
-        </div>
-        <div className="relative max-w-7xl mx-auto px-5 sm:px-8 py-24 sm:py-32 flex items-end" style={{ minHeight: "440px" }}>
-          <FadeIn>
-            <div className="max-w-2xl">
-              <div className="text-[80px] select-none mb-1"
-                style={{ color: "rgba(239,42,134,0.4)", fontFamily: "Georgia, serif", lineHeight: 0.7, fontWeight: 700 }}>"</div>
-              <p className="text-2xl sm:text-3xl font-bold text-white leading-snug mb-6 italic">
-                "The carers from Smeaton are wonderful — Mum knows them by name and actually looks forward to their visits. That means everything."
-              </p>
-              <p className="text-white/60 font-semibold text-sm">Sarah T. · Daughter of service user, Plymouth</p>
-            </div>
-          </FadeIn>
-        </div>
-      </section>
-
       {/* SELF-FUNDED CARE */}
       <section className="py-20 sm:py-28 bg-white">
         <div className="max-w-7xl mx-auto px-5 sm:px-8">
