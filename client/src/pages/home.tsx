@@ -280,8 +280,8 @@ export default function Home() {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 lg:gap-24 items-center">
             <FadeIn>
               <p className="text-xs font-bold tracking-widest uppercase mb-5" style={{ color: PINK }}>Self-funded care</p>
-              <h2 className="text-4xl sm:text-5xl font-extrabold leading-tight mb-2 tracking-tight" style={{ color: NAVY }}>Funding your own</h2>
-              <div className="mb-8" style={{ ...SCRIPT, fontSize: "clamp(2rem, 4vw, 3.2rem)", color: PINK, lineHeight: 1.1 }}>
+              <h2 className="text-4xl sm:text-5xl font-extrabold leading-tight mb-2 tracking-tight" style={{ color: PINK }}>Funding your own</h2>
+              <div className="mb-8" style={{ ...SCRIPT, fontSize: "clamp(2rem, 4vw, 3.2rem)", color: BLUE, lineHeight: 1.1 }}>
                 care, your way.
               </div>
               <p className="text-gray-500 text-base leading-relaxed mb-8">
