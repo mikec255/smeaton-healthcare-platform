@@ -2,6 +2,7 @@ import { useRef, useEffect } from "react";
 import { Link } from "wouter";
 import { motion, useInView } from "framer-motion";
 import { ArrowRight, CheckCircle2, Phone, ShieldCheck, Award, Clock } from "lucide-react";
+import { SiGoogle, SiTrustpilot } from "react-icons/si";
 import img108 from "@assets/Smeaton-108_1777730894016.jpg";
 import img117 from "@assets/Smeaton-117_1777730894016.jpg";
 import img124 from "@assets/Smeaton-124_1777730894017.jpg";
@@ -44,29 +45,51 @@ function FadeIn({ children, delay = 0, className = "" }: { children: React.React
 
 function Ticker() {
   return (
-    <div style={{ backgroundColor: PINK, padding: "12px 0" }}>
+    <div style={{ backgroundColor: PINK, padding: "10px 0" }}>
       <div className="flex items-center flex-wrap gap-x-6 gap-y-2" style={{ paddingLeft: "74px", paddingRight: "32px" }}>
+
+        {/* Google */}
         <span className="inline-flex items-center gap-2 shrink-0">
+          <SiGoogle className="text-white" style={{ fontSize: "15px" }} />
           <span className="text-yellow-200 text-sm">★★★★★</span>
-          <span className="text-white font-bold text-sm">4.9 Google</span>
+          <span className="text-white font-semibold text-sm">4.9</span>
         </span>
+
         <span className="text-white/30 shrink-0">|</span>
+
+        {/* Trustpilot */}
+        <span className="hidden sm:inline-flex items-center gap-2 shrink-0">
+          <SiTrustpilot style={{ color: "#00B67A", fontSize: "16px" }} />
+          <span className="text-yellow-200 text-sm">★★★★★</span>
+          <span className="text-white font-semibold text-sm">Trustpilot</span>
+        </span>
+
+        <span className="text-white/30 hidden sm:inline shrink-0">|</span>
+
+        {/* NHS */}
+        <span className="hidden sm:inline-flex items-center gap-2 shrink-0">
+          <span className="inline-flex items-center gap-1 bg-white rounded px-2 py-0.5" style={{ lineHeight: 1 }}>
+            <span className="font-black text-xs tracking-tight" style={{ color: "#003087" }}>N</span>
+            <span className="font-black text-xs tracking-tight" style={{ color: "#005EB8" }}>H</span>
+            <span className="font-black text-xs tracking-tight" style={{ color: "#003087" }}>S</span>
+          </span>
+          <span className="text-white/90 text-sm font-medium">Approved Provider</span>
+        </span>
+
+        <span className="text-white/30 hidden sm:inline shrink-0">|</span>
+
+        {/* CQC */}
+        <span className="hidden sm:inline-flex items-center gap-2 shrink-0">
+          <span className="text-white/90 text-sm font-medium whitespace-nowrap">CQC Rated Good</span>
+        </span>
+
+        <span className="text-white/30 hidden sm:inline shrink-0">|</span>
+
+        {/* Care */}
         <span className="hidden sm:inline-flex items-center gap-2 shrink-0">
           <span className="text-white/90 text-sm font-medium whitespace-nowrap">♥ Care within 24 hours</span>
         </span>
-        <span className="text-white/30 hidden sm:inline shrink-0">|</span>
-        <span className="hidden sm:inline-flex items-center gap-2 shrink-0">
-          <span className="text-white/90 text-sm font-medium">CQC Rated Good</span>
-        </span>
-        <span className="text-white/30 hidden sm:inline shrink-0">|</span>
-        <span className="hidden sm:inline-flex items-center gap-2 shrink-0">
-          <span className="bg-white text-xs font-black px-2 py-0.5 rounded" style={{ color: "#005EB8" }}>NHS</span>
-          <span className="text-white/90 text-sm font-medium">Approved Provider</span>
-        </span>
-        <span className="text-white/30 hidden sm:inline shrink-0">|</span>
-        <span className="hidden sm:inline-flex items-center gap-2 shrink-0">
-          <span className="text-white/90 text-sm font-medium whitespace-nowrap">★ Competitive rates</span>
-        </span>
+
       </div>
     </div>
   );
