@@ -35,27 +35,27 @@ export default function Enablements() {
 
   return (
     <div data-testid="enablements-page">
-      <section className="relative overflow-hidden" style={{ background: `linear-gradient(135deg, ${NAVY} 0%, ${BLUE} 100%)` }}>
+      <section className="relative overflow-hidden" style={{ backgroundColor: CREAM }}>
         <div className="absolute -top-24 -right-24 w-96 h-96 rounded-full opacity-[0.15] pointer-events-none" style={{ backgroundColor: PINK }} />
         <div className="absolute -bottom-32 -left-16 w-80 h-80 rounded-full opacity-[0.08] pointer-events-none" style={{ backgroundColor: PINK }} />
         <div className="relative max-w-7xl mx-auto px-5 sm:px-8 py-20 sm:py-28">
           <Link href="/services" className="inline-flex items-center gap-1.5 text-sm font-semibold mb-10 hover:opacity-80 transition-opacity" style={{ color: PINK }}>← All Services</Link>
           <div className="grid lg:grid-cols-[1fr_400px] gap-12 xl:gap-20 items-center">
             <div>
-              <div className="inline-flex items-center px-3.5 py-1.5 rounded-full text-xs font-bold uppercase tracking-widest mb-5 text-white/80" style={{ backgroundColor: "rgba(255,255,255,0.1)", border: "1px solid rgba(255,255,255,0.15)" }}>Home Care</div>
-              <h1 className="text-5xl sm:text-6xl font-extrabold text-white mb-3 tracking-tight leading-[1.05]">Enabling</h1>
+              <div className="inline-flex items-center px-3.5 py-1.5 rounded-full text-xs font-bold uppercase tracking-widest mb-5 " style={{ color: NAVY, backgroundColor: "rgba(5,22,61,0.06)", border: "1px solid rgba(5,22,61,0.15)" }}>Home Care</div>
+              <h1 className="text-5xl sm:text-6xl font-extrabold mb-3 tracking-tight leading-[1.05]" style={{ color: NAVY }}>Enabling</h1>
               <div className="mb-6" style={{ ...SCRIPT, fontSize: "clamp(1.8rem, 3.5vw, 2.8rem)", color: PINK }}>building your independence.</div>
-              <p className="text-white/70 text-lg max-w-xl leading-relaxed mb-10">Build skills, confidence, and independence through personalised support that empowers you to achieve your goals and live life to the fullest.</p>
+              <p className="text-gray-600 text-lg max-w-xl leading-relaxed mb-10">Build skills, confidence, and independence through personalised support that empowers you to achieve your goals and live life to the fullest.</p>
               <div className="flex flex-col sm:flex-row gap-4">
                 <Link href="/referral" className="inline-flex items-center justify-center gap-2 px-7 py-4 text-white font-bold rounded-2xl hover:scale-105 transition-all text-base" style={{ backgroundColor: PINK, boxShadow: "0 8px 32px rgba(239,42,134,0.45)" }}>Request Free Assessment <ArrowRight size={17} /></Link>
-                <a href="tel:03301658880" className="inline-flex items-center justify-center gap-2 px-7 py-4 font-semibold rounded-2xl text-white hover:bg-white/10 transition-all text-base" style={{ border: "2px solid rgba(255,255,255,0.2)" }}><Phone size={16} /> 0330 165 8880</a>
+                <a href="tel:03301658880" className="inline-flex items-center justify-center gap-2 px-7 py-4 font-semibold rounded-2xl hover:opacity-80 transition-all text-base" style={{ color: NAVY, border: "2px solid rgba(5,22,61,0.25)" }}><Phone size={16} /> 0330 165 8880</a>
               </div>
             </div>
             <div className="hidden lg:flex flex-col gap-4">
               {BENEFITS.map((b) => (
-                <div key={b.title} className="flex items-start gap-4 p-5 rounded-2xl" style={{ backgroundColor: "rgba(255,255,255,0.07)", border: "1px solid rgba(255,255,255,0.1)" }}>
+                <div key={b.title} className="flex items-start gap-4 p-5 rounded-2xl" style={{ backgroundColor: "white", border: "1px solid #e5e7eb", boxShadow: "0 1px 6px rgba(0,0,0,0.05)" }}>
                   <div className="w-12 h-12 rounded-xl flex items-center justify-center shrink-0" style={{ backgroundColor: PINK }}><b.icon size={22} className="text-white" /></div>
-                  <div><p className="text-white font-bold text-sm mb-1">{b.title}</p><p className="text-white/55 text-xs leading-relaxed">{b.desc}</p></div>
+                  <div><p className="font-bold text-sm mb-1" style={{ color: NAVY }}>{b.title}</p><p className="text-gray-500 text-xs leading-relaxed">{b.desc}</p></div>
                 </div>
               ))}
             </div>
