@@ -45,6 +45,7 @@ const SERVICES_MENU = [
 const OTHER_NAV = [
   { href: "/about", label: "About Us" },
   { href: "/jobs", label: "Careers" },
+  { href: "/resources", label: "Resources" },
   { href: "/contact", label: "Contact" },
 ];
 
