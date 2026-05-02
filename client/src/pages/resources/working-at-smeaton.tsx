@@ -82,15 +82,15 @@ export default function WorkingAtSmeaton() {
       </section>
 
       {/* CTA */}
-      <section style={{ backgroundColor: PINK }} className="py-14">
+      <section className="bg-white py-14">
         <div className="max-w-3xl mx-auto px-5 sm:px-8 text-center">
-          <h2 className="text-3xl font-extrabold text-white mb-2 tracking-tight">Ready to join our family?</h2>
-          <div className="mb-5" style={{ ...SCRIPT, fontSize: "clamp(1.8rem, 3.5vw, 2.8rem)", color: "rgba(255,255,255,0.9)" }}>We'd love to hear from you.</div>
+          <h2 className="text-3xl font-extrabold mb-2 tracking-tight" style={{ color: NAVY }}>Ready to join our family?</h2>
+          <div className="mb-5" style={{ ...SCRIPT, fontSize: "clamp(1.8rem, 3.5vw, 2.8rem)", color: PINK }}>We'd love to hear from you.</div>
           <div className="flex flex-col sm:flex-row justify-center gap-4">
             <Link href="/jobs" className="inline-flex items-center justify-center gap-2 px-6 py-3.5 text-white font-bold rounded-xl hover:scale-105 transition-all" style={{ backgroundColor: PINK, boxShadow: "0 8px 24px rgba(239,42,134,0.4)" }} data-testid="view-jobs-button">
               View Current Opportunities <ArrowRight size={15} />
             </Link>
-            <Link href="/contact" className="inline-flex items-center justify-center gap-2 px-6 py-3.5 font-semibold rounded-xl text-white hover:bg-white/10 transition-all border-2" style={{ borderColor: "rgba(255,255,255,0.3)" }} data-testid="contact-hr-button">
+            <Link href="/contact" className="inline-flex items-center justify-center gap-2 px-6 py-3.5 font-semibold rounded-xl hover:opacity-80 transition-all border-2" style={{ color: NAVY, borderColor: "rgba(5,22,61,0.2)" }} data-testid="contact-hr-button">
               Contact Our Team <ArrowRight size={15} />
             </Link>
           </div>

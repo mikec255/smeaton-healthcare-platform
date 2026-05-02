@@ -382,12 +382,12 @@ export default function Home() {
       </section>
 
       {/* CTA */}
-      <section style={{ backgroundColor: PINK }} className="py-20 sm:py-24">
+      <section className="bg-white py-20 sm:py-24">
         <div className="max-w-3xl mx-auto px-5 sm:px-8 text-center">
           <FadeIn>
-            <h2 className="text-3xl sm:text-4xl font-extrabold text-white mb-2 tracking-tight">Ready to get started?</h2>
-            <div className="mb-6" style={{ ...SCRIPT, fontSize: "clamp(2rem, 4vw, 3rem)", color: "rgba(255,255,255,0.85)" }}>We'd love to hear from you.</div>
-            <p className="text-white/70 mb-10 leading-relaxed">Make a referral today. Our team will arrange a free, no-obligation assessment at a time that suits you.</p>
+            <h2 className="text-3xl sm:text-4xl font-extrabold mb-2 tracking-tight" style={{ color: NAVY }}>Ready to get started?</h2>
+            <div className="mb-6" style={{ ...SCRIPT, fontSize: "clamp(2rem, 4vw, 3rem)", color: PINK }}>We'd love to hear from you.</div>
+            <p className="text-gray-500 mb-10 leading-relaxed">Make a referral today. Our team will arrange a free, no-obligation assessment at a time that suits you.</p>
             <div className="flex flex-col sm:flex-row justify-center gap-4">
               <Link
                 href="/referral"
@@ -397,8 +397,8 @@ export default function Home() {
                 Request a Free Assessment <ArrowRight size={18} />
               </Link>
               <a href="tel:03301658880"
-                className="inline-flex items-center justify-center gap-2 px-8 py-4 font-semibold rounded-xl text-white transition-all hover:bg-white/10"
-                style={{ border: "2px solid rgba(255,255,255,0.4)" }}>
+                className="inline-flex items-center justify-center gap-2 px-8 py-4 font-semibold rounded-xl hover:opacity-80 transition-all border-2"
+                style={{ color: NAVY, borderColor: "rgba(5,22,61,0.2)" }}>
                 <Phone size={16} /> 0330 165 8880
               </a>
             </div>
