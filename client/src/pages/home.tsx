@@ -106,7 +106,7 @@ export default function Home() {
       <section className="relative overflow-hidden" style={{ backgroundColor: CREAM, minHeight: "88vh" }}>
         <div className="grid grid-cols-1 lg:grid-cols-[55%_45%]" style={{ minHeight: "84vh" }}>
 
-          <div className="flex flex-col justify-center py-16 px-5 sm:px-8 lg:pl-[58px]">
+          <div className="flex flex-col justify-center py-16 px-5 sm:px-8 lg:pl-[63px]">
             <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}
               className="inline-flex items-center gap-2 self-start rounded-full px-4 py-1.5 mb-8"
               style={{ backgroundColor: "#EF2A8618" }}>
