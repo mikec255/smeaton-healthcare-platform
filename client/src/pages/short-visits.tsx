@@ -181,16 +181,16 @@ export default function ShortVisits() {
       </section>
 
       {/* CTA */}
-      <section style={{ backgroundColor: PINK }} className="py-16 sm:py-20">
+      <section className="bg-white py-16 sm:py-20">
         <div className="max-w-3xl mx-auto px-5 sm:px-8 text-center">
-          <h2 className="text-3xl font-extrabold text-white mb-2 tracking-tight">Ready to get started?</h2>
-          <div className="mb-5" style={{ ...SCRIPT, fontSize: "clamp(1.8rem,3.5vw,2.8rem)", color: "rgba(255,255,255,0.9)" }}>Let's talk about your needs.</div>
-          <p className="text-white/60 mb-8 leading-relaxed">A free, no-obligation assessment with one of our care coordinators. We can usually begin within 24–48 hours.</p>
+          <h2 className="text-3xl font-extrabold mb-2 tracking-tight" style={{ color: NAVY }}>Ready to get started?</h2>
+          <div className="mb-5" style={{ ...SCRIPT, fontSize: "clamp(1.8rem,3.5vw,2.8rem)", color: PINK }}>Let's talk about your needs.</div>
+          <p className="text-gray-500 mb-8 leading-relaxed">A free, no-obligation assessment with one of our care coordinators. We can usually begin within 24–48 hours.</p>
           <div className="flex flex-col sm:flex-row justify-center gap-4">
             <Link href="/referral" className="inline-flex items-center justify-center gap-2 px-7 py-4 text-white font-bold rounded-xl hover:scale-105 transition-all" style={{ backgroundColor: PINK, boxShadow: "0 8px 32px rgba(239,42,134,0.4)" }}>
               Request Free Assessment <ArrowRight size={16} />
             </Link>
-            <a href="tel:03301658880" className="inline-flex items-center justify-center gap-2 px-7 py-4 font-semibold rounded-xl text-white hover:bg-white/10 transition-all border-2" style={{ borderColor: "rgba(255,255,255,0.3)" }}>
+            <a href="tel:03301658880" className="inline-flex items-center justify-center gap-2 px-7 py-4 font-semibold rounded-xl hover:opacity-80 transition-all border-2" style={{ color: NAVY, borderColor: "rgba(5,22,61,0.2)" }}>
               <Phone size={16} /> 0330 165 8880
             </a>
           </div>

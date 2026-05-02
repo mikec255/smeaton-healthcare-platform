@@ -118,11 +118,11 @@ export default function Services() {
       </section>
 
       {/* CTA */}
-      <section style={{ backgroundColor: PINK }} className="py-16 sm:py-20">
+      <section className="bg-white py-16 sm:py-20">
         <div className="max-w-3xl mx-auto px-5 sm:px-8 text-center">
-          <h2 className="text-3xl font-extrabold text-white mb-2 tracking-tight">Not sure which service is right?</h2>
-          <div className="mb-5" style={{ ...SCRIPT, fontSize: "clamp(1.8rem, 3.5vw, 2.8rem)", color: "rgba(255,255,255,0.9)" }}>We'll help you find out.</div>
-          <p className="text-white/60 mb-8 leading-relaxed">Our team can discuss your needs and guide you to the right support. No obligation, completely free.</p>
+          <h2 className="text-3xl font-extrabold mb-2 tracking-tight" style={{ color: NAVY }}>Not sure which service is right?</h2>
+          <div className="mb-5" style={{ ...SCRIPT, fontSize: "clamp(1.8rem, 3.5vw, 2.8rem)", color: PINK }}>We'll help you find out.</div>
+          <p className="text-gray-500 mb-8 leading-relaxed">Our team can discuss your needs and guide you to the right support. No obligation, completely free.</p>
           <div className="flex flex-col sm:flex-row justify-center gap-4">
             <Link href="/referral"
               className="inline-flex items-center justify-center gap-2 px-7 py-4 text-white font-bold rounded-xl hover:opacity-90 transition-all hover:scale-105"
@@ -130,8 +130,8 @@ export default function Services() {
               Request a Free Assessment <ArrowRight size={16} />
             </Link>
             <a href="tel:03301658880"
-              className="inline-flex items-center justify-center gap-2 px-7 py-4 font-semibold rounded-xl text-white hover:bg-white/10 transition-all border-2"
-              style={{ borderColor: "rgba(255,255,255,0.3)" }}>
+              className="inline-flex items-center justify-center gap-2 px-7 py-4 font-semibold rounded-xl hover:opacity-80 transition-all border-2"
+              style={{ color: NAVY, borderColor: "rgba(5,22,61,0.2)" }}>
               <Phone size={16} /> 0330 165 8880
             </a>
           </div>
