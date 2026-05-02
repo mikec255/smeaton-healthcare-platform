@@ -38,21 +38,20 @@ export default function About() {
   return (
     <div data-testid="about-page">
       {/* HERO */}
-      <section className="relative overflow-hidden" style={{ backgroundColor: NAVY }}>
+      <section className="relative overflow-hidden" style={{ backgroundColor: "#FDF7F0" }}>
         {/* Decorative blobs */}
-        <div className="absolute -top-32 -right-32 w-[500px] h-[500px] rounded-full opacity-[0.06] pointer-events-none" style={{ backgroundColor: PINK }} />
-        <div className="absolute -bottom-40 -left-20 w-96 h-96 rounded-full opacity-[0.07] pointer-events-none" style={{ backgroundColor: BLUE }} />
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[700px] rounded-full opacity-[0.03] pointer-events-none" style={{ backgroundColor: PINK }} />
+        <div className="absolute -top-24 -right-24 w-96 h-96 rounded-full opacity-[0.13] pointer-events-none" style={{ backgroundColor: PINK }} />
+        <div className="absolute -bottom-32 -left-16 w-80 h-80 rounded-full opacity-[0.08] pointer-events-none" style={{ backgroundColor: BLUE }} />
 
-        <div className="relative max-w-5xl mx-auto px-5 sm:px-8 pt-16 pb-0 text-center">
+        <div className="relative max-w-4xl mx-auto px-5 sm:px-8 pt-16 pb-0 text-center">
           <motion.div initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7 }}>
             {/* Label */}
-            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-widest mb-8" style={{ color: PINK, backgroundColor: "rgba(239,42,134,0.12)", border: "1px solid rgba(239,42,134,0.25)" }}>
-              About Us
+            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-widest mb-8" style={{ color: BLUE, backgroundColor: "rgba(39,87,153,0.08)", border: "1px solid rgba(39,87,153,0.18)" }}>
+              Our Story
             </div>
 
             {/* Main heading */}
-            <h1 className="text-5xl sm:text-6xl lg:text-7xl font-extrabold tracking-tight leading-[1.05] text-white mb-3">
+            <h1 className="text-5xl sm:text-6xl lg:text-7xl font-extrabold tracking-tight leading-[1.05] mb-3" style={{ color: BLUE }}>
               Built on one
             </h1>
             <div className="mb-6" style={{ ...SCRIPT, fontSize: "clamp(2.8rem, 6vw, 5rem)", color: PINK, lineHeight: 1.1 }}>
@@ -60,23 +59,23 @@ export default function About() {
             </div>
 
             {/* Subtext */}
-            <p className="text-white/60 text-lg sm:text-xl leading-relaxed max-w-2xl mx-auto mb-12">
+            <p className="text-gray-500 text-lg sm:text-xl leading-relaxed max-w-2xl mx-auto mb-12">
               That every person deserves care that genuinely respects who they are — delivered by people who chose this work because they care, not just a paycheque.
             </p>
           </motion.div>
 
           {/* Stats bar */}
           <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7, delay: 0.2 }}
-            className="grid grid-cols-2 sm:grid-cols-4 border-t border-white/10">
+            className="grid grid-cols-2 sm:grid-cols-4 border-t border-gray-200">
             {[
               { value: "2019", label: "Founded" },
               { value: "CQC Good", label: "Both offices" },
               { value: "2", label: "Devon & Cornwall" },
               { value: "NHS", label: "Approved Provider" },
             ].map((stat, i) => (
-              <div key={i} className="py-7 px-4 border-r border-white/10 last:border-r-0">
+              <div key={i} className="py-7 px-4 border-r border-gray-200 last:border-r-0">
                 <div className="text-2xl font-extrabold mb-0.5" style={{ color: PINK }}>{stat.value}</div>
-                <div className="text-xs text-white/50 tracking-wide uppercase">{stat.label}</div>
+                <div className="text-xs tracking-wide uppercase" style={{ color: NAVY, opacity: 0.5 }}>{stat.label}</div>
               </div>
             ))}
           </motion.div>
