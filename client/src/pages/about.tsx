@@ -2,6 +2,10 @@ import { useRef, useEffect } from "react";
 import { motion, useInView } from "framer-motion";
 import { Link } from "wouter";
 import { ArrowRight, CheckCircle2, Heart, Users, Star, Award } from "lucide-react";
+import img87 from "@assets/Smeaton-87_1777730894015.jpg";
+import img108 from "@assets/Smeaton-108_1777730894016.jpg";
+import img124 from "@assets/Smeaton-124_1777730894017.jpg";
+import img131 from "@assets/Smeaton-131_1777730894017.jpg";
 
 const SCRIPT = { fontFamily: "'Dancing Script', cursive" };
 const CREAM = "#FDF7F0";
@@ -54,15 +58,9 @@ export default function About() {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
             <FadeIn>
               <div className="relative">
-                <div className="aspect-[4/3] rounded-3xl overflow-hidden shadow-2xl" style={{ background: `linear-gradient(135deg, ${BLUE} 0%, ${NAVY} 100%)` }}>
-                  <div className="absolute inset-0 flex items-center justify-center p-12 text-center">
-                    <div>
-                      <div className="text-6xl font-black text-white/10 mb-4" style={SCRIPT}>"</div>
-                      <p className="text-white/80 text-lg italic leading-relaxed">
-                        Professional home care services delivered with compassion, trust, and excellence since 2019.
-                      </p>
-                    </div>
-                  </div>
+                <div className="aspect-[4/3] rounded-3xl overflow-hidden shadow-2xl">
+                  <img src={img87} alt="Smeaton carer and client laughing outdoors"
+                    className="w-full h-full object-cover" />
                 </div>
                 <div className="absolute -bottom-5 -right-4 bg-white rounded-2xl px-6 py-5 shadow-2xl border border-gray-100">
                   <div className="text-3xl font-extrabold mb-0.5" style={{ color: NAVY }}>Since 2019</div>
@@ -104,23 +102,22 @@ export default function About() {
               </div>
             </FadeIn>
             <FadeIn delay={0.1}>
-              <div className="aspect-[4/3] rounded-3xl overflow-hidden shadow-xl" style={{ background: `linear-gradient(135deg, #f9fafb 0%, #e5e7eb 100%)` }}>
-                <div className="w-full h-full flex items-center justify-center p-12">
-                  <div className="text-center">
-                    <div className="grid grid-cols-2 gap-4 mb-6">
-                      {[
-                        { n: "250k+", l: "care hours delivered" },
-                        { n: "300+", l: "healthcare professionals" },
-                        { n: "98%", l: "client satisfaction" },
-                        { n: "2", l: "CQC-rated offices" },
-                      ].map((s) => (
-                        <div key={s.l} className="bg-white rounded-2xl p-4 shadow-sm text-center">
-                          <div className="text-2xl font-extrabold" style={{ color: NAVY }}>{s.n}</div>
-                          <div className="text-xs text-gray-400 mt-1">{s.l}</div>
-                        </div>
-                      ))}
+              <div className="relative aspect-[4/3] rounded-3xl overflow-hidden shadow-xl">
+                <img src={img124} alt="Smeaton carer and client gardening"
+                  className="w-full h-full object-cover" />
+                <div className="absolute inset-0" style={{ background: "linear-gradient(to top, rgba(5,22,61,0.55) 0%, transparent 60%)" }} />
+                <div className="absolute bottom-0 left-0 right-0 p-6 grid grid-cols-2 gap-3">
+                  {[
+                    { n: "250k+", l: "care hours" },
+                    { n: "300+", l: "professionals" },
+                    { n: "98%", l: "satisfaction" },
+                    { n: "2", l: "CQC offices" },
+                  ].map((s) => (
+                    <div key={s.l} className="bg-white/90 backdrop-blur-sm rounded-xl p-3 text-center">
+                      <div className="text-xl font-extrabold" style={{ color: NAVY }}>{s.n}</div>
+                      <div className="text-xs text-gray-500 mt-0.5">{s.l}</div>
                     </div>
-                  </div>
+                  ))}
                 </div>
               </div>
             </FadeIn>

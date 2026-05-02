@@ -2,6 +2,10 @@ import { useRef, useEffect } from "react";
 import { Link } from "wouter";
 import { motion, useInView } from "framer-motion";
 import { ArrowRight, CheckCircle2, Phone, ShieldCheck, Award, Clock } from "lucide-react";
+import img108 from "@assets/Smeaton-108_1777730894016.jpg";
+import img117 from "@assets/Smeaton-117_1777730894016.jpg";
+import img124 from "@assets/Smeaton-124_1777730894017.jpg";
+import img131 from "@assets/Smeaton-131_1777730894017.jpg";
 
 const SCRIPT = { fontFamily: "'Dancing Script', cursive" };
 const CREAM = "#FDF7F0";
@@ -132,33 +136,11 @@ export default function Home() {
           </div>
 
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.9, delay: 0.1 }}
-            className="hidden lg:block relative">
-            <div className="absolute inset-0" style={{ background: "linear-gradient(135deg, #265597 0%, #05163D 100%)" }}>
-              <div className="absolute inset-0 flex items-center justify-center p-12">
-                <div className="text-center">
-                  <div className="text-white/10 text-9xl font-black leading-none" style={SCRIPT}>"</div>
-                  <p className="text-white/80 text-xl italic leading-relaxed mb-6">
-                    Care that feels personal, respectful, and genuinely empowering.
-                  </p>
-                  <div className="flex justify-center gap-6">
-                    <div className="text-center">
-                      <div className="text-4xl font-extrabold text-white">Good</div>
-                      <div className="text-white/50 text-xs font-bold uppercase tracking-widest mt-1">CQC Rating</div>
-                    </div>
-                    <div className="w-px bg-white/20" />
-                    <div className="text-center">
-                      <div className="text-4xl font-extrabold text-white">2019</div>
-                      <div className="text-white/50 text-xs font-bold uppercase tracking-widest mt-1">Est.</div>
-                    </div>
-                    <div className="w-px bg-white/20" />
-                    <div className="text-center">
-                      <div className="text-4xl font-extrabold text-white">7+</div>
-                      <div className="text-white/50 text-xs font-bold uppercase tracking-widest mt-1">Years</div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
+            className="hidden lg:block relative" style={{ marginLeft: "-60px" }}>
+            <img src={img124} alt="Smeaton carer and client gardening together"
+              className="absolute inset-0 w-full h-full object-cover object-center" />
+            <div className="absolute inset-0 pointer-events-none"
+              style={{ background: `linear-gradient(to right, ${CREAM} 0%, transparent 18%)` }} />
             <div className="absolute bottom-6 right-6 bg-white rounded-2xl px-5 py-4 shadow-2xl">
               <div className="flex gap-0.5 mb-1.5">
                 {[...Array(5)].map((_, i) => (
@@ -201,21 +183,9 @@ export default function Home() {
 
             <FadeIn delay={0.1}>
               <div className="relative">
-                <div className="rounded-3xl overflow-hidden shadow-2xl" style={{ aspectRatio: "4/5", background: `linear-gradient(135deg, ${BLUE} 0%, ${NAVY} 100%)` }}>
-                  <div className="absolute inset-0 flex items-center justify-center p-10 text-center">
-                    <div>
-                      <p className="text-white/70 text-lg leading-relaxed italic mb-8">
-                        "We take time to understand each individual's story, preferences, and aspirations, tailoring care around what matters most to them."
-                      </p>
-                      <div className="flex flex-col gap-3">
-                        {["Person-centred approach", "CQC registered and inspected", "NHS Pre-Qualification Scheme member"].map((item) => (
-                          <span key={item} className="flex items-center gap-2 text-white/80 text-sm justify-center">
-                            <CheckCircle2 size={14} style={{ color: PINK }} className="shrink-0" /> {item}
-                          </span>
-                        ))}
-                      </div>
-                    </div>
-                  </div>
+                <div className="rounded-3xl overflow-hidden shadow-2xl" style={{ aspectRatio: "4/5" }}>
+                  <img src={img131} alt="Smeaton carer supporting client in garden"
+                    className="w-full h-full object-cover" />
                 </div>
                 <div className="absolute -bottom-5 -left-5 bg-white rounded-2xl p-5 shadow-xl border border-gray-100">
                   <div className="text-3xl font-extrabold mb-0.5" style={{ color: NAVY }}>Since 2019</div>
@@ -266,16 +236,10 @@ export default function Home() {
       </section>
 
       {/* FULL-BLEED QUOTE */}
-      <section className="relative overflow-hidden" style={{ minHeight: "440px", backgroundColor: NAVY }}>
-        <div className="absolute inset-0 opacity-5">
-          {[...Array(6)].map((_, i) => (
-            <div key={i} className="absolute rounded-full" style={{
-              width: `${150 + i * 80}px`, height: `${150 + i * 80}px`,
-              border: "1px solid white",
-              top: "50%", left: "50%",
-              transform: "translate(-50%, -50%)",
-            }} />
-          ))}
+      <section className="relative overflow-hidden" style={{ minHeight: "440px" }}>
+        <div className="absolute inset-0">
+          <img src={img108} alt="Smeaton carer with client" className="w-full h-full object-cover object-top" />
+          <div className="absolute inset-0" style={{ background: "linear-gradient(135deg, rgba(5,22,61,0.90) 0%, rgba(5,22,61,0.55) 65%, transparent 100%)" }} />
         </div>
         <div className="relative max-w-7xl mx-auto px-5 sm:px-8 py-24 sm:py-32 flex items-end" style={{ minHeight: "440px" }}>
           <FadeIn>
@@ -327,12 +291,8 @@ export default function Home() {
 
             <FadeIn delay={0.1}>
               <div className="grid grid-cols-2 gap-4">
-                <div className="col-span-2 rounded-3xl overflow-hidden shadow-md" style={{ aspectRatio: "16/8", background: `linear-gradient(135deg, ${BLUE} 0%, ${NAVY} 100%)` }}>
-                  <div className="w-full h-full flex items-center justify-center p-8">
-                    <p className="text-white/70 text-center text-base italic leading-relaxed">
-                      "Many families choose to fund care privately — we welcome private clients and can usually begin within days."
-                    </p>
-                  </div>
+                <div className="col-span-2 rounded-3xl overflow-hidden shadow-md" style={{ aspectRatio: "16/8" }}>
+                  <img src={img117} alt="Smeaton carer arriving at client home" className="w-full h-full object-cover object-top" />
                 </div>
                 <div className="rounded-2xl p-7 text-white text-center" style={{ backgroundColor: PINK }}>
                   <div className="text-4xl font-extrabold mb-1">Good</div>
