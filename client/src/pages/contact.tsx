@@ -205,8 +205,8 @@ export default function Contact() {
                   <h2 className="text-xl font-extrabold mb-5" style={{ color: BLUE }}>Office hours</h2>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     {[
-                      { day: "Monday – Friday", hours: "8:00am – 6:00pm", highlight: false },
-                      { day: "Saturday", hours: "9:00am – 4:00pm", highlight: false },
+                      { day: "Monday – Friday", hours: "8:00am – 4:00pm", highlight: false },
+                      { day: "Saturday", hours: "On-call only", highlight: false },
                       { day: "Sunday", hours: "On-call only", highlight: false },
                       { day: "Emergencies", hours: "24/7 on-call", highlight: true },
                     ].map((h) => (
@@ -265,7 +265,7 @@ export default function Contact() {
               style={{ backgroundColor: PINK, boxShadow: "0 8px 32px rgba(239,42,134,0.4)" }}>
               <Phone size={20} /> 0330 165 8880
             </a>
-            <p className="text-gray-400 text-sm mt-4">Mon–Fri 8am–6pm · Sat 9am–4pm · 24/7 emergencies</p>
+            <p className="text-gray-400 text-sm mt-4">Mon–Fri 8am–4pm · Weekends on-call · 24/7 emergencies</p>
           </FadeIn>
         </div>
       </section>
