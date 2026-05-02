@@ -91,6 +91,7 @@ export default function ConditionLedCare() {
 
   return (
     <div data-testid="condition-led-care-page">
+      <Ticker />
       <section className="relative overflow-hidden" style={{ backgroundColor: CREAM }}>
         <div className="absolute -top-24 -right-24 w-96 h-96 rounded-full opacity-[0.15] pointer-events-none" style={{ backgroundColor: PINK }} />
         <div className="absolute -bottom-32 -left-16 w-80 h-80 rounded-full opacity-[0.08] pointer-events-none" style={{ backgroundColor: PINK }} />
