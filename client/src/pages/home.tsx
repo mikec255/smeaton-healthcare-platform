@@ -190,7 +190,7 @@ export default function Home() {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 lg:gap-24 items-center">
             <FadeIn>
               <p className="text-xs font-bold tracking-widest uppercase mb-5" style={{ color: PINK }}>Who we are</p>
-              <h2 className="text-4xl sm:text-5xl font-extrabold leading-tight mb-2 tracking-tight" style={{ color: NAVY }}>Care affects more than one person,</h2>
+              <h2 className="text-4xl sm:text-5xl font-extrabold leading-tight mb-2 tracking-tight" style={{ color: BLUE }}>Care affects more than one person,</h2>
               <div className="mb-8" style={{ ...SCRIPT, fontSize: "clamp(2rem, 4vw, 3.2rem)", color: PINK, lineHeight: 1.1 }}>
                 we support you all.
               </div>
