@@ -190,9 +190,9 @@ export default function Home() {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 lg:gap-24 items-center">
             <FadeIn>
               <p className="text-xs font-bold tracking-widest uppercase mb-5" style={{ color: PINK }}>Who we are</p>
-              <h2 className="text-4xl sm:text-5xl font-extrabold leading-tight mb-2 tracking-tight" style={{ color: NAVY }}>Your family deserves</h2>
+              <h2 className="text-4xl sm:text-5xl font-extrabold leading-tight mb-2 tracking-tight" style={{ color: NAVY }}>Because care affects more than one life —</h2>
               <div className="mb-8" style={{ ...SCRIPT, fontSize: "clamp(2rem, 4vw, 3.2rem)", color: PINK, lineHeight: 1.1 }}>
-                more than a rota and a stranger.
+                we support you all.
               </div>
               <p className="text-gray-500 text-base leading-relaxed mb-6">
                 When you're looking for care for someone you love, you're not looking for ticked boxes. You're looking for people you can trust — who will show up, every time, and treat your family member like a person, not a task. That's what we've built since 2019.
