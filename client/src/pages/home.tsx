@@ -1,1003 +1,427 @@
-import { useState, useEffect } from "react";
+import { useRef, useEffect } from "react";
 import { Link } from "wouter";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import heroBackground from "@/assets/hero-background.png";
-import aboutUsBackground from "@assets/Green Modern Marketing Logo-3_1757678769218.png";
-import joinTeamBackground from "@assets/Red Professional Art Director Recruitment Instagram Post-2_1757676921358.png";
-import supportedLivingLogo from "@assets/Supported Living Framework Provider Logo 105[38]_1757665089697.png";
-import nhsSupplierLogo from "@assets/nhs-supplier_1757665089697.png";
-import pqsLogo from "@assets/PQS-Pre-Qualification-Scheme_1757665089697.webp";
-import founderPhoto from "@assets/Green Modern Marketing Logo-3_1757678769218.png";
-import { 
-  Heart, 
-  Shield, 
-  Star, 
-  Users, 
-  Clock, 
-  CheckCircle, 
-  MapPin, 
-  Phone,
-  ArrowRight,
-  Award,
-  Building2,
-  FileCheck,
-  UserCheck,
-  Home as HomeIcon,
-  Activity,
-  Coffee,
-  TrendingUp,
-  ExternalLink,
-  Pin,
-  Search,
-  Lightbulb,
-  Handshake,
-  Crown,
-  Rocket,
-  Briefcase,
-  User,
-  Mail
-} from "lucide-react";
+import { motion, useInView } from "framer-motion";
+import { ArrowRight, CheckCircle2, Phone, ShieldCheck, Award, Clock } from "lucide-react";
 
-export default function Home({ heroTab = "find-care", onHeroTabChange }: { heroTab?: string, onHeroTabChange?: (value: string) => void }) {
-  const [shouldPulsate, setShouldPulsate] = useState(true);
-  
-  useEffect(() => {
-    // Stop pulsating after 5 seconds
-    const timer = setTimeout(() => {
-      setShouldPulsate(false);
-    }, 5000);
-    
-    return () => clearTimeout(timer);
-  }, []);
+const SCRIPT = { fontFamily: "'Dancing Script', cursive" };
+const CREAM = "#FDF7F0";
+const NAVY = "#05163D";
+const BLUE = "#265597";
+const PINK = "#EF2A86";
 
-  // Load CQC widgets dynamically
-  useEffect(() => {
-    // Function to load CQC widget script
-    const loadCQCWidget = (containerId: string, widgetId: string, useHttps: boolean = false) => {
-      const container = document.getElementById(containerId);
-      if (container && !container.querySelector('script')) {
-        const script = document.createElement('script');
-        script.type = 'text/javascript';
-        script.async = true;
-        script.src = useHttps 
-          ? `https://www.cqc.org.uk/sites/all/modules/custom/cqc_widget/widget.js?data-id=${widgetId}&data-host=https://www.cqc.org.uk&type=location`
-          : `//www.cqc.org.uk/sites/all/modules/custom/cqc_widget/widget.js?data-id=${widgetId}&data-host=www.cqc.org.uk&type=location`;
-        
-        container.appendChild(script);
-      }
-    };
+const SERVICES = [
+  { num: "01", name: "Short Visits", slug: "short-visits", desc: "Personal care, medication, meals and companionship — built around your day, not ours.", color: PINK },
+  { num: "02", name: "Supported Living", slug: "supported-living", desc: "Specialist support helping adults live independently and confidently.", color: BLUE },
+  { num: "03", name: "24/7 Care", slug: "care-24-7", desc: "Around-the-clock care for complex needs — consistent, trained, reliable.", color: PINK },
+  { num: "04", name: "Enabling", slug: "enablements", desc: "Building independence rather than dependency. Care that empowers.", color: BLUE },
+  { num: "05", name: "Respite Care", slug: "respite", desc: "Trusted short-term cover so family carers can rest and recharge.", color: PINK },
+  { num: "06", name: "Live-In Care", slug: "live-in-care", desc: "Full-time live-in support for people who need constant companionship.", color: BLUE },
+  { num: "07", name: "Condition-Led Care", slug: "condition-led-care", desc: "Specialist care tailored to specific health conditions and complex needs.", color: PINK },
+];
 
-    // Load both widgets with a small delay to prevent conflicts
-    setTimeout(() => {
-      loadCQCWidget('cqc-widget-container-1', '1-18068593493', false);
-    }, 100);
-    
-    setTimeout(() => {
-      loadCQCWidget('cqc-widget-container-2', '1-9768929200', true);
-    }, 300);
+const TESTIMONIALS = [
+  { quote: "The carers from Smeaton are wonderful — Mum knows them by name and actually looks forward to their visits.", name: "Sarah T.", relation: "Daughter of service user, Plymouth" },
+  { quote: "After years of struggling on my own, having the right support has genuinely given me my life back.", name: "Brian M.", relation: "Service user, Cornwall" },
+  { quote: "We tried another agency first. The difference with Smeaton was immediate — consistent carers, real warmth.", name: "Rachel K.", relation: "Family carer, Devon" },
+];
 
-    // Cleanup function
-    return () => {
-      const container1 = document.getElementById('cqc-widget-container-1');
-      const container2 = document.getElementById('cqc-widget-container-2');
-      
-      if (container1) {
-        const script = container1.querySelector('script');
-        if (script) script.remove();
-      }
-      
-      if (container2) {
-        const script = container2.querySelector('script');
-        if (script) script.remove();
-      }
-    };
-  }, []);
+const COVERAGE = ["Plymouth","Saltash","Liskeard","Tavistock","Ivybridge","Kingsbridge","Totnes","Truro","Falmouth","Penzance","Newquay","Bodmin","Camborne","Redruth","St Austell","Wadebridge","Launceston","Helston","Hayle","St Ives"];
 
-  const stats = [
-    { value: "250,000+", label: "hours of care delivered", icon: Clock },
-    { value: "98%", label: "employee satisfaction rate", icon: Heart },
-    { value: "300+", label: "healthcare professionals", icon: Users },
-    { value: "6", label: "years of excellence", icon: Award },
-  ];
+function FadeIn({ children, delay = 0, className = "" }: { children: React.ReactNode; delay?: number; className?: string }) {
+  const ref = useRef(null);
+  const inView = useInView(ref, { once: true, margin: "-50px" });
+  return (
+    <motion.div ref={ref} initial={{ opacity: 0, y: 28 }} animate={inView ? { opacity: 1, y: 0 } : {}}
+      transition={{ duration: 0.65, delay, ease: [0.22, 1, 0.36, 1] }} className={className}>
+      {children}
+    </motion.div>
+  );
+}
 
-  const services = [
-    {
-      title: "Short Visits",
-      description: "Personalised short visit care for everyday support and companionship — helping you stay independent in the comfort of your own home.",
-      icon: Clock,
-      link: "/short-visits"
-    },
-    {
-      title: "Supported Living",
-      description: "Independent living with personalised support tailored to individual needs and preferences.",
-      icon: HomeIcon,
-      link: "/supported-living"
-    },
-    {
-      title: "24/7 Care",
-      description: "Round-the-clock professional care and support for those who need continuous assistance.",
-      icon: Shield,
-      link: "/care-24-7"
-    },
-    {
-      title: "Enabling",
-      description: "Our enabling service is designed to help individuals regain independence and life skills.",
-      icon: TrendingUp,
-      link: "/enablements"
-    },
-    {
-      title: "Respite Care",
-      description: "Our Respite service gives families and carers a well-deserved break and peace of mind.",
-      icon: Coffee,
-      link: "/respite"
-    }
-  ];
+function Ticker() {
+  return (
+    <div style={{ backgroundColor: PINK, padding: "12px 0" }}>
+      <div className="px-5 sm:px-8 flex items-center flex-wrap gap-x-6 gap-y-2">
+        <span className="inline-flex items-center gap-2 shrink-0">
+          <span className="text-yellow-200 text-sm">★★★★★</span>
+          <span className="text-white font-bold text-sm">4.9 Google</span>
+        </span>
+        <span className="text-white/30 shrink-0">|</span>
+        <span className="hidden sm:inline-flex items-center gap-2 shrink-0">
+          <span className="text-white/90 text-sm font-medium whitespace-nowrap">♥ Care within 24 hours</span>
+        </span>
+        <span className="text-white/30 hidden sm:inline shrink-0">|</span>
+        <span className="hidden sm:inline-flex items-center gap-2 shrink-0">
+          <span className="text-white/90 text-sm font-medium">CQC Rated Good</span>
+        </span>
+        <span className="text-white/30 hidden sm:inline shrink-0">|</span>
+        <span className="hidden sm:inline-flex items-center gap-2 shrink-0">
+          <span className="bg-white text-xs font-black px-2 py-0.5 rounded" style={{ color: "#005EB8" }}>NHS</span>
+          <span className="text-white/90 text-sm font-medium">Approved Provider</span>
+        </span>
+        <span className="text-white/30 hidden sm:inline shrink-0">|</span>
+        <span className="hidden sm:inline-flex items-center gap-2 shrink-0">
+          <span className="text-white/90 text-sm font-medium whitespace-nowrap">★ Competitive rates</span>
+        </span>
+      </div>
+    </div>
+  );
+}
 
-  const process = [
-    {
-      step: "01",
-      title: "Referral",
-      description: "Contact us by phone or complete our online referral form.",
-      icon: Phone
-    },
-    {
-      step: "02", 
-      title: "Assessment",
-      description: "We arrange a convenient care assessment to fully understand your needs.",
-      icon: Search
-    },
-    {
-      step: "03",
-      title: "Care Plan",
-      description: "Together, we create a personalised care plan with you at the centre.",
-      icon: FileCheck
-    },
-    {
-      step: "04",
-      title: "Your Journey Begins",
-      description: "We match you with the right carers and put your plan into action, with regular reviews to adapt as your needs change.",
-      icon: ArrowRight
-    }
-  ];
-
-  const mission = {
-    title: "Our mission",
-    description: "To be recognised as industry leaders who collectively strive for excellence and share a passion for innovation and creativity.",
-    position: "mission"
-  };
-
-  const values = [
-    {
-      icon: Lightbulb,
-      title: "Innovation",
-      description: "To take risks, encourage curiosity and new ideas, learn from mistakes and constantly strive to propel forward within the industry.",
-      position: "left",
-      color: "blue"
-    },
-    {
-      icon: Users,
-      title: "Community",
-      description: "To provide a haven of inclusion, trust and support to colleagues, customers and stakeholders.",
-      position: "left",
-      color: "pink"
-    },
-    {
-      icon: Handshake,
-      title: "Collaboration",
-      description: "To navigate in partnership, listening to one another and working collaboratively to achieve better outcomes.",
-      position: "right",
-      color: "blue"
-    },
-    {
-      icon: Award,
-      title: "Excellence",
-      description: "To adapt our methods of practice accordingly, through vigilance and integrity, ensuring excellence.",
-      position: "right",
-      color: "pink"
-    },
-    {
-      icon: Crown,
-      title: "Leadership",
-      description: "To maintain a company culture which empowers colleagues to achieve the company mission and realise the importance of their contribution.",
-      position: "right",
-      color: "blue"
-    }
-  ];
+export default function Home() {
+  useEffect(() => { document.title = "Home Care Devon & Cornwall | Smeaton Healthcare | CQC Rated Good"; }, []);
 
   return (
     <div data-testid="home-page">
-      {/* Hero Section with Tabs */}
-      <section className="relative min-h-[90vh] overflow-hidden pt-3">
-        <Tabs value={heroTab} onValueChange={onHeroTabChange} className="w-full h-full">
-          {/* Find Care Hero */}
-          <TabsContent value="find-care" className="m-0 h-full">
-            <div className="relative min-h-[90vh] flex items-end pb-20" 
-                 style={{ 
-                   backgroundImage: `url(${heroBackground})`,
-                   backgroundSize: 'cover',
-                   backgroundPosition: 'center 30%',
-                   backgroundRepeat: 'no-repeat'
-                 }}
-                 data-testid="hero-find-care">
-              {/* Animated Background Elements */}
-              <div className="absolute inset-0 overflow-hidden z-10">
-                <div className="absolute -top-40 -right-40 w-80 h-80 bg-white/10 rounded-full blur-3xl animate-pulse"></div>
-                <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-accent-bright/20 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }}></div>
-              </div>
-              
-              {/* Hero Content */}
-              <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full z-10">
-                <div className="grid lg:grid-cols-2 gap-16 items-center w-full">
-                  <div className="space-y-8">
-                    <div className="max-w-xl w-full mx-auto lg:mx-0">
-                      <div className="relative">
-                        <Search className="absolute left-4 sm:left-6 top-1/2 transform -translate-y-1/2 h-5 w-5 sm:h-6 sm:w-6 text-slate-400" />
-                        <input
-                          type="text"
-                          placeholder="Search for care services..."
-                          className="w-full pl-12 sm:pl-16 pr-4 sm:pr-6 py-3 sm:py-4 text-base sm:text-lg text-slate-700 bg-white/80 backdrop-blur-sm rounded-xl border border-slate-400 focus:ring-1 focus:ring-accent-bright focus:outline-none shadow-sm placeholder:text-slate-600"
-                          data-testid="hero-search-care"
-                        />
-                      </div>
-                    </div>
-                    
-                    <Link href="/services" className="block">
-                      <h1 className={`text-sm sm:text-base lg:text-xl font-bold text-white bg-gradient-to-r from-secondary to-primary px-3 sm:px-4 py-2 sm:py-3 rounded-lg w-fit mx-auto lg:mx-0 cursor-pointer hover:scale-105 transition-transform text-center lg:text-left ${shouldPulsate ? 'animate-pulse' : ''}`} data-testid="hero-title-care">
-                        <span className="block sm:hidden">Comprehensive Care Services</span>
-                        <span className="hidden sm:block lg:hidden">Elderly Care | Learning Disabilities | Condition Led Care</span>
-                        <span className="hidden lg:block whitespace-nowrap lg:text-sm xl:text-base 2xl:text-lg leading-tight">Elderly Care | Learning Disabilities | Condition Led Care | Supported Living | Short Visits</span>
-                      </h1>
-                    </Link>
-                    
-                    <div className="flex flex-col sm:flex-row gap-4 sm:gap-6 justify-center lg:justify-start">
-                      <Link href="/referral">
-                        <Button 
-                          size="lg" 
-                          className="modern-button-primary group text-base sm:text-lg px-6 sm:px-8 py-3 sm:py-4 w-full sm:w-auto"
-                          data-testid="button-looking-for-care"
-                        >
-                          <Heart className="mr-2 sm:mr-3 h-5 w-5 sm:h-6 sm:w-6 group-hover:scale-110 transition-transform" />
-                          <span className="hidden sm:inline">Looking for care</span>
-                          <span className="sm:hidden">Find Care</span>
-                          <ArrowRight className="ml-2 sm:ml-3 h-5 w-5 sm:h-6 sm:w-6 group-hover:translate-x-1 transition-transform" />
-                        </Button>
-                      </Link>
-                      <Link href="/jobs">
-                        <Button 
-                          size="lg" 
-                          className="bg-primary hover:bg-primary/90 text-white text-base sm:text-lg px-6 sm:px-8 py-3 sm:py-4 w-full sm:w-auto"
-                          data-testid="button-join-team"
-                        >
-                          <span className="hidden sm:inline">Join Our Team</span>
-                          <span className="sm:hidden">Join Us</span>
-                        </Button>
-                      </Link>
-                    </div>
-                  </div>
-                  
-                  <div className="relative hidden lg:block lg:h-64">
-                    {/* Empty space where character was - maintains layout balance */}
-                  </div>
-                </div>
-              </div>
-            </div>
-          </TabsContent>
-          
-          {/* Join Our Team Hero */}
-          <TabsContent value="join-team" className="m-0 h-full">
-            <div className="relative min-h-[90vh] flex items-center pb-20" 
-                 style={{ 
-                   backgroundImage: `url(${joinTeamBackground})`,
-                   backgroundSize: 'cover',
-                   backgroundPosition: 'center center',
-                   backgroundRepeat: 'no-repeat',
-                   transform: 'scaleX(-1)'
-                 }}
-                 data-testid="hero-join-team">
-              {/* Animated Background Elements */}
-              <div className="absolute inset-0 overflow-hidden z-10">
-                <div className="absolute -top-40 -right-40 w-80 h-80 bg-white/10 rounded-full blur-3xl animate-pulse"></div>
-                <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-accent-bright/20 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }}></div>
-              </div>
-              
-              {/* Hero Content */}
-              <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full z-10 overflow-visible" style={{ transform: 'scaleX(-1)' }}>
-                <div className="grid lg:grid-cols-2 gap-12 items-center w-full">
-                  <div className="space-y-6 overflow-visible">
-                    <h1 className="text-white leading-tight overflow-visible text-center lg:text-left" data-testid="hero-title-jobs">
-                      <span className="block text-white text-[clamp(24px,6vw,48px)] font-black">
-                        Join Our Team
-                      </span>
-                      <span className="block bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent text-[clamp(18px,5.5vw,42px)] tracking-tight font-bold">
-                        Be part of something special
-                      </span>
-                    </h1>
-                    
-                    <p className="text-lg sm:text-xl text-white/90 leading-relaxed max-w-xl text-center lg:text-left">
-                      Be part of a team that makes a real difference in people's lives. We're looking for dedicated healthcare professionals who share our passion for exceptional care and support.
-                    </p>
-                    
-                    <div className="bg-white/20 rounded-2xl p-4 sm:p-6 space-y-3 sm:space-y-4 border border-white/30">
-                      <h3 className="text-xl sm:text-2xl font-bold text-white text-center lg:text-left">Why Join Smeaton Healthcare?</h3>
-                      <ul className="space-y-2 text-white/90 text-base sm:text-lg">
-                        <li className="flex items-center"><CheckCircle className="text-primary mr-2 h-4 w-4 sm:h-5 sm:w-5 flex-shrink-0" /> Competitive pay rates and benefits</li>
-                        <li className="flex items-center"><CheckCircle className="text-primary mr-2 h-4 w-4 sm:h-5 sm:w-5 flex-shrink-0" /> Comprehensive training and development</li>
-                        <li className="flex items-center"><CheckCircle className="text-primary mr-2 h-4 w-4 sm:h-5 sm:w-5 flex-shrink-0" /> Flexible working arrangements</li>
-                        <li className="flex items-center"><CheckCircle className="text-primary mr-2 h-4 w-4 sm:h-5 sm:w-5 flex-shrink-0" /> Supportive team environment</li>
-                      </ul>
-                    </div>
-                    
-                    <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center lg:justify-start">
-                      <Link href="/jobs">
-                        <Button 
-                          size="lg" 
-                          className="modern-button-primary group text-base sm:text-lg px-5 sm:px-7 py-3 sm:py-4 w-full sm:w-auto"
-                          data-testid="button-view-jobs"
-                        >
-                          <Briefcase className="mr-2 h-4 w-4 sm:h-5 sm:w-5 group-hover:scale-110 transition-transform" />
-                          <span className="hidden sm:inline">View Open Positions</span>
-                          <span className="sm:hidden">View Jobs</span>
-                          <ArrowRight className="ml-2 h-4 w-4 sm:h-5 sm:w-5 group-hover:translate-x-1 transition-transform" />
-                        </Button>
-                      </Link>
-                      <Link href="/services">
-                        <Button 
-                          size="lg" 
-                          className="bg-primary text-white hover:bg-primary/90 text-base sm:text-lg px-5 sm:px-7 py-3 sm:py-4 w-full sm:w-auto"
-                          data-testid="button-view-services"
-                        >
-                          View Services
-                        </Button>
-                      </Link>
-                    </div>
-                  </div>
-                  
-                  <div className="relative lg:h-64 w-full">
-                    {/* Empty space for layout balance */}
-                  </div>
-                </div>
-              </div>
-            </div>
-          </TabsContent>
-          
-          {/* About Us Hero */}
-          <TabsContent value="about-us" className="m-0 h-full">
-            <div className="relative min-h-[90vh] flex items-end pb-20" 
-                 style={{ 
-                   backgroundImage: `url(${aboutUsBackground})`,
-                   backgroundSize: 'cover',
-                   backgroundPosition: 'center 30%',
-                   backgroundRepeat: 'no-repeat'
-                 }}
-                 data-testid="hero-about-us">
-              {/* Color overlay */}
-              <div className="absolute inset-0 bg-gradient-to-br from-slate-800/50 via-slate-700/50 to-slate-600/50"></div>
-              {/* Different Background Pattern */}
-              <div className="absolute inset-0 overflow-hidden z-10">
-                <div className="absolute top-20 right-20 w-60 h-60 bg-primary/20 rounded-full blur-3xl animate-pulse"></div>
-                <div className="absolute bottom-20 left-20 w-60 h-60 bg-secondary/20 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1.5s' }}></div>
-              </div>
-              
-              {/* Hero Content */}
-              <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full z-10 transform -translate-y-12 lg:-translate-y-20">
-                <div className="w-full flex justify-center">
-                  {/* About Me Content */}
-                  <div className="bg-white/15 backdrop-blur-sm rounded-2xl p-4 sm:p-6 lg:p-8 border border-white/20 space-y-4 sm:space-y-6 w-full max-w-5xl mx-auto">
-                    
-                    {/* Personal Story */}
-                    <div className="space-y-3 sm:space-y-4">
-                      <p className="text-sm sm:text-base lg:text-lg text-white/90 leading-relaxed" data-testid="about-me-intro">
-                        At Smeaton Healthcare, we are committed to delivering care built on compassion, trust, and excellence. Founded in 2019, our mission has always been simple: to provide the highest quality of care that enables people to live safely, independently, and with dignity in their own homes and communities.
-                      </p>
-                      
-                      <p className="text-sm sm:text-base lg:text-lg text-white/90 leading-relaxed" data-testid="about-me-background">
-                        We provide a full range of services, from domiciliary and visiting care to live-in care and specialist complex care packages across Devon and Cornwall. Whether supporting someone with daily routines, promoting independence through enablement care, or managing specialist clinical needs, our team is dedicated to making a positive difference every day.
-                      </p>
+      <Ticker />
 
-                      <p className="text-sm sm:text-base lg:text-lg text-white/90 leading-relaxed" data-testid="about-me-approach">
-                        What makes us different is our personal approach. We take time to understand each individual's story, preferences, and aspirations, tailoring care around what matters most to them. Our teams are trained to the highest standards, supported with continuous professional development, and guided by our core values of innovation, community, collaboration, excellence, and leadership.
-                      </p>
+      {/* HERO */}
+      <section className="relative overflow-hidden" style={{ backgroundColor: CREAM, minHeight: "88vh" }}>
+        <div className="grid grid-cols-1 lg:grid-cols-[55%_45%]" style={{ minHeight: "84vh" }}>
 
-                      <p className="text-sm sm:text-base lg:text-lg text-white/90 leading-relaxed" data-testid="about-me-commitment">
-                        As a CQC-registered provider, we are proud to uphold the highest levels of compliance, safety, and accountability. But beyond regulation, we are driven by something deeper – the belief that care should feel personal, respectful, and empowering.
-                      </p>
+          <div className="flex flex-col justify-center py-16 px-5 sm:px-8 lg:pl-12">
+            <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}
+              className="inline-flex items-center gap-2 self-start rounded-full px-4 py-1.5 mb-8"
+              style={{ backgroundColor: "#EF2A8618" }}>
+              <ShieldCheck size={13} style={{ color: PINK }} />
+              <span className="text-xs font-bold tracking-widest uppercase" style={{ color: PINK }}>CQC Rated Good · Since 2019</span>
+            </motion.div>
 
-                      <p className="text-sm sm:text-base lg:text-lg text-white/90 leading-relaxed" data-testid="about-me-culture">
-                        Together, with our dedicated staff, local partners, and the people we support, we are building a culture of care that is professional, compassionate, and truly person-centred.
-                      </p>
-                    </div>
-                    {/* Call to Action */}
-                    <div className="flex flex-col sm:flex-row gap-3 pt-2 sm:pt-4 justify-center">
-                      <Link href="/contact">
-                        <Button 
-                          size="lg" 
-                          className="modern-button-primary group text-base sm:text-lg px-5 sm:px-6 py-3 w-full sm:w-auto"
-                          data-testid="button-get-in-touch"
-                        >
-                          <Mail className="mr-2 h-4 w-4" />
-                          Get in Touch
-                          <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" />
-                        </Button>
-                      </Link>
-                      <Link href="/jobs">
-                        <Button 
-                          size="lg" 
-                          className="bg-secondary text-white hover:bg-secondary/90 text-base sm:text-lg px-5 sm:px-6 py-3 w-full sm:w-auto"
-                          data-testid="button-view-opportunities"
-                        >
-                          <Briefcase className="mr-2 h-4 w-4" />
-                          View Opportunities
-                        </Button>
-                      </Link>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </TabsContent>
-        </Tabs>
-      </section>
+            <motion.span initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.7, delay: 0.1, ease: [0.22, 1, 0.36, 1] }}
+              className="block font-extrabold leading-[0.92] tracking-tight"
+              style={{ fontSize: "clamp(28px, 3.8vw, 58px)", color: BLUE }}>
+              Home care that
+            </motion.span>
 
-      {/* Modern Services Grid */}
-      <section className="py-16 bg-white" data-testid="services-overview">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-8 sm:mb-12">
-            <h2 className="section-title mb-4 sm:mb-6">
-              Our Care Services
-            </h2>
-            <p className="text-lg sm:text-xl text-muted-foreground max-w-3xl mx-auto px-4">
-              Comprehensive care solutions tailored to your individual needs, 
-              delivered with compassion and professional excellence.
-            </p>
-          </div>
-          
-          {/* Services Tabs */}
-          <Tabs defaultValue={services[0].title.toLowerCase().replace(/[^a-z0-9]/g, '-')} className="mb-12">
-            <div className="max-w-7xl mx-auto">
-              <TabsList className="flex w-full flex-wrap justify-center gap-1 sm:grid sm:grid-cols-3 lg:grid-cols-5 mb-6 sm:mb-8 bg-slate-100 p-2">
-                {services.map((service) => {
-                  const IconComponent = service.icon;
-                  const slug = service.title.toLowerCase().replace(/[^a-z0-9]/g, '-');
-                  return (
-                    <TabsTrigger 
-                      key={service.title}
-                      value={slug}
-                      className="flex items-center gap-1 sm:gap-2 data-[state=active]:bg-primary data-[state=active]:text-white text-xs sm:text-sm px-2 sm:px-4 lg:px-6 py-2 sm:py-3 min-w-max flex-shrink-0 whitespace-nowrap"
-                      data-testid={`tab-trigger-${slug}`}
-                    >
-                      <IconComponent className="h-3 w-3 sm:h-4 sm:w-4" />
-                      <span className="hidden lg:inline">{service.title}</span>
-                      <span className="lg:hidden">{service.title.split(' ')[0]}</span>
-                    </TabsTrigger>
-                  );
-                })}
-              </TabsList>
-            </div>
-            
-            {services.map((service) => {
-              const IconComponent = service.icon;
-              const slug = service.title.toLowerCase().replace(/[^a-z0-9]/g, '-');
-              
-              // Service-specific detailed information
-              const serviceDetails: Record<string, { whatIncludes: string[]; keyPoints: string[] }> = {
-                'short-visits': {
-                  whatIncludes: ['Personal Care', 'Household Support', 'Companionship', 'Medication'],
-                  keyPoints: [
-                    'Flexible care visits from 1 hour upwards, shaped around your daily routine',
-                    'Consistent, trusted carers who build meaningful relationships',
-                    'Compassionate Carers — fully trained, experienced, and DBS-checked'
-                  ]
-                },
-                'supported-living': {
-                  whatIncludes: ['Daily Living Support', 'Skills Development', 'Community Integration'],
-                  keyPoints: [
-                    'Live independently in your own home',
-                    'Person-centered care plans designed around your goals',
-                    'Build new skills and increase independence over time'
-                  ]
-                },
-                '24-7-care': {
-                  whatIncludes: ['Round-the-Clock Care', 'Personal Care', 'Companionship & Activities'],
-                  keyPoints: [
-                    'Round-the-clock care with immediate assistance available',
-                    'Continuous monitoring for safety and security',
-                    'Personalised care adapted to specific medical requirements'
-                  ]
-                },
-                'enabling': {
-                  whatIncludes: ['Skill Development', 'Confidence Building', 'Community Integration'],
-                  keyPoints: [
-                    'Support to grow confidence and independence at your own pace',
-                    'Learn and strengthen everyday life skills with guidance and encouragement',
-                    'Empowering you to make positive changes'
-                  ]
-                },
-                'respite-care': {
-                  whatIncludes: ['Short-Term Care', 'Complete Care Support', 'Family Peace of Mind'],
-                  keyPoints: [
-                    'Professional care from a few hours to several days',
-                    'Well-deserved break while your loved one gets expert care',
-                    'Flexible options with emergency respite available'
-                  ]
-                }
-              };
-              
-              const details = serviceDetails[slug] || { whatIncludes: [], keyPoints: [] };
-              
-              return (
-                <TabsContent 
-                  key={service.title}
-                  value={slug}
-                  className="mt-0"
-                  data-testid={`tab-content-${slug}`}
-                >
-                  <div className="max-w-7xl mx-auto">
-                    <div 
-                      className="group bg-slate-50 border border-slate-200 rounded-2xl p-4 sm:p-6 lg:p-10 hover:shadow-xl hover:border-primary/20 transition-all duration-300 hover:-translate-y-1"
-                      data-testid={`service-card-${slug}`}
-                    >
-                      <div className="grid lg:grid-cols-2 gap-6 sm:gap-8 lg:gap-12 items-start">
-                        {/* Left Column - Main Info */}
-                        <div className="space-y-4 sm:space-y-6">
-                          {/* Icon and Title */}
-                          <div className="flex items-center gap-3 sm:gap-4 justify-center lg:justify-start">
-                            <div className="w-14 h-14 sm:w-16 sm:h-16 lg:w-20 lg:h-20 bg-gradient-to-br from-primary/10 to-secondary/10 rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300 flex-shrink-0">
-                              <IconComponent className="h-7 w-7 sm:h-8 sm:w-8 lg:h-10 lg:w-10 text-primary" />
-                            </div>
-                            <h3 
-                              className="text-xl sm:text-2xl lg:text-3xl font-bold text-foreground group-hover:text-primary transition-colors duration-300"
-                              data-testid={`service-title-${slug}`}
-                            >
-                              {service.title}
-                            </h3>
-                          </div>
-                          
-                          <div className="text-center lg:text-left">
-                            <p 
-                              className="text-base sm:text-lg text-muted-foreground leading-relaxed"
-                              data-testid={`service-description-${slug}`}
-                            >
-                              {service.description}
-                            </p>
-                          </div>
-                          
-                          {/* What's Included */}
-                          <div className="space-y-3">
-                            <h4 className="text-base sm:text-lg font-semibold text-foreground text-center lg:text-left">We can support with:</h4>
-                            <div className="flex flex-wrap sm:flex-nowrap gap-1 sm:gap-2 overflow-x-auto">
-                              {details.whatIncludes.map((item: string, index: number) => (
-                                <span 
-                                  key={index}
-                                  className="bg-primary/10 text-primary px-2 py-1 rounded-full text-xs sm:text-sm font-medium whitespace-nowrap"
-                                >
-                                  {item}
-                                </span>
-                              ))}
-                            </div>
-                          </div>
-                        </div>
-                        
-                        {/* Right Column - Key Benefits */}
-                        <div className="space-y-6">
-                          <h4 className="text-lg font-semibold text-foreground text-center lg:text-left">Key Benefits:</h4>
-                          <div className="space-y-4">
-                            {details.keyPoints.map((point: string, index: number) => (
-                              <div key={index} className="flex items-start gap-3">
-                                <CheckCircle className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
-                                <p className="text-muted-foreground leading-relaxed">{point}</p>
-                              </div>
-                            ))}
-                          </div>
-                          
-                          {/* Read More Button */}
-                          <div className="pt-4 text-center lg:text-left">
-                            <Link href={service.link}>
-                              <Button 
-                                size="lg"
-                                variant="outline"
-                                className="group/btn border-primary/20 text-primary hover:bg-primary hover:text-primary-foreground transition-all duration-300 px-8 py-3"
-                                data-testid={`button-read-more-${slug}`}
-                              >
-                                Read More
-                                <ArrowRight className="ml-2 h-5 w-5 group-hover/btn:translate-x-1 transition-transform" />
-                              </Button>
-                            </Link>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </TabsContent>
-              );
-            })}
-          </Tabs>
-          
-          {/* Call to Action */}
-          <div className="text-center">
-            <p className="text-xl font-semibold text-slate-700 mb-4">
-              Need help finding the right support for you or a loved one?
-            </p>
-            <p className="text-lg text-muted-foreground mb-12">
-              Our team is here to help. Make a referral and someone will be in touch to arrange a free, no obligation assessment.
-            </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Link href="/contact">
-                <Button 
-                  size="lg" 
-                  className="bg-white text-secondary border-2 border-secondary hover:bg-secondary hover:text-white group"
-                  data-testid="button-get-assessment"
-                >
-                  <Building2 className="mr-2 h-5 w-5" />
-                  Make a Referral
-                  <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
-                </Button>
+            <motion.span initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8, delay: 0.2, ease: [0.22, 1, 0.36, 1] }}
+              className="block leading-[1.05]"
+              style={{ ...SCRIPT, fontSize: "clamp(40px, 5.2vw, 80px)", color: PINK }}>
+              feels like it should.
+            </motion.span>
+
+            <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.6, delay: 0.38 }}
+              className="text-gray-500 text-base sm:text-lg leading-relaxed max-w-sm mt-6 mb-8">
+              Trusted by families across Devon &amp; Cornwall since 2019. CQC-rated Good, NHS approved.
+            </motion.p>
+
+            <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.48 }}
+              className="flex flex-col sm:flex-row gap-3 mb-8">
+              <Link href="/referral"
+                className="inline-flex items-center justify-center gap-2 px-7 py-4 text-white font-bold rounded-xl transition-all hover:scale-105"
+                style={{ backgroundColor: PINK, boxShadow: "0 12px 40px rgba(239,42,134,0.35)" }}
+                data-testid="hero-referral-cta">
+                Free Assessment <ArrowRight size={17} />
               </Link>
-              <Link href="/services">
-                <Button 
-                  size="lg" 
-                  className="bg-secondary text-white hover:bg-secondary/90"
-                  data-testid="button-view-all-services"
-                >
-                  <ExternalLink className="mr-2 h-5 w-5" />
-                  View All Services
-                </Button>
+              <a href="tel:03301658880"
+                className="inline-flex items-center justify-center gap-2 px-7 py-4 font-semibold rounded-xl transition-all hover:bg-black/5 border-2"
+                style={{ color: NAVY, borderColor: "rgba(5,22,61,0.15)" }}>
+                <Phone size={16} /> 0330 165 8880
+              </a>
+            </motion.div>
+
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.64 }}
+              className="flex flex-wrap gap-6 pt-6 border-t border-black/08">
+              {[{ icon: ShieldCheck, t: "CQC Rated Good" }, { icon: Award, t: "NHS Approved" }, { icon: Clock, t: "Est. 2019" }].map(({ icon: Icon, t }) => (
+                <span key={t} className="flex items-center gap-2 text-xs font-bold text-gray-400 uppercase tracking-wider">
+                  <Icon size={14} style={{ color: PINK }} /> {t}
+                </span>
+              ))}
+            </motion.div>
+          </div>
+
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.9, delay: 0.1 }}
+            className="hidden lg:block relative">
+            <div className="absolute inset-0" style={{ background: "linear-gradient(135deg, #265597 0%, #05163D 100%)" }}>
+              <div className="absolute inset-0 flex items-center justify-center p-12">
+                <div className="text-center">
+                  <div className="text-white/10 text-9xl font-black leading-none" style={SCRIPT}>"</div>
+                  <p className="text-white/80 text-xl italic leading-relaxed mb-6">
+                    Care that feels personal, respectful, and genuinely empowering.
+                  </p>
+                  <div className="flex justify-center gap-6">
+                    <div className="text-center">
+                      <div className="text-4xl font-extrabold text-white">Good</div>
+                      <div className="text-white/50 text-xs font-bold uppercase tracking-widest mt-1">CQC Rating</div>
+                    </div>
+                    <div className="w-px bg-white/20" />
+                    <div className="text-center">
+                      <div className="text-4xl font-extrabold text-white">2019</div>
+                      <div className="text-white/50 text-xs font-bold uppercase tracking-widest mt-1">Est.</div>
+                    </div>
+                    <div className="w-px bg-white/20" />
+                    <div className="text-center">
+                      <div className="text-4xl font-extrabold text-white">7+</div>
+                      <div className="text-white/50 text-xs font-bold uppercase tracking-widest mt-1">Years</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div className="absolute bottom-6 right-6 bg-white rounded-2xl px-5 py-4 shadow-2xl">
+              <div className="flex gap-0.5 mb-1.5">
+                {[...Array(5)].map((_, i) => (
+                  <svg key={i} width="12" height="12" viewBox="0 0 24 24" fill={PINK}>
+                    <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
+                  </svg>
+                ))}
+              </div>
+              <p className="text-xs font-extrabold" style={{ color: NAVY }}>CQC Rated Good</p>
+              <p className="text-xs text-gray-400 mt-0.5">Plymouth &amp; Cornwall</p>
+            </div>
+          </motion.div>
+        </div>
+      </section>
+
+      {/* WHO WE ARE */}
+      <section className="py-20 sm:py-28 bg-white">
+        <div className="max-w-7xl mx-auto px-5 sm:px-8">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 lg:gap-24 items-center">
+            <FadeIn>
+              <p className="text-xs font-bold tracking-widest uppercase mb-5" style={{ color: PINK }}>Who we are</p>
+              <h2 className="text-4xl sm:text-5xl font-extrabold leading-tight mb-2 tracking-tight" style={{ color: NAVY }}>Your family deserves</h2>
+              <div className="mb-8" style={{ ...SCRIPT, fontSize: "clamp(2rem, 4vw, 3.2rem)", color: PINK, lineHeight: 1.1 }}>
+                more than a rota and a stranger.
+              </div>
+              <p className="text-gray-500 text-base leading-relaxed mb-6">
+                When you're looking for care for someone you love, you're not looking for ticked boxes. You're looking for people you can trust — who will show up, every time, and treat your family member like a person, not a task. That's what we've built since 2019.
+              </p>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 mb-8">
+                {["Consistent carers — familiar faces", "CQC Rated Good — both offices", "No waiting lists for private clients", "Transparent pricing — no surprises"].map((item) => (
+                  <span key={item} className="flex items-start gap-2 text-sm text-gray-600">
+                    <CheckCircle2 size={14} style={{ color: PINK }} className="shrink-0 mt-0.5" /> {item}
+                  </span>
+                ))}
+              </div>
+              <Link href="/about" className="inline-flex items-center gap-2 text-sm font-bold border-b-2 pb-0.5 hover:gap-3 transition-all" style={{ color: NAVY, borderColor: PINK }} data-testid="home-about-link">
+                Our story <ArrowRight size={15} />
               </Link>
-            </div>
-          </div>
-        </div>
-      </section>
+            </FadeIn>
 
-      {/* Process Timeline Section */}
-      <section className="py-16 bg-slate-50" data-testid="process-section">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-8 sm:mb-12">
-            <h2 className="section-title mb-4 sm:mb-6">
-              Our Process
-            </h2>
-            <p className="text-lg sm:text-xl text-muted-foreground max-w-3xl mx-auto px-4">
-              Our streamlined process ensures you get the right healthcare professionals quickly and efficiently.
-            </p>
-          </div>
-          
-          {/* Process Timeline - Mobile Responsive */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 sm:gap-8 lg:gap-6">
-            {process.map((step, index) => {
-              const IconComponent = step.icon;
-              return (
-                <div key={step.step} className="group relative" data-testid={`process-step-${index + 1}`}>
-                  <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-200 hover:shadow-lg hover:border-primary/20 transition-all duration-300 h-full">
-                    {/* Step Number */}
-                    <div className="flex items-center justify-between mb-4">
-                      <div className="bg-primary/10 text-primary w-10 h-10 rounded-full flex items-center justify-center font-bold text-lg">
-                        {step.step}
-                      </div>
-                      <div className="bg-primary/10 p-3 rounded-full group-hover:scale-110 transition-transform duration-300">
-                        <IconComponent className="h-6 w-6 text-primary" />
-                      </div>
-                    </div>
-                    
-                    {/* Content */}
-                    <div className="space-y-3">
-                      <h3 className="text-lg sm:text-xl font-bold text-foreground group-hover:text-primary transition-colors duration-300" data-testid={`process-title-${index + 1}`}>
-                        {step.title}
-                      </h3>
-                      <p className="text-sm sm:text-base text-muted-foreground leading-relaxed" data-testid={`process-description-${index + 1}`}>
-                        {step.description}
+            <FadeIn delay={0.1}>
+              <div className="relative">
+                <div className="rounded-3xl overflow-hidden shadow-2xl" style={{ aspectRatio: "4/5", background: `linear-gradient(135deg, ${BLUE} 0%, ${NAVY} 100%)` }}>
+                  <div className="absolute inset-0 flex items-center justify-center p-10 text-center">
+                    <div>
+                      <p className="text-white/70 text-lg leading-relaxed italic mb-8">
+                        "We take time to understand each individual's story, preferences, and aspirations, tailoring care around what matters most to them."
                       </p>
+                      <div className="flex flex-col gap-3">
+                        {["Person-centred approach", "CQC registered and inspected", "NHS Pre-Qualification Scheme member"].map((item) => (
+                          <span key={item} className="flex items-center gap-2 text-white/80 text-sm justify-center">
+                            <CheckCircle2 size={14} style={{ color: PINK }} className="shrink-0" /> {item}
+                          </span>
+                        ))}
+                      </div>
                     </div>
                   </div>
-                  
-                  {/* Mobile-friendly connector - only show on larger screens between items */}
-                  {index < process.length - 1 && (
-                    <div className="hidden lg:block absolute top-1/2 -right-3 transform -translate-y-1/2 z-10">
-                      <div className="w-6 h-0.5 bg-primary/30"></div>
-                      <div className="w-6 h-0.5 bg-primary/30 mt-1"></div>
-                    </div>
-                  )}
                 </div>
-              );
-            })}
+                <div className="absolute -bottom-5 -left-5 bg-white rounded-2xl p-5 shadow-xl border border-gray-100">
+                  <div className="text-3xl font-extrabold mb-0.5" style={{ color: NAVY }}>Since 2019</div>
+                  <div className="text-sm text-gray-400">Serving Devon &amp; Cornwall</div>
+                </div>
+                <div className="absolute -top-4 -right-4 w-20 h-20 rounded-2xl flex flex-col items-center justify-center text-white" style={{ backgroundColor: PINK }}>
+                  <div className="text-2xl font-extrabold leading-none">7+</div>
+                  <div className="text-xs font-semibold opacity-80">Years</div>
+                </div>
+              </div>
+            </FadeIn>
           </div>
         </div>
       </section>
 
-      {/* Our Values - Icon Line */}
-      <section className="py-16 bg-white" data-testid="values-section">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-8 sm:mb-12 lg:mb-16">
-            <h2 className="section-title mb-4 sm:mb-6" data-testid="values-title">
-              Our Values
-            </h2>
-          </div>
-          
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4 sm:gap-6 lg:gap-8 max-w-6xl mx-auto">
-            {values.map((value, index) => {
-              const IconComponent = value.icon;
-              return (
-                <div 
-                  key={value.title}
-                  className="group relative flex flex-col items-center cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 rounded-lg transition-all duration-300 w-full"
-                  tabIndex={0}
-                  role="button"
-                  aria-label={`${value.title}: ${value.description}`}
-                  data-testid={`value-icon-${value.title.toLowerCase()}`}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter' || e.key === ' ') {
-                      e.preventDefault();
-                      // Optional: Add behavior if needed
-                    }
-                  }}
-                >
-                  {/* Grey Box with Icon and Title - Visible by default, hidden on hover */}
-                  <div className="group-hover:opacity-0 group-focus:opacity-0 transition-all duration-300 bg-gray-100 rounded-xl p-3 sm:p-4 lg:p-6 flex flex-col items-center w-full aspect-square">
-                    {/* Icon Container */}
-                    <div className={`w-10 h-10 sm:w-12 sm:h-12 lg:w-16 lg:h-16 xl:w-20 xl:h-20 rounded-full flex items-center justify-center transition-all duration-300 ${value.color === 'blue' ? 'bg-secondary/20 text-secondary' : 'bg-primary/20 text-primary'}`}>
-                      <IconComponent className="h-5 w-5 sm:h-6 sm:w-6 lg:h-8 lg:w-8 xl:h-10 xl:w-10" />
-                    </div>
-                    
-                    {/* Value Title */}
-                    <h3 className="mt-2 sm:mt-3 text-xs sm:text-sm lg:text-base font-semibold text-foreground text-center leading-tight">
-                      {value.title}
-                    </h3>
-                  </div>
-
-                  {/* Description - Hidden by default, visible on hover */}
-                  <div className="absolute inset-0 opacity-0 group-hover:opacity-100 group-focus:opacity-100 transition-all duration-300 bg-gray-900 text-white rounded-xl p-2 sm:p-3 lg:p-4 flex items-center justify-center w-full aspect-square">
-                    <p className="text-xs sm:text-xs lg:text-sm text-center leading-tight">
-                      {value.description}
-                    </p>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      </section>
-
-      {/* Feedback Section */}
-      <section className="py-16 stats-gradient text-white relative overflow-hidden" data-testid="feedback-section">
-        <div className="absolute inset-0 stats-pattern opacity-10"></div>
-        
-        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid lg:grid-cols-2 gap-8 lg:gap-12 items-center">
-            
-            {/* Feedback Information */}
-            <div className="space-y-6 sm:space-y-8">
-              <div className="space-y-3 sm:space-y-4">
-                <h2 className="text-2xl sm:text-3xl lg:text-4xl xl:text-5xl font-bold mb-4 sm:mb-6" data-testid="feedback-title">
-                  Your feedback matters
-                </h2>
-                <p className="text-lg sm:text-xl text-white/90" data-testid="feedback-subtitle">
-                  Help us maintain the highest standards of care. Your experiences and insights drive our continuous improvement and ensure we meet CQC requirements for quality healthcare services.
-                </p>
-              </div>
-              
-              <div className="space-y-4 sm:space-y-6">
-                <div className="flex items-start space-x-3 sm:space-x-4">
-                  <div className="bg-white/20 p-2 sm:p-3 rounded-full flex-shrink-0">
-                    <Shield className="h-5 w-5 sm:h-6 sm:w-6" />
-                  </div>
-                  <div>
-                    <h3 className="font-bold text-base sm:text-lg mb-1 sm:mb-2">CQC Compliance</h3>
-                    <p className="text-white/90 text-sm">
-                      Your feedback helps us demonstrate quality standards and regulatory compliance with the Care Quality Commission.
-                    </p>
-                  </div>
-                </div>
-                
-                <div className="flex items-start space-x-3 sm:space-x-4">
-                  <div className="bg-white/20 p-2 sm:p-3 rounded-full flex-shrink-0">
-                    <TrendingUp className="h-5 w-5 sm:h-6 sm:w-6" />
-                  </div>
-                  <div>
-                    <h3 className="font-bold text-base sm:text-lg mb-1 sm:mb-2">Continuous Improvement</h3>
-                    <p className="text-white/90 text-sm">
-                      We actively use your feedback to enhance our services and address any areas for improvement.
-                    </p>
-                  </div>
-                </div>
-                
-                <div className="flex items-start space-x-3 sm:space-x-4">
-                  <div className="bg-white/20 p-2 sm:p-3 rounded-full flex-shrink-0">
-                    <Users className="h-5 w-5 sm:h-6 sm:w-6" />
-                  </div>
-                  <div>
-                    <h3 className="font-bold text-base sm:text-lg mb-1 sm:mb-2">Service Excellence</h3>
-                    <p className="text-white/90 text-sm">
-                      Your input helps us ensure every service user receives the highest quality care and support.
-                    </p>
-                  </div>
-                </div>
-              </div>
+      {/* SERVICES */}
+      <section className="py-20 sm:py-28" style={{ backgroundColor: CREAM }}>
+        <div className="max-w-7xl mx-auto px-5 sm:px-8">
+          <FadeIn className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-14">
+            <div>
+              <p className="text-xs font-bold tracking-widest uppercase mb-3" style={{ color: PINK }}>What we offer</p>
+              <h2 className="text-4xl sm:text-5xl font-extrabold tracking-tight" style={{ color: NAVY }}>Seven ways we</h2>
+              <div style={{ ...SCRIPT, fontSize: "clamp(2.5rem, 5vw, 3.8rem)", color: PINK }}>can help.</div>
             </div>
-            
-            {/* Feedback Form */}
-            <div className="bg-white/10 backdrop-blur-sm rounded-lg p-4 sm:p-6 lg:p-8 border border-white/20">
-              <h3 className="text-xl sm:text-2xl font-bold mb-4 sm:mb-6" data-testid="feedback-form-title">
-                Share Your Experience
-              </h3>
-              
-              <div className="space-y-4 sm:space-y-6">
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
-                  <div>
-                    <label className="block text-sm font-medium mb-2">First Name</label>
-                    <input 
-                      type="text" 
-                      className="w-full p-2 sm:p-3 rounded-md bg-white/20 border border-white/30 text-white placeholder-white/70 focus:outline-none focus:ring-2 focus:ring-white/50 text-sm sm:text-base" 
-                      placeholder="Your first name"
-                      data-testid="input-first-name"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium mb-2">Last Name</label>
-                    <input 
-                      type="text" 
-                      className="w-full p-2 sm:p-3 rounded-md bg-white/20 border border-white/30 text-white placeholder-white/70 focus:outline-none focus:ring-2 focus:ring-white/50 text-sm sm:text-base" 
-                      placeholder="Your last name"
-                      data-testid="input-last-name"
-                    />
-                  </div>
-                </div>
-                
-                <div>
-                  <label className="block text-sm font-medium mb-2">Overall Rating</label>
-                  <div className="flex space-x-1" data-testid="rating-overall">
-                    {[1, 2, 3, 4, 5].map((star) => (
-                      <Star key={star} className="h-6 w-6 sm:h-8 sm:w-8 text-white/50 hover:text-white cursor-pointer transition-colors" />
-                    ))}
-                  </div>
-                </div>
-                
-                <div>
-                  <label className="block text-sm font-medium mb-2">Service Used</label>
-                  <select 
-                    className="w-full p-2 sm:p-3 rounded-md bg-white/20 border border-white/30 text-white focus:outline-none focus:ring-2 focus:ring-white/50 text-sm sm:text-base"
-                    data-testid="select-service"
-                  >
-                    <option value="">Select a service</option>
-                    <option value="care-at-home">Care at Home</option>
-                    <option value="temporary-staff">Temporary Staff</option>
-                    <option value="permanent-placement">Permanent Placement</option>
-                    <option value="domiciliary-care">Domiciliary Care</option>
-                  </select>
-                </div>
-                
-                <div>
-                  <label className="block text-sm font-medium mb-2">Comments</label>
-                  <textarea 
-                    rows={4}
-                    className="w-full p-2 sm:p-3 rounded-md bg-white/20 border border-white/30 text-white placeholder-white/70 focus:outline-none focus:ring-2 focus:ring-white/50 text-sm sm:text-base" 
-                    placeholder="Tell us about your experience..."
-                    data-testid="textarea-comments"
-                  ></textarea>
-                </div>
-                
-                <Button 
-                  className="w-full bg-white text-primary hover:bg-white/90 font-semibold py-2 sm:py-3 text-sm sm:text-base"
-                  data-testid="button-submit-feedback"
-                >
-                  Submit Feedback
-                </Button>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
+            <Link href="/services" className="flex items-center gap-2 text-sm font-bold pb-0.5 hover:gap-3 transition-all shrink-0 border-b-2" style={{ color: NAVY, borderColor: "rgba(5,22,61,0.15)" }} data-testid="home-all-services-link">
+              All services <ArrowRight size={15} />
+            </Link>
+          </FadeIn>
 
-      {/* Trust Indicators */}
-      <section className="py-16 bg-slate-50" data-testid="coverage-section">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-center">
-            <div className="accreditations-modern">
-              <h3 className="text-xl sm:text-2xl font-bold text-foreground mb-8 sm:mb-12 text-center" data-testid="accreditations-title">
-                CQC Ratings and Reports
-              </h3>
-              
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 isolate auto-rows-fr">
-                {/* First CQC Widget */}
-                <div className="accreditation-badge" data-testid="accreditation-cqc-1">
-                  <div id="cqc-widget-container-1" className="relative w-full max-w-[480px] p-4 pb-2 mx-auto">
+          <div className="space-y-1">
+            {SERVICES.map((s, i) => (
+              <FadeIn key={s.slug} delay={i * 0.06}>
+                <Link href={`/services/${s.slug}`}
+                  className="group flex items-center gap-6 sm:gap-10 py-5 px-6 sm:px-8 rounded-2xl transition-all hover:shadow-md bg-white"
+                  data-testid={`service-row-${s.slug}`}>
+                  <span className="text-4xl sm:text-5xl font-bold shrink-0 w-14 text-right leading-none"
+                    style={{ ...SCRIPT, color: s.color, opacity: 0.45 }}>{s.num}</span>
+                  <div className="flex-1 min-w-0">
+                    <h3 className="text-lg sm:text-xl font-extrabold transition-colors mb-1 tracking-tight group-hover:text-[#265597]" style={{ color: NAVY }}>{s.name}</h3>
+                    <p className="text-gray-400 text-sm leading-relaxed">{s.desc}</p>
                   </div>
-                </div>
-
-                {/* Second CQC Widget */}
-                <div className="accreditation-badge" data-testid="accreditation-cqc-2">
-                  <div id="cqc-widget-container-2" className="relative w-full max-w-[480px] p-4 pb-2 mx-auto">
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Professional Accreditations */}
-      <section className="py-12 bg-white" data-testid="professional-accreditations">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center">
-            <h3 className="text-lg sm:text-xl font-bold text-foreground mb-6 sm:mb-8" data-testid="professional-accreditations-title">
-              Professional Accreditations & Approvals
-            </h3>
-            
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8 items-center justify-items-center max-w-4xl mx-auto">
-              {/* Supported Living Framework */}
-              <div className="accreditation-logo" data-testid="supported-living-logo">
-                <img 
-                  src={supportedLivingLogo} 
-                  alt="Supported Living Framework Provider" 
-                  className="h-12 sm:h-14 lg:h-16 w-auto mx-auto object-contain"
-                />
-              </div>
-              
-              {/* NHS Approved Supplier */}
-              <div className="accreditation-logo" data-testid="nhs-supplier-logo">
-                <img 
-                  src={nhsSupplierLogo} 
-                  alt="NHS Approved Supplier" 
-                  className="h-12 sm:h-14 lg:h-16 w-auto mx-auto object-contain"
-                />
-              </div>
-              
-              {/* PQS Pre-Qualification Scheme */}
-              <div className="accreditation-logo" data-testid="pqs-logo">
-                <img 
-                  src={pqsLogo} 
-                  alt="Pre-Qualification Scheme" 
-                  className="h-12 sm:h-14 lg:h-16 w-auto mx-auto object-contain"
-                />
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-      
-      {/* Modern CTA Section */}
-      <section className="py-16 bg-white" data-testid="cta-section">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="cta-container">
-            <div className="text-center space-y-6 sm:space-y-8">
-              <div className="space-y-3 sm:space-y-4">
-                <h2 className="text-2xl sm:text-3xl lg:text-4xl xl:text-5xl font-bold text-foreground">
-                  Ready to get started?
-                </h2>
-                <p className="text-lg sm:text-xl text-muted-foreground max-w-2xl mx-auto px-4">
-                  Whether you or a loved one need care or you are looking for your next opportunity, 
-                  we're here to help you succeed.
-                </p>
-              </div>
-              
-              <div className="flex flex-col sm:flex-row gap-4 sm:gap-6 justify-center">
-                <Link href="/contact">
-                  <Button 
-                    size="lg" 
-                    className="modern-button-primary group text-base sm:text-lg px-6 sm:px-8 lg:px-10 py-3 sm:py-4 w-full sm:w-auto"
-                    data-testid="cta-button-contact"
-                  >
-                    <Building2 className="mr-2 h-4 w-4 sm:h-5 sm:w-5" />
-                    <span className="hidden sm:inline">Book Healthcare Staff</span>
-                    <span className="sm:hidden">Book Staff</span>
-                    <ArrowRight className="ml-2 h-4 w-4 sm:h-5 sm:w-5 group-hover:translate-x-1 transition-transform" />
-                  </Button>
+                  <ArrowRight size={16} className="hidden sm:block transition-all group-hover:translate-x-1 group-hover:text-[#EF2A86] shrink-0" style={{ color: "#d1d5db" }} />
                 </Link>
-                
-                <Link href="/jobs">
-                  <Button 
-                    size="lg" 
-                    className="bg-secondary text-white hover:bg-secondary/90 group text-base sm:text-lg px-6 sm:px-8 lg:px-10 py-3 sm:py-4 w-full sm:w-auto"
-                    data-testid="cta-button-jobs"
-                  >
-                    <Users className="mr-2 h-4 w-4 sm:h-5 sm:w-5" />
-                    <span className="hidden sm:inline">Make a Referral</span>
-                    <span className="sm:hidden">Referral</span>
-                    <ArrowRight className="ml-2 h-4 w-4 sm:h-5 sm:w-5 group-hover:translate-x-1 transition-transform" />
-                  </Button>
-                </Link>
-              </div>
-            </div>
+              </FadeIn>
+            ))}
           </div>
+        </div>
+      </section>
+
+      {/* FULL-BLEED QUOTE */}
+      <section className="relative overflow-hidden" style={{ minHeight: "440px", backgroundColor: NAVY }}>
+        <div className="absolute inset-0 opacity-5">
+          {[...Array(6)].map((_, i) => (
+            <div key={i} className="absolute rounded-full" style={{
+              width: `${150 + i * 80}px`, height: `${150 + i * 80}px`,
+              border: "1px solid white",
+              top: "50%", left: "50%",
+              transform: "translate(-50%, -50%)",
+            }} />
+          ))}
+        </div>
+        <div className="relative max-w-7xl mx-auto px-5 sm:px-8 py-24 sm:py-32 flex items-end" style={{ minHeight: "440px" }}>
+          <FadeIn>
+            <div className="max-w-2xl">
+              <div className="text-[80px] select-none mb-1"
+                style={{ color: "rgba(239,42,134,0.4)", fontFamily: "Georgia, serif", lineHeight: 0.7, fontWeight: 700 }}>"</div>
+              <p className="text-2xl sm:text-3xl font-bold text-white leading-snug mb-6 italic">
+                "The carers from Smeaton are wonderful — Mum knows them by name and actually looks forward to their visits. That means everything."
+              </p>
+              <p className="text-white/60 font-semibold text-sm">Sarah T. · Daughter of service user, Plymouth</p>
+            </div>
+          </FadeIn>
+        </div>
+      </section>
+
+      {/* SELF-FUNDED CARE */}
+      <section className="py-20 sm:py-28 bg-white">
+        <div className="max-w-7xl mx-auto px-5 sm:px-8">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 lg:gap-24 items-center">
+            <FadeIn>
+              <p className="text-xs font-bold tracking-widest uppercase mb-5" style={{ color: PINK }}>Self-funded care</p>
+              <h2 className="text-4xl sm:text-5xl font-extrabold leading-tight mb-2 tracking-tight" style={{ color: NAVY }}>Funding your own</h2>
+              <div className="mb-8" style={{ ...SCRIPT, fontSize: "clamp(2rem, 4vw, 3.2rem)", color: PINK, lineHeight: 1.1 }}>
+                care, your way.
+              </div>
+              <p className="text-gray-500 text-base leading-relaxed mb-8">
+                Many families choose to fund care privately — no waiting lists, no rigid rotas. We welcome private clients and can usually begin within days of your assessment.
+              </p>
+              <div className="grid grid-cols-2 gap-3 mb-10">
+                {[
+                  { num: "No", label: "waiting lists" },
+                  { num: "Same", label: "carers every visit" },
+                  { num: "Your", label: "hours, your routine" },
+                  { num: "Clear", label: "transparent pricing" },
+                ].map((s) => (
+                  <div key={s.label} className="flex items-center gap-4 p-4 rounded-xl" style={{ backgroundColor: CREAM }}>
+                    <div className="text-lg font-extrabold" style={{ color: PINK }}>{s.num}</div>
+                    <div className="text-sm font-semibold" style={{ color: NAVY }}>{s.label}</div>
+                  </div>
+                ))}
+              </div>
+              <Link href="/referral"
+                className="inline-flex items-center gap-2 px-7 py-4 text-white font-bold rounded-xl hover:scale-105 transition-all"
+                style={{ backgroundColor: PINK, boxShadow: "0 12px 40px rgba(239,42,134,0.28)" }}
+                data-testid="home-private-cta">
+                Talk to us about your options <ArrowRight size={16} />
+              </Link>
+            </FadeIn>
+
+            <FadeIn delay={0.1}>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="col-span-2 rounded-3xl overflow-hidden shadow-md" style={{ aspectRatio: "16/8", background: `linear-gradient(135deg, ${BLUE} 0%, ${NAVY} 100%)` }}>
+                  <div className="w-full h-full flex items-center justify-center p-8">
+                    <p className="text-white/70 text-center text-base italic leading-relaxed">
+                      "Many families choose to fund care privately — we welcome private clients and can usually begin within days."
+                    </p>
+                  </div>
+                </div>
+                <div className="rounded-2xl p-7 text-white text-center" style={{ backgroundColor: PINK }}>
+                  <div className="text-4xl font-extrabold mb-1">Good</div>
+                  <div className="text-xs text-white/70 font-bold uppercase tracking-widest">CQC Rating</div>
+                </div>
+                <div className="rounded-2xl p-7 text-center bg-white border border-gray-100">
+                  <div className="text-4xl font-extrabold mb-1" style={{ color: NAVY }}>7+</div>
+                  <div className="text-xs text-gray-400 font-bold uppercase tracking-widest">Years</div>
+                </div>
+              </div>
+            </FadeIn>
+          </div>
+        </div>
+      </section>
+
+      {/* TESTIMONIALS */}
+      <section className="py-20 sm:py-28" style={{ backgroundColor: CREAM }}>
+        <div className="max-w-7xl mx-auto px-5 sm:px-8">
+          <FadeIn className="mb-14">
+            <p className="text-xs font-bold tracking-widest uppercase mb-3" style={{ color: PINK }}>In their own words</p>
+            <h2 className="text-4xl sm:text-5xl font-extrabold tracking-tight" style={{ color: NAVY }}>Real people.</h2>
+            <div style={{ ...SCRIPT, fontSize: "clamp(2.5rem, 5vw, 3.8rem)", color: BLUE }}>Real stories.</div>
+          </FadeIn>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+            {TESTIMONIALS.map((t, i) => (
+              <FadeIn key={i} delay={i * 0.08}>
+                <div className={`rounded-3xl p-8 h-full flex flex-col ${i === 1 ? "" : "bg-white"}`}
+                  style={i === 1 ? { backgroundColor: NAVY } : { border: "2px solid rgba(0,0,0,0.04)" }}>
+                  <div className="text-[80px] leading-none select-none"
+                    style={{ color: i === 1 ? "rgba(239,42,134,0.2)" : "rgba(239,42,134,0.12)", fontFamily: "Georgia, serif", lineHeight: 0.75 }}>"</div>
+                  <p className={`text-base leading-relaxed flex-1 italic mt-4 ${i === 1 ? "text-white/80" : "text-gray-600"}`}>{t.quote}</p>
+                  <div className={`mt-6 pt-5 border-t ${i === 1 ? "border-white/10" : "border-black/06"}`}>
+                    <p className={`text-sm font-extrabold ${i === 1 ? "text-white" : ""}`} style={i !== 1 ? { color: NAVY } : {}}>{t.name}</p>
+                    <p className={`text-xs mt-0.5 ${i === 1 ? "text-white/40" : "text-gray-400"}`}>{t.relation}</p>
+                  </div>
+                </div>
+              </FadeIn>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* COVERAGE */}
+      <section className="py-16 sm:py-20 bg-white">
+        <div className="max-w-7xl mx-auto px-5 sm:px-8">
+          <FadeIn className="grid grid-cols-1 lg:grid-cols-3 gap-12 items-start">
+            <div>
+              <p className="text-xs font-bold tracking-widest uppercase mb-3" style={{ color: PINK }}>Where we work</p>
+              <h2 className="text-3xl font-extrabold tracking-tight mb-1" style={{ color: NAVY }}>Home care across</h2>
+              <div style={{ ...SCRIPT, fontSize: "clamp(2rem, 4vw, 3rem)", color: BLUE }}>Devon &amp; Cornwall</div>
+              <p className="text-gray-400 text-sm leading-relaxed mt-4">
+                Don't see your town?{" "}
+                <a href="tel:03301658880" className="font-bold hover:underline" style={{ color: PINK }}>Call us</a> — we're always expanding.
+              </p>
+            </div>
+            <div className="lg:col-span-2 flex flex-wrap gap-2">
+              {COVERAGE.map((town) => (
+                <span key={town} className="px-4 py-2 rounded-full text-sm font-semibold"
+                  style={{ backgroundColor: CREAM, color: NAVY }}>
+                  {town}
+                </span>
+              ))}
+            </div>
+          </FadeIn>
+        </div>
+      </section>
+
+      {/* CTA */}
+      <section style={{ backgroundColor: NAVY }} className="py-20 sm:py-24">
+        <div className="max-w-3xl mx-auto px-5 sm:px-8 text-center">
+          <FadeIn>
+            <h2 className="text-3xl sm:text-4xl font-extrabold text-white mb-2 tracking-tight">Ready to get started?</h2>
+            <div className="mb-6" style={{ ...SCRIPT, fontSize: "clamp(2rem, 4vw, 3rem)", color: "rgba(239,42,134,0.9)" }}>We'd love to hear from you.</div>
+            <p className="text-white/60 mb-10 leading-relaxed">Make a referral today. Our team will arrange a free, no-obligation assessment at a time that suits you.</p>
+            <div className="flex flex-col sm:flex-row justify-center gap-4">
+              <Link
+                href="/referral"
+                className="inline-flex items-center justify-center gap-2 px-8 py-4 text-white font-bold rounded-xl hover:opacity-90 transition-all hover:scale-105"
+                style={{ backgroundColor: PINK, boxShadow: "0 8px 32px rgba(239,42,134,0.4)" }}
+                data-testid="home-bottom-cta">
+                Request a Free Assessment <ArrowRight size={18} />
+              </Link>
+              <a href="tel:03301658880"
+                className="inline-flex items-center justify-center gap-2 px-8 py-4 font-semibold rounded-xl text-white transition-all hover:bg-white/10"
+                style={{ border: "2px solid rgba(255,255,255,0.3)" }}>
+                <Phone size={16} /> 0330 165 8880
+              </a>
+            </div>
+          </FadeIn>
         </div>
       </section>
     </div>

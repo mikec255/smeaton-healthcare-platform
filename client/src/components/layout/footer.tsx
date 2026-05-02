@@ -1,100 +1,73 @@
 import { Link } from "wouter";
-import { Heart, Mail, MapPin, Clock } from "lucide-react";
-import smeatonLogo from "@assets/Untitled design-33_1757665477175.png";
+import { Phone } from "lucide-react";
+import logoImage from "@/assets/logo.png";
 
 export default function Footer() {
-  // Calculate years since founding date (18/02/2019)
-  const foundingDate = new Date('2019-02-18');
-  const currentDate = new Date();
-  const yearsSinceFoundation = Math.floor((currentDate.getTime() - foundingDate.getTime()) / (1000 * 60 * 60 * 24 * 365.25));
   return (
-    <footer className="bg-gradient-to-r from-foreground to-primary text-white pt-12 pb-24" data-testid="footer">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="grid md:grid-cols-4 gap-8 items-start">
-          <div className="self-start">
-            <img 
-              src={smeatonLogo} 
-              alt="Smeaton Healthcare" 
-              className="h-32 w-auto block" 
-              style={{ marginTop: '0px', marginBottom: '16px' }}
-              data-testid="footer-brand-logo"
+    <footer style={{ backgroundColor: "#05163D" }} className="text-white">
+      <div className="max-w-7xl mx-auto px-5 sm:px-8 py-14">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10">
+          <div className="lg:col-span-2">
+            <img
+              src={logoImage}
+              alt="Smeaton Healthcare"
+              className="h-12 w-auto mb-4"
+              style={{ filter: "brightness(0) invert(1)" }}
             />
-            <p className="text-gray-300 mb-4" data-testid="footer-description">
-              Providing exceptional healthcare services across Devon and Cornwall since 2019.
+            <p className="text-white/60 text-sm leading-relaxed max-w-xs mb-5">
+              Home care you can trust, delivered by people who care — across Devon &amp; Cornwall since 2019.
             </p>
-            <p className="text-gray-300 text-sm" data-testid="footer-copyright">
-              © 2025 Smeaton Healthcare. All rights reserved.
-            </p>
+            <a href="tel:03301658880" className="inline-flex items-center gap-2 text-white font-bold text-base hover:text-[#EF2A86] transition-colors">
+              <Phone size={16} /> 0330 165 8880
+            </a>
           </div>
-          
+
           <div>
-            <h4 className="font-semibold mb-4" style={{ marginTop: '0px', lineHeight: '32px', paddingTop: '48px' }} data-testid="footer-services-title">Services</h4>
-            <ul className="space-y-2 text-gray-300">
-              <li>
-                <Link href="/services" className="hover:text-white transition-colors" data-testid="footer-link-care-at-home">
-                  Care at Home
-                </Link>
-              </li>
-              <li>
-                <Link href="/services" className="hover:text-white transition-colors" data-testid="footer-link-live-in-care">
-                  Live-in Care
-                </Link>
-              </li>
-              <li>
-                <Link href="/services" className="hover:text-white transition-colors" data-testid="footer-link-specialized-care">
-                  Specialized Care
-                </Link>
-              </li>
+            <p className="text-xs font-bold tracking-widest text-white/30 uppercase mb-4">Services</p>
+            <ul className="space-y-2.5">
+              {[
+                { href: "/services/short-visits", label: "Short Visits" },
+                { href: "/services/supported-living", label: "Supported Living" },
+                { href: "/services/care-24-7", label: "24/7 Care" },
+                { href: "/services/enablements", label: "Enabling" },
+                { href: "/services/respite", label: "Respite Care" },
+                { href: "/services/live-in-care", label: "Live-In Care" },
+                { href: "/services/condition-led-care", label: "Condition-Led Care" },
+              ].map((s) => (
+                <li key={s.href}>
+                  <Link href={s.href} className="text-white/50 hover:text-white text-sm transition-colors">
+                    {s.label}
+                  </Link>
+                </li>
+              ))}
             </ul>
           </div>
-          
+
           <div>
-            <h4 className="font-semibold mb-4" style={{ marginTop: '0px', lineHeight: '32px', paddingTop: '48px' }} data-testid="footer-careers-title">Careers</h4>
-            <ul className="space-y-2 text-gray-300">
-              <li>
-                <Link href="/jobs" className="hover:text-white transition-colors" data-testid="footer-link-current-openings">
-                  Current Openings
-                </Link>
-              </li>
-              <li>
-                <Link href="/jobs" className="hover:text-white transition-colors" data-testid="footer-link-healthcare-assistants">
-                  Healthcare Assistants
-                </Link>
-              </li>
-              <li>
-                <Link href="/jobs" className="hover:text-white transition-colors" data-testid="footer-link-care-at-home-roles">
-                  Care at Home Roles
-                </Link>
-              </li>
-              <li>
-                <Link href="/jobs" className="hover:text-white transition-colors" data-testid="footer-link-management-positions">
-                  Management Positions
-                </Link>
-              </li>
+            <p className="text-xs font-bold tracking-widest text-white/30 uppercase mb-4">Company</p>
+            <ul className="space-y-2.5">
+              {[
+                { href: "/about", label: "About Us" },
+                { href: "/referral", label: "Request Care" },
+                { href: "/jobs", label: "Careers" },
+                { href: "/resources/blog", label: "Blog" },
+                { href: "/resources/newsletter", label: "Newsletter" },
+                { href: "/resources/costings", label: "Care Funding" },
+                { href: "/contact", label: "Contact" },
+              ].map((l) => (
+                <li key={l.href}>
+                  <Link href={l.href} className="text-white/50 hover:text-white text-sm transition-colors">
+                    {l.label}
+                  </Link>
+                </li>
+              ))}
             </ul>
           </div>
-          
-          <div>
-            <h4 className="font-semibold mb-4" style={{ marginTop: '0px', lineHeight: '32px', paddingTop: '48px' }} data-testid="footer-contact-title">Contact</h4>
-            <ul className="space-y-2 text-gray-300">
-              <li className="flex items-center" data-testid="footer-email">
-                <Mail className="h-4 w-4 mr-2" />
-                hello@smeatonhealthcare.co.uk
-              </li>
-              <li className="flex items-center" data-testid="footer-location">
-                <MapPin className="h-4 w-4 mr-2" />
-                Devon & Cornwall
-              </li>
-              <li className="flex items-center" data-testid="footer-availability">
-                <Clock className="h-4 w-4 mr-2" />
-                24/7 Emergency Support
-              </li>
-              <li className="flex items-center text-accent" data-testid="footer-experience">
-                <Heart className="h-4 w-4 mr-2" />
-                {yearsSinceFoundation} Years of Excellence
-              </li>
-            </ul>
-          </div>
+        </div>
+
+        <div className="mt-12 pt-8 border-t border-white/10 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+          <p className="text-white/30 text-sm">© {new Date().getFullYear()} Smeaton Healthcare Ltd. All rights reserved.</p>
+          <p className="text-white/30 text-xs">CQC Rated Good — Plymouth (April 2022) &amp; Cornwall (January 2022)</p>
         </div>
       </div>
     </footer>

@@ -36,6 +36,7 @@ const LiveInCare = lazy(() => import("@/pages/live-in-care"));
 const ConditionLedCare = lazy(() => import("@/pages/condition-led-care"));
 
 // Other essential pages
+const About = lazy(() => import("@/pages/about"));
 const Referral = lazy(() => import("@/pages/referral"));
 const CreatePassword = lazy(() => import("@/pages/create-password"));
 
@@ -97,6 +98,7 @@ function Router() {
             <Route path="/resources/costings" component={Costings} />
             
             {/* Other pages */}
+            <Route path="/about" component={About} />
             <Route path="/referral" component={Referral} />
             <Route path="/create-password" component={CreatePassword} />
             
