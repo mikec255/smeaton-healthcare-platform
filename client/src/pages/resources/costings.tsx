@@ -1,6 +1,9 @@
 import { useEffect } from "react";
 import { Link } from "wouter";
-import { ArrowLeft, PoundSterling, Heart, Building2, CheckCircle, FileText, HelpCircle, Shield, Clipboard, ArrowRight, Phone, Users, Target, AlertCircle, BookOpen } from "lucide-react";
+import { SiTrustpilot } from "react-icons/si";
+import nhsLogoImg from "@assets/nhs_logo.png";
+import googleLogoImg from "@assets/google_logo_white.svg";
+import { PoundSterling, Heart, Building2, FileText, HelpCircle, Clipboard, ArrowRight, Phone, AlertCircle, BookOpen, Clock as TickerClock, Star as TickerStar } from "lucide-react";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 
 const NAVY = "#05163D";
@@ -10,9 +13,9 @@ const CREAM = "#FDF7F0";
 const SCRIPT = { fontFamily: "'Dancing Script', cursive" };
 
 const THRESHOLDS = [
-  { category: "Self-Funding", threshold: "£23,250+", description: "Assets above this amount means you pay for all social care yourself.", color: "#fef2f2", border: "#fca5a5", label: "text-red-700" },
-  { category: "Partial Funding", threshold: "£14,250 – £23,249", description: "You may contribute up to £36 per week from your assets towards care costs.", color: "#fffbeb", border: "#fcd34d", label: "text-amber-700" },
-  { category: "Full Council Funding", threshold: "Under £14,250", description: "You won't contribute from your assets (means-tested income contribution may still apply).", color: "#f0fdf4", border: "#86efac", label: "text-green-700" },
+  { category: "Self-Funding", threshold: "£23,250+", description: "Assets above this amount means you pay for all social care yourself.", color: "#fef2f2", border: "#fca5a5" },
+  { category: "Partial Funding", threshold: "£14,250 – £23,249", description: "You may contribute up to £36 per week from your assets towards care costs.", color: "#fffbeb", border: "#fcd34d" },
+  { category: "Full Council Funding", threshold: "Under £14,250", description: "You won't contribute from your assets (means-tested income contribution may still apply).", color: "#f0fdf4", border: "#86efac" },
 ];
 
 const NHS_FUNDING = [
@@ -37,19 +40,55 @@ const FAQS = [
   { q: "Can family members contribute to top-up care costs?", a: "Yes — family members or friends can make additional payments for enhanced care options, but the basic assessed needs must be met by the agreed funding." },
 ];
 
+function Ticker() {
+  return (
+    <div style={{ backgroundColor: PINK, padding: "10px 0" }}>
+      <div className="w-full flex items-center justify-center flex-nowrap gap-x-8 px-8 overflow-x-auto">
+        <span className="inline-flex items-center gap-2 shrink-0">
+          <img src={googleLogoImg} alt="Google" style={{ height: "18px", width: "auto" }} />
+          <span className="text-white text-sm font-medium">4.9</span>
+        </span>
+        <span className="text-white/30 shrink-0">|</span>
+        <span className="hidden sm:inline-flex items-center gap-2 shrink-0">
+          <SiTrustpilot style={{ color: "#00B67A", fontSize: "18px" }} />
+          <span className="text-white text-sm font-medium">Trustpilot 4.6</span>
+        </span>
+        <span className="text-white/30 hidden sm:inline shrink-0">|</span>
+        <span className="hidden sm:inline-flex items-center gap-2 shrink-0">
+          <img src={nhsLogoImg} alt="NHS" style={{ height: "26px", width: "auto", filter: "brightness(0) invert(1)" }} />
+          <span className="text-white text-sm font-medium">Approved Provider</span>
+        </span>
+        <span className="text-white/30 hidden sm:inline shrink-0">|</span>
+        <span className="hidden sm:inline-flex items-center gap-2 shrink-0">
+          <span className="text-white text-sm font-medium whitespace-nowrap">CQC Rated Good</span>
+        </span>
+        <span className="text-white/30 hidden sm:inline shrink-0">|</span>
+        <span className="hidden sm:inline-flex items-center gap-2 shrink-0">
+          <TickerClock size={15} className="text-white shrink-0" />
+          <span className="text-white text-sm font-medium whitespace-nowrap">Care within 24 hours</span>
+        </span>
+        <span className="text-white/30 hidden sm:inline shrink-0">|</span>
+        <span className="hidden sm:inline-flex items-center gap-2 shrink-0">
+          <TickerStar size={15} className="text-white shrink-0" />
+          <span className="text-white text-sm font-medium whitespace-nowrap">Private Care Available</span>
+        </span>
+      </div>
+    </div>
+  );
+}
+
 export default function UnderstandingCareFunding() {
   useEffect(() => { document.title = "Care Funding Guide | Smeaton Healthcare"; }, []);
 
   return (
     <div data-testid="costings-page">
+      <Ticker />
+
       {/* HERO */}
-      <section className="bg-white">
-        <div className="max-w-7xl mx-auto px-5 sm:px-8 pt-12 pb-10">
-          <Link href="/resources" className="inline-flex items-center gap-1.5 text-sm font-semibold mb-8 hover:opacity-80 transition-opacity" style={{ color: PINK }}>
-            <ArrowLeft size={14} /> Back to Resources
-          </Link>
+      <section style={{ backgroundColor: CREAM }}>
+        <div className="max-w-7xl mx-auto px-5 sm:px-8 pt-14 pb-12">
           <p className="text-xs font-bold tracking-widest uppercase mb-4" style={{ color: PINK }}>UK Care Funding Guide 2024–25</p>
-          <h1 className="text-4xl sm:text-5xl font-extrabold mb-1 tracking-tight" style={{ color: NAVY }}>Understanding</h1>
+          <h1 className="text-4xl sm:text-5xl font-extrabold mb-1 tracking-tight" style={{ color: BLUE }}>Understanding</h1>
           <div className="mb-4" style={{ ...SCRIPT, fontSize: "clamp(1.8rem, 3.5vw, 2.8rem)", color: PINK }}>care funding.</div>
           <p className="text-gray-500 text-base max-w-2xl leading-relaxed" data-testid="funding-hero-description">
             We don't provide financial advice, but this guide explains the main funding options available for care in the UK. Your local authority can help with your specific situation.
@@ -60,7 +99,7 @@ export default function UnderstandingCareFunding() {
               <Building2 size={15} /> Find Your Local Authority <ArrowRight size={14} />
             </a>
             <a href="https://www.nhs.uk/conditions/social-care-and-support-guide/money-work-and-benefits/" target="_blank" rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 px-5 py-3 font-bold rounded-xl text-[#05163D] hover:bg-black/5 transition-all border-2 text-sm" style={{ borderColor: "rgba(5,22,61,0.15)" }}>
+              className="inline-flex items-center gap-2 px-5 py-3 font-bold rounded-xl hover:bg-black/5 transition-all border-2 text-sm" style={{ color: NAVY, borderColor: "rgba(5,22,61,0.15)" }}>
               <FileText size={15} /> NHS Funding Guide
             </a>
           </div>
@@ -68,10 +107,10 @@ export default function UnderstandingCareFunding() {
       </section>
 
       {/* THRESHOLDS */}
-      <section className="py-14" style={{ backgroundColor: CREAM }}>
+      <section className="py-14 bg-white">
         <div className="max-w-7xl mx-auto px-5 sm:px-8">
           <p className="text-xs font-bold tracking-widest uppercase mb-4" style={{ color: PINK }}>Asset thresholds</p>
-          <h2 className="text-2xl font-extrabold mb-3 tracking-tight" style={{ color: NAVY }}>2024–25 Funding thresholds</h2>
+          <h2 className="text-2xl font-extrabold mb-3 tracking-tight" style={{ color: BLUE }}>2024–25 Funding thresholds</h2>
           <p className="text-gray-500 text-sm mb-8">Where you fall within these limits determines your contribution to care costs.</p>
           <div className="grid md:grid-cols-3 gap-5">
             {THRESHOLDS.map((t) => (
@@ -92,19 +131,18 @@ export default function UnderstandingCareFunding() {
       </section>
 
       {/* NHS FUNDING */}
-      <section className="py-14 bg-white">
+      <section className="py-14" style={{ backgroundColor: CREAM }}>
         <div className="max-w-7xl mx-auto px-5 sm:px-8">
           <div className="grid lg:grid-cols-2 gap-10">
-            {/* NHS */}
             <div>
               <p className="text-xs font-bold tracking-widest uppercase mb-4" style={{ color: PINK }}>NHS funding</p>
-              <h2 className="text-2xl font-extrabold mb-6 tracking-tight" style={{ color: NAVY }}>NHS Health Funding</h2>
+              <h2 className="text-2xl font-extrabold mb-6 tracking-tight" style={{ color: BLUE }}>NHS Health Funding</h2>
               <p className="text-gray-500 text-sm mb-6 leading-relaxed">Based entirely on health needs — no means test applies.</p>
               <div className="space-y-4">
                 {NHS_FUNDING.map((item) => {
                   const Icon = item.icon;
                   return (
-                    <div key={item.title} className="flex items-start gap-4 p-5 rounded-2xl border-2 border-gray-100">
+                    <div key={item.title} className="flex items-start gap-4 p-5 rounded-2xl border-2 bg-white border-gray-100">
                       <div className="w-9 h-9 rounded-lg flex items-center justify-center shrink-0" style={{ backgroundColor: `${BLUE}15` }}>
                         <Icon size={16} style={{ color: BLUE }} />
                       </div>
@@ -118,15 +156,14 @@ export default function UnderstandingCareFunding() {
               </div>
             </div>
 
-            {/* LOCAL AUTHORITY STEPS */}
             <div>
               <p className="text-xs font-bold tracking-widest uppercase mb-4" style={{ color: PINK }}>Local authority</p>
-              <h2 className="text-2xl font-extrabold mb-6 tracking-tight" style={{ color: NAVY }}>How to Apply for Council Funding</h2>
+              <h2 className="text-2xl font-extrabold mb-6 tracking-tight" style={{ color: BLUE }}>How to Apply for Council Funding</h2>
               <div className="space-y-3">
                 {LA_STEPS.map((step) => (
                   <div key={step.step} className="flex items-start gap-4">
                     <div className="w-8 h-8 rounded-full flex items-center justify-center shrink-0 text-white font-black text-sm" style={{ backgroundColor: PINK }}>{step.step}</div>
-                    <div className="flex-1 pb-3 border-b border-gray-100">
+                    <div className="flex-1 pb-3 border-b border-gray-200">
                       <h4 className="font-bold text-sm mb-0.5" style={{ color: NAVY }}>{step.title}</h4>
                       <p className="text-xs text-gray-500 leading-relaxed">{step.desc}</p>
                     </div>
@@ -138,26 +175,21 @@ export default function UnderstandingCareFunding() {
         </div>
       </section>
 
-      {/* FAQS */}
-      <section className="py-14" style={{ backgroundColor: CREAM }}>
+      {/* FAQS + DISCLAIMER */}
+      <section className="py-14 bg-white">
         <div className="max-w-3xl mx-auto px-5 sm:px-8">
           <p className="text-xs font-bold tracking-widest uppercase mb-4" style={{ color: PINK }}>Common questions</p>
-          <h2 className="text-2xl font-extrabold mb-8 tracking-tight" style={{ color: NAVY }}>Frequently asked questions</h2>
+          <h2 className="text-2xl font-extrabold mb-8 tracking-tight" style={{ color: BLUE }}>Frequently asked questions</h2>
           <Accordion type="single" collapsible className="space-y-2">
             {FAQS.map((faq, i) => (
-              <AccordionItem key={i} value={`faq-${i}`} className="border-2 border-gray-100 rounded-2xl px-6 overflow-hidden bg-white">
+              <AccordionItem key={i} value={`faq-${i}`} className="border-2 border-gray-100 rounded-2xl px-6 overflow-hidden" style={{ backgroundColor: CREAM }}>
                 <AccordionTrigger className="text-left font-bold py-5 hover:no-underline text-sm" style={{ color: NAVY }}>{faq.q}</AccordionTrigger>
                 <AccordionContent className="text-gray-500 pb-5 leading-relaxed text-sm">{faq.a}</AccordionContent>
               </AccordionItem>
             ))}
           </Accordion>
-        </div>
-      </section>
 
-      {/* DISCLAIMER */}
-      <section className="py-8 bg-white">
-        <div className="max-w-4xl mx-auto px-5 sm:px-8">
-          <div className="rounded-2xl p-6 bg-amber-50 border-2 border-amber-200">
+          <div className="mt-8 rounded-2xl p-6 bg-amber-50 border-2 border-amber-200">
             <div className="flex items-start gap-3">
               <AlertCircle size={18} className="text-amber-500 mt-0.5 shrink-0" />
               <div className="text-sm text-amber-900 space-y-2">
