@@ -1,6 +1,9 @@
 import { useEffect } from "react";
 import { Link } from "wouter";
-import { Brain, Heart, Shield, CheckCircle, ArrowRight, Phone, Stethoscope, Users, Activity, Eye } from "lucide-react";
+import { SiTrustpilot } from "react-icons/si";
+import nhsLogoImg from "@assets/nhs_logo.png";
+import googleLogoImg from "@assets/google_logo_white.svg";
+import { Brain, Heart, Shield, CheckCircle, ArrowRight, Phone, Stethoscope, Users, Activity, Eye, Clock as TickerClock, Star as TickerStar} from "lucide-react";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 
 const NAVY = "#05163D";
@@ -44,6 +47,44 @@ const FAQS = [
   { q: "Can condition-led care be combined with other services?", a: "Absolutely. Condition-led care can be combined with short visits, live-in care, 24/7 care, or any of our other services depending on your needs." },
   { q: "How do I know if condition-led care is right for me?", a: "If your loved one has a specific diagnosis that affects their daily life, condition-led care ensures they receive support from someone trained in that condition. Call us for a free chat to discuss whether it's suitable." },
 ];
+
+
+function Ticker() {
+  return (
+    <div style={{ backgroundColor: PINK, padding: "10px 0" }}>
+      <div className="w-full flex items-center justify-center flex-nowrap gap-x-8 px-8 overflow-x-auto">
+        <span className="inline-flex items-center gap-2 shrink-0">
+          <img src={googleLogoImg} alt="Google" style={{ height: "18px", width: "auto" }} />
+          <span className="text-white text-sm font-medium">4.9</span>
+        </span>
+        <span className="text-white/30 shrink-0">|</span>
+        <span className="hidden sm:inline-flex items-center gap-2 shrink-0">
+          <SiTrustpilot style={{ color: "#00B67A", fontSize: "18px" }} />
+          <span className="text-white text-sm font-medium">Trustpilot 4.6</span>
+        </span>
+        <span className="text-white/30 hidden sm:inline shrink-0">|</span>
+        <span className="hidden sm:inline-flex items-center gap-2 shrink-0">
+          <img src={nhsLogoImg} alt="NHS" style={{ height: "26px", width: "auto", filter: "brightness(0) invert(1)" }} />
+          <span className="text-white text-sm font-medium">Approved Provider</span>
+        </span>
+        <span className="text-white/30 hidden sm:inline shrink-0">|</span>
+        <span className="hidden sm:inline-flex items-center gap-2 shrink-0">
+          <span className="text-white text-sm font-medium whitespace-nowrap">CQC Rated Good</span>
+        </span>
+        <span className="text-white/30 hidden sm:inline shrink-0">|</span>
+        <span className="hidden sm:inline-flex items-center gap-2 shrink-0">
+          <TickerClock size={15} className="text-white shrink-0" />
+          <span className="text-white text-sm font-medium whitespace-nowrap">Care within 24 hours</span>
+        </span>
+        <span className="text-white/30 hidden sm:inline shrink-0">|</span>
+        <span className="hidden sm:inline-flex items-center gap-2 shrink-0">
+          <TickerStar size={15} className="text-white shrink-0" />
+          <span className="text-white text-sm font-medium whitespace-nowrap">Private Care Available</span>
+        </span>
+      </div>
+    </div>
+  );
+}
 
 export default function ConditionLedCare() {
   useEffect(() => { document.title = "Condition-Led Care | Smeaton Healthcare"; }, []);
