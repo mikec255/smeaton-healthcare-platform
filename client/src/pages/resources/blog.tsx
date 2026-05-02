@@ -7,13 +7,13 @@ import { useState, useMemo, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { type BlogPost, type BlogCategory } from "@shared/schema";
 import DOMPurify from "dompurify";
-import smeaton87 from "@assets/Smeaton-87_1777730894015.jpg";
-import smeaton108 from "@assets/Smeaton-108_1777730894016.jpg";
-import smeaton117 from "@assets/Smeaton-117_1777730894016.jpg";
-import smeaton124 from "@assets/Smeaton-124_1777730894017.jpg";
-import smeaton131 from "@assets/Smeaton-131_1777730894017.jpg";
-
-const SMEATON_PHOTOS = [smeaton87, smeaton108, smeaton117, smeaton124, smeaton131];
+import teamMeetingImg from "@assets/generated_images/Healthcare_team_meeting_photo_21dc58ac.png";
+import homeCareImg from "@assets/generated_images/Home_care_support_photo_f0866fa2.png";
+import trainingImg from "@assets/generated_images/Healthcare_training_session_photo_91ddee63.png";
+import careMomentsImg from "@assets/generated_images/Care_moments_connection_photo_e9d18840.png";
+import wellnessImg from "@assets/generated_images/Healthcare_wellness_photo_f702b02c.png";
+import fundingImg from "@assets/generated_images/Healthcare_funding_guidance_photo_035ba46c.png";
+import teamPhotoImg from "@assets/generated_images/Smeaton_Healthcare_team_photo_b7ccf951.png";
 
 const NAVY = "#05163D";
 const BLUE = "#265597";
@@ -66,7 +66,7 @@ export default function Blog() {
       readTime: post.readTime || "5 min read",
       author: post.author,
       category: getCategoryName(post.categoryId),
-      image: post.imagePath || SMEATON_PHOTOS[index % SMEATON_PHOTOS.length],
+      image: post.imagePath || teamMeetingImg,
       fullContent: post.content,
     }));
   }, [blogPosts, categories]);
