@@ -107,6 +107,8 @@ export interface IStorage {
   updateBlogPost(id: string, updates: Partial<InsertBlogPost>): Promise<BlogPost | undefined>;
   deleteBlogPost(id: string): Promise<boolean>;
   publishBlogPost(id: string): Promise<BlogPost | undefined>;
+  unpublishBlogPost(id: string): Promise<BlogPost | undefined>;
+  incrementBlogPostViews(id: string): Promise<BlogPost | undefined>;
 }
 
 export class MemStorage implements IStorage {
@@ -938,15 +940,25 @@ export class MemStorage implements IStorage {
   async publishBlogPost(id: string): Promise<BlogPost | undefined> {
     const post = this.blogPosts.get(id);
     if (!post) return undefined;
-    
-    const publishedPost: BlogPost = {
-      ...post,
-      isPublished: true,
-      publishedAt: new Date(),
-      updatedAt: new Date(),
-    };
+    const publishedPost: BlogPost = { ...post, isPublished: true, publishedAt: new Date(), updatedAt: new Date() };
     this.blogPosts.set(id, publishedPost);
     return publishedPost;
+  }
+
+  async unpublishBlogPost(id: string): Promise<BlogPost | undefined> {
+    const post = this.blogPosts.get(id);
+    if (!post) return undefined;
+    const updated: BlogPost = { ...post, isPublished: false, publishedAt: null, updatedAt: new Date() };
+    this.blogPosts.set(id, updated);
+    return updated;
+  }
+
+  async incrementBlogPostViews(id: string): Promise<BlogPost | undefined> {
+    const post = this.blogPosts.get(id);
+    if (!post) return undefined;
+    const updated: BlogPost = { ...post, viewCount: (post.viewCount ?? 0) + 1 };
+    this.blogPosts.set(id, updated);
+    return updated;
   }
 }
 
@@ -1257,14 +1269,26 @@ export class DrizzleStorage implements IStorage {
   }
 
   async publishBlogPost(id: string): Promise<BlogPost | undefined> {
-    const updateData = {
-      isPublished: true,
-      publishedAt: new Date(),
-      updatedAt: new Date(),
-    };
-    
     const result = await db.update(blogPosts)
-      .set(updateData)
+      .set({ isPublished: true, publishedAt: new Date(), updatedAt: new Date() })
+      .where(eq(blogPosts.id, id))
+      .returning();
+    return result[0];
+  }
+
+  async unpublishBlogPost(id: string): Promise<BlogPost | undefined> {
+    const result = await db.update(blogPosts)
+      .set({ isPublished: false, publishedAt: null, updatedAt: new Date() })
+      .where(eq(blogPosts.id, id))
+      .returning();
+    return result[0];
+  }
+
+  async incrementBlogPostViews(id: string): Promise<BlogPost | undefined> {
+    const post = await this.getBlogPost(id);
+    if (!post) return undefined;
+    const result = await db.update(blogPosts)
+      .set({ viewCount: (post.viewCount ?? 0) + 1 })
       .where(eq(blogPosts.id, id))
       .returning();
     return result[0];

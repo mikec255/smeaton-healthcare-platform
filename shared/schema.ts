@@ -263,6 +263,7 @@ export const blogPosts = pgTable("blog_posts", {
   author: text("author").notNull(),
   isPublished: boolean("is_published").default(false),
   publishedAt: timestamp("published_at"),
+  viewCount: integer("view_count").default(0),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });

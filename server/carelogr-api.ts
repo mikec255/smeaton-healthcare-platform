@@ -13,6 +13,23 @@
  * Enquiries (contact submissions)
  * GET    /enquiries                      – list all (filter: ?status=new|contacted|quoted|closed&type=care-request|staff-booking)
  * GET    /enquiries/:id                  – single enquiry
+ *
+ * Blog Categories
+ * GET    /blog/categories                – list all categories
+ * POST   /blog/categories               – create category
+ * PATCH  /blog/categories/:id           – update category
+ * DELETE /blog/categories/:id           – delete category
+ *
+ * Blog Posts
+ * GET    /blog/posts                    – list posts (filter: ?isPublished=true|false&categoryId=)
+ * GET    /blog/posts/:id                – single post
+ * GET    /blog/posts/slug/:slug         – post by slug
+ * POST   /blog/posts                    – create post (draft)
+ * PATCH  /blog/posts/:id                – update post fields
+ * DELETE /blog/posts/:id                – delete post
+ * POST   /blog/posts/:id/publish        – publish post (makes it live on site)
+ * POST   /blog/posts/:id/unpublish      – unpublish post (hides from site)
+ * POST   /blog/posts/:id/view           – record a page view (call this when a visitor reads the post)
  * PATCH  /enquiries/:id                  – update { status, notes }
  *
  * Jobs
@@ -313,6 +330,212 @@ export function registerCarelogrRoutes(app: Express) {
         return res.status(400).json({ success: false, error: "VALIDATION_ERROR", details: err.errors });
       }
       console.error("[CareLogr API] PATCH /applications/:id error:", err);
+      res.status(500).json({ success: false, error: "SERVER_ERROR" });
+    }
+  });
+
+  // ══════════════════════════════════════════════════════════════════════════
+  // BLOG CATEGORIES
+  // ══════════════════════════════════════════════════════════════════════════
+
+  // GET /blog/categories
+  r.get(`${base}/blog/categories`, async (_req, res) => {
+    try {
+      const categories = await storage.getAllBlogCategories();
+      ok(res, categories, { total: categories.length });
+    } catch (err) {
+      console.error("[CareLogr API] GET /blog/categories error:", err);
+      res.status(500).json({ success: false, error: "SERVER_ERROR" });
+    }
+  });
+
+  // POST /blog/categories
+  r.post(`${base}/blog/categories`, async (req, res) => {
+    try {
+      const schema = z.object({
+        name: z.string().min(1),
+        description: z.string().optional(),
+        isActive: z.boolean().optional(),
+      });
+      const body = schema.parse(req.body);
+      const category = await storage.createBlogCategory(body);
+      res.status(201).json({ success: true, data: category });
+    } catch (err) {
+      if (err instanceof z.ZodError) {
+        return res.status(400).json({ success: false, error: "VALIDATION_ERROR", details: err.errors });
+      }
+      console.error("[CareLogr API] POST /blog/categories error:", err);
+      res.status(500).json({ success: false, error: "SERVER_ERROR" });
+    }
+  });
+
+  // PATCH /blog/categories/:id
+  r.patch(`${base}/blog/categories/:id`, async (req, res) => {
+    try {
+      const schema = z.object({
+        name: z.string().min(1).optional(),
+        description: z.string().optional(),
+        isActive: z.boolean().optional(),
+      });
+      const body = schema.parse(req.body);
+      const category = await storage.updateBlogCategory(req.params.id, body);
+      if (!category) return notFound(res, "Category");
+      ok(res, category);
+    } catch (err) {
+      if (err instanceof z.ZodError) {
+        return res.status(400).json({ success: false, error: "VALIDATION_ERROR", details: err.errors });
+      }
+      console.error("[CareLogr API] PATCH /blog/categories/:id error:", err);
+      res.status(500).json({ success: false, error: "SERVER_ERROR" });
+    }
+  });
+
+  // DELETE /blog/categories/:id
+  r.delete(`${base}/blog/categories/:id`, async (req, res) => {
+    try {
+      const deleted = await storage.deleteBlogCategory(req.params.id);
+      if (!deleted) {
+        return res.status(400).json({
+          success: false,
+          error: "CANNOT_DELETE",
+          message: "Category cannot be deleted — it still has blog posts assigned to it.",
+        });
+      }
+      res.json({ success: true, message: "Category deleted." });
+    } catch (err) {
+      console.error("[CareLogr API] DELETE /blog/categories/:id error:", err);
+      res.status(500).json({ success: false, error: "SERVER_ERROR" });
+    }
+  });
+
+  // ══════════════════════════════════════════════════════════════════════════
+  // BLOG POSTS
+  // ══════════════════════════════════════════════════════════════════════════
+
+  // GET /blog/posts/slug/:slug  — must be registered before /:id
+  r.get(`${base}/blog/posts/slug/:slug`, async (req, res) => {
+    try {
+      const post = await storage.getBlogPostBySlug(req.params.slug);
+      if (!post) return notFound(res, "Blog post");
+      ok(res, post);
+    } catch (err) {
+      console.error("[CareLogr API] GET /blog/posts/slug/:slug error:", err);
+      res.status(500).json({ success: false, error: "SERVER_ERROR" });
+    }
+  });
+
+  // GET /blog/posts
+  r.get(`${base}/blog/posts`, async (req, res) => {
+    try {
+      const { isPublished, categoryId } = req.query as Record<string, string>;
+      const filters: { isPublished?: boolean; categoryId?: string } = {};
+      if (isPublished !== undefined) filters.isPublished = isPublished !== "false";
+      if (categoryId) filters.categoryId = categoryId;
+
+      const posts = await storage.getAllBlogPosts(filters);
+
+      // Return summary stats alongside the list
+      const total = posts.length;
+      const published = posts.filter((p) => p.isPublished).length;
+      const drafts = total - published;
+      const totalViews = posts.reduce((sum, p) => sum + (p.viewCount ?? 0), 0);
+
+      ok(res, posts, { total, published, drafts, totalViews });
+    } catch (err) {
+      console.error("[CareLogr API] GET /blog/posts error:", err);
+      res.status(500).json({ success: false, error: "SERVER_ERROR" });
+    }
+  });
+
+  // GET /blog/posts/:id
+  r.get(`${base}/blog/posts/:id`, async (req, res) => {
+    try {
+      const post = await storage.getBlogPost(req.params.id);
+      if (!post) return notFound(res, "Blog post");
+      ok(res, post);
+    } catch (err) {
+      console.error("[CareLogr API] GET /blog/posts/:id error:", err);
+      res.status(500).json({ success: false, error: "SERVER_ERROR" });
+    }
+  });
+
+  // POST /blog/posts  — create a new draft post
+  r.post(`${base}/blog/posts`, async (req, res) => {
+    try {
+      const { insertBlogPostSchema } = await import("@shared/schema");
+      const body = insertBlogPostSchema.parse(req.body);
+      const post = await storage.createBlogPost(body);
+      res.status(201).json({ success: true, data: post });
+    } catch (err) {
+      if (err instanceof z.ZodError) {
+        return res.status(400).json({ success: false, error: "VALIDATION_ERROR", details: err.errors });
+      }
+      console.error("[CareLogr API] POST /blog/posts error:", err);
+      res.status(500).json({ success: false, error: "SERVER_ERROR" });
+    }
+  });
+
+  // PATCH /blog/posts/:id  — update any post fields
+  r.patch(`${base}/blog/posts/:id`, async (req, res) => {
+    try {
+      const { insertBlogPostSchema } = await import("@shared/schema");
+      const body = insertBlogPostSchema.partial().parse(req.body);
+      const post = await storage.updateBlogPost(req.params.id, body);
+      if (!post) return notFound(res, "Blog post");
+      ok(res, post);
+    } catch (err) {
+      if (err instanceof z.ZodError) {
+        return res.status(400).json({ success: false, error: "VALIDATION_ERROR", details: err.errors });
+      }
+      console.error("[CareLogr API] PATCH /blog/posts/:id error:", err);
+      res.status(500).json({ success: false, error: "SERVER_ERROR" });
+    }
+  });
+
+  // DELETE /blog/posts/:id
+  r.delete(`${base}/blog/posts/:id`, async (req, res) => {
+    try {
+      const deleted = await storage.deleteBlogPost(req.params.id);
+      if (!deleted) return notFound(res, "Blog post");
+      res.json({ success: true, message: "Blog post deleted." });
+    } catch (err) {
+      console.error("[CareLogr API] DELETE /blog/posts/:id error:", err);
+      res.status(500).json({ success: false, error: "SERVER_ERROR" });
+    }
+  });
+
+  // POST /blog/posts/:id/publish  — make post live on the website
+  r.post(`${base}/blog/posts/:id/publish`, async (req, res) => {
+    try {
+      const post = await storage.publishBlogPost(req.params.id);
+      if (!post) return notFound(res, "Blog post");
+      ok(res, post);
+    } catch (err) {
+      console.error("[CareLogr API] POST /blog/posts/:id/publish error:", err);
+      res.status(500).json({ success: false, error: "SERVER_ERROR" });
+    }
+  });
+
+  // POST /blog/posts/:id/unpublish  — hide post from website (back to draft)
+  r.post(`${base}/blog/posts/:id/unpublish`, async (req, res) => {
+    try {
+      const post = await storage.unpublishBlogPost(req.params.id);
+      if (!post) return notFound(res, "Blog post");
+      ok(res, post);
+    } catch (err) {
+      console.error("[CareLogr API] POST /blog/posts/:id/unpublish error:", err);
+      res.status(500).json({ success: false, error: "SERVER_ERROR" });
+    }
+  });
+
+  // POST /blog/posts/:id/view  — call this each time a visitor reads the post
+  r.post(`${base}/blog/posts/:id/view`, async (req, res) => {
+    try {
+      const post = await storage.incrementBlogPostViews(req.params.id);
+      if (!post) return notFound(res, "Blog post");
+      res.json({ success: true, viewCount: post.viewCount });
+    } catch (err) {
+      console.error("[CareLogr API] POST /blog/posts/:id/view error:", err);
       res.status(500).json({ success: false, error: "SERVER_ERROR" });
     }
   });
