@@ -81,7 +81,7 @@ export default function Navbar() {
         style={{ backgroundColor: "white", boxShadow: "0 1px 0 rgba(0,0,0,0.07)" }}
         ref={dropdownRef}
       >
-        <div className="px-5 sm:px-8 lg:px-12 h-[80px] sm:h-[96px] flex items-center justify-between gap-8">
+        <div className="px-5 sm:px-8 md:px-12 h-[80px] sm:h-[96px] flex items-center justify-between gap-8">
 
           <Link href="/" className="shrink-0">
             <img
@@ -91,7 +91,7 @@ export default function Navbar() {
               className="pl-[50px] pr-[50px]" />
           </Link>
 
-          <div className="hidden lg:flex items-center gap-7 ml-auto">
+          <div className="hidden md:flex items-center gap-7 ml-auto">
 
             <button
               onClick={() => setServicesOpen(!servicesOpen)}
@@ -135,7 +135,7 @@ export default function Navbar() {
 
           <button
             onClick={() => setMobileOpen(!mobileOpen)}
-            className="lg:hidden p-2 text-[#05163D]"
+            className="md:hidden p-2 text-[#05163D]"
             aria-label="Toggle menu"
           >
             {mobileOpen ? <X size={24} /> : <Menu size={24} />}
