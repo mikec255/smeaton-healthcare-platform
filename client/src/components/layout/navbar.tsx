@@ -204,9 +204,7 @@ export default function Navbar() {
                     <h3 className="text-xl font-extrabold leading-snug mb-3" style={{ color: "#05163D" }}>Helpful guides & information</h3>
                     <p className="text-sm text-gray-500 leading-relaxed">Funding guidance, career insights, and the latest from the Smeaton Healthcare team.</p>
                   </div>
-                  <Link href="/resources" className="inline-flex items-center gap-1.5 text-sm font-bold mt-8 hover:gap-2.5 transition-all" style={{ color: "#EF2A86" }}>
-                    View all resources <ArrowRight size={14} />
-                  </Link>
+                  <div className="mt-8" />
                 </div>
                 <div className="w-px shrink-0" style={{ backgroundColor: "rgba(0,0,0,0.07)" }} />
                 <div className="flex-1 grid grid-cols-3 gap-4">
@@ -257,7 +255,6 @@ export default function Navbar() {
                 <Link href="/services" className="block text-2xl font-bold text-white py-3 border-b border-white/10 hover:text-[#EF2A86] transition-colors">Our Services</Link>
                 <Link href="/about" className="block text-2xl font-bold text-white py-3 border-b border-white/10 hover:text-[#EF2A86] transition-colors">About Us</Link>
                 <Link href="/jobs" className="block text-2xl font-bold text-white py-3 border-b border-white/10 hover:text-[#EF2A86] transition-colors">Careers</Link>
-                <Link href="/resources" className="block text-2xl font-bold text-white py-3 border-b border-white/10 hover:text-[#EF2A86] transition-colors">Resources</Link>
                 <Link href="/contact" className="block text-2xl font-bold text-white py-3 border-b border-white/10 hover:text-[#EF2A86] transition-colors">Contact</Link>
               </div>
               <div className="mt-10 flex flex-col gap-4">

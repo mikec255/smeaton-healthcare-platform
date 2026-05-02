@@ -90,7 +90,6 @@ function Router() {
             <Route path="/services/condition-led-care" component={ConditionLedCare} />
             
             {/* Resources pages */}
-            <Route path="/resources" component={Resources} />
             <Route path="/resources/blog" component={Blog} />
             <Route path="/resources/working-at-smeaton" component={WorkingAtSmeaton} />
             <Route path="/resources/sponsorship" component={Sponsorship} />
