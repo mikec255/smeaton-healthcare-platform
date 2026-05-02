@@ -35,7 +35,7 @@ export default function Enablements() {
 
   return (
     <div data-testid="enablements-page">
-      <section className="relative overflow-hidden" style={{ backgroundColor: CREAM }}>
+      <section className="relative overflow-hidden" className="bg-white">
         <div className="absolute -top-24 -right-24 w-96 h-96 rounded-full opacity-[0.15] pointer-events-none" style={{ backgroundColor: PINK }} />
         <div className="absolute -bottom-32 -left-16 w-80 h-80 rounded-full opacity-[0.08] pointer-events-none" style={{ backgroundColor: PINK }} />
         <div className="relative max-w-7xl mx-auto px-5 sm:px-8 py-20 sm:py-28">
@@ -80,7 +80,7 @@ export default function Enablements() {
         </div>
       </section>
 
-      <section className="py-16 sm:py-20" style={{ backgroundColor: CREAM }}>
+      <section className="py-16 sm:py-20" className="bg-white">
         <div className="max-w-7xl mx-auto px-5 sm:px-8">
           <p className="text-xs font-bold tracking-widest uppercase mb-4" style={{ color: PINK }}>Why choose us</p>
           <h2 className="text-3xl font-extrabold mb-10 tracking-tight" style={{ color: NAVY }}>The Smeaton difference</h2>
