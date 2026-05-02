@@ -1,7 +1,10 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
-import { Plus } from "lucide-react";
+import { Plus, Clock as TickerClock, Star as TickerStar } from "lucide-react";
+import { SiTrustpilot } from "react-icons/si";
+import nhsLogoImg from "@assets/nhs_logo.png";
+import googleLogoImg from "@assets/google_logo_white.svg";
 import JobFilters from "@/components/jobs/job-filters";
 import JobCard from "@/components/jobs/job-card";
 import JobDetailsModal from "@/components/jobs/job-details-modal";
@@ -92,15 +95,52 @@ export default function Jobs() {
   const NAVY = "#05163D";
   const BLUE = "#275799";
   const PINK = "#EF2A86";
+  const CREAM = "#FDF7F0";
   const SCRIPT = { fontFamily: "'Dancing Script', cursive" };
+
+  const ticker = (
+    <div style={{ backgroundColor: PINK, padding: "10px 0" }}>
+      <div className="w-full flex items-center justify-center flex-nowrap gap-x-8 px-8 overflow-x-auto">
+        <span className="inline-flex items-center gap-2 shrink-0">
+          <img src={googleLogoImg} alt="Google" style={{ height: "18px", width: "auto" }} />
+          <span className="text-white text-sm font-medium">4.9</span>
+        </span>
+        <span className="text-white/30 shrink-0">|</span>
+        <span className="hidden sm:inline-flex items-center gap-2 shrink-0">
+          <SiTrustpilot style={{ color: "#00B67A", fontSize: "18px" }} />
+          <span className="text-white text-sm font-medium">Trustpilot 4.6</span>
+        </span>
+        <span className="text-white/30 hidden sm:inline shrink-0">|</span>
+        <span className="hidden sm:inline-flex items-center gap-2 shrink-0">
+          <img src={nhsLogoImg} alt="NHS" style={{ height: "26px", width: "auto", filter: "brightness(0) invert(1)" }} />
+          <span className="text-white text-sm font-medium">Approved Provider</span>
+        </span>
+        <span className="text-white/30 hidden sm:inline shrink-0">|</span>
+        <span className="hidden sm:inline-flex items-center gap-2 shrink-0">
+          <span className="text-white text-sm font-medium whitespace-nowrap">CQC Rated Good</span>
+        </span>
+        <span className="text-white/30 hidden sm:inline shrink-0">|</span>
+        <span className="hidden sm:inline-flex items-center gap-2 shrink-0">
+          <TickerClock size={15} className="text-white shrink-0" />
+          <span className="text-white text-sm font-medium whitespace-nowrap">Care within 24 hours</span>
+        </span>
+        <span className="text-white/30 hidden sm:inline shrink-0">|</span>
+        <span className="hidden sm:inline-flex items-center gap-2 shrink-0">
+          <TickerStar size={15} className="text-white shrink-0" />
+          <span className="text-white text-sm font-medium whitespace-nowrap">Private Care Available</span>
+        </span>
+      </div>
+    </div>
+  );
 
   if (isLoading) {
     return (
       <div>
-        <section style={{ backgroundColor: BLUE }} className="py-16">
+        {ticker}
+        <section style={{ backgroundColor: CREAM }} className="py-16">
           <div className="max-w-7xl mx-auto px-5 sm:px-8 text-center">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white mx-auto mb-3"></div>
-            <p className="text-white/60 text-sm" data-testid="jobs-loading">Loading job opportunities...</p>
+            <div className="animate-spin rounded-full h-8 w-8 mx-auto mb-3" style={{ borderBottom: `2px solid ${PINK}` }}></div>
+            <p className="text-gray-400 text-sm" data-testid="jobs-loading">Loading job opportunities...</p>
           </div>
         </section>
       </div>
@@ -109,24 +149,23 @@ export default function Jobs() {
 
   return (
     <div data-testid="jobs-page">
+      {ticker}
+
       {/* HERO */}
-      <section style={{ backgroundColor: BLUE }} className="relative py-16 sm:py-20 overflow-hidden">
-        <div className="absolute inset-0 opacity-[0.04] pointer-events-none">
-          {[0,1,2,3].map(i => <div key={i} className="absolute rounded-full border border-white" style={{ width:`${200+i*150}px`,height:`${200+i*150}px`,top:"50%",left:"50%",transform:"translate(-50%,-50%)" }} />)}
-        </div>
-        <div className="relative max-w-7xl mx-auto px-5 sm:px-8">
+      <section style={{ backgroundColor: CREAM }} className="py-14 sm:py-18">
+        <div className="max-w-7xl mx-auto px-5 sm:px-8">
           <div className="flex items-start justify-between">
             <div>
-              <p className="text-xs font-bold tracking-widest uppercase mb-4 text-white/50">Careers</p>
-              <h1 className="text-4xl sm:text-5xl font-extrabold text-white mb-2 tracking-tight" data-testid="jobs-title">Career Opportunities</h1>
+              <p className="text-xs font-bold tracking-widest uppercase mb-4" style={{ color: PINK }}>Careers</p>
+              <h1 className="text-4xl sm:text-5xl font-extrabold mb-2 tracking-tight" style={{ color: BLUE }} data-testid="jobs-title">Career Opportunities</h1>
               <div className="mb-4" style={{ ...SCRIPT, fontSize: "clamp(2rem, 4vw, 3rem)", color: PINK }}>join a team that cares.</div>
-              <p className="text-white/60 text-base max-w-xl leading-relaxed" data-testid="jobs-subtitle">
+              <p className="text-gray-500 text-base max-w-xl leading-relaxed" data-testid="jobs-subtitle">
                 Join our compassionate team and make a real difference in people's lives across Devon and Cornwall.
               </p>
             </div>
             {isAdmin && (
               <div className="shrink-0 ml-6">
-                <Button onClick={handleCreateJob} className="bg-white text-[#05163D] hover:bg-white/90 font-bold" data-testid="button-create-job">
+                <Button onClick={handleCreateJob} style={{ backgroundColor: PINK }} className="text-white hover:opacity-90 font-bold" data-testid="button-create-job">
                   <Plus className="h-4 w-4 mr-2" /> Create Job
                 </Button>
               </div>
