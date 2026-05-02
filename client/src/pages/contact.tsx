@@ -206,9 +206,8 @@ export default function Contact() {
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     {[
                       { day: "Monday – Friday", hours: "8:00am – 4:00pm", highlight: false },
-                      { day: "Saturday", hours: "On-call only", highlight: false },
-                      { day: "Sunday", hours: "On-call only", highlight: false },
-                      { day: "Emergencies", hours: "24/7 on-call", highlight: true },
+                      { day: "Saturday & Sunday", hours: "Care always available", highlight: true },
+                      { day: "Bank Holidays", hours: "Care always available", highlight: true },
                     ].map((h) => (
                       <div key={h.day}
                         className="flex justify-between items-center px-4 py-3 rounded-xl"
@@ -217,6 +216,11 @@ export default function Contact() {
                         <span className="text-sm font-bold" style={h.highlight ? { color: PINK } : { color: NAVY }}>{h.hours}</span>
                       </div>
                     ))}
+                    <div className="col-span-1 sm:col-span-2 mt-1 px-1">
+                      <p className="text-xs text-gray-400 leading-relaxed">
+                        Need a carer at the weekend? Our team is always on-call — no matter the day, we're here for you.
+                      </p>
+                    </div>
                   </div>
                 </div>
               </div>
