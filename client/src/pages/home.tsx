@@ -382,23 +382,23 @@ export default function Home() {
       </section>
 
       {/* CTA */}
-      <section style={{ backgroundColor: NAVY }} className="py-20 sm:py-24">
+      <section style={{ backgroundColor: PINK }} className="py-20 sm:py-24">
         <div className="max-w-3xl mx-auto px-5 sm:px-8 text-center">
           <FadeIn>
             <h2 className="text-3xl sm:text-4xl font-extrabold text-white mb-2 tracking-tight">Ready to get started?</h2>
-            <div className="mb-6" style={{ ...SCRIPT, fontSize: "clamp(2rem, 4vw, 3rem)", color: "rgba(239,42,134,0.9)" }}>We'd love to hear from you.</div>
-            <p className="text-white/60 mb-10 leading-relaxed">Make a referral today. Our team will arrange a free, no-obligation assessment at a time that suits you.</p>
+            <div className="mb-6" style={{ ...SCRIPT, fontSize: "clamp(2rem, 4vw, 3rem)", color: "rgba(255,255,255,0.85)" }}>We'd love to hear from you.</div>
+            <p className="text-white/70 mb-10 leading-relaxed">Make a referral today. Our team will arrange a free, no-obligation assessment at a time that suits you.</p>
             <div className="flex flex-col sm:flex-row justify-center gap-4">
               <Link
                 href="/referral"
-                className="inline-flex items-center justify-center gap-2 px-8 py-4 text-white font-bold rounded-xl hover:opacity-90 transition-all hover:scale-105"
-                style={{ backgroundColor: PINK, boxShadow: "0 8px 32px rgba(239,42,134,0.4)" }}
+                className="inline-flex items-center justify-center gap-2 px-8 py-4 font-bold rounded-xl hover:opacity-90 transition-all hover:scale-105"
+                style={{ backgroundColor: NAVY, color: "#fff", boxShadow: "0 8px 32px rgba(5,22,61,0.3)" }}
                 data-testid="home-bottom-cta">
                 Request a Free Assessment <ArrowRight size={18} />
               </Link>
               <a href="tel:03301658880"
                 className="inline-flex items-center justify-center gap-2 px-8 py-4 font-semibold rounded-xl text-white transition-all hover:bg-white/10"
-                style={{ border: "2px solid rgba(255,255,255,0.3)" }}>
+                style={{ border: "2px solid rgba(255,255,255,0.4)" }}>
                 <Phone size={16} /> 0330 165 8880
               </a>
             </div>
