@@ -197,7 +197,7 @@ export default function About() {
         <div className="relative max-w-7xl mx-auto px-5 sm:px-8">
           <FadeIn className="max-w-xl">
             <h2 className="text-3xl font-extrabold text-white mb-2 tracking-tight">Ready to find out more?</h2>
-            <div className="mb-6" style={{ ...SCRIPT, fontSize: "clamp(2rem, 4vw, 3rem)", color: "rgba(255,255,255,0.9)" }}>We'd love to hear from you.</div>
+            <div className="mb-6" style={{ ...SCRIPT, fontSize: "clamp(2rem, 4vw, 3rem)", color: "#275799" }}>We'd love to hear from you.</div>
             <p className="text-white/70 mb-8 leading-relaxed">Whether you're looking for care for yourself or a loved one, or thinking about joining our team.</p>
             <div className="flex flex-col sm:flex-row gap-4">
               <Link href="/referral"

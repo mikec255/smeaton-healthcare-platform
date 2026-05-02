@@ -149,7 +149,7 @@ export default function Contact() {
         <div className="max-w-3xl mx-auto px-5 sm:px-8 text-center">
           <FadeIn>
             <h2 className="text-3xl font-extrabold text-white mb-2">Need to speak to someone?</h2>
-            <div className="mb-6" style={{ ...SCRIPT, fontSize: "clamp(1.8rem, 3.5vw, 2.8rem)", color: "rgba(255,255,255,0.9)" }}>We're just a call away.</div>
+            <div className="mb-6" style={{ ...SCRIPT, fontSize: "clamp(1.8rem, 3.5vw, 2.8rem)", color: "#275799" }}>We're just a call away.</div>
             <a href="tel:03301658880"
               className="inline-flex items-center justify-center gap-3 px-8 py-4 text-white font-bold rounded-xl hover:opacity-90 transition-all hover:scale-105"
               style={{ backgroundColor: PINK, boxShadow: "0 8px 32px rgba(239,42,134,0.4)" }}>
