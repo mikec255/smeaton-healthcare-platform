@@ -86,6 +86,13 @@ function Ticker() {
           <span className="text-white/90 text-sm font-medium whitespace-nowrap">♥ Care within 24 hours</span>
         </span>
 
+        <span className="text-white/30 hidden sm:inline shrink-0">|</span>
+
+        {/* Private Care */}
+        <span className="hidden sm:inline-flex items-center gap-2 shrink-0">
+          <span className="text-white/90 text-sm font-medium whitespace-nowrap">Private Care</span>
+        </span>
+
       </div>
     </div>
   );
