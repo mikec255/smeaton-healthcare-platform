@@ -206,8 +206,8 @@ export default function Contact() {
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     {[
                       { day: "Monday – Friday", hours: "8:00am – 4:00pm", highlight: false },
-                      { day: "Saturday & Sunday", hours: "Care always available", highlight: true },
-                      { day: "Bank Holidays", hours: "Care always available", highlight: true },
+                      { day: "Saturday & Sunday", hours: "Always on-call", highlight: true },
+                      { day: "Bank Holidays", hours: "Always on-call", highlight: true },
                     ].map((h) => (
                       <div key={h.day}
                         className="flex justify-between items-center px-4 py-3 rounded-xl"
