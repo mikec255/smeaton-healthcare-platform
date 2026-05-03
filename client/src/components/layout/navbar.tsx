@@ -374,8 +374,11 @@ export default function Navbar() {
                 <Link href="/referral" className="w-full py-4 text-center text-lg font-bold text-white rounded-xl" style={{ backgroundColor: "#EF2A86" }}>
                   Request a Free Assessment
                 </Link>
-                <a href="tel:03301658880" className="flex items-center justify-center gap-2 py-3 text-white/60 text-base">
+                <a href="tel:03301658880" className="flex items-center justify-center gap-2 py-2 text-white/70 text-base font-semibold hover:text-white transition-colors">
                   <Phone size={16} /> 0330 165 8880
+                </a>
+                <a href="mailto:hello@smeatonhealthcare.co.uk" className="flex items-center justify-center gap-2 py-2 text-white/70 text-base font-semibold hover:text-white transition-colors">
+                  <Mail size={16} /> hello@smeatonhealthcare.co.uk
                 </a>
               </div>
 
