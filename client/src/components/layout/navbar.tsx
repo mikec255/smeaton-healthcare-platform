@@ -324,7 +324,7 @@ export default function Navbar() {
             transition={{ type: "tween", duration: 0.3, ease: "easeInOut" }}
           >
             <div className="flex items-center justify-between px-5 h-[80px] border-b border-white/10 shrink-0">
-              <img src={logoImage} alt="Smeaton Healthcare" className="h-20 w-auto" style={{ filter: "brightness(0) invert(1)" }} />
+              <img src={logoImage} alt="Smeaton Healthcare" className="h-24 w-auto" style={{ filter: "brightness(0) invert(1)" }} />
               <button onClick={() => setMobileOpen(false)} className="p-2 text-white" aria-label="Close menu">
                 <X size={24} />
               </button>
