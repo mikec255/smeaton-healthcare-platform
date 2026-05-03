@@ -78,6 +78,38 @@ const OTHER_NAV = [
   { href: "/contact", label: "Contact" },
 ];
 
+function MobileAccordion({ label, children }: { label: string; children: React.ReactNode }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <div className="border-b border-white/10">
+      <button
+        onClick={() => setOpen(!open)}
+        className="w-full flex items-center justify-between text-xl font-bold text-white py-3.5 hover:text-[#EF2A86] transition-colors"
+      >
+        {label}
+        <motion.span animate={{ rotate: open ? 180 : 0 }} transition={{ duration: 0.2 }}>
+          <ChevronDown size={18} strokeWidth={2.5} />
+        </motion.span>
+      </button>
+      <AnimatePresence initial={false}>
+        {open && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: "auto", opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.25, ease: "easeInOut" }}
+            className="overflow-hidden"
+          >
+            <div className="pl-3 pb-3 flex flex-col">
+              {children}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+}
+
 export default function Navbar() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [servicesOpen, setServicesOpen] = useState(false);
@@ -291,19 +323,53 @@ export default function Navbar() {
             exit={{ x: "100%" }}
             transition={{ type: "tween", duration: 0.3, ease: "easeInOut" }}
           >
-            <div className="flex items-center justify-between px-5 h-[80px] border-b border-white/10">
+            <div className="flex items-center justify-between px-5 h-[80px] border-b border-white/10 shrink-0">
               <img src={logoImage} alt="Smeaton Healthcare" className="h-16 w-auto" style={{ filter: "brightness(0) invert(1)" }} />
               <button onClick={() => setMobileOpen(false)} className="p-2 text-white" aria-label="Close menu">
                 <X size={24} />
               </button>
             </div>
-            <div className="flex-1 flex flex-col px-8 pt-8 pb-10 overflow-y-auto">
-              <div className="space-y-1">
-                <Link href="/" className="block text-2xl font-bold text-white py-3 border-b border-white/10 hover:text-[#EF2A86] transition-colors">Home</Link>
-                <Link href="/about" className="block text-2xl font-bold text-white py-3 border-b border-white/10 hover:text-[#EF2A86] transition-colors">About Us</Link>
-                <Link href="/jobs" className="block text-2xl font-bold text-white py-3 border-b border-white/10 hover:text-[#EF2A86] transition-colors">Careers</Link>
-                <Link href="/contact" className="block text-2xl font-bold text-white py-3 border-b border-white/10 hover:text-[#EF2A86] transition-colors">Contact</Link>
-              </div>
+
+            <div className="flex-1 overflow-y-auto px-6 pt-6 pb-10">
+
+              {/* Home */}
+              <Link href="/" className="block text-xl font-bold text-white py-3.5 border-b border-white/10 hover:text-[#EF2A86] transition-colors">
+                Home
+              </Link>
+
+              {/* Services accordion */}
+              <MobileAccordion label="Our Services">
+                {SERVICES_MENU.map((s) => (
+                  <Link key={s.href} href={s.href} className="block py-2.5 text-base font-semibold text-white/80 hover:text-[#EF2A86] transition-colors">
+                    {s.name}
+                  </Link>
+                ))}
+                <Link href="/services" className="inline-block mt-1 text-xs font-bold uppercase tracking-widest text-[#EF2A86] hover:opacity-80">
+                  All Services →
+                </Link>
+              </MobileAccordion>
+
+              {/* Resources accordion */}
+              <MobileAccordion label="Resources">
+                {RESOURCES_MENU.map((r) => (
+                  <Link key={r.href} href={r.href} className="block py-2.5 text-base font-semibold text-white/80 hover:text-[#EF2A86] transition-colors">
+                    {r.name}
+                  </Link>
+                ))}
+              </MobileAccordion>
+
+              {/* Other links */}
+              <Link href="/about" className="block text-xl font-bold text-white py-3.5 border-b border-white/10 hover:text-[#EF2A86] transition-colors">
+                About Us
+              </Link>
+              <Link href="/jobs" className="block text-xl font-bold text-white py-3.5 border-b border-white/10 hover:text-[#EF2A86] transition-colors">
+                Careers
+              </Link>
+              <Link href="/contact" className="block text-xl font-bold text-white py-3.5 border-b border-white/10 hover:text-[#EF2A86] transition-colors">
+                Contact
+              </Link>
+
+              {/* CTAs */}
               <div className="mt-8 flex flex-col gap-4">
                 <Link href="/referral" className="w-full py-4 text-center text-lg font-bold text-white rounded-xl" style={{ backgroundColor: "#EF2A86" }}>
                   Request a Free Assessment
@@ -312,6 +378,7 @@ export default function Navbar() {
                   <Phone size={16} /> 0330 165 8880
                 </a>
               </div>
+
             </div>
           </motion.div>
         )}
