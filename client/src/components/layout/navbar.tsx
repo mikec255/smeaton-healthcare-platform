@@ -292,19 +292,19 @@ export default function Navbar() {
             transition={{ type: "tween", duration: 0.3, ease: "easeInOut" }}
           >
             <div className="flex items-center justify-between px-5 h-[80px] border-b border-white/10">
-              <img src={logoImage} alt="Smeaton Healthcare" className="h-12 w-auto" style={{ filter: "brightness(0) invert(1)" }} />
+              <img src={logoImage} alt="Smeaton Healthcare" className="h-16 w-auto" style={{ filter: "brightness(0) invert(1)" }} />
               <button onClick={() => setMobileOpen(false)} className="p-2 text-white" aria-label="Close menu">
                 <X size={24} />
               </button>
             </div>
-            <div className="flex-1 flex flex-col justify-center px-8 overflow-y-auto">
+            <div className="flex-1 flex flex-col px-8 pt-8 pb-10 overflow-y-auto">
               <div className="space-y-1">
                 <Link href="/" className="block text-2xl font-bold text-white py-3 border-b border-white/10 hover:text-[#EF2A86] transition-colors">Home</Link>
                 <Link href="/about" className="block text-2xl font-bold text-white py-3 border-b border-white/10 hover:text-[#EF2A86] transition-colors">About Us</Link>
                 <Link href="/jobs" className="block text-2xl font-bold text-white py-3 border-b border-white/10 hover:text-[#EF2A86] transition-colors">Careers</Link>
                 <Link href="/contact" className="block text-2xl font-bold text-white py-3 border-b border-white/10 hover:text-[#EF2A86] transition-colors">Contact</Link>
               </div>
-              <div className="mt-10 flex flex-col gap-4">
+              <div className="mt-8 flex flex-col gap-4">
                 <Link href="/referral" className="w-full py-4 text-center text-lg font-bold text-white rounded-xl" style={{ backgroundColor: "#EF2A86" }}>
                   Request a Free Assessment
                 </Link>
