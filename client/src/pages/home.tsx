@@ -46,57 +46,54 @@ function FadeIn({ children, delay = 0, className = "" }: { children: React.React
   );
 }
 
+const TICKER_ITEMS = [
+  { content: <><img src={googleLogoImg} alt="Google" style={{ height: "16px", width: "auto" }} /><span className="text-white text-xs font-medium">Google 4.9</span></> },
+  { content: <><SiTrustpilot style={{ color: "#00B67A", fontSize: "15px" }} /><span className="text-white text-xs font-medium">Trustpilot 4.6</span></> },
+  { content: <><img src={nhsLogoImg} alt="NHS" style={{ height: "20px", width: "auto", filter: "brightness(0) invert(1)" }} /><span className="text-white text-xs font-medium">Approved Provider</span></> },
+  { content: <><span className="text-white text-xs font-medium whitespace-nowrap">CQC Rated Good</span></> },
+  { content: <><Clock size={13} className="text-white shrink-0" /><span className="text-white text-xs font-medium whitespace-nowrap">Care within 24 hours</span></> },
+  { content: <><Star size={13} className="text-white shrink-0" /><span className="text-white text-xs font-medium whitespace-nowrap">Private Care Available</span></> },
+];
+
 function Ticker() {
   return (
-    <div style={{ backgroundColor: PINK, padding: "10px 0" }}>
-      <div className="w-full flex items-center justify-center flex-nowrap gap-x-8 px-8 overflow-x-auto">
+    <div style={{ backgroundColor: PINK, padding: "9px 0", overflow: "hidden" }}>
 
-        {/* Google */}
-        <span className="inline-flex items-center gap-2 shrink-0">
-          <img src={googleLogoImg} alt="Google" style={{ height: "18px", width: "auto" }} />
-          <span className="text-white text-sm font-medium">4.9</span>
-        </span>
-
-        <span className="text-white/30 shrink-0">|</span>
-
-        {/* Trustpilot */}
-        <span className="hidden sm:inline-flex items-center gap-2 shrink-0">
-          <SiTrustpilot style={{ color: "#00B67A", fontSize: "18px" }} />
-          <span className="text-white text-sm font-medium">Trustpilot 4.6</span>
-        </span>
-
-        <span className="text-white/30 hidden sm:inline shrink-0">|</span>
-
-        {/* NHS */}
-        <span className="hidden sm:inline-flex items-center gap-2 shrink-0">
-          <img src={nhsLogoImg} alt="NHS" style={{ height: "26px", width: "auto", filter: "brightness(0) invert(1)" }} />
-          <span className="text-white text-sm font-medium">Approved Provider</span>
-        </span>
-
-        <span className="text-white/30 hidden sm:inline shrink-0">|</span>
-
-        {/* CQC */}
-        <span className="hidden sm:inline-flex items-center gap-2 shrink-0">
-          <span className="text-white text-sm font-medium whitespace-nowrap">CQC Rated Good</span>
-        </span>
-
-        <span className="text-white/30 hidden sm:inline shrink-0">|</span>
-
-        {/* Care */}
-        <span className="hidden sm:inline-flex items-center gap-2 shrink-0">
-          <Clock size={15} className="text-white shrink-0" />
-          <span className="text-white text-sm font-medium whitespace-nowrap">Care within 24 hours</span>
-        </span>
-
-        <span className="text-white/30 hidden sm:inline shrink-0">|</span>
-
-        {/* Private Care */}
-        <span className="hidden sm:inline-flex items-center gap-2 shrink-0">
-          <Star size={15} className="text-white shrink-0" />
-          <span className="text-white text-sm font-medium whitespace-nowrap">Private Care Available</span>
-        </span>
-
+      {/* Mobile: scrolling marquee */}
+      <div className="sm:hidden relative w-full overflow-hidden">
+        <style>{`
+          @keyframes ticker-scroll {
+            0%   { transform: translateX(0); }
+            100% { transform: translateX(-50%); }
+          }
+          .ticker-track {
+            display: inline-flex;
+            animation: ticker-scroll 18s linear infinite;
+            white-space: nowrap;
+          }
+        `}</style>
+        <div className="ticker-track">
+          {[...TICKER_ITEMS, ...TICKER_ITEMS].map((item, i) => (
+            <span key={i} className="inline-flex items-center gap-1.5 mx-5 shrink-0">
+              {item.content}
+              <span className="text-white/30 ml-5">|</span>
+            </span>
+          ))}
+        </div>
       </div>
+
+      {/* Desktop: static centred row */}
+      <div className="hidden sm:flex w-full items-center justify-center flex-nowrap gap-x-8 px-8">
+        {TICKER_ITEMS.map((item, i) => (
+          <span key={i} className="inline-flex items-center gap-2 shrink-0">
+            {item.content}
+            {i < TICKER_ITEMS.length - 1 && (
+              <span className="text-white/30 ml-8">|</span>
+            )}
+          </span>
+        ))}
+      </div>
+
     </div>
   );
 }
@@ -117,8 +114,8 @@ export default function Home() {
       <Ticker />
 
       {/* HERO */}
-      <section className="relative overflow-hidden" style={{ backgroundColor: CREAM, minHeight: "88vh" }}>
-        <div className="grid grid-cols-1 lg:grid-cols-[55%_45%]" style={{ minHeight: "84vh" }}>
+      <section className="relative overflow-hidden" style={{ backgroundColor: CREAM }}>
+        <div className="grid grid-cols-1 lg:grid-cols-[55%_45%] lg:min-h-[84vh]">
 
           <div className="flex flex-col justify-center pt-8 pb-16 px-5 sm:px-8 lg:pl-[68px]">
             <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}
