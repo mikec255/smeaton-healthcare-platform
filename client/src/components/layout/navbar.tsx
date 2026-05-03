@@ -158,7 +158,7 @@ export default function Navbar() {
       >
         <div className="px-5 sm:px-8 md:px-12 h-[80px] sm:h-[96px] flex items-center justify-between gap-6">
 
-          <Link href="/" className="shrink-0 -ml-[50px] sm:ml-0">
+          <Link href="/" className="shrink-0 -ml-[35px] sm:ml-0">
             <img src={logoImage} alt="Smeaton Healthcare" style={{ height: "64px", width: "auto", transform: "scale(2.5) translateX(4px)", transformOrigin: "left center" }} />
           </Link>
 
