@@ -2,57 +2,17 @@ import { Link } from "wouter";
 import Seo from "@/components/seo";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Calendar, Clock, ArrowRight, Filter, Phone, Clock as TickerClock, Star as TickerStar } from "lucide-react";
-import { SiTrustpilot } from "react-icons/si";
+import { Calendar, Clock, ArrowRight, Filter, Phone } from "lucide-react";
+import Ticker from "@/components/layout/ticker";
 import { useState, useMemo, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { type BlogPost, type BlogCategory } from "@shared/schema";
 import DOMPurify from "dompurify";
-import nhsLogoImg from "@assets/nhs_logo.png";
-import googleLogoImg from "@assets/google_logo_white.svg";
-
 const NAVY = "#05163D";
 const BLUE = "#275799";
 const PINK = "#EF2A86";
 const CREAM = "#FDF7F0";
 const SCRIPT = { fontFamily: "'Dancing Script', cursive" };
-
-function Ticker() {
-  return (
-    <div style={{ backgroundColor: PINK, padding: "10px 0" }}>
-      <div className="w-full flex items-center justify-center flex-nowrap gap-x-8 px-8 overflow-x-auto">
-        <span className="inline-flex items-center gap-2 shrink-0">
-          <img src={googleLogoImg} alt="Google" style={{ height: "18px", width: "auto" }} />
-          <span className="text-white text-sm font-medium">4.9</span>
-        </span>
-        <span className="text-white/30 shrink-0">|</span>
-        <span className="hidden sm:inline-flex items-center gap-2 shrink-0">
-          <SiTrustpilot style={{ color: "#00B67A", fontSize: "18px" }} />
-          <span className="text-white text-sm font-medium">Trustpilot 4.6</span>
-        </span>
-        <span className="text-white/30 hidden sm:inline shrink-0">|</span>
-        <span className="hidden sm:inline-flex items-center gap-2 shrink-0">
-          <img src={nhsLogoImg} alt="NHS" style={{ height: "26px", width: "auto", filter: "brightness(0) invert(1)" }} />
-          <span className="text-white text-sm font-medium">Approved Provider</span>
-        </span>
-        <span className="text-white/30 hidden sm:inline shrink-0">|</span>
-        <span className="hidden sm:inline-flex items-center gap-2 shrink-0">
-          <span className="text-white text-sm font-medium whitespace-nowrap">CQC Rated Good</span>
-        </span>
-        <span className="text-white/30 hidden sm:inline shrink-0">|</span>
-        <span className="hidden sm:inline-flex items-center gap-2 shrink-0">
-          <TickerClock size={15} className="text-white shrink-0" />
-          <span className="text-white text-sm font-medium whitespace-nowrap">Care within 24 hours</span>
-        </span>
-        <span className="text-white/30 hidden sm:inline shrink-0">|</span>
-        <span className="hidden sm:inline-flex items-center gap-2 shrink-0">
-          <TickerStar size={15} className="text-white shrink-0" />
-          <span className="text-white text-sm font-medium whitespace-nowrap">Private Care Available</span>
-        </span>
-      </div>
-    </div>
-  );
-}
 
 interface TransformedBlogPost {
   id: string;

@@ -1,11 +1,9 @@
 import { useRef, useEffect } from "react";
 import Seo from "@/components/seo";
 import { motion, useInView } from "framer-motion";
-import { Phone, Mail, MapPin, Clock, ArrowRight, Clock as TickerClock, Star as TickerStar } from "lucide-react";
+import { Phone, Mail, MapPin, Clock, ArrowRight } from "lucide-react";
 import { Link } from "wouter";
-import { SiTrustpilot } from "react-icons/si";
-import nhsLogoImg from "@assets/nhs_logo.png";
-import googleLogoImg from "@assets/google_logo_white.svg";
+import Ticker from "@/components/layout/ticker";
 
 const SCRIPT = { fontFamily: "'Dancing Script', cursive" };
 const NAVY = "#05163D";
@@ -48,43 +46,6 @@ function FadeIn({ children, delay = 0, className = "" }: { children: React.React
       transition={{ duration: 0.6, delay, ease: [0.22, 1, 0.36, 1] }} className={className}>
       {children}
     </motion.div>
-  );
-}
-
-function Ticker() {
-  return (
-    <div style={{ backgroundColor: PINK, padding: "10px 0" }}>
-      <div className="w-full flex items-center justify-center flex-nowrap gap-x-8 px-8 overflow-x-auto">
-        <span className="inline-flex items-center gap-2 shrink-0">
-          <img src={googleLogoImg} alt="Google" style={{ height: "18px", width: "auto" }} />
-          <span className="text-white text-sm font-medium">4.9</span>
-        </span>
-        <span className="text-white/30 shrink-0">|</span>
-        <span className="hidden sm:inline-flex items-center gap-2 shrink-0">
-          <SiTrustpilot style={{ color: "#00B67A", fontSize: "18px" }} />
-          <span className="text-white text-sm font-medium">Trustpilot 4.6</span>
-        </span>
-        <span className="text-white/30 hidden sm:inline shrink-0">|</span>
-        <span className="hidden sm:inline-flex items-center gap-2 shrink-0">
-          <img src={nhsLogoImg} alt="NHS" style={{ height: "26px", width: "auto", filter: "brightness(0) invert(1)" }} />
-          <span className="text-white text-sm font-medium">Approved Provider</span>
-        </span>
-        <span className="text-white/30 hidden sm:inline shrink-0">|</span>
-        <span className="hidden sm:inline-flex items-center gap-2 shrink-0">
-          <span className="text-white text-sm font-medium whitespace-nowrap">CQC Rated Good</span>
-        </span>
-        <span className="text-white/30 hidden sm:inline shrink-0">|</span>
-        <span className="hidden sm:inline-flex items-center gap-2 shrink-0">
-          <TickerClock size={15} className="text-white shrink-0" />
-          <span className="text-white text-sm font-medium whitespace-nowrap">Care within 24 hours</span>
-        </span>
-        <span className="text-white/30 hidden sm:inline shrink-0">|</span>
-        <span className="hidden sm:inline-flex items-center gap-2 shrink-0">
-          <TickerStar size={15} className="text-white shrink-0" />
-          <span className="text-white text-sm font-medium whitespace-nowrap">Private Care Available</span>
-        </span>
-      </div>
-    </div>
   );
 }
 

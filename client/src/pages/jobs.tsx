@@ -2,10 +2,8 @@ import { useState } from "react";
 import Seo from "@/components/seo";
 import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
-import { Plus, Clock as TickerClock, Star as TickerStar } from "lucide-react";
-import { SiTrustpilot } from "react-icons/si";
-import nhsLogoImg from "@assets/nhs_logo.png";
-import googleLogoImg from "@assets/google_logo_white.svg";
+import { Plus } from "lucide-react";
+import Ticker from "@/components/layout/ticker";
 import JobFilters from "@/components/jobs/job-filters";
 import JobCard from "@/components/jobs/job-card";
 import JobDetailsModal from "@/components/jobs/job-details-modal";
@@ -107,45 +105,11 @@ export default function Jobs() {
   const CREAM = "#FDF7F0";
   const SCRIPT = { fontFamily: "'Dancing Script', cursive" };
 
-  const ticker = (
-    <div style={{ backgroundColor: PINK, padding: "10px 0" }}>
-      <div className="w-full flex items-center justify-center flex-nowrap gap-x-8 px-8 overflow-x-auto">
-        <span className="inline-flex items-center gap-2 shrink-0">
-          <img src={googleLogoImg} alt="Google" style={{ height: "18px", width: "auto" }} />
-          <span className="text-white text-sm font-medium">4.9</span>
-        </span>
-        <span className="text-white/30 shrink-0">|</span>
-        <span className="hidden sm:inline-flex items-center gap-2 shrink-0">
-          <SiTrustpilot style={{ color: "#00B67A", fontSize: "18px" }} />
-          <span className="text-white text-sm font-medium">Trustpilot 4.6</span>
-        </span>
-        <span className="text-white/30 hidden sm:inline shrink-0">|</span>
-        <span className="hidden sm:inline-flex items-center gap-2 shrink-0">
-          <img src={nhsLogoImg} alt="NHS" style={{ height: "26px", width: "auto", filter: "brightness(0) invert(1)" }} />
-          <span className="text-white text-sm font-medium">Approved Provider</span>
-        </span>
-        <span className="text-white/30 hidden sm:inline shrink-0">|</span>
-        <span className="hidden sm:inline-flex items-center gap-2 shrink-0">
-          <span className="text-white text-sm font-medium whitespace-nowrap">CQC Rated Good</span>
-        </span>
-        <span className="text-white/30 hidden sm:inline shrink-0">|</span>
-        <span className="hidden sm:inline-flex items-center gap-2 shrink-0">
-          <TickerClock size={15} className="text-white shrink-0" />
-          <span className="text-white text-sm font-medium whitespace-nowrap">Care within 24 hours</span>
-        </span>
-        <span className="text-white/30 hidden sm:inline shrink-0">|</span>
-        <span className="hidden sm:inline-flex items-center gap-2 shrink-0">
-          <TickerStar size={15} className="text-white shrink-0" />
-          <span className="text-white text-sm font-medium whitespace-nowrap">Private Care Available</span>
-        </span>
-      </div>
-    </div>
-  );
 
   if (isLoading) {
     return (
       <div>
-        {ticker}
+        <Ticker />
         <section style={{ backgroundColor: CREAM }} className="py-16">
           <div className="max-w-7xl mx-auto px-5 sm:px-8 text-center">
             <div className="animate-spin rounded-full h-8 w-8 mx-auto mb-3" style={{ borderBottom: `2px solid ${PINK}` }}></div>
@@ -191,7 +155,7 @@ export default function Jobs() {
   return (
     <div data-testid="jobs-page">
       <Seo title="Healthcare Jobs in Devon & Cornwall" description="Join the Smeaton Healthcare team. We're hiring compassionate care workers across Plymouth and Cornwall. View current vacancies and apply online." path="/jobs" />
-      {ticker}
+      <Ticker />
 
       {/* HERO */}
       <section style={{ backgroundColor: CREAM }} className="py-14 sm:py-18">

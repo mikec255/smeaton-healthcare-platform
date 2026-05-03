@@ -1,10 +1,8 @@
 import { useEffect } from "react";
 import { Link } from "wouter";
 import Seo from "@/components/seo";
-import { SiTrustpilot } from "react-icons/si";
-import nhsLogoImg from "@assets/nhs_logo.png";
-import googleLogoImg from "@assets/google_logo_white.svg";
-import { Home, Heart, UserCheck, CheckCircle, ArrowRight, Phone, Shield, Clock, Bed, Users, Clock as TickerClock, Star as TickerStar} from "lucide-react";
+import { Home, Heart, UserCheck, CheckCircle, ArrowRight, Phone, Shield, Clock, Bed, Users } from "lucide-react";
+import Ticker from "@/components/layout/ticker";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 
 const NAVY = "#05163D";
@@ -33,44 +31,6 @@ const FAQS = [
   { q: "How is live-in care different from 24/7 care?", a: "Live-in care involves one carer living with you full-time, while 24/7 care typically involves a team of carers working in shifts. We can advise which suits you best." },
   { q: "How is live-in care funded?", a: "Live-in care can be funded privately, through NHS Continuing Healthcare, or via a direct payment from your local authority. We can help you understand the options." },
 ];
-
-
-function Ticker() {
-  return (
-    <div style={{ backgroundColor: PINK, padding: "10px 0" }}>
-      <div className="w-full flex items-center justify-center flex-nowrap gap-x-8 px-8 overflow-x-auto">
-        <span className="inline-flex items-center gap-2 shrink-0">
-          <img src={googleLogoImg} alt="Google" style={{ height: "18px", width: "auto" }} />
-          <span className="text-white text-sm font-medium">4.9</span>
-        </span>
-        <span className="text-white/30 shrink-0">|</span>
-        <span className="hidden sm:inline-flex items-center gap-2 shrink-0">
-          <SiTrustpilot style={{ color: "#00B67A", fontSize: "18px" }} />
-          <span className="text-white text-sm font-medium">Trustpilot 4.6</span>
-        </span>
-        <span className="text-white/30 hidden sm:inline shrink-0">|</span>
-        <span className="hidden sm:inline-flex items-center gap-2 shrink-0">
-          <img src={nhsLogoImg} alt="NHS" style={{ height: "26px", width: "auto", filter: "brightness(0) invert(1)" }} />
-          <span className="text-white text-sm font-medium">Approved Provider</span>
-        </span>
-        <span className="text-white/30 hidden sm:inline shrink-0">|</span>
-        <span className="hidden sm:inline-flex items-center gap-2 shrink-0">
-          <span className="text-white text-sm font-medium whitespace-nowrap">CQC Rated Good</span>
-        </span>
-        <span className="text-white/30 hidden sm:inline shrink-0">|</span>
-        <span className="hidden sm:inline-flex items-center gap-2 shrink-0">
-          <TickerClock size={15} className="text-white shrink-0" />
-          <span className="text-white text-sm font-medium whitespace-nowrap">Care within 24 hours</span>
-        </span>
-        <span className="text-white/30 hidden sm:inline shrink-0">|</span>
-        <span className="hidden sm:inline-flex items-center gap-2 shrink-0">
-          <TickerStar size={15} className="text-white shrink-0" />
-          <span className="text-white text-sm font-medium whitespace-nowrap">Private Care Available</span>
-        </span>
-      </div>
-    </div>
-  );
-}
 
 export default function LiveInCare() {
 

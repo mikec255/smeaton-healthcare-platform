@@ -1,10 +1,8 @@
 import { useEffect } from "react";
 import { Link } from "wouter";
 import Seo from "@/components/seo";
-import { SiTrustpilot } from "react-icons/si";
-import nhsLogoImg from "@assets/nhs_logo.png";
-import googleLogoImg from "@assets/google_logo_white.svg";
-import { PoundSterling, Heart, Building2, FileText, HelpCircle, Clipboard, ArrowRight, Phone, AlertCircle, BookOpen, Clock as TickerClock, Star as TickerStar } from "lucide-react";
+import { PoundSterling, Heart, Building2, FileText, HelpCircle, Clipboard, ArrowRight, Phone, AlertCircle, BookOpen } from "lucide-react";
+import Ticker from "@/components/layout/ticker";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 
 const NAVY = "#05163D";
@@ -40,43 +38,6 @@ const FAQS = [
   { q: "How often are financial assessments reviewed?", a: "Your financial circumstances are typically reviewed annually, but you should inform the council immediately of any significant changes." },
   { q: "Can family members contribute to top-up care costs?", a: "Yes — family members or friends can make additional payments for enhanced care options, but the basic assessed needs must be met by the agreed funding." },
 ];
-
-function Ticker() {
-  return (
-    <div style={{ backgroundColor: PINK, padding: "10px 0" }}>
-      <div className="w-full flex items-center justify-center flex-nowrap gap-x-8 px-8 overflow-x-auto">
-        <span className="inline-flex items-center gap-2 shrink-0">
-          <img src={googleLogoImg} alt="Google" style={{ height: "18px", width: "auto" }} />
-          <span className="text-white text-sm font-medium">4.9</span>
-        </span>
-        <span className="text-white/30 shrink-0">|</span>
-        <span className="hidden sm:inline-flex items-center gap-2 shrink-0">
-          <SiTrustpilot style={{ color: "#00B67A", fontSize: "18px" }} />
-          <span className="text-white text-sm font-medium">Trustpilot 4.6</span>
-        </span>
-        <span className="text-white/30 hidden sm:inline shrink-0">|</span>
-        <span className="hidden sm:inline-flex items-center gap-2 shrink-0">
-          <img src={nhsLogoImg} alt="NHS" style={{ height: "26px", width: "auto", filter: "brightness(0) invert(1)" }} />
-          <span className="text-white text-sm font-medium">Approved Provider</span>
-        </span>
-        <span className="text-white/30 hidden sm:inline shrink-0">|</span>
-        <span className="hidden sm:inline-flex items-center gap-2 shrink-0">
-          <span className="text-white text-sm font-medium whitespace-nowrap">CQC Rated Good</span>
-        </span>
-        <span className="text-white/30 hidden sm:inline shrink-0">|</span>
-        <span className="hidden sm:inline-flex items-center gap-2 shrink-0">
-          <TickerClock size={15} className="text-white shrink-0" />
-          <span className="text-white text-sm font-medium whitespace-nowrap">Care within 24 hours</span>
-        </span>
-        <span className="text-white/30 hidden sm:inline shrink-0">|</span>
-        <span className="hidden sm:inline-flex items-center gap-2 shrink-0">
-          <TickerStar size={15} className="text-white shrink-0" />
-          <span className="text-white text-sm font-medium whitespace-nowrap">Private Care Available</span>
-        </span>
-      </div>
-    </div>
-  );
-}
 
 export default function UnderstandingCareFunding() {
 

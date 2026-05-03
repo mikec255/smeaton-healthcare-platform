@@ -1,8 +1,11 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { MapPin, PoundSterling, Building, Eye } from "lucide-react";
+import { MapPin, PoundSterling, Eye } from "lucide-react";
 import { type Job } from "@shared/schema";
+
+const PINK = "#EF2A86";
+const NAVY = "#05163D";
 
 interface JobCardProps {
   job: Job;
@@ -14,102 +17,92 @@ export default function JobCard({ job, onViewDetails, onApply }: JobCardProps) {
   const formatSalary = (job: Job) => {
     const min = job.salaryMin;
     const max = job.salaryMax || null;
-    
     if (job.salaryType === "hourly") {
-      return max ? `£${min.toFixed(2)}-£${max.toFixed(2)} per hour` : `£${min.toFixed(2)} per hour`;
+      return max ? `£${min.toFixed(2)}–£${max.toFixed(2)} / hr` : `£${min.toFixed(2)} / hr`;
     } else if (job.salaryType === "weekly") {
-      return max ? `£${min.toFixed(0)}-£${max.toFixed(0)} per week` : `£${min.toFixed(0)} per week`;
+      return max ? `£${min.toFixed(0)}–£${max.toFixed(0)} / wk` : `£${min.toFixed(0)} / wk`;
     } else {
-      return max ? `£${min.toLocaleString()}-£${max.toLocaleString()} per year` : `£${min.toLocaleString()} per year`;
-    }
-  };
-
-  const getTypeColor = (type: string) => {
-    switch (type) {
-      case "permanent": return "bg-primary/10 text-primary";
-      case "care-at-home": return "bg-accent/10 text-accent";
-      default: return "bg-muted/10 text-muted-foreground";
+      return max ? `£${min.toLocaleString()}–£${max.toLocaleString()} / yr` : `£${min.toLocaleString()} / yr`;
     }
   };
 
   const formatType = (type: string) => {
     switch (type) {
       case "care-at-home": return "Care at Home";
-      case "permanent": return "Permanent";
-      case "temporary": return "Temporary";
-      default: return type;
+      case "permanent":    return "Permanent";
+      case "temporary":    return "Temporary";
+      default:             return type;
     }
   };
 
   return (
-    <Card 
-      className="shadow-lg border border-border hover:shadow-xl transition-shadow"
+    <Card
+      className="shadow-md border border-gray-100 hover:shadow-lg transition-shadow rounded-2xl"
       data-testid={`job-card-${job.id}`}
     >
-      <CardContent className="p-6">
-        <div className="flex justify-between items-start mb-4">
-          <div className="flex-1">
-            <h3 className="text-xl font-bold text-foreground mb-2" data-testid={`job-title-${job.id}`}>
-              {job.title}
-            </h3>
-            <div className="flex flex-wrap gap-2 mb-2">
-              <Badge className={getTypeColor(job.type)} data-testid={`job-type-${job.id}`}>
-                {formatType(job.type)}
-              </Badge>
-              {job.department && (
-                <Badge variant="outline" data-testid={`job-department-${job.id}`}>
-                  {job.department}
-                </Badge>
-              )}
-            </div>
-            <div className="flex items-center text-muted-foreground text-sm space-x-4 mb-4">
-              <span className="flex items-center" data-testid={`job-location-${job.id}`}>
-                <MapPin className="h-4 w-4 mr-1" />
-                {job.location}
-              </span>
-              <span className="flex items-center" data-testid={`job-salary-${job.id}`}>
-                <PoundSterling className="h-4 w-4 mr-1" />
-                {formatSalary(job)}
-              </span>
-              {job.department && (
-                <span className="flex items-center" data-testid={`job-workplace-${job.id}`}>
-                  <Building className="h-4 w-4 mr-1" />
-                  {job.department}
-                </span>
-              )}
-            </div>
-          </div>
-          <Button 
-            onClick={onViewDetails} 
-            className="bg-primary text-primary-foreground hover:bg-primary/90 ml-4"
+      <CardContent className="p-5 sm:p-6">
+
+        {/* Top row: title + button */}
+        <div className="flex items-start justify-between gap-3 mb-3">
+          <h3 className="text-lg sm:text-xl font-bold leading-snug" style={{ color: NAVY }} data-testid={`job-title-${job.id}`}>
+            {job.title}
+          </h3>
+          <button
+            onClick={onViewDetails}
+            className="shrink-0 inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-bold text-white transition-opacity hover:opacity-90"
+            style={{ backgroundColor: PINK }}
             data-testid={`button-view-details-${job.id}`}
           >
-            <Eye className="h-4 w-4 mr-1" />
+            <Eye className="h-4 w-4" />
             View Details
-          </Button>
+          </button>
         </div>
-        
-        <p className="text-muted-foreground mb-4" data-testid={`job-summary-${job.id}`}>
+
+        {/* Badges */}
+        <div className="flex flex-wrap gap-2 mb-3">
+          <Badge className="bg-pink-50 text-pink-600 border-0 font-semibold" data-testid={`job-type-${job.id}`}>
+            {formatType(job.type)}
+          </Badge>
+          {job.department && job.department !== job.type && (
+            <Badge variant="outline" className="font-medium" data-testid={`job-department-${job.id}`}>
+              {job.department}
+            </Badge>
+          )}
+        </div>
+
+        {/* Info row — wraps cleanly on mobile */}
+        <div className="flex flex-wrap gap-x-4 gap-y-1 text-sm text-gray-500 mb-4">
+          <span className="flex items-center gap-1" data-testid={`job-location-${job.id}`}>
+            <MapPin className="h-3.5 w-3.5 shrink-0" style={{ color: PINK }} />
+            {job.location}
+          </span>
+          <span className="flex items-center gap-1" data-testid={`job-salary-${job.id}`}>
+            <PoundSterling className="h-3.5 w-3.5 shrink-0" style={{ color: PINK }} />
+            {formatSalary(job)}
+          </span>
+        </div>
+
+        {/* Summary */}
+        <p className="text-gray-500 text-sm leading-relaxed mb-4" data-testid={`job-summary-${job.id}`}>
           {job.summary}
         </p>
-        
-        <div className="flex justify-between items-center">
-          <div className="text-sm text-muted-foreground">
-            {job.reportsTo && (
-              <span data-testid={`job-reports-to-${job.id}`}>
-                Reports to: {job.reportsTo}
-              </span>
-            )}
-          </div>
-          <Button 
-            onClick={onApply} 
-            variant="outline" 
-            className="border-primary text-primary hover:bg-primary/10"
+
+        {/* Bottom row */}
+        <div className="flex items-center justify-between pt-3 border-t border-gray-100">
+          <span className="text-xs text-gray-400" data-testid={`job-reports-to-${job.id}`}>
+            {job.reportsTo ? `Reports to: ${job.reportsTo}` : ""}
+          </span>
+          <Button
+            onClick={onApply}
+            variant="outline"
+            className="text-sm font-bold border-2 hover:opacity-90"
+            style={{ borderColor: PINK, color: PINK }}
             data-testid={`button-quick-apply-${job.id}`}
           >
             Quick Apply
           </Button>
         </div>
+
       </CardContent>
     </Card>
   );
