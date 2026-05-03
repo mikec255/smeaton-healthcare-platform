@@ -16,7 +16,7 @@ export default function Footer() {
             <img
               src={logoImage}
               alt="Smeaton Healthcare"
-              className="h-12 w-auto mb-3"
+              className="h-16 w-auto mb-3"
               style={{ filter: "brightness(0) invert(1)" }}
             />
             <p className="text-white/70 text-sm leading-relaxed max-w-xs mb-4">
