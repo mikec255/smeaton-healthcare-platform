@@ -41,8 +41,8 @@ export default function SupportedLiving() {
       <section className="relative overflow-hidden" style={{ backgroundColor: CREAM }}>
         <div className="absolute -top-24 -right-24 w-96 h-96 rounded-full opacity-[0.15] pointer-events-none" style={{ backgroundColor: PINK }} />
         <div className="absolute -bottom-32 -left-16 w-80 h-80 rounded-full opacity-[0.08] pointer-events-none" style={{ backgroundColor: BLUE }} />
-        <div className="relative max-w-7xl mx-auto px-5 sm:px-8 pt-8 pb-20 sm:pt-10 sm:pb-28">
-          <Link href="/services" className="inline-flex items-center gap-1.5 text-sm font-semibold mb-10 hover:opacity-80 transition-opacity" style={{ color: PINK }}>← All Services</Link>
+        <div className="relative max-w-7xl mx-auto px-5 sm:px-8 pt-6 pb-10 sm:pt-10 sm:pb-28">
+          <Link href="/services" className="inline-flex items-center gap-1.5 text-sm font-semibold mb-5 hover:opacity-80 transition-opacity" style={{ color: PINK }}>← All Services</Link>
           <div className="grid lg:grid-cols-[1fr_400px] gap-12 xl:gap-20 items-center">
             <div>
               <div className="inline-flex items-center px-3.5 py-1.5 rounded-full text-xs font-bold uppercase tracking-widest mb-5 " style={{ color: BLUE, backgroundColor: "rgba(39,87,153,0.09)", border: "1px solid rgba(39,87,153,0.22)" }}>Home Care</div>
@@ -66,10 +66,10 @@ export default function SupportedLiving() {
         </div>
       </section>
 
-      <section className="py-16 sm:py-20 bg-white">
+      <section className="py-8 sm:py-20 bg-white">
         <div className="max-w-7xl mx-auto px-5 sm:px-8">
           <p className="text-xs font-bold tracking-widest uppercase mb-4" style={{ color: PINK }}>What's included</p>
-          <h2 className="text-3xl font-extrabold mb-10 tracking-tight" style={{ color: NAVY }}>Everything your support covers</h2>
+          <h2 className="text-3xl font-extrabold mb-5 sm:mb-10 tracking-tight" style={{ color: NAVY }}>Everything your support covers</h2>
           <div className="grid md:grid-cols-3 gap-6">
             {INCLUDED.map((cat) => (
               <div key={cat.category} className="rounded-2xl p-7 border-2 border-gray-100">
@@ -83,10 +83,10 @@ export default function SupportedLiving() {
         </div>
       </section>
 
-      <section className="py-16 sm:py-20" style={{ backgroundColor: CREAM }}>
+      <section className="py-8 sm:py-20" style={{ backgroundColor: CREAM }}>
         <div className="max-w-7xl mx-auto px-5 sm:px-8">
           <p className="text-xs font-bold tracking-widest uppercase mb-4" style={{ color: PINK }}>Why choose us</p>
-          <h2 className="text-3xl font-extrabold mb-10 tracking-tight" style={{ color: BLUE }}>The Smeaton difference</h2>
+          <h2 className="text-3xl font-extrabold mb-5 sm:mb-10 tracking-tight" style={{ color: BLUE }}>The Smeaton difference</h2>
           <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-5">
             {BENEFITS.map((b) => {
               const Icon = b.icon;
@@ -104,10 +104,10 @@ export default function SupportedLiving() {
         </div>
       </section>
 
-      <section className="py-16 sm:py-20 bg-white">
+      <section className="py-8 sm:py-20 bg-white">
         <div className="max-w-3xl mx-auto px-5 sm:px-8">
           <p className="text-xs font-bold tracking-widest uppercase mb-4" style={{ color: PINK }}>Common questions</p>
-          <h2 className="text-3xl font-extrabold mb-10 tracking-tight" style={{ color: BLUE }}>Frequently asked questions</h2>
+          <h2 className="text-3xl font-extrabold mb-5 sm:mb-10 tracking-tight" style={{ color: BLUE }}>Frequently asked questions</h2>
           <Accordion type="single" collapsible className="space-y-2">
             {FAQS.map((faq, i) => (
               <AccordionItem key={i} value={`faq-${i}`} className="border-2 border-gray-100 rounded-2xl px-6 overflow-hidden">
@@ -119,7 +119,7 @@ export default function SupportedLiving() {
         </div>
       </section>
 
-      <section className="py-16 sm:py-20" style={{ backgroundColor: CREAM }}>
+      <section className="py-8 sm:py-20" style={{ backgroundColor: CREAM }}>
         <div className="max-w-3xl mx-auto px-5 sm:px-8 text-center">
           <h2 className="text-3xl font-extrabold mb-2 tracking-tight" style={{ color: BLUE }}>Ready to get started?</h2>
           <div className="mb-5" style={{ ...SCRIPT, fontSize: "clamp(1.8rem,3.5vw,2.8rem)", color: PINK }}>Let's talk about your needs.</div>

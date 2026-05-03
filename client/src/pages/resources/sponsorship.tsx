@@ -39,7 +39,7 @@ export default function Sponsorship() {
 
       {/* HERO */}
       <section style={{ backgroundColor: CREAM }}>
-        <div className="max-w-7xl mx-auto px-5 sm:px-8 pt-14 pb-12">
+        <div className="max-w-7xl mx-auto px-5 sm:px-8 pt-8 pb-8 sm:pt-14 sm:pb-12">
           <p className="text-xs font-bold tracking-widest uppercase mb-4" style={{ color: PINK }}>Skilled Worker Route</p>
           <h1 className="text-4xl sm:text-5xl font-extrabold mb-1 tracking-tight" style={{ color: BLUE }}>Sponsorship</h1>
           <div className="mb-4" style={{ ...SCRIPT, fontSize: "clamp(1.8rem, 3.5vw, 2.8rem)", color: PINK }}>joining us from overseas.</div>
@@ -73,7 +73,7 @@ export default function Sponsorship() {
       </section>
 
       {/* WHAT IS THE SKILLED WORKER ROUTE */}
-      <section className="py-14" style={{ backgroundColor: CREAM }}>
+      <section className="py-7 sm:py-14" style={{ backgroundColor: CREAM }}>
         <div className="max-w-7xl mx-auto px-5 sm:px-8">
           <p className="text-xs font-bold tracking-widest uppercase mb-4" style={{ color: PINK }}>About the route</p>
           <h2 className="text-2xl font-extrabold mb-3 tracking-tight" style={{ color: BLUE }}>What is the Skilled Worker route?</h2>
@@ -94,10 +94,10 @@ export default function Sponsorship() {
       </section>
 
       {/* WHAT WE OFFER */}
-      <section className="py-14 bg-white">
+      <section className="py-7 sm:py-14 bg-white">
         <div className="max-w-7xl mx-auto px-5 sm:px-8">
           <p className="text-xs font-bold tracking-widest uppercase mb-4" style={{ color: PINK }}>What you get</p>
-          <h2 className="text-2xl font-extrabold mb-8 tracking-tight" style={{ color: BLUE }}>What we offer sponsored workers</h2>
+          <h2 className="text-2xl font-extrabold mb-4 sm:mb-8 tracking-tight" style={{ color: BLUE }}>What we offer sponsored workers</h2>
           <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-5">
             {OFFERS.map((o, i) => (
               <div key={i} className="rounded-2xl p-6 border-2 border-gray-100" style={{ backgroundColor: CREAM }}>
@@ -113,10 +113,10 @@ export default function Sponsorship() {
       </section>
 
       {/* IMPORTANT INFORMATION */}
-      <section className="py-14" style={{ backgroundColor: CREAM }}>
+      <section className="py-7 sm:py-14" style={{ backgroundColor: CREAM }}>
         <div className="max-w-4xl mx-auto px-5 sm:px-8">
           <p className="text-xs font-bold tracking-widest uppercase mb-4" style={{ color: PINK }}>Please note</p>
-          <h2 className="text-2xl font-extrabold mb-8 tracking-tight" style={{ color: BLUE }}>Important information</h2>
+          <h2 className="text-2xl font-extrabold mb-4 sm:mb-8 tracking-tight" style={{ color: BLUE }}>Important information</h2>
           <div className="bg-amber-50 border-2 border-amber-200 rounded-2xl p-8 space-y-4">
             {IMPORTANT.map((item, i) => (
               <div key={i} className="flex items-start gap-3">
@@ -131,10 +131,10 @@ export default function Sponsorship() {
       </section>
 
       {/* FAIR RECRUITMENT */}
-      <section className="py-14 bg-white">
+      <section className="py-7 sm:py-14 bg-white">
         <div className="max-w-7xl mx-auto px-5 sm:px-8">
           <p className="text-xs font-bold tracking-widest uppercase mb-4" style={{ color: PINK }}>Our commitment</p>
-          <h2 className="text-2xl font-extrabold mb-8 tracking-tight" style={{ color: BLUE }}>Transparency & fair recruitment</h2>
+          <h2 className="text-2xl font-extrabold mb-4 sm:mb-8 tracking-tight" style={{ color: BLUE }}>Transparency & fair recruitment</h2>
           <div className="grid md:grid-cols-3 gap-5">
             {FAIR_RECRUITMENT.map((item, i) => (
               <div key={i} className="rounded-2xl p-6 border-2 border-gray-100 text-center" style={{ backgroundColor: CREAM }}>
@@ -150,7 +150,7 @@ export default function Sponsorship() {
       </section>
 
       {/* CTA */}
-      <section className="py-14" style={{ backgroundColor: CREAM }}>
+      <section className="py-7 sm:py-14" style={{ backgroundColor: CREAM }}>
         <div className="max-w-3xl mx-auto px-5 sm:px-8 text-center">
           <h2 className="text-3xl font-extrabold mb-2 tracking-tight" style={{ color: BLUE }}>Ready to join our UK care teams?</h2>
           <div className="mb-5" style={{ ...SCRIPT, fontSize: "clamp(1.8rem, 3.5vw, 2.8rem)", color: PINK }}>We'd love to hear from you.</div>

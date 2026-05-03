@@ -58,7 +58,7 @@ export default function Contact() {
 
       {/* HERO */}
       <section style={{ backgroundColor: CREAM }}>
-        <div className="max-w-7xl mx-auto px-5 sm:px-8 pt-14 pb-14">
+        <div className="max-w-7xl mx-auto px-5 sm:px-8 pt-8 pb-8 sm:pt-14 sm:pb-14">
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}>
             <p className="text-xs font-bold tracking-widest uppercase mb-4" style={{ color: PINK }}>Get in touch</p>
             <h1 className="text-4xl sm:text-5xl font-extrabold mb-1 tracking-tight" style={{ color: BLUE }}>We'd love to</h1>
@@ -71,9 +71,9 @@ export default function Contact() {
       </section>
 
       {/* OFFICE CARDS + MAPS */}
-      <section className="py-16 bg-white">
+      <section className="py-8 sm:py-16 bg-white">
         <div className="max-w-7xl mx-auto px-5 sm:px-8">
-          <FadeIn className="mb-10">
+          <FadeIn className="mb-5 sm:mb-10">
             <p className="text-xs font-bold tracking-widest uppercase mb-2" style={{ color: PINK }}>Our offices</p>
             <h2 className="text-2xl font-extrabold tracking-tight" style={{ color: BLUE }}>Find us</h2>
           </FadeIn>
@@ -155,7 +155,7 @@ export default function Contact() {
       </section>
 
       {/* HOURS */}
-      <section className="py-14" style={{ backgroundColor: CREAM }}>
+      <section className="py-7 sm:py-14" style={{ backgroundColor: CREAM }}>
         <div className="max-w-7xl mx-auto px-5 sm:px-8">
           <FadeIn>
             <div className="bg-white rounded-3xl p-8 border-2 border-gray-100 max-w-3xl mx-auto">
@@ -192,9 +192,9 @@ export default function Contact() {
       </section>
 
       {/* QUICK LINKS */}
-      <section className="py-16 bg-white">
+      <section className="py-8 sm:py-16 bg-white">
         <div className="max-w-7xl mx-auto px-5 sm:px-8">
-          <FadeIn className="mb-8">
+          <FadeIn className="mb-4 sm:mb-8">
             <p className="text-xs font-bold tracking-widest uppercase mb-2" style={{ color: PINK }}>What's next</p>
             <h2 className="text-2xl font-extrabold tracking-tight" style={{ color: BLUE }}>Other ways we can help</h2>
           </FadeIn>
@@ -221,7 +221,7 @@ export default function Contact() {
       </section>
 
       {/* BOTTOM CTA */}
-      <section className="py-16 sm:py-20" style={{ backgroundColor: CREAM }}>
+      <section className="py-8 sm:py-20" style={{ backgroundColor: CREAM }}>
         <div className="max-w-3xl mx-auto px-5 sm:px-8 text-center">
           <FadeIn>
             <h2 className="text-3xl font-extrabold mb-2" style={{ color: BLUE }}>Need to speak to someone?</h2>

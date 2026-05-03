@@ -113,7 +113,7 @@ export default function Blog() {
 
       {/* HERO */}
       <section style={{ backgroundColor: CREAM }}>
-        <div className="max-w-7xl mx-auto px-5 sm:px-8 pt-14 pb-12">
+        <div className="max-w-7xl mx-auto px-5 sm:px-8 pt-8 pb-8 sm:pt-14 sm:pb-12">
           <p className="text-xs font-bold tracking-widest uppercase mb-4" style={{ color: PINK }}>Articles & insights</p>
           <h1 className="text-4xl sm:text-5xl font-extrabold mb-1 tracking-tight" style={{ color: BLUE }}>Our Blog</h1>
           <div className="mb-4" style={{ ...SCRIPT, fontSize: "clamp(1.8rem, 3.5vw, 2.8rem)", color: PINK }}>stories from the heart of care.</div>
@@ -124,7 +124,7 @@ export default function Blog() {
       </section>
 
       {/* CONTENT */}
-      <section className="py-12 bg-white">
+      <section className="py-6 sm:py-12 bg-white">
         <div className="max-w-7xl mx-auto px-5 sm:px-8">
           <div className="flex gap-8 items-start">
             {/* SIDEBAR */}
@@ -215,7 +215,7 @@ export default function Blog() {
       </section>
 
       {/* CTA */}
-      <section className="py-16 sm:py-20" style={{ backgroundColor: CREAM }}>
+      <section className="py-8 sm:py-20" style={{ backgroundColor: CREAM }}>
         <div className="max-w-3xl mx-auto px-5 sm:px-8 text-center">
           <h2 className="text-3xl font-extrabold mb-2 tracking-tight" style={{ color: BLUE }}>Ready to get started?</h2>
           <div className="mb-5" style={{ ...SCRIPT, fontSize: "clamp(1.8rem, 3.5vw, 2.8rem)", color: PINK }}>We'd love to hear from you.</div>

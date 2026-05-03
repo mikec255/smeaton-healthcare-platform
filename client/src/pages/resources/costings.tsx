@@ -48,7 +48,7 @@ export default function UnderstandingCareFunding() {
 
       {/* HERO */}
       <section style={{ backgroundColor: CREAM }}>
-        <div className="max-w-7xl mx-auto px-5 sm:px-8 pt-14 pb-12">
+        <div className="max-w-7xl mx-auto px-5 sm:px-8 pt-8 pb-8 sm:pt-14 sm:pb-12">
           <p className="text-xs font-bold tracking-widest uppercase mb-4" style={{ color: PINK }}>UK Care Funding Guide 2024–25</p>
           <h1 className="text-4xl sm:text-5xl font-extrabold mb-1 tracking-tight" style={{ color: BLUE }}>Understanding</h1>
           <div className="mb-4" style={{ ...SCRIPT, fontSize: "clamp(1.8rem, 3.5vw, 2.8rem)", color: PINK }}>care funding.</div>
@@ -69,7 +69,7 @@ export default function UnderstandingCareFunding() {
       </section>
 
       {/* THRESHOLDS */}
-      <section className="py-14 bg-white">
+      <section className="py-7 sm:py-14 bg-white">
         <div className="max-w-7xl mx-auto px-5 sm:px-8">
           <p className="text-xs font-bold tracking-widest uppercase mb-4" style={{ color: PINK }}>Asset thresholds</p>
           <h2 className="text-2xl font-extrabold mb-3 tracking-tight" style={{ color: BLUE }}>2024–25 Funding thresholds</h2>
@@ -93,7 +93,7 @@ export default function UnderstandingCareFunding() {
       </section>
 
       {/* NHS FUNDING */}
-      <section className="py-14" style={{ backgroundColor: CREAM }}>
+      <section className="py-7 sm:py-14" style={{ backgroundColor: CREAM }}>
         <div className="max-w-7xl mx-auto px-5 sm:px-8">
           <div className="grid lg:grid-cols-2 gap-10">
             <div>
@@ -138,10 +138,10 @@ export default function UnderstandingCareFunding() {
       </section>
 
       {/* FAQS + DISCLAIMER */}
-      <section className="py-14 bg-white">
+      <section className="py-7 sm:py-14 bg-white">
         <div className="max-w-3xl mx-auto px-5 sm:px-8">
           <p className="text-xs font-bold tracking-widest uppercase mb-4" style={{ color: PINK }}>Common questions</p>
-          <h2 className="text-2xl font-extrabold mb-8 tracking-tight" style={{ color: BLUE }}>Frequently asked questions</h2>
+          <h2 className="text-2xl font-extrabold mb-4 sm:mb-8 tracking-tight" style={{ color: BLUE }}>Frequently asked questions</h2>
           <Accordion type="single" collapsible className="space-y-2">
             {FAQS.map((faq, i) => (
               <AccordionItem key={i} value={`faq-${i}`} className="border-2 border-gray-100 rounded-2xl px-6 overflow-hidden" style={{ backgroundColor: CREAM }}>
@@ -164,7 +164,7 @@ export default function UnderstandingCareFunding() {
       </section>
 
       {/* CTA */}
-      <section className="py-14" style={{ backgroundColor: CREAM }}>
+      <section className="py-7 sm:py-14" style={{ backgroundColor: CREAM }}>
         <div className="max-w-3xl mx-auto px-5 sm:px-8 text-center">
           <h2 className="text-3xl font-extrabold mb-2 tracking-tight" style={{ color: BLUE }}>Need additional support?</h2>
           <div className="mb-5" style={{ ...SCRIPT, fontSize: "clamp(1.8rem, 3.5vw, 2.8rem)", color: PINK }}>We're here to help.</div>

@@ -110,7 +110,7 @@ export default function Jobs() {
     return (
       <div>
         <Ticker />
-        <section style={{ backgroundColor: CREAM }} className="py-16">
+        <section style={{ backgroundColor: CREAM }} className="py-8 sm:py-16">
           <div className="max-w-7xl mx-auto px-5 sm:px-8 text-center">
             <div className="animate-spin rounded-full h-8 w-8 mx-auto mb-3" style={{ borderBottom: `2px solid ${PINK}` }}></div>
             <p className="text-gray-400 text-sm" data-testid="jobs-loading">Loading job opportunities...</p>
@@ -158,7 +158,7 @@ export default function Jobs() {
       <Ticker />
 
       {/* HERO */}
-      <section style={{ backgroundColor: CREAM }} className="py-14 sm:py-18">
+      <section style={{ backgroundColor: CREAM }} className="py-7 sm:py-18">
         <div className="max-w-7xl mx-auto px-5 sm:px-8">
           <div className="flex items-start justify-between">
             <div>
@@ -181,7 +181,7 @@ export default function Jobs() {
       </section>
 
       {/* CONTENT */}
-      <div className="max-w-7xl mx-auto px-5 sm:px-8 py-12">
+      <div className="max-w-7xl mx-auto px-5 sm:px-8 py-6 sm:py-12">
       
       {/* Job Filters */}
       <JobFilters onFilterChange={handleFilterChange} />

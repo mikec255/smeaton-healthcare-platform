@@ -65,7 +65,7 @@ export default function NewsletterPage() {
 
       {/* HERO */}
       <section style={{ backgroundColor: CREAM }}>
-        <div className="max-w-7xl mx-auto px-5 sm:px-8 pt-14 pb-12">
+        <div className="max-w-7xl mx-auto px-5 sm:px-8 pt-8 pb-8 sm:pt-14 sm:pb-12">
           <p className="text-xs font-bold tracking-widest uppercase mb-4" style={{ color: PINK }}>Stay in the loop</p>
           <h1 className="text-4xl sm:text-5xl font-extrabold mb-1 tracking-tight" style={{ color: BLUE }}>Our Newsletter</h1>
           <div className="mb-4" style={{ ...SCRIPT, fontSize: "clamp(1.8rem, 3.5vw, 2.8rem)", color: PINK }}>straight to your inbox.</div>
@@ -76,7 +76,7 @@ export default function NewsletterPage() {
       </section>
 
       {/* COMING SOON CARD */}
-      <section className="py-12 bg-white">
+      <section className="py-6 sm:py-12 bg-white">
         <div className="max-w-2xl mx-auto px-5 sm:px-8">
           <div className="rounded-3xl border-2 border-gray-100 p-10 text-center" style={{ backgroundColor: CREAM }}>
             {!subscribed ? (
@@ -119,10 +119,10 @@ export default function NewsletterPage() {
       </section>
 
       {/* WHAT TO EXPECT */}
-      <section className="py-14" style={{ backgroundColor: CREAM }}>
+      <section className="py-7 sm:py-14" style={{ backgroundColor: CREAM }}>
         <div className="max-w-5xl mx-auto px-5 sm:px-8">
           <p className="text-xs font-bold tracking-widest uppercase mb-4" style={{ color: PINK }}>What to expect</p>
-          <h2 className="text-2xl font-extrabold mb-8 tracking-tight" style={{ color: BLUE }}>What we'll cover</h2>
+          <h2 className="text-2xl font-extrabold mb-4 sm:mb-8 tracking-tight" style={{ color: BLUE }}>What we'll cover</h2>
           <div className="grid sm:grid-cols-2 gap-5">
             {FEATURES.map((f, i) => {
               const Icon = f.icon;
@@ -143,7 +143,7 @@ export default function NewsletterPage() {
       </section>
 
       {/* CTA */}
-      <section className="py-14 bg-white">
+      <section className="py-7 sm:py-14 bg-white">
         <div className="max-w-3xl mx-auto px-5 sm:px-8 text-center">
           <h2 className="text-2xl font-extrabold mb-2 tracking-tight" style={{ color: BLUE }}>While you wait</h2>
           <div className="mb-5" style={{ ...SCRIPT, fontSize: "clamp(1.6rem, 3vw, 2.4rem)", color: PINK }}>explore our current opportunities.</div>
