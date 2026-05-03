@@ -184,9 +184,9 @@ export default function Home() {
       </section>
 
       {/* SERVICES */}
-      <section className="py-20 sm:py-28" style={{ backgroundColor: CREAM }}>
+      <section className="py-10 sm:py-28" style={{ backgroundColor: CREAM }}>
         <div className="max-w-7xl mx-auto px-5 sm:px-8">
-          <FadeIn className="mb-12">
+          <FadeIn className="mb-7 sm:mb-12">
             <p className="text-xs font-bold tracking-widest uppercase mb-3" style={{ color: PINK }}>What we offer</p>
             <div className="flex flex-wrap items-baseline gap-x-3">
               <h2 className="text-4xl sm:text-5xl font-extrabold tracking-tight" style={{ color: PINK }}>Ways we</h2>
@@ -229,7 +229,7 @@ export default function Home() {
       </section>
 
       {/* SELF-FUNDED CARE */}
-      <section className="py-20 sm:py-28 bg-white">
+      <section className="py-10 sm:py-28 bg-white">
         <div className="max-w-7xl mx-auto px-5 sm:px-8">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 lg:gap-24 items-center">
             <FadeIn>
@@ -282,9 +282,9 @@ export default function Home() {
       </section>
 
       {/* TESTIMONIALS */}
-      <section className="py-20 sm:py-28" style={{ backgroundColor: CREAM }}>
+      <section className="py-10 sm:py-28" style={{ backgroundColor: CREAM }}>
         <div className="max-w-7xl mx-auto px-5 sm:px-8">
-          <FadeIn className="mb-14">
+          <FadeIn className="mb-7 sm:mb-14">
             <p className="text-xs font-bold tracking-widest uppercase mb-3" style={{ color: PINK }}>In their own words</p>
             <div className="flex flex-wrap items-baseline gap-x-3">
               <h2 className="text-4xl sm:text-5xl font-extrabold tracking-tight" style={{ color: PINK }}>Real people.</h2>
@@ -311,7 +311,7 @@ export default function Home() {
       </section>
 
       {/* COVERAGE */}
-      <section className="py-16 sm:py-20 bg-white">
+      <section className="py-10 sm:py-20 bg-white">
         <div className="max-w-7xl mx-auto px-5 sm:px-8">
           <FadeIn className="grid grid-cols-1 lg:grid-cols-3 gap-12 items-start">
             <div>
@@ -336,7 +336,7 @@ export default function Home() {
       </section>
 
       {/* CTA */}
-      <section className="py-20 sm:py-24" style={{ backgroundColor: CREAM }}>
+      <section className="py-10 sm:py-24" style={{ backgroundColor: CREAM }}>
         <div className="max-w-3xl mx-auto px-5 sm:px-8 text-center">
           <FadeIn>
             <h2 className="text-3xl sm:text-4xl font-extrabold mb-2 tracking-tight" style={{ color: BLUE }}>Ready to get started?</h2>
