@@ -1,9 +1,12 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Link } from "wouter";
 import Seo from "@/components/seo";
 import { Input } from "@/components/ui/input";
-import { Mail, Calendar, Bell, Sparkles, Users, ArrowRight, CheckCircle, Phone } from "lucide-react";
+import { Mail, Calendar, Bell, Sparkles, Users, ArrowRight, CheckCircle } from "lucide-react";
 import Ticker from "@/components/layout/ticker";
+import { useMutation } from "@tanstack/react-query";
+import { apiRequest, queryClient } from "@/lib/queryClient";
+import { useToast } from "@/hooks/use-toast";
 
 const NAVY = "#05163D";
 const BLUE = "#275799";
@@ -20,15 +23,12 @@ const FEATURES = [
 
 export default function NewsletterPage() {
   const [email, setEmail] = useState("");
+  const [subscribed, setSubscribed] = useState(false);
   const { toast } = useToast();
-
-  const { data: newsletters = [], isLoading } = useQuery<Newsletter[]>({
-    queryKey: ["/api/newsletters"],
-  });
 
   const subscribeMutation = useMutation({
     mutationFn: async (email: string) => {
-      return apiRequest("POST", "/api/subscribers", { 
+      return apiRequest("POST", "/api/subscribers", {
         email,
         status: "pending",
         source: "newsletter_page"
@@ -40,6 +40,7 @@ export default function NewsletterPage() {
         description: "Thank you for subscribing to our newsletter.",
       });
       setEmail("");
+      setSubscribed(true);
       queryClient.invalidateQueries({ queryKey: ["/api/subscribers"] });
     },
     onError: () => {
@@ -98,9 +99,14 @@ export default function NewsletterPage() {
                     className="flex-1 border-2 border-gray-200 focus:border-pink-400 rounded-xl"
                     data-testid="newsletter-email-input"
                   />
-                  <button type="submit" className="px-5 py-2.5 text-white font-bold rounded-xl shrink-0 hover:scale-105 transition-all" style={{ backgroundColor: PINK }}
-                    data-testid="newsletter-subscribe-button">
-                    Notify Me
+                  <button
+                    type="submit"
+                    disabled={subscribeMutation.isPending}
+                    className="px-5 py-2.5 text-white font-bold rounded-xl shrink-0 hover:scale-105 transition-all disabled:opacity-60"
+                    style={{ backgroundColor: PINK }}
+                    data-testid="newsletter-subscribe-button"
+                  >
+                    {subscribeMutation.isPending ? "..." : "Notify Me"}
                   </button>
                 </form>
                 <p className="text-xs text-gray-400">Join the waitlist for launch updates and exclusive early access.</p>
