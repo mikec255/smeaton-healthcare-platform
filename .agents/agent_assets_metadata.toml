@@ -1,0 +1,8 @@
+uploads = []
+generated = []
+
+[[outputs]]
+id = "E2I6VPO8Vk7bvdSNPiKxr"
+uri = "file://CARELOGR-BLOG-SPEC.md"
+type = "text"
+title = "CareLogr Blog Spec — send this to the CareLogr Replit"
