@@ -239,14 +239,14 @@ export default function Home() {
                 care, your way.
               </div>
               <p className="text-gray-500 text-base leading-relaxed mb-8">
-                Many families choose to fund care privately — no waiting lists, no rigid rotas. We welcome private clients and can usually begin within days of your assessment.
+                Many families choose to fund their own care, and we make that as straightforward as possible. We welcome private clients and work around your schedule, your needs and your budget.
               </p>
               <div className="grid grid-cols-2 gap-3 mb-10">
                 {[
-                  { num: "No", label: "waiting lists" },
-                  { num: "Same", label: "carers every visit" },
-                  { num: "Your", label: "hours, your routine" },
-                  { num: "Clear", label: "transparent pricing" },
+                  { num: "CQC", label: "Rated Good" },
+                  { num: "Fast", label: "care start times" },
+                  { num: "Your", label: "hours, your way" },
+                  { num: "Zero", label: "hidden charges" },
                 ].map((s) => (
                   <div key={s.label} className="flex items-center gap-4 p-4 rounded-xl" style={{ backgroundColor: CREAM }}>
                     <div className="text-lg font-extrabold" style={{ color: PINK }}>{s.num}</div>
