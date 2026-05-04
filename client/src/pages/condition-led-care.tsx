@@ -94,7 +94,7 @@ export default function ConditionLedCare() {
       {/* WHAT'S INCLUDED */}
       <section className="py-8 sm:py-20 bg-white">
         <div className="max-w-7xl mx-auto px-5 sm:px-8">
-          <p className="text-xs font-bold tracking-widest uppercase mb-4" style={{ color: PINK }}>Areas we specialise in</p>
+          <p className="text-xs font-bold tracking-widest uppercase mb-4" style={{ color: PINK }}>Supporting you</p>
           <h2 className="text-3xl font-extrabold mb-5 sm:mb-10 tracking-tight" style={{ color: NAVY }}>Specialist support across many conditions</h2>
           <div className="grid md:grid-cols-3 gap-6 mb-10">
             {INCLUDED.map((cat) => (
