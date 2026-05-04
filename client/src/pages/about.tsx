@@ -17,7 +17,7 @@ const PINK = "#EF2A86";
 const VALUES = [
   { icon: Star,  name: "Innovation",    desc: "We take risks, encourage curiosity and new ideas, learn from our mistakes, and constantly strive to move forward.", color: PINK },
   { icon: Heart, name: "Community",     desc: "We provide a haven of inclusion, trust and support to colleagues, service users, and all stakeholders.", color: BLUE },
-  { icon: Users, name: "Collaboration", desc: "We navigate in partnership — listening to one another and working collaboratively to achieve better outcomes.", color: PINK },
+  { icon: Users, name: "Collaboration", desc: "We navigate in partnership, listening to one another and working collaboratively to achieve better outcomes.", color: PINK },
   { icon: Award, name: "Excellence",    desc: "We adapt through vigilance and integrity, ensuring every interaction meets the highest standards of care.", color: BLUE },
   { icon: Star,  name: "Leadership",    desc: "We maintain a culture that empowers colleagues to realise the importance of their contribution.", color: PINK },
 ];
@@ -37,7 +37,7 @@ export default function About() {
 
   return (
     <div data-testid="about-page">
-      <Seo title="About Us — Our Story & Values" description="Learn about Smeaton Healthcare — a CQC Rated Good home care provider founded in 2019, serving Devon and Cornwall with compassion, integrity and excellence." path="/about" />
+      <Seo title="About Us | Our Story & Values" description="Learn about Smeaton Healthcare, a CQC Rated Good home care provider founded in 2019, serving Devon and Cornwall with compassion, integrity and excellence." path="/about" />
       {/* HERO */}
       <section style={{ backgroundColor: "#FDF7F0" }}>
         <div className="max-w-7xl mx-auto px-5 sm:px-8 pt-16 pb-0">
@@ -93,7 +93,7 @@ export default function About() {
               <div className="space-y-5 text-gray-500 leading-relaxed text-base">
                 <p>Smeaton Healthcare was founded by Michael and Benjamin Wakefield-O'Connor, who both spent years working on the frontline of social care. They weren't investors or entrepreneurs who spotted a gap in the market. They were frontline workers in social care who knew what good care looked like from the inside, and they also knew what happened when it fell short.</p>
                 <p>Working across Devon and Cornwall, they saw first-hand the difference a truly dedicated carer could make to someone's day, their confidence, and their independence.</p>
-                <p>In 2019, they decided to build something better. Something that put the person at the centre of every decision. Smeaton Healthcare was built on the belief that home care could be genuinely excellent, not just adequate — and that the carers delivering that support deserved to work for an organisation that took them seriously too.</p>
+                <p>In 2019, they decided to build something better. Something that put the person at the centre of every decision. Smeaton Healthcare was built on the belief that home care could be genuinely excellent, not just adequate. And that the carers delivering that support deserved to work for an organisation that took them seriously too.</p>
                 <p>What started as a small team has grown into one of Devon and Cornwall's most trusted care providers. But the founding principle hasn't changed: care that is personal, consistent and honest, delivered by people who genuinely want to be there.</p>
               </div>
             </FadeIn>
@@ -158,10 +158,10 @@ export default function About() {
               <h2 className="text-3xl font-extrabold mb-1 tracking-tight" style={{ color: NAVY }}>Care that feels like</h2>
               <div className="mb-6" style={{ ...SCRIPT, fontSize: "clamp(2rem, 4.5vw, 3.5rem)", color: BLUE }}>coming home.</div>
               <p className="text-gray-500 leading-relaxed mb-6">
-                We believe in consistency. The same carers visiting the same clients builds real relationships — and that's where genuine care happens. Our service users aren't just a name on a schedule; they're people with preferences, routines, and stories that matter to us.
+                We believe in consistency. The same carers visiting the same clients builds real relationships, and that is where genuine care happens. Our service users are not just a name on a schedule. They are people with preferences, routines, and stories that matter to us.
               </p>
               <div className="flex flex-col gap-3">
-                {["Matched carers — we consider personalities, not just availability", "Handover notes so every carer knows what matters to you", "Regular reviews to ensure your care plan stays right"].map((item) => (
+                {["Matched carers, chosen on personality as well as availability", "Handover notes so every carer knows what matters to you", "Regular reviews to ensure your care plan stays right"].map((item) => (
                   <span key={item} className="flex items-start gap-2 text-sm text-gray-600">
                     <CheckCircle2 size={14} style={{ color: PINK }} className="shrink-0 mt-0.5" /> {item}
                   </span>
