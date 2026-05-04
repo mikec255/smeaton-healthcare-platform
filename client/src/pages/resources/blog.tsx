@@ -196,7 +196,12 @@ export default function Blog() {
                                 <span className="flex items-center gap-1"><Calendar size={11} /> {post.date}</span>
                               </div>
                             </DialogHeader>
-                            <div className="prose prose-lg max-w-none" dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(post.fullContent) }} data-testid={`full-article-${index}`} />
+                            {post.image && (
+                              <div className="w-full mt-2 mb-6 rounded-xl overflow-hidden">
+                                <img src={post.image} alt={post.title} className="w-full object-cover block" style={{ maxHeight: "380px" }} />
+                              </div>
+                            )}
+                            <div className="prose prose-lg max-w-none" style={{ clear: "both" }} dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(post.fullContent) }} data-testid={`full-article-${index}`} />
                           </DialogContent>
                         </Dialog>
                       </div>
