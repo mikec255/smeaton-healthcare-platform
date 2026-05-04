@@ -77,14 +77,14 @@ export default function Home() {
               transition={{ duration: 0.7, delay: 0.1, ease: [0.22, 1, 0.36, 1] }}
               className="block font-extrabold leading-[0.92] tracking-tight"
               style={{ fontSize: "clamp(28px, 3.8vw, 80px)", color: BLUE }}>
-              Home care that
+              Home care you can trust,
             </motion.span>
 
             <motion.span initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, delay: 0.2, ease: [0.22, 1, 0.36, 1] }}
               className="block leading-[1.05]"
               style={{ ...SCRIPT, fontSize: "clamp(40px, 5.2vw, 108px)", color: PINK }}>
-              feels like it should.
+              for the people who matter most.
             </motion.span>
 
             <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.6, delay: 0.38 }}
