@@ -1,7 +1,6 @@
-import { useEffect } from "react";
 import { Link } from "wouter";
 import Seo from "@/components/seo";
-import { Brain, Heart, Shield, CheckCircle, ArrowRight, Phone, Stethoscope, Users, Activity, Eye } from "lucide-react";
+import { Brain, Heart, Shield, CheckCircle, ArrowRight, Phone, Stethoscope, Users } from "lucide-react";
 import Ticker from "@/components/layout/ticker";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 
@@ -12,22 +11,22 @@ const CREAM = "#FDF7F0";
 const SCRIPT = { fontFamily: "'Dancing Script', cursive" };
 
 const INCLUDED = [
-  { category: "Dementia & Alzheimer's Care", items: ["Specialised dementia care training and techniques", "Memory stimulation and cognitive activities", "Safe environment management and monitoring", "Family communication and support guidance"] },
-  { category: "Learning Disabilities Support", items: ["Person-centred care planning and delivery", "Life skills development and independence training", "Community integration and social activities", "Advocacy and rights-based support"] },
-  { category: "Complex Medical Conditions", items: ["Specialised nursing care and medical support", "Medication management and administration", "Health monitoring and condition management", "Coordination with healthcare professionals"] },
+  { category: "Dementia and Alzheimer's", items: ["Carers trained specifically in dementia care", "Gentle, consistent routines that reduce anxiety", "Memory-supportive activities and communication", "Keeping families informed and supported"] },
+  { category: "Learning Disabilities", items: ["Person-centred planning and support", "Building life skills and independence", "Community involvement and social activities", "Advocacy and rights-based support"] },
+  { category: "Complex and Long-Term Conditions", items: ["Specialist support for a wide range of diagnoses", "Medication management and health monitoring", "Close working with GPs and healthcare teams", "Care that adapts as a condition progresses"] },
 ];
 
 const BENEFITS = [
-  { icon: Brain, title: "Specialist Expertise", desc: "Carers trained specifically in your condition with deep understanding of your care needs." },
-  { icon: Stethoscope, title: "Clinical Knowledge", desc: "Our team works closely with healthcare professionals to deliver clinically appropriate care." },
-  { icon: Shield, title: "Fully Vetted", desc: "All carers are DBS checked, trained, and insured for your complete safety." },
-  { icon: Heart, title: "Person-Centred", desc: "Care that respects the whole person, not just the diagnosis — your wishes always come first." },
+  { icon: Brain, title: "Genuine Specialist Knowledge", desc: "Carers receive training specific to your condition. They understand the day-to-day reality of living with it, not just the clinical facts." },
+  { icon: Stethoscope, title: "Working Alongside Your Medical Team", desc: "We coordinate closely with GPs, district nurses and other professionals to make sure care is joined up and consistent." },
+  { icon: Shield, title: "Thoroughly Vetted", desc: "All carers are DBS checked, trained and insured. For specialist care, we match carers based on relevant experience and qualifications." },
+  { icon: Heart, title: "The Whole Person Matters", desc: "A diagnosis is never the whole story. We care for people, not conditions. Your wishes, preferences and personality always come first." },
 ];
 
 const CONDITIONS = [
-  "Dementia & Alzheimer's disease",
+  "Dementia and Alzheimer's disease",
   "Parkinson's disease",
-  "Multiple sclerosis (MS)",
+  "Multiple sclerosis",
   "Stroke recovery",
   "Learning disabilities",
   "Mental health conditions",
@@ -40,19 +39,20 @@ const CONDITIONS = [
 ];
 
 const FAQS = [
-  { q: "What is condition-led care?", a: "Condition-led care means our carers receive specialist training relevant to your specific health condition, so they understand your unique needs, risks, and best practices for your care." },
-  { q: "Which conditions do you support?", a: "We support a wide range of conditions including dementia, Parkinson's, MS, stroke recovery, learning disabilities, mental health conditions, and many more. Please contact us to discuss your specific needs." },
-  { q: "Are your carers specifically trained?", a: "Yes — beyond our standard training, carers working with clients with specific conditions receive additional specialist training. We match carers to clients based on their experience and qualifications." },
-  { q: "Can condition-led care be combined with other services?", a: "Absolutely. Condition-led care can be combined with short visits, live-in care, 24/7 care, or any of our other services depending on your needs." },
-  { q: "How do I know if condition-led care is right for me?", a: "If your loved one has a specific diagnosis that affects their daily life, condition-led care ensures they receive support from someone trained in that condition. Call us for a free chat to discuss whether it's suitable." },
+  { q: "What does condition-led care actually mean?", a: "It means the carer supporting you has received specific training in your diagnosis, so they understand not just the practical tasks involved but the lived reality of your condition. It makes for better, more thoughtful care." },
+  { q: "Which conditions do you have experience with?", a: "We support a wide range including dementia, Parkinson's, MS, stroke recovery, learning disabilities, mental health conditions and more. If your condition is not listed, please call us. We are more than happy to have a conversation about whether we can help." },
+  { q: "Are your carers specifically trained for each condition?", a: "Yes. Beyond our standard induction training, carers supporting clients with specific conditions receive additional specialist training relevant to that diagnosis. We also carefully match carers to clients based on their experience." },
+  { q: "Can condition-led care be combined with other services?", a: "Absolutely. Many of our clients receive condition-led care alongside short visits, live-in care or 24/7 support. We will build a package that reflects the full picture of what you need." },
+  { q: "How do I know if this is the right option?", a: "If your loved one has a specific diagnosis that shapes their daily life, condition-led care means they are supported by someone who genuinely understands that. Give us a call and we can talk it through properly." },
 ];
 
 export default function ConditionLedCare() {
-
   return (
     <div data-testid="condition-led-care-page">
       <Seo title="Condition-Led Specialist Care Devon & Cornwall" description="Specialist home care tailored to your health condition — dementia, Parkinson's, stroke recovery and more. Expert carers across Devon and Cornwall." path="/services/condition-led-care" />
       <Ticker />
+
+      {/* HERO */}
       <section className="relative overflow-hidden" style={{ backgroundColor: CREAM }}>
         <div className="absolute -top-24 -right-24 w-96 h-96 rounded-full opacity-[0.15] pointer-events-none" style={{ backgroundColor: PINK }} />
         <div className="absolute -bottom-32 -left-16 w-80 h-80 rounded-full opacity-[0.08] pointer-events-none" style={{ backgroundColor: BLUE }} />
@@ -60,10 +60,10 @@ export default function ConditionLedCare() {
           <Link href="/services" className="inline-flex items-center gap-1.5 text-sm font-semibold mb-5 hover:opacity-80 transition-opacity" style={{ color: PINK }}>← All Services</Link>
           <div className="grid lg:grid-cols-[1fr_400px] gap-12 xl:gap-20 items-center">
             <div>
-              <div className="inline-flex items-center px-3.5 py-1.5 rounded-full text-xs font-bold uppercase tracking-widest mb-5 " style={{ color: BLUE, backgroundColor: "rgba(39,87,153,0.09)", border: "1px solid rgba(39,87,153,0.22)" }}>Home Care</div>
+              <div className="inline-flex items-center px-3.5 py-1.5 rounded-full text-xs font-bold uppercase tracking-widest mb-5" style={{ color: BLUE, backgroundColor: "rgba(39,87,153,0.09)", border: "1px solid rgba(39,87,153,0.22)" }}>Home Care</div>
               <h1 className="text-5xl sm:text-6xl font-extrabold mb-3 tracking-tight leading-[1.05]" style={{ color: BLUE }}>Condition-Led Care</h1>
-              <div className="mb-6" style={{ ...SCRIPT, fontSize: "clamp(1.8rem, 3.5vw, 2.8rem)", color: PINK }}>specialist care, truly understood.</div>
-              <p className="text-gray-600 text-lg max-w-xl leading-relaxed mb-10">Specialist care tailored to specific health conditions — our carers receive in-depth training to truly understand your or your loved one's needs.</p>
+              <div className="mb-6" style={{ ...SCRIPT, fontSize: "clamp(1.8rem, 3.5vw, 2.8rem)", color: PINK }}>care that truly understands.</div>
+              <p className="text-gray-600 text-lg max-w-xl leading-relaxed mb-10">A diagnosis changes things. The care that follows it should reflect that. Specialist support from carers who are trained in your specific condition and understand what it actually means to live with it.</p>
               <div className="flex flex-col sm:flex-row gap-4">
                 <Link href="/referral" className="inline-flex items-center justify-center gap-2 px-7 py-4 text-white font-bold rounded-2xl hover:scale-105 transition-all text-base" style={{ backgroundColor: PINK, boxShadow: "0 8px 32px rgba(239,42,134,0.45)" }}>Request Free Assessment <ArrowRight size={17} /></Link>
                 <a href="tel:03301658880" className="inline-flex items-center justify-center gap-2 px-7 py-4 font-semibold rounded-2xl hover:opacity-80 transition-all text-base" style={{ color: BLUE, border: "2px solid rgba(39,87,153,0.35)" }}><Phone size={16} /> 0330 165 8880</a>
@@ -81,10 +81,21 @@ export default function ConditionLedCare() {
         </div>
       </section>
 
+      {/* NARRATIVE */}
+      <section className="py-10 sm:py-16 bg-white border-b border-gray-100">
+        <div className="max-w-7xl mx-auto px-5 sm:px-8">
+          <div className="max-w-3xl space-y-4 text-gray-500 text-base leading-relaxed">
+            <p>When someone is living with a specific condition, generic care often falls short. The person delivering care needs to understand what the condition actually means on a day-to-day basis, how it affects someone's mood, mobility, communication, or memory, and how to respond in a way that genuinely helps.</p>
+            <p>Our condition-led carers receive training that goes beyond the basics. They are matched to clients based on relevant experience and knowledge, and they work alongside families and healthcare professionals to make sure care is consistent, appropriate and genuinely supportive.</p>
+          </div>
+        </div>
+      </section>
+
+      {/* WHAT'S INCLUDED */}
       <section className="py-8 sm:py-20 bg-white">
         <div className="max-w-7xl mx-auto px-5 sm:px-8">
-          <p className="text-xs font-bold tracking-widest uppercase mb-4" style={{ color: PINK }}>What's included</p>
-          <h2 className="text-3xl font-extrabold mb-5 sm:mb-10 tracking-tight" style={{ color: NAVY }}>Areas we specialise in</h2>
+          <p className="text-xs font-bold tracking-widest uppercase mb-4" style={{ color: PINK }}>Areas we specialise in</p>
+          <h2 className="text-3xl font-extrabold mb-5 sm:mb-10 tracking-tight" style={{ color: NAVY }}>Specialist support across many conditions</h2>
           <div className="grid md:grid-cols-3 gap-6 mb-10">
             {INCLUDED.map((cat) => (
               <div key={cat.category} className="rounded-2xl p-7 border-2 border-gray-100">
@@ -108,6 +119,7 @@ export default function ConditionLedCare() {
         </div>
       </section>
 
+      {/* BENEFITS */}
       <section className="py-8 sm:py-20" style={{ backgroundColor: CREAM }}>
         <div className="max-w-7xl mx-auto px-5 sm:px-8">
           <p className="text-xs font-bold tracking-widest uppercase mb-4" style={{ color: PINK }}>Why choose us</p>
@@ -117,9 +129,7 @@ export default function ConditionLedCare() {
               const Icon = b.icon;
               return (
                 <div key={b.title} className="bg-white rounded-2xl p-6 border-2 border-gray-100">
-                  <div className="w-10 h-10 rounded-xl flex items-center justify-center mb-4" style={{ backgroundColor: `${PINK}15` }}>
-                    <Icon size={18} style={{ color: PINK }} />
-                  </div>
+                  <div className="w-10 h-10 rounded-xl flex items-center justify-center mb-4" style={{ backgroundColor: `${PINK}15` }}><Icon size={18} style={{ color: PINK }} /></div>
                   <h3 className="font-extrabold mb-2 text-base tracking-tight" style={{ color: NAVY }}>{b.title}</h3>
                   <p className="text-gray-500 text-sm leading-relaxed">{b.desc}</p>
                 </div>
@@ -129,6 +139,7 @@ export default function ConditionLedCare() {
         </div>
       </section>
 
+      {/* FAQ */}
       <section className="py-8 sm:py-20 bg-white">
         <div className="max-w-3xl mx-auto px-5 sm:px-8">
           <p className="text-xs font-bold tracking-widest uppercase mb-4" style={{ color: PINK }}>Common questions</p>
@@ -144,11 +155,12 @@ export default function ConditionLedCare() {
         </div>
       </section>
 
+      {/* CTA */}
       <section className="py-8 sm:py-20" style={{ backgroundColor: CREAM }}>
         <div className="max-w-3xl mx-auto px-5 sm:px-8 text-center">
-          <h2 className="text-3xl font-extrabold mb-2 tracking-tight" style={{ color: BLUE }}>Ready to get started?</h2>
-          <div className="mb-5" style={{ ...SCRIPT, fontSize: "clamp(1.8rem,3.5vw,2.8rem)", color: PINK }}>Let's talk about your needs.</div>
-          <p className="text-gray-500 mb-8 leading-relaxed">A free, no-obligation assessment with one of our care coordinators. We can usually begin within 24–48 hours.</p>
+          <h2 className="text-3xl font-extrabold mb-2 tracking-tight" style={{ color: BLUE }}>Ready to talk it through?</h2>
+          <div className="mb-5" style={{ ...SCRIPT, fontSize: "clamp(1.8rem,3.5vw,2.8rem)", color: PINK }}>We're here to help.</div>
+          <p className="text-gray-500 mb-8 leading-relaxed">A free assessment with one of our team. No pressure, just a proper conversation about your loved one's needs and how we might be able to support them.</p>
           <div className="flex flex-col sm:flex-row justify-center gap-4">
             <Link href="/referral" className="inline-flex items-center justify-center gap-2 px-7 py-4 text-white font-bold rounded-xl hover:scale-105 transition-all" style={{ backgroundColor: PINK, boxShadow: "0 8px 32px rgba(239,42,134,0.4)" }}>Request Free Assessment <ArrowRight size={16} /></Link>
             <a href="tel:03301658880" className="inline-flex items-center justify-center gap-2 px-7 py-4 font-semibold rounded-xl hover:opacity-80 transition-all border-2" style={{ color: NAVY, borderColor: "rgba(5,22,61,0.2)" }}><Phone size={16} /> 0330 165 8880</a>

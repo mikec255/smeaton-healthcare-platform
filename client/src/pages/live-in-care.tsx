@@ -1,7 +1,6 @@
-import { useEffect } from "react";
 import { Link } from "wouter";
 import Seo from "@/components/seo";
-import { Home, Heart, UserCheck, CheckCircle, ArrowRight, Phone, Shield, Clock, Bed, Users } from "lucide-react";
+import { Home, Heart, UserCheck, CheckCircle, ArrowRight, Phone, Shield } from "lucide-react";
 import Ticker from "@/components/layout/ticker";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 
@@ -12,32 +11,33 @@ const CREAM = "#FDF7F0";
 const SCRIPT = { fontFamily: "'Dancing Script', cursive" };
 
 const INCLUDED = [
-  { category: "Comprehensive Home Care", items: ["24/7 live-in carer residing in your home", "Assistance with personal care", "Medication management and administration", "Meal planning, preparation and assistance", "Light housekeeping and domestic tasks", "Companionship and social interaction"] },
-  { category: "Health & Wellbeing", items: ["Health monitoring and condition management", "Assistance with mobility and transfers", "Appointment coordination and accompaniment", "Emergency response and care coordination", "Communication with family and healthcare providers", "Condition-led care"] },
-  { category: "Lifestyle & Independence", items: ["Maintaining familiar routines and environment", "Support with hobbies and personal interests", "Social activities and community engagement", "Support to arrange transportation", "Emotional support and mental wellbeing", "Flexible care that adapts to changing needs"] },
+  { category: "Day-to-Day Living", items: ["Help with washing, dressing and personal care", "Medication management and prompting", "Meal planning and cooking together", "Light housekeeping and keeping things comfortable", "Accompanying to appointments and outings", "Companionship throughout the day"] },
+  { category: "Health and Wellbeing", items: ["Monitoring health and flagging any changes", "Support with mobility and moving safely", "Liaison with GPs, nurses and healthcare professionals", "Emergency response if needed", "Condition-led care for specific diagnoses", "Family updates and open communication"] },
+  { category: "Life and Independence", items: ["Maintaining your existing routines and preferences", "Support with hobbies, interests and social activities", "Help staying connected with friends and community", "Emotional support and genuine companionship", "Flexible care that adjusts as needs change", "Helping you stay in the home that matters to you"] },
 ];
 
 const BENEFITS = [
-  { icon: Home, title: "Stay in Your Home", desc: "No need to move to a care home — live in the comfort and familiarity of your own home." },
-  { icon: UserCheck, title: "Dedicated Carer", desc: "Your live-in carer gets to know you deeply, building a genuine bond and understanding of your needs." },
-  { icon: Shield, title: "Fully Vetted", desc: "All live-in carers are DBS checked, trained, and insured for your complete safety and peace of mind." },
-  { icon: Heart, title: "Continuity", desc: "Consistent one-to-one care from the same person — no rotating staff or unfamiliar faces." },
+  { icon: Home, title: "Stay Where You Belong", desc: "There is no need to leave your home, your belongings, or the life you've built. Live-in care means exactly that." },
+  { icon: UserCheck, title: "One Person Who Knows You", desc: "Your live-in carer gets to know you properly. Your preferences, your routines, the things that matter to you." },
+  { icon: Shield, title: "Thoroughly Vetted", desc: "All live-in carers are DBS checked, trained and insured. We also carefully match carers to clients based on personality and experience." },
+  { icon: Heart, title: "Real Continuity", desc: "The same person, day after day. No rotating staff, no unfamiliar faces when you wake up." },
 ];
 
 const FAQS = [
-  { q: "How does live-in care work?", a: "A trained carer moves into your home and provides support throughout the day and night. They have their own room and are available whenever you need them." },
-  { q: "Is live-in care suitable for couples?", a: "Yes — live-in care can support couples where one or both partners need care, keeping them together at home rather than moving to a care facility." },
-  { q: "What happens if my live-in carer is unwell?", a: "We have a team of relief carers who can step in at short notice to ensure your care is never interrupted." },
-  { q: "How is live-in care different from 24/7 care?", a: "Live-in care involves one carer living with you full-time, while 24/7 care typically involves a team of carers working in shifts. We can advise which suits you best." },
-  { q: "How is live-in care funded?", a: "Live-in care can be funded privately, through NHS Continuing Healthcare, or via a direct payment from your local authority. We can help you understand the options." },
+  { q: "How does live-in care actually work?", a: "A trained carer moves into your home and is there to support you throughout the day. They have their own room and private time, but they are available whenever you need them. It becomes a natural, comfortable arrangement for most people." },
+  { q: "Is live-in care suitable for couples?", a: "Yes. Live-in care can support couples where one or both partners need some level of help. It keeps couples together at home, which is incredibly important to many families. We will make sure the arrangement works for both of you." },
+  { q: "What happens if my live-in carer is unwell or needs time off?", a: "We have relief carers who can step in at short notice. We do not just leave you without support. Cover arrangements are discussed and planned as part of your care package from the start." },
+  { q: "How is live-in care different from 24/7 care?", a: "Live-in care means one dedicated carer living with you. Our 24/7 service involves a team of carers working in shifts to provide continuous cover. Both offer round-the-clock support but suit different situations. We can talk through which would work best for you." },
+  { q: "How can live-in care be funded?", a: "Live-in care can be funded privately, through NHS Continuing Healthcare, or through a direct payment from your local authority. Navigating the options can feel overwhelming, and we are happy to help you understand what might be available to you." },
 ];
 
 export default function LiveInCare() {
-
   return (
     <div data-testid="live-in-care-page">
       <Seo title="Live-In Care Devon & Cornwall" description="Full-time live-in care providing round-the-clock companionship and support at home. CQC Rated Good, trusted by families across Devon and Cornwall." path="/services/live-in-care" />
       <Ticker />
+
+      {/* HERO */}
       <section className="relative overflow-hidden" style={{ backgroundColor: CREAM }}>
         <div className="absolute -top-24 -right-24 w-96 h-96 rounded-full opacity-[0.15] pointer-events-none" style={{ backgroundColor: PINK }} />
         <div className="absolute -bottom-32 -left-16 w-80 h-80 rounded-full opacity-[0.08] pointer-events-none" style={{ backgroundColor: BLUE }} />
@@ -45,10 +45,10 @@ export default function LiveInCare() {
           <Link href="/services" className="inline-flex items-center gap-1.5 text-sm font-semibold mb-5 hover:opacity-80 transition-opacity" style={{ color: PINK }}>← All Services</Link>
           <div className="grid lg:grid-cols-[1fr_400px] gap-12 xl:gap-20 items-center">
             <div>
-              <div className="inline-flex items-center px-3.5 py-1.5 rounded-full text-xs font-bold uppercase tracking-widest mb-5 " style={{ color: BLUE, backgroundColor: "rgba(39,87,153,0.09)", border: "1px solid rgba(39,87,153,0.22)" }}>Home Care</div>
+              <div className="inline-flex items-center px-3.5 py-1.5 rounded-full text-xs font-bold uppercase tracking-widest mb-5" style={{ color: BLUE, backgroundColor: "rgba(39,87,153,0.09)", border: "1px solid rgba(39,87,153,0.22)" }}>Home Care</div>
               <h1 className="text-5xl sm:text-6xl font-extrabold mb-3 tracking-tight leading-[1.05]" style={{ color: BLUE }}>Live-In Care</h1>
               <div className="mb-6" style={{ ...SCRIPT, fontSize: "clamp(1.8rem, 3.5vw, 2.8rem)", color: PINK }}>home is where you belong.</div>
-              <p className="text-gray-600 text-lg max-w-xl leading-relaxed mb-10">Full-time live-in support for people who need constant companionship and care, without leaving the home they love.</p>
+              <p className="text-gray-600 text-lg max-w-xl leading-relaxed mb-10">A dedicated carer living with you, providing support throughout the day and night. All the help you need, without leaving the home you love.</p>
               <div className="flex flex-col sm:flex-row gap-4">
                 <Link href="/referral" className="inline-flex items-center justify-center gap-2 px-7 py-4 text-white font-bold rounded-2xl hover:scale-105 transition-all text-base" style={{ backgroundColor: PINK, boxShadow: "0 8px 32px rgba(239,42,134,0.45)" }}>Request Free Assessment <ArrowRight size={17} /></Link>
                 <a href="tel:03301658880" className="inline-flex items-center justify-center gap-2 px-7 py-4 font-semibold rounded-2xl hover:opacity-80 transition-all text-base" style={{ color: BLUE, border: "2px solid rgba(39,87,153,0.35)" }}><Phone size={16} /> 0330 165 8880</a>
@@ -66,6 +66,17 @@ export default function LiveInCare() {
         </div>
       </section>
 
+      {/* NARRATIVE */}
+      <section className="py-10 sm:py-16 bg-white border-b border-gray-100">
+        <div className="max-w-7xl mx-auto px-5 sm:px-8">
+          <div className="max-w-3xl space-y-4 text-gray-500 text-base leading-relaxed">
+            <p>For many people, the idea of moving into a care home feels like giving something up. Your independence, your things, the routines you've built over decades. Live-in care is the alternative that means you don't have to give any of that away.</p>
+            <p>A trained carer moves into your home and becomes part of your daily life. They are there when you need them, whether that's first thing in the morning, during the night, or just for company in the afternoon. Over time, a genuine bond forms, and that is where real, quality care happens.</p>
+          </div>
+        </div>
+      </section>
+
+      {/* WHAT'S INCLUDED */}
       <section className="py-8 sm:py-20 bg-white">
         <div className="max-w-7xl mx-auto px-5 sm:px-8">
           <p className="text-xs font-bold tracking-widest uppercase mb-4" style={{ color: PINK }}>What's included</p>
@@ -83,6 +94,7 @@ export default function LiveInCare() {
         </div>
       </section>
 
+      {/* BENEFITS */}
       <section className="py-8 sm:py-20" style={{ backgroundColor: CREAM }}>
         <div className="max-w-7xl mx-auto px-5 sm:px-8">
           <p className="text-xs font-bold tracking-widest uppercase mb-4" style={{ color: PINK }}>Why choose us</p>
@@ -92,9 +104,7 @@ export default function LiveInCare() {
               const Icon = b.icon;
               return (
                 <div key={b.title} className="bg-white rounded-2xl p-6 border-2 border-gray-100">
-                  <div className="w-10 h-10 rounded-xl flex items-center justify-center mb-4" style={{ backgroundColor: `${BLUE}15` }}>
-                    <Icon size={18} style={{ color: BLUE }} />
-                  </div>
+                  <div className="w-10 h-10 rounded-xl flex items-center justify-center mb-4" style={{ backgroundColor: `${BLUE}15` }}><Icon size={18} style={{ color: BLUE }} /></div>
                   <h3 className="font-extrabold mb-2 text-base tracking-tight" style={{ color: NAVY }}>{b.title}</h3>
                   <p className="text-gray-500 text-sm leading-relaxed">{b.desc}</p>
                 </div>
@@ -104,6 +114,7 @@ export default function LiveInCare() {
         </div>
       </section>
 
+      {/* FAQ */}
       <section className="py-8 sm:py-20 bg-white">
         <div className="max-w-3xl mx-auto px-5 sm:px-8">
           <p className="text-xs font-bold tracking-widest uppercase mb-4" style={{ color: PINK }}>Common questions</p>
@@ -119,11 +130,12 @@ export default function LiveInCare() {
         </div>
       </section>
 
+      {/* CTA */}
       <section className="py-8 sm:py-20" style={{ backgroundColor: CREAM }}>
         <div className="max-w-3xl mx-auto px-5 sm:px-8 text-center">
-          <h2 className="text-3xl font-extrabold mb-2 tracking-tight" style={{ color: BLUE }}>Ready to get started?</h2>
-          <div className="mb-5" style={{ ...SCRIPT, fontSize: "clamp(1.8rem,3.5vw,2.8rem)", color: PINK }}>Let's talk about your needs.</div>
-          <p className="text-gray-500 mb-8 leading-relaxed">A free, no-obligation assessment with one of our care coordinators. We can usually begin within 24–48 hours.</p>
+          <h2 className="text-3xl font-extrabold mb-2 tracking-tight" style={{ color: BLUE }}>Thinking about live-in care?</h2>
+          <div className="mb-5" style={{ ...SCRIPT, fontSize: "clamp(1.8rem,3.5vw,2.8rem)", color: PINK }}>Let's have a proper conversation.</div>
+          <p className="text-gray-500 mb-8 leading-relaxed">A free assessment with one of our care coordinators. No pressure, no obligation. Just a chance to talk through what you're looking for and whether we're the right fit.</p>
           <div className="flex flex-col sm:flex-row justify-center gap-4">
             <Link href="/referral" className="inline-flex items-center justify-center gap-2 px-7 py-4 text-white font-bold rounded-xl hover:scale-105 transition-all" style={{ backgroundColor: PINK, boxShadow: "0 8px 32px rgba(239,42,134,0.4)" }}>Request Free Assessment <ArrowRight size={16} /></Link>
             <a href="tel:03301658880" className="inline-flex items-center justify-center gap-2 px-7 py-4 font-semibold rounded-xl hover:opacity-80 transition-all border-2" style={{ color: NAVY, borderColor: "rgba(5,22,61,0.2)" }}><Phone size={16} /> 0330 165 8880</a>
