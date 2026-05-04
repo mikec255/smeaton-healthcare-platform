@@ -57,7 +57,7 @@ export default function About() {
 
             {/* Subtext */}
             <p className="text-gray-500 text-lg sm:text-xl leading-relaxed max-w-2xl mb-12">
-              That every person deserves care that genuinely respects who they are — delivered by people who chose this work because they care, not just a paycheque.
+              That every person deserves care that genuinely respects who they are, delivered by people who chose this work because they care, not just for a paycheque.
             </p>
           </motion.div>
 
@@ -79,8 +79,48 @@ export default function About() {
         </div>
       </section>
 
+      {/* FOUNDERS STORY */}
+      <section className="py-20 sm:py-28 bg-white">
+        <div className="max-w-7xl mx-auto px-5 sm:px-8">
+          <FadeIn className="mb-16">
+            <p className="text-xs font-bold tracking-widest uppercase mb-4" style={{ color: PINK }}>How it started</p>
+            <h2 className="text-3xl sm:text-4xl font-extrabold mb-1 tracking-tight" style={{ color: NAVY }}>A story built from</h2>
+            <div style={{ ...SCRIPT, fontSize: "clamp(2rem, 4.5vw, 3.5rem)", color: BLUE }}>the inside out.</div>
+          </FadeIn>
+
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-start">
+            <FadeIn>
+              <div className="space-y-5 text-gray-500 leading-relaxed text-base">
+                <p>Smeaton Healthcare was founded by two brothers, Michael and Benjamin Wakefield-O'Connor, who both spent years working on the frontline of social care. They weren't investors or entrepreneurs who spotted a gap in the market. They were carers. They knew what good care looked like from the inside, and they also knew what happened when it fell short.</p>
+                <p>Working across Devon and Cornwall, they saw first-hand the difference a truly dedicated carer could make to someone's day, their confidence, and their independence. They also saw the frustration of working within systems that prioritised paperwork over people.</p>
+                <p>In 2019, they decided to build something better. Something that put the person at the centre of every decision. Smeaton Healthcare was built on the belief that home care could be genuinely excellent, not just adequate — and that the carers delivering that support deserved to work for an organisation that took them seriously too.</p>
+                <p>What started as a small team has grown into one of Devon and Cornwall's most trusted care providers. But the founding principle hasn't changed: care that is personal, consistent and honest, delivered by people who genuinely want to be there.</p>
+              </div>
+            </FadeIn>
+
+            <FadeIn delay={0.1}>
+              <div className="grid grid-cols-1 gap-5">
+                {[
+                  { name: "Michael Wakefield-O'Connor", role: "Co-Founder & Director", detail: "With a background spanning frontline care and service management, Michael leads the organisation's operations and strategic growth across Devon and Cornwall." },
+                  { name: "Benjamin Wakefield-O'Connor", role: "Co-Founder & Director", detail: "Benjamin brings deep experience in direct care and workforce development, and oversees the quality, training and culture that defines the Smeaton team." },
+                ].map((person, i) => (
+                  <div key={i} className="rounded-2xl p-7 border-2 border-gray-100" style={{ backgroundColor: CREAM }}>
+                    <div className="w-10 h-10 rounded-full flex items-center justify-center mb-4 font-extrabold text-white text-sm" style={{ backgroundColor: i === 0 ? PINK : BLUE }}>
+                      {person.name.split(" ")[0][0]}{person.name.split(" ")[1][0]}
+                    </div>
+                    <h3 className="font-extrabold text-lg mb-0.5" style={{ color: NAVY }}>{person.name}</h3>
+                    <p className="text-xs font-bold uppercase tracking-widest mb-3" style={{ color: PINK }}>{person.role}</p>
+                    <p className="text-sm text-gray-500 leading-relaxed">{person.detail}</p>
+                  </div>
+                ))}
+              </div>
+            </FadeIn>
+          </div>
+        </div>
+      </section>
+
       {/* MISSION */}
-      <section className="py-20 sm:py-24 bg-white">
+      <section className="py-20 sm:py-24" style={{ backgroundColor: CREAM }}>
         <div className="max-w-7xl mx-auto px-5 sm:px-8">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
             <FadeIn>
@@ -100,9 +140,9 @@ export default function About() {
               <h2 className="text-3xl font-extrabold mb-1 tracking-tight" style={{ color: NAVY }}>Devon &amp; Cornwall's</h2>
               <div className="mb-6" style={{ ...SCRIPT, fontSize: "clamp(2rem, 4.5vw, 3.5rem)", color: PINK }}>trusted homecare provider</div>
               <div className="space-y-4 text-gray-500 leading-relaxed">
-                <p>Smeaton Healthcare was founded with a clear purpose: to provide professional, deeply human homecare services to people across Devon &amp; Cornwall. Since 2019, we've grown from a small local team into one of the region's most trusted care providers — with CQC-rated Good offices in both Plymouth and Cornwall.</p>
                 <p>We work with elderly people, adults with learning disabilities, those with complex health conditions, and families navigating some of the most difficult moments of their lives.</p>
-                <p>Our carers aren't just employees. They're professionals who chose this work because it matters — and we invest heavily in their training, wellbeing, and development.</p>
+                <p>Our carers are professionals who chose this work because it matters. We invest heavily in their training, wellbeing and development, because we know that a well-supported carer is the foundation of great care.</p>
+                <p>With CQC Rated Good offices in both Plymouth and Cornwall, we're proud of what we've built. But we're more proud of the trust families place in us every single day.</p>
               </div>
             </FadeIn>
           </div>
