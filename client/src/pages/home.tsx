@@ -149,10 +149,10 @@ export default function Home() {
                 we support you all.
               </div>
               <p className="text-gray-500 text-base leading-relaxed mb-6">
-                When you're looking for care for someone you love, you're not looking for ticked boxes. You're looking for people you can trust — who will show up, every time, and treat your family member like a person, not a task. That's what we've built since 2019.
+                When you're looking for care for someone you love, you're not looking for ticked boxes. You're looking for people who will show up every time, know your loved one by name, and treat them with genuine kindness. That's exactly the kind of care we've worked hard to build.
               </p>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 mb-8">
-                {["Consistent carers — familiar faces", "CQC Rated Good — both offices", "No waiting lists for private clients", "Transparent pricing — no surprises"].map((item) => (
+                {["Consistent carers, familiar faces", "CQC Rated Good across both offices", "No waiting lists for private clients", "Transparent pricing with no surprises"].map((item) => (
                   <span key={item} className="flex items-start gap-2 text-sm text-gray-600">
                     <CheckCircle2 size={14} style={{ color: PINK }} className="shrink-0 mt-0.5" /> {item}
                   </span>
