@@ -1,7 +1,7 @@
 import { useParams, Link } from "wouter";
 import { useQuery } from "@tanstack/react-query";
 import { type BlogPost, type BlogCategory } from "@shared/schema";
-import { ArrowLeft, Calendar, Clock } from "lucide-react";
+import { ArrowLeft, Calendar } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import DOMPurify from "dompurify";
@@ -105,6 +105,8 @@ export default function BlogPostPage() {
             return block.content;
           }
           if (block.type === 'image' && block.content?.url) {
+            // Skip if this image is already shown as the featured image above
+            if (block.content.url === featuredImage) return '';
             const caption = block.content.caption ? `<figcaption class="text-center text-sm text-muted-foreground mt-2">${block.content.caption}</figcaption>` : '';
             return `<figure class="my-6"><img src="${block.content.url}" alt="${block.content.alt || ''}" class="w-full rounded-lg" />${caption}</figure>`;
           }
@@ -139,12 +141,6 @@ export default function BlogPostPage() {
             <Calendar className="h-4 w-4" />
             {formatDate(post.publishedAt || post.createdAt)}
           </div>
-          {post.readTime && (
-            <div className="flex items-center gap-1 text-sm text-muted-foreground">
-              <Clock className="h-4 w-4" />
-              {post.readTime}
-            </div>
-          )}
         </div>
 
         <h1 className="text-3xl md:text-4xl font-bold mb-4" data-testid="blog-post-title">

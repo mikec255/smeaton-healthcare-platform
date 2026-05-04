@@ -2,7 +2,7 @@ import { Link } from "wouter";
 import Seo from "@/components/seo";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Calendar, Clock, ArrowRight, Filter, Phone } from "lucide-react";
+import { Calendar, ArrowRight, Filter, Phone } from "lucide-react";
 import Ticker from "@/components/layout/ticker";
 import { useState, useMemo, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
@@ -171,7 +171,6 @@ export default function Blog() {
                         <div className="flex flex-wrap items-center gap-3 mb-2">
                           <span className="text-xs font-bold px-2 py-1 rounded-full" style={{ backgroundColor: `${PINK}15`, color: PINK }}>{post.category}</span>
                           <span className="flex items-center gap-1 text-xs text-gray-400"><Calendar size={11} /> {post.date}</span>
-                          <span className="flex items-center gap-1 text-xs text-gray-400"><Clock size={11} /> {post.readTime}</span>
                         </div>
                         <h2 className="font-extrabold text-base sm:text-lg mb-3 leading-snug tracking-tight" style={{ color: NAVY }}>{post.title}</h2>
                         <Dialog>
@@ -186,7 +185,6 @@ export default function Blog() {
                               <div className="flex flex-wrap items-center gap-3 text-sm text-gray-500 pt-2">
                                 <span className="text-xs font-bold px-2 py-1 rounded-full" style={{ backgroundColor: `${PINK}15`, color: PINK }}>{post.category}</span>
                                 <span className="flex items-center gap-1"><Calendar size={11} /> {post.date}</span>
-                                <span className="flex items-center gap-1"><Clock size={11} /> {post.readTime}</span>
                               </div>
                             </DialogHeader>
                             {post.image && (
