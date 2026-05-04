@@ -80,7 +80,7 @@ export default function Enablements() {
       <section className="py-8 sm:py-20 bg-white">
         <div className="max-w-7xl mx-auto px-5 sm:px-8">
           <p className="text-xs font-bold tracking-widest uppercase mb-4" style={{ color: PINK }}>What's included</p>
-          <h2 className="text-3xl font-extrabold mb-5 sm:mb-10 tracking-tight" style={{ color: NAVY }}>Everything your programme covers</h2>
+          <h2 className="text-3xl font-extrabold mb-5 sm:mb-10 tracking-tight" style={{ color: NAVY }}>What your programme can include</h2>
           <div className="grid md:grid-cols-3 gap-6">
             {INCLUDED.map((cat) => (
               <div key={cat.category} className="rounded-2xl p-7 border-2 border-gray-100">
