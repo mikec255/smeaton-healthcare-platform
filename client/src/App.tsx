@@ -7,6 +7,7 @@ import { HelmetProvider } from "react-helmet-async";
 import Navbar from "@/components/layout/navbar";
 import { useState, Suspense, lazy, useEffect } from "react";
 import Footer from "@/components/layout/footer";
+import ChatWidget from "@/components/chat-widget";
 import ErrorBoundary from "@/components/error-boundary";
 
 // Loading fallback component
@@ -202,6 +203,7 @@ function Router() {
         </Suspense>
       </main>
       <Footer />
+      <ChatWidget />
     </div>
   );
 }
