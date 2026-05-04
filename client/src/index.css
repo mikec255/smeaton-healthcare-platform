@@ -55,6 +55,21 @@
   --accent-bright: hsl(330, 87%, 56%);
 }
 
+/* ── Large screen (iMac / wide monitors) ── */
+@media (min-width: 1536px) {
+  /* Expand the standard content container from 1280px → 1440px */
+  .max-w-7xl { max-width: 1440px; }
+  /* Expand narrow centred sections (CTAs etc.) proportionally */
+  .max-w-3xl { max-width: 900px; }
+  .max-w-5xl { max-width: 1120px; }
+}
+@media (min-width: 1920px) {
+  /* Ultra-wide / Retina iMac: push to 1680px */
+  .max-w-7xl { max-width: 1680px; }
+  .max-w-3xl { max-width: 1000px; }
+  .max-w-5xl { max-width: 1280px; }
+}
+
 /* Fix for radix-ui dropdowns */
 [data-radix-select-content] {
   z-index: 9999 !important;

@@ -156,7 +156,7 @@ export default function Navbar() {
         style={{ backgroundColor: "#FDF7F0", boxShadow: "0 1px 0 rgba(0,0,0,0.07)" }}
         ref={dropdownRef}
       >
-        <div className="px-5 sm:px-8 md:px-12 h-[80px] sm:h-[96px] flex items-center justify-between gap-6">
+        <div className="px-5 sm:px-8 md:px-12 2xl:px-20 h-[80px] sm:h-[96px] 2xl:h-[108px] flex items-center justify-between gap-6">
 
           <Link href="/" className="shrink-0 -ml-[28px] sm:ml-0">
             <img src={logoImage} alt="Smeaton Healthcare" style={{ height: "64px", width: "auto", transform: "scale(2.5) translateX(4px)", transformOrigin: "left center" }} />

@@ -63,9 +63,9 @@ export default function Home() {
 
       {/* HERO */}
       <section className="relative overflow-hidden" style={{ backgroundColor: CREAM }}>
-        <div className="grid grid-cols-1 lg:grid-cols-[55%_45%] lg:min-h-[84vh]">
+        <div className="grid grid-cols-1 lg:grid-cols-[55%_45%] lg:min-h-[84vh] 2xl:min-h-[88vh]">
 
-          <div className="flex flex-col justify-center pt-6 pb-8 sm:pb-16 px-5 sm:px-8 lg:pl-[68px]">
+          <div className="flex flex-col justify-center pt-6 pb-8 sm:pb-16 px-5 sm:px-8 lg:pl-[68px] 2xl:pl-[120px]">
             <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}
               className="inline-flex items-center gap-2 self-start rounded-full px-4 py-1.5 mb-8"
               style={{ backgroundColor: "#EF2A8618" }}>
@@ -76,14 +76,14 @@ export default function Home() {
             <motion.span initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.7, delay: 0.1, ease: [0.22, 1, 0.36, 1] }}
               className="block font-extrabold leading-[0.92] tracking-tight"
-              style={{ fontSize: "clamp(28px, 3.8vw, 58px)", color: BLUE }}>
+              style={{ fontSize: "clamp(28px, 3.8vw, 80px)", color: BLUE }}>
               Home care that
             </motion.span>
 
             <motion.span initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, delay: 0.2, ease: [0.22, 1, 0.36, 1] }}
               className="block leading-[1.05]"
-              style={{ ...SCRIPT, fontSize: "clamp(40px, 5.2vw, 80px)", color: PINK }}>
+              style={{ ...SCRIPT, fontSize: "clamp(40px, 5.2vw, 108px)", color: PINK }}>
               feels like it should.
             </motion.span>
 
