@@ -1,6 +1,6 @@
 import { Link } from "wouter";
 import Seo from "@/components/seo";
-import { Clock, Shield, CheckCircle, ArrowRight, Phone, Heart, AlertCircle, HeartHandshake } from "lucide-react";
+import { Clock, Shield, CheckCircle, ArrowRight, Phone, Heart, AlertCircle, HeartHandshake, PoundSterling, Building2 } from "lucide-react";
 import Ticker from "@/components/layout/ticker";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 
@@ -111,6 +111,34 @@ export default function Care247() {
               );
             })}
           </div>
+        </div>
+      </section>
+
+      {/* FUNDING */}
+      <section className="py-8 sm:py-16 bg-white border-t border-gray-100">
+        <div className="max-w-7xl mx-auto px-5 sm:px-8">
+          <p className="text-xs font-bold tracking-widest uppercase mb-4" style={{ color: PINK }}>Paying for care</p>
+          <h2 className="text-3xl font-extrabold mb-1 tracking-tight" style={{ color: BLUE }}>Funding your care</h2>
+          <div className="mb-8" style={{ ...SCRIPT, fontSize: "clamp(1.6rem, 3vw, 2.2rem)", color: PINK }}>there are more options than you might think.</div>
+          <div className="grid md:grid-cols-3 gap-5 mb-6">
+            {[
+              { icon: PoundSterling, title: "Self-funding", desc: "If your assets are above the local authority threshold, or you'd prefer to arrange care privately, you can set things up directly with us. You choose the provider, the plan and the pace.", color: PINK },
+              { icon: Building2, title: "Council funding", desc: "If your assets fall below the threshold, your local authority may contribute to or fully cover the cost of your care following a needs and financial assessment.", color: BLUE },
+              { icon: Heart, title: "NHS Continuing Healthcare", desc: "If your needs are primarily health-related, you may qualify for care funded entirely by the NHS, regardless of your savings or assets.", color: PINK },
+            ].map((item, i) => {
+              const Icon = item.icon;
+              return (
+                <div key={i} className="rounded-2xl p-6 border-2 border-gray-100" style={{ backgroundColor: CREAM }}>
+                  <div className="w-10 h-10 rounded-xl flex items-center justify-center mb-4" style={{ backgroundColor: item.color }}>
+                    <Icon size={18} className="text-white" />
+                  </div>
+                  <h3 className="font-extrabold text-base mb-2" style={{ color: NAVY }}>{item.title}</h3>
+                  <p className="text-sm text-gray-500 leading-relaxed">{item.desc}</p>
+                </div>
+              );
+            })}
+          </div>
+          <p className="text-sm text-gray-400">Not sure which route applies to you? Our team is happy to help talk it through. <Link href="/resources/costings" className="font-bold" style={{ color: BLUE }}>Read our full funding guide</Link></p>
         </div>
       </section>
 
