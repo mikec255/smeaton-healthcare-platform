@@ -158,7 +158,7 @@ export default function About() {
               <h2 className="text-3xl font-extrabold mb-1 tracking-tight" style={{ color: NAVY }}>Care that feels like</h2>
               <div className="mb-6" style={{ ...SCRIPT, fontSize: "clamp(2rem, 4.5vw, 3.5rem)", color: BLUE }}>coming home.</div>
               <p className="text-gray-500 leading-relaxed mb-6">
-                We believe in consistency. The same carers visiting the same clients builds real relationships, and that is where genuine care happens. Our service users are not just a name on a schedule. They are people with preferences, routines, and stories that matter to us.
+                When you invite someone into your home, you want to know who is coming through the door. You want a face you recognise, someone who remembers how you take your tea and knows which topics you like to talk about. That kind of familiarity does not happen by accident. It comes from sending the same carers, building real trust over time, and treating every person we support as an individual with their own life, not a task to be completed.
               </p>
               <div className="flex flex-col gap-3">
                 {["Matched carers, chosen on personality as well as availability", "Handover notes so every carer knows what matters to you", "Regular reviews to ensure your care plan stays right"].map((item) => (
