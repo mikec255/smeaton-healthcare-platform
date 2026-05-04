@@ -69,7 +69,7 @@ export default function ShortVisits() {
       {/* NARRATIVE */}
       <section className="py-10 sm:py-16 bg-white border-b border-gray-100">
         <div className="max-w-7xl mx-auto px-5 sm:px-8">
-          <div className="max-w-3xl space-y-4 text-gray-500 text-base leading-relaxed">
+          <div className="space-y-4 text-gray-500 text-base leading-relaxed">
             <p>Regular visits can make a bigger difference than people realise. It's not just about the tasks. It's knowing someone is coming. Someone who knows your routine, how you take your tea, and genuinely cares how you're getting on. That kind of consistency is at the heart of what we do.</p>
             <p>We support people who need a little help getting started in the morning, right through to people who benefit from several visits across the day. Whatever your situation, we build a care plan around your real life, not a generic template. And we do our best to make sure the same familiar faces are the ones walking through your door.</p>
           </div>

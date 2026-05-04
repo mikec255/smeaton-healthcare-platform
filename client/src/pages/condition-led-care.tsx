@@ -84,7 +84,7 @@ export default function ConditionLedCare() {
       {/* NARRATIVE */}
       <section className="py-10 sm:py-16 bg-white border-b border-gray-100">
         <div className="max-w-7xl mx-auto px-5 sm:px-8">
-          <div className="max-w-3xl space-y-4 text-gray-500 text-base leading-relaxed">
+          <div className="space-y-4 text-gray-500 text-base leading-relaxed">
             <p>When someone is living with a specific condition, generic care often falls short. The person delivering care needs to understand what the condition actually means on a day-to-day basis, how it affects someone's mood, mobility, communication, or memory, and how to respond in a way that genuinely helps.</p>
             <p>Our condition-led carers receive training that goes beyond the basics. They are matched to clients based on relevant experience and knowledge, and they work alongside families and healthcare professionals to make sure care is consistent, appropriate and genuinely supportive.</p>
           </div>

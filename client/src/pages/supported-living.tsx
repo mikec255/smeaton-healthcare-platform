@@ -69,7 +69,7 @@ export default function SupportedLiving() {
       {/* NARRATIVE */}
       <section className="py-10 sm:py-16 bg-white border-b border-gray-100">
         <div className="max-w-7xl mx-auto px-5 sm:px-8">
-          <div className="max-w-3xl space-y-4 text-gray-500 text-base leading-relaxed">
+          <div className="space-y-4 text-gray-500 text-base leading-relaxed">
             <p>Independence looks different for everyone. For some people it means cooking their own meals. For others it is catching the bus alone, managing their own money, or having a friend round without needing to ask someone first. Our supported living service works alongside people to help them get there, at a pace that suits them.</p>
             <p>We do not believe in doing things for people that they can do themselves. Our role is to be there when it matters, build skills over time, and support people to live the kind of life that feels meaningful to them. That takes patience, consistency and carers who actually care about the outcome.</p>
           </div>

@@ -69,7 +69,7 @@ export default function RespiteCare() {
       {/* NARRATIVE */}
       <section className="py-10 sm:py-16 bg-white border-b border-gray-100">
         <div className="max-w-7xl mx-auto px-5 sm:px-8">
-          <div className="max-w-3xl space-y-4 text-gray-500 text-base leading-relaxed">
+          <div className="space-y-4 text-gray-500 text-base leading-relaxed">
             <p>Caring for someone you love is one of the most selfless things a person can do. It is also relentless. Many family carers go months or even years without a proper break, and that takes a real toll. Respite care exists to change that.</p>
             <p>When you hand over to one of our carers, you can actually switch off. Not because you have to trust a stranger, but because you have met them, they have been briefed properly, and you know your loved one is being looked after well. That peace of mind is the whole point.</p>
           </div>

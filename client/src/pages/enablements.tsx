@@ -69,7 +69,7 @@ export default function Enablements() {
       {/* NARRATIVE */}
       <section className="py-10 sm:py-16 bg-white border-b border-gray-100">
         <div className="max-w-7xl mx-auto px-5 sm:px-8">
-          <div className="max-w-3xl space-y-4 text-gray-500 text-base leading-relaxed">
+          <div className="space-y-4 text-gray-500 text-base leading-relaxed">
             <p>Good care should not just keep things ticking over. It should help people grow. Our enabling service works with people who want to do more for themselves over time, building the skills and confidence to live a more independent life.</p>
             <p>We do not rush people or set goals on their behalf. We sit down, talk through what matters to them, and figure out together what we are working towards. Progress happens at a pace that is actually sustainable, and we celebrate every step of it.</p>
           </div>

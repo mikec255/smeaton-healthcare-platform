@@ -69,7 +69,7 @@ export default function LiveInCare() {
       {/* NARRATIVE */}
       <section className="py-10 sm:py-16 bg-white border-b border-gray-100">
         <div className="max-w-7xl mx-auto px-5 sm:px-8">
-          <div className="max-w-3xl space-y-4 text-gray-500 text-base leading-relaxed">
+          <div className="space-y-4 text-gray-500 text-base leading-relaxed">
             <p>For many people, the idea of moving into a care home feels like giving something up. Your independence, your things, the routines you've built over decades. Live-in care is the alternative that means you don't have to give any of that away.</p>
             <p>A trained carer moves into your home and becomes part of your daily life. They are there when you need them, whether that's first thing in the morning, during the night, or just for company in the afternoon. Over time, a genuine bond forms, and that is where real, quality care happens.</p>
           </div>

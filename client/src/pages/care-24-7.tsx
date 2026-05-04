@@ -69,7 +69,7 @@ export default function Care247() {
       {/* NARRATIVE */}
       <section className="py-10 sm:py-16 bg-white border-b border-gray-100">
         <div className="max-w-7xl mx-auto px-5 sm:px-8">
-          <div className="max-w-3xl space-y-4 text-gray-500 text-base leading-relaxed">
+          <div className="space-y-4 text-gray-500 text-base leading-relaxed">
             <p>Some people need support that does not clock off. Whether it is following a hospital discharge, managing a complex health condition, or simply needing the reassurance of someone nearby at all hours, our 24/7 care provides consistent, trained support through the day and night.</p>
             <p>For families, the peace of mind that comes with knowing someone is always present can be enormous. And for the person receiving care, it means never having to wait, never going without, and always having someone there who knows them and knows what to do.</p>
           </div>
