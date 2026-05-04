@@ -101,7 +101,7 @@ export default function About() {
             <FadeIn delay={0.1}>
               <div className="grid grid-cols-1 gap-5">
                 {[
-                  { name: "Michael Wakefield-O'Connor", role: "Co-Founder & Director", detail: "With a background spanning frontline care and service management, Michael leads the organisation's operations and strategic growth across Devon and Cornwall." },
+                  { name: "Michael Wakefield-O'Connor", role: "Co-Founder & Managing Director", detail: "With a background spanning frontline care and service management, Michael leads the organisation's operations and strategic growth across Devon and Cornwall." },
                   { name: "Benjamin Wakefield-O'Connor", role: "Co-Founder & Director", detail: "Benjamin brings deep experience in direct care and workforce development, and oversees the quality, training and culture that defines the Smeaton team." },
                 ].map((person, i) => (
                   <div key={i} className="rounded-2xl p-7 border-2 border-gray-100" style={{ backgroundColor: CREAM }}>
