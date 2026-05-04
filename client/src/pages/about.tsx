@@ -85,7 +85,7 @@ export default function About() {
           <FadeIn className="mb-16">
             <p className="text-xs font-bold tracking-widest uppercase mb-4" style={{ color: PINK }}>How it started</p>
             <h2 className="text-3xl sm:text-4xl font-extrabold mb-1 tracking-tight" style={{ color: BLUE }}>A story built from</h2>
-            <div style={{ ...SCRIPT, fontSize: "clamp(2rem, 4.5vw, 3.5rem)", color: BLUE }}>the inside out.</div>
+            <div style={{ ...SCRIPT, fontSize: "clamp(2rem, 4.5vw, 3.5rem)", color: PINK }}>the inside out.</div>
           </FadeIn>
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-start">
@@ -156,7 +156,7 @@ export default function About() {
             <FadeIn>
               <p className="text-xs font-bold tracking-widest uppercase mb-4" style={{ color: PINK }}>Our approach</p>
               <h2 className="text-3xl font-extrabold mb-1 tracking-tight" style={{ color: BLUE }}>Care that feels like</h2>
-              <div className="mb-6" style={{ ...SCRIPT, fontSize: "clamp(2rem, 4.5vw, 3.5rem)", color: BLUE }}>coming home.</div>
+              <div className="mb-6" style={{ ...SCRIPT, fontSize: "clamp(2rem, 4.5vw, 3.5rem)", color: PINK }}>coming home.</div>
               <p className="text-gray-500 leading-relaxed mb-6">
                 When you invite someone into your home, you want to know who is coming through the door. You want a face you recognise, someone who remembers how you take your tea and knows which topics you like to talk about. That kind of familiarity does not happen by accident. It comes from sending the same carers, building real trust over time, and treating every person we support as an individual with their own life, not a task to be completed.
               </p>
@@ -198,7 +198,7 @@ export default function About() {
           <FadeIn className="mb-12">
             <p className="text-xs font-bold tracking-widest uppercase mb-3" style={{ color: PINK }}>Trusted &amp; regulated</p>
             <h2 className="text-3xl font-extrabold mb-1 tracking-tight" style={{ color: BLUE }}>Professional</h2>
-            <div style={{ ...SCRIPT, fontSize: "clamp(2rem, 4.5vw, 3.5rem)", color: BLUE }}>accreditations</div>
+            <div style={{ ...SCRIPT, fontSize: "clamp(2rem, 4.5vw, 3.5rem)", color: PINK }}>accreditations</div>
           </FadeIn>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
             {[
@@ -228,7 +228,7 @@ export default function About() {
           <FadeIn className="mb-14">
             <p className="text-xs font-bold tracking-widest uppercase mb-3" style={{ color: PINK }}>What drives us</p>
             <h2 className="text-3xl font-extrabold mb-1 tracking-tight" style={{ color: BLUE }}>The values we</h2>
-            <div style={{ ...SCRIPT, fontSize: "clamp(2rem, 4.5vw, 3.5rem)", color: BLUE }}>work by every day</div>
+            <div style={{ ...SCRIPT, fontSize: "clamp(2rem, 4.5vw, 3.5rem)", color: PINK }}>work by every day</div>
           </FadeIn>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
             {VALUES.map((v, i) => {
