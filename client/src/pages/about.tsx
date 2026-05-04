@@ -102,7 +102,7 @@ export default function About() {
               <div className="grid grid-cols-1 gap-5">
                 {[
                   { name: "Michael Wakefield-O'Connor", role: "Co-Founder & Managing Director", detail: "Michael oversees the day-to-day running of Smeaton Healthcare and has shaped the organisation from the ground up. He is passionate about building a care service that people can genuinely rely on, and about creating a workplace where carers feel valued and supported." },
-                  { name: "Benjamin Wakefield-O'Connor", role: "Co-Founder & Director", detail: "Benjamin leads on quality, compliance and the development of the Smeaton team. He cares deeply about the standards of care delivered and works hard to make sure every client receives support that is consistent, thoughtful and personal." },
+                  { name: "Benjamin Wakefield-O'Connor", role: "Co-Founder & Non-Executive Director", detail: "Benjamin co-founded Smeaton Healthcare and played a central role in shaping the organisation's values and vision. As a non-executive director, he continues to support the business from the outside, bringing perspective and a genuine commitment to the founding principles." },
                 ].map((person, i) => (
                   <div key={i} className="rounded-2xl p-7 border-2 border-gray-100" style={{ backgroundColor: CREAM }}>
                     <div className="w-10 h-10 rounded-full flex items-center justify-center mb-4 font-extrabold text-white text-sm" style={{ backgroundColor: i === 0 ? PINK : BLUE }}>
