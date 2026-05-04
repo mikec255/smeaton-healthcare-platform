@@ -6,3 +6,9 @@ id = "E2I6VPO8Vk7bvdSNPiKxr"
 uri = "file://CARELOGR-BLOG-SPEC.md"
 type = "text"
 title = "CareLogr Blog Spec — send this to the CareLogr Replit"
+
+[[outputs]]
+id = "Ru0MBFg2_jqI72oniUR3G"
+uri = "file://CARELOGR-JOBS-SPEC.md"
+type = "text"
+title = "CareLogr Jobs Spec — send this to the CareLogr Replit"
