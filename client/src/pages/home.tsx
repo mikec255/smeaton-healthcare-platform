@@ -149,7 +149,7 @@ export default function Home() {
                 we support you all.
               </div>
               <p className="text-gray-500 text-base leading-relaxed mb-6">
-                Choosing care for a loved one is one of the biggest decisions a family makes. We take that seriously. Our carers are selected for their character as much as their qualifications, and they get to know your family properly, not just as a name on a rota.
+                Choosing care for someone you love is one of the biggest decisions a family ever makes. We don't take that lightly. Our carers are chosen for their warmth and character as much as their skills, and they build real, lasting relationships with the people they support.
               </p>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 mb-8">
                 {["Consistent carers, familiar faces", "CQC Rated Good across both offices", "No waiting lists for private clients", "Transparent pricing with no surprises"].map((item) => (
