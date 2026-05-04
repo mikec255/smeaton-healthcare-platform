@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { Link } from "wouter";
 import Seo from "@/components/seo";
-import { PoundSterling, Heart, Building2, FileText, HelpCircle, Clipboard, ArrowRight, Phone, AlertCircle, BookOpen } from "lucide-react";
+import { PoundSterling, Heart, Building2, FileText, HelpCircle, Clipboard, ArrowRight, Phone, AlertCircle, BookOpen, CheckCircle2, Star, Clock, UserCheck, Shield } from "lucide-react";
 import Ticker from "@/components/layout/ticker";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 
@@ -88,6 +88,47 @@ export default function UnderstandingCareFunding() {
           </div>
           <div className="mt-5 inline-flex items-center gap-2 text-sm font-medium px-4 py-2.5 rounded-xl bg-amber-50 border-2 border-amber-200 text-amber-800">
             <AlertCircle size={14} className="text-amber-500" /> These thresholds have remained unchanged since 2010.
+          </div>
+        </div>
+      </section>
+
+      {/* SELF-FUNDING */}
+      <section className="py-7 sm:py-14 bg-white">
+        <div className="max-w-7xl mx-auto px-5 sm:px-8">
+          <p className="text-xs font-bold tracking-widest uppercase mb-4" style={{ color: PINK }}>Paying for your own care</p>
+          <h2 className="text-2xl font-extrabold mb-1 tracking-tight" style={{ color: BLUE }}>Funding your own care</h2>
+          <div className="mb-6" style={{ ...SCRIPT, fontSize: "clamp(1.6rem, 3vw, 2.2rem)", color: PINK }}>what it means in practice.</div>
+          <div className="grid lg:grid-cols-2 gap-10 items-start">
+            <div className="space-y-4 text-gray-500 text-sm leading-relaxed">
+              <p>If your savings or assets are above the local authority threshold, or if you would simply prefer not to go through a council assessment, you can arrange and pay for your own care directly. This is known as self-funding, and it is far more straightforward than many people expect.</p>
+              <p>Choosing to self-fund does not mean you are on your own. We work with many self-funding clients across Devon and Cornwall, and our team will take the time to understand what you need, explain what things cost clearly, and build a care plan that fits your life. There are no hidden fees and no pressure to take on more than you need.</p>
+              <p>It is also worth knowing that being a self-funder does not prevent you from having a care needs assessment with your local authority, or from being assessed for NHS Continuing Healthcare if your health needs may qualify you. You can explore both routes at any time, and our team can help point you in the right direction.</p>
+            </div>
+            <div className="space-y-4">
+              {[
+                { icon: Star, title: "Your choice of provider", desc: "As a self-funder you choose who provides your care. You are not allocated a provider by the council. You can select the team you feel most comfortable with.", color: PINK },
+                { icon: Clock, title: "No waiting for an assessment", desc: "You can start care as quickly as you need it. There is no need to wait for a council care needs assessment to be completed before things begin.", color: BLUE },
+                { icon: UserCheck, title: "A plan built around you", desc: "Your care plan is shaped entirely by your preferences and needs, not by what a local authority has been commissioned to fund.", color: PINK },
+                { icon: Shield, title: "Transparent, honest pricing", desc: "We are upfront about what care costs. You will always know what you are paying for, with no surprises.", color: BLUE },
+              ].map((item, i) => {
+                const Icon = item.icon;
+                return (
+                  <div key={i} className="flex items-start gap-4 p-5 rounded-2xl border-2 border-gray-100" style={{ backgroundColor: CREAM }}>
+                    <div className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0" style={{ backgroundColor: item.color }}>
+                      <Icon size={16} className="text-white" />
+                    </div>
+                    <div>
+                      <h4 className="font-bold text-sm mb-1" style={{ color: NAVY }}>{item.title}</h4>
+                      <p className="text-xs text-gray-500 leading-relaxed">{item.desc}</p>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+          <div className="mt-8 rounded-2xl p-6 border-2 border-gray-100" style={{ backgroundColor: CREAM }}>
+            <p className="text-xs font-bold uppercase tracking-widest mb-2" style={{ color: PINK }}>Good to know</p>
+            <p className="text-sm text-gray-500 leading-relaxed">Even if you are currently self-funding, you may still be entitled to NHS Continuing Healthcare if your needs are primarily health-related. This is a free entitlement based on clinical need, not your finances. Ask your GP or contact us and we can help explain whether it may be worth exploring.</p>
           </div>
         </div>
       </section>
