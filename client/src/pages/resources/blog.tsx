@@ -49,6 +49,15 @@ export default function Blog() {
     return new Date(dateString).toLocaleDateString('en-GB', { year: 'numeric', month: 'long', day: 'numeric' });
   };
 
+  const stripLeadingImages = (html: string): string => {
+    if (!html) return html;
+    // Remove any leading <figure>…</figure> or <img …> blocks before the first text content
+    return html
+      .replace(/^\s*(<figure[^>]*>[\s\S]*?<\/figure>\s*)+/, "")
+      .replace(/^\s*(<img[^>]*\/?>\s*)+/, "")
+      .trim();
+  };
+
   const extractImage = (post: BlogPost): string => {
     // 1. Featured image from images array
     const featured = post.images?.find((img: any) => img.isFeatured);
@@ -192,7 +201,7 @@ export default function Blog() {
                                 <img src={post.image} alt={post.title} className="w-full h-full object-cover" />
                               </div>
                             )}
-                            <div className="prose prose-lg max-w-none" dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(post.fullContent) }} data-testid={`full-article-${index}`} />
+                            <div className="prose prose-lg max-w-none" dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(post.image ? stripLeadingImages(post.fullContent) : post.fullContent) }} data-testid={`full-article-${index}`} />
                           </DialogContent>
                         </Dialog>
                       </div>
