@@ -101,16 +101,15 @@ export default function About() {
             <FadeIn delay={0.1}>
               <div className="grid grid-cols-1 gap-5">
                 {[
-                  { name: "Michael Wakefield-O'Connor", role: "Co-Founder & Managing Director", detail: "With a background spanning frontline care and service management, Michael leads the organisation's operations and strategic growth across Devon and Cornwall." },
-                  { name: "Benjamin Wakefield-O'Connor", role: "Co-Founder & Director", detail: "Benjamin brings deep experience in direct care and workforce development, and oversees the quality, training and culture that defines the Smeaton team." },
+                  { name: "Michael Wakefield-O'Connor", role: "Co-Founder & Managing Director" },
+                  { name: "Benjamin Wakefield-O'Connor", role: "Co-Founder & Director" },
                 ].map((person, i) => (
                   <div key={i} className="rounded-2xl p-7 border-2 border-gray-100" style={{ backgroundColor: CREAM }}>
                     <div className="w-10 h-10 rounded-full flex items-center justify-center mb-4 font-extrabold text-white text-sm" style={{ backgroundColor: i === 0 ? PINK : BLUE }}>
                       {person.name.split(" ")[0][0]}{person.name.split(" ")[1][0]}
                     </div>
                     <h3 className="font-extrabold text-lg mb-0.5" style={{ color: NAVY }}>{person.name}</h3>
-                    <p className="text-xs font-bold uppercase tracking-widest mb-3" style={{ color: PINK }}>{person.role}</p>
-                    <p className="text-sm text-gray-500 leading-relaxed">{person.detail}</p>
+                    <p className="text-xs font-bold uppercase tracking-widest" style={{ color: PINK }}>{person.role}</p>
                   </div>
                 ))}
               </div>
