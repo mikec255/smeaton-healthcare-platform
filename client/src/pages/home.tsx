@@ -149,7 +149,7 @@ export default function Home() {
                 we support you all.
               </div>
               <p className="text-gray-500 text-base leading-relaxed mb-6">
-                When you're looking for care for someone you love, you're not looking for ticked boxes. You're looking for people who will show up every time, know your loved one by name, and treat them with genuine kindness. That's exactly the kind of care we've worked hard to build.
+                Choosing care for a loved one is one of the biggest decisions a family makes. We take that seriously. Our carers are selected for their character as much as their qualifications, and they get to know your family properly, not just as a name on a rota.
               </p>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 mb-8">
                 {["Consistent carers, familiar faces", "CQC Rated Good across both offices", "No waiting lists for private clients", "Transparent pricing with no surprises"].map((item) => (
