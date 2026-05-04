@@ -89,7 +89,7 @@ export default function Home() {
 
             <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.6, delay: 0.38 }}
               className="text-gray-500 text-base sm:text-lg leading-relaxed max-w-sm mt-6 mb-8">
-              Because when it's someone you love, only the very best will do — trusted home care across Devon &amp; Cornwall since 2019.
+              Because when it's someone you love, only the very best will do. Trusted home care across Devon &amp; Cornwall since 2019.
             </motion.p>
 
             <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.48 }}
