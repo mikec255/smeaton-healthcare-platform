@@ -57,7 +57,7 @@ export default function About() {
 
             {/* Subtext */}
             <p className="text-gray-500 text-lg sm:text-xl leading-relaxed max-w-2xl mb-12">
-              That every person deserves care that genuinely respects who they are, delivered by people who chose this work because they care, not just for a paycheque.
+              You deserve care that genuinely respects who you are, delivered by people who are proud of the difference they make every single day.
             </p>
           </motion.div>
 
