@@ -161,7 +161,7 @@ export default function About() {
                 When you invite someone into your home, you want to know who is coming through the door. You want a face you recognise, someone who remembers how you take your tea and knows which topics you like to talk about. That kind of familiarity does not happen by accident. It comes from sending the same carers, building real trust over time, and treating every person we support as an individual with their own life, not a task to be completed.
               </p>
               <div className="flex flex-col gap-3">
-                {["Matched carers, chosen on personality as well as availability", "Handover notes so every carer knows what matters to you", "Regular reviews to ensure your care plan stays right"].map((item) => (
+                {["We take time to match you with carers who are right for you as a person", "Every carer arrives knowing what matters to you before they walk through the door", "We check in regularly to make sure your care is still working exactly as it should"].map((item) => (
                   <span key={item} className="flex items-start gap-2 text-sm text-gray-600">
                     <CheckCircle2 size={14} style={{ color: PINK }} className="shrink-0 mt-0.5" /> {item}
                   </span>
