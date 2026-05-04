@@ -91,6 +91,18 @@ export function registerCarelogrRoutes(app: Express) {
   const r = app;
   const base = "/api/carelogr";
 
+  // ── Diagnostic (no auth required — public) ────────────────────────────────
+  r.get(`${base}/ping`, (_req, res) => {
+    const key = process.env.CARELOGR_API_KEY;
+    res.json({
+      pong: true,
+      keyConfigured: !!key,
+      keyLength: key ? key.length : 0,
+      nodeEnv: process.env.NODE_ENV,
+      timestamp: new Date().toISOString(),
+    });
+  });
+
   // Apply API key auth to every /api/carelogr/* route
   r.use(base, requireApiKey);
 

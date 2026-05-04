@@ -3061,6 +3061,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // CareLogr diagnostic ping — no auth, registered before carelogr middleware
+  app.get("/api/carelogr/ping", (_req, res) => {
+    const key = process.env.CARELOGR_API_KEY;
+    res.json({
+      pong: true,
+      keyConfigured: !!key,
+      keyLength: key ? key.length : 0,
+      nodeEnv: process.env.NODE_ENV,
+      timestamp: new Date().toISOString(),
+    });
+  });
+
   // CareLogr external API
   registerCarelogrRoutes(app);
 
