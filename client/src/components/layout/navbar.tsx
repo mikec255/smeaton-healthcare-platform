@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { Link, useLocation } from "wouter";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, Menu, Phone, ChevronDown, ArrowRight, BookOpen, PoundSterling, Mail, Users, Globe } from "lucide-react";
+import { X, Menu, Phone, ChevronDown, ArrowRight, BookOpen, PoundSterling, Mail, Users, Globe, GraduationCap } from "lucide-react";
 import logoImage from "@/assets/logo.png";
 import {
   Dialog,
@@ -70,6 +70,7 @@ const RESOURCES_MENU = [
   { href: "/resources/newsletter", name: "Newsletter", desc: "Stay up to date with our latest news and opportunities.", icon: Mail },
   { href: "/resources/working-at-smeaton", name: "Working at Smeaton", desc: "Discover what makes us a great place to work.", icon: Users },
   { href: "/resources/sponsorship", name: "Sponsorship", desc: "Information about our Skilled Worker sponsorship route.", icon: Globe },
+  { href: "/resources/induction", name: "Induction Training", desc: "Mandatory training modules required for all new Smeaton Healthcare team members.", icon: GraduationCap },
 ];
 
 const OTHER_NAV = [
