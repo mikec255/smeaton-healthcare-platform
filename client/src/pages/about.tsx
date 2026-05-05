@@ -142,7 +142,7 @@ export default function About() {
                   </div>
                 </div>
                 <div className="space-y-4 text-gray-500 leading-relaxed text-base">
-                  <p>Claire is the person ultimately responsible for the quality and safety of care delivered across both our Plymouth and Truro branches. With 8 years working in care settings, she has done it all — from frontline carer to business management, recruitment, administration and everything in between.</p>
+                  <p>Claire is the person ultimately responsible for the quality and safety of care delivered across both our Plymouth and Truro branches. She has built her career from the ground up in care — working her way through every level, from frontline carer to business management, recruitment, administration and everything in between.</p>
                   <p>What that means for you is simple: the person overseeing your care genuinely understands what good care looks like at every level, not just from behind a desk.</p>
                   <p>Claire holds a <strong style={{ color: NAVY }}>Level 5 Diploma in Leadership for Health and Social Care Services</strong> — the highest professional qualification in care management — and has completed a wide range of specialist training across clinical, safeguarding and management disciplines.</p>
                 </div>
