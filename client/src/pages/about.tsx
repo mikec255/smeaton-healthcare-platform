@@ -138,13 +138,13 @@ export default function About() {
                   </div>
                   <div>
                     <h3 className="font-extrabold text-2xl leading-tight" style={{ color: NAVY }}>Claire Overton</h3>
-                    <p className="text-sm font-bold uppercase tracking-widest mt-0.5" style={{ color: PINK }}>Registered Manager — Plymouth &amp; Truro</p>
+                    <p className="text-sm font-bold uppercase tracking-widest mt-0.5" style={{ color: PINK }}>Registered Manager, Plymouth &amp; Truro</p>
                   </div>
                 </div>
                 <div className="space-y-4 text-gray-500 leading-relaxed text-base">
-                  <p>Claire is the person ultimately responsible for the quality and safety of care delivered across both our Plymouth and Truro branches. She has built her career from the ground up in care — working her way through every level, from frontline carer to business management, recruitment, administration and everything in between.</p>
+                  <p>Claire is the person ultimately responsible for the quality and safety of care delivered across both our Plymouth and Truro branches. She has built her career from the ground up in care, working her way through every level, from frontline carer to business management, recruitment, administration and everything in between.</p>
                   <p>What that means for you is simple: the person overseeing your care genuinely understands what good care looks like at every level, not just from behind a desk.</p>
-                  <p>Claire holds a <strong style={{ color: NAVY }}>Level 5 Diploma in Leadership for Health and Social Care Services</strong> — the highest professional qualification in care management — and has completed a wide range of training across safeguarding, management and specialist care disciplines.</p>
+                  <p>Claire holds a <strong style={{ color: NAVY }}>Level 5 Diploma in Leadership for Health and Social Care Services</strong>, the highest professional qualification in care management, and has completed a wide range of training across safeguarding, management and specialist care disciplines.</p>
                 </div>
               </div>
             </FadeIn>
@@ -171,7 +171,7 @@ export default function About() {
                     <Heart size={18} className="text-white" />
                   </div>
                   <h4 className="font-extrabold text-lg mb-3" style={{ color: NAVY }}>What this means for your family</h4>
-                  <p className="text-sm text-gray-500 leading-relaxed">When something matters — whether it's a change in care needs, a concern you want to raise, or simply making sure everything is working as it should — Claire is the person making sure it gets the attention it deserves. Families trust us because the people leading our care have genuinely earned that trust, one day at a time.</p>
+                  <p className="text-sm text-gray-500 leading-relaxed">When something matters, whether it's a change in care needs, a concern you want to raise, or simply making sure everything is working as it should, Claire is the person making sure it gets the attention it deserves. Families trust us because the people leading our care have genuinely earned that trust, one day at a time.</p>
                   <div className="mt-5 pt-5 border-t border-gray-200">
                     <p className="text-xs font-bold uppercase tracking-widest" style={{ color: PINK }}>CQC Registered</p>
                     <p className="text-sm text-gray-400 mt-0.5">Both Plymouth &amp; Truro branches</p>
