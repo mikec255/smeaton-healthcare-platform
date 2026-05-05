@@ -119,6 +119,72 @@ export default function About() {
         </div>
       </section>
 
+      {/* REGISTERED MANAGER */}
+      <section className="py-20 sm:py-28 bg-white">
+        <div className="max-w-7xl mx-auto px-5 sm:px-8">
+          <FadeIn className="mb-14">
+            <p className="text-xs font-bold tracking-widest uppercase mb-4" style={{ color: PINK }}>The person leading our care</p>
+            <h2 className="text-3xl sm:text-4xl font-extrabold mb-1 tracking-tight" style={{ color: BLUE }}>Meet our Registered</h2>
+            <div style={{ ...SCRIPT, fontSize: "clamp(2rem, 4.5vw, 3.5rem)", color: PINK }}>Manager.</div>
+          </FadeIn>
+
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-start">
+            {/* Profile card */}
+            <FadeIn>
+              <div className="rounded-3xl p-8 border-2 border-gray-100 h-full" style={{ backgroundColor: CREAM }}>
+                <div className="flex items-center gap-5 mb-7">
+                  <div className="w-16 h-16 rounded-full flex items-center justify-center font-extrabold text-white text-xl shrink-0" style={{ backgroundColor: PINK }}>
+                    CO
+                  </div>
+                  <div>
+                    <h3 className="font-extrabold text-2xl leading-tight" style={{ color: NAVY }}>Claire Overton</h3>
+                    <p className="text-sm font-bold uppercase tracking-widest mt-0.5" style={{ color: PINK }}>Registered Manager — Plymouth &amp; Truro</p>
+                  </div>
+                </div>
+                <div className="space-y-4 text-gray-500 leading-relaxed text-base">
+                  <p>Claire is the person ultimately responsible for the quality and safety of care delivered across both our Plymouth and Truro branches. With 8 years working in care settings, she has done it all — from frontline carer to business management, recruitment, administration and everything in between.</p>
+                  <p>What that means for you is simple: the person overseeing your care genuinely understands what good care looks like at every level, not just from behind a desk.</p>
+                  <p>Claire holds a <strong style={{ color: NAVY }}>Level 5 Diploma in Leadership for Health and Social Care Services</strong> — the highest professional qualification in care management — and has completed a wide range of specialist training across clinical, safeguarding and management disciplines.</p>
+                </div>
+              </div>
+            </FadeIn>
+
+            {/* Experience & training */}
+            <FadeIn delay={0.1}>
+              <div className="space-y-5">
+                <div className="rounded-2xl p-7 border-2 border-gray-100" style={{ backgroundColor: CREAM }}>
+                  <div className="w-10 h-10 rounded-xl flex items-center justify-center mb-4" style={{ backgroundColor: BLUE }}>
+                    <Award size={18} className="text-white" />
+                  </div>
+                  <h4 className="font-extrabold text-lg mb-3" style={{ color: NAVY }}>Experience across the board</h4>
+                  <div className="grid grid-cols-2 gap-2">
+                    {["Frontline care delivery","Business management","Recruitment & selection","Care management","Policies & procedures","Administration"].map((item) => (
+                      <span key={item} className="flex items-start gap-2 text-sm text-gray-600">
+                        <CheckCircle2 size={13} style={{ color: PINK }} className="shrink-0 mt-0.5" /> {item}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="rounded-2xl p-7 border-2 border-gray-100" style={{ backgroundColor: CREAM }}>
+                  <div className="w-10 h-10 rounded-xl flex items-center justify-center mb-4" style={{ backgroundColor: PINK }}>
+                    <Star size={18} className="text-white" />
+                  </div>
+                  <h4 className="font-extrabold text-lg mb-3" style={{ color: NAVY }}>Specialist training completed</h4>
+                  <div className="grid grid-cols-2 gap-2">
+                    {["Adult safeguarding","Medication management","Dementia care","Epilepsy & PEG","Autism & PBM","Risk assessment","Infection control","Conflict management","Moving & handling","Health & safety","Person-centred planning","Investigation management"].map((item) => (
+                      <span key={item} className="flex items-start gap-2 text-sm text-gray-600">
+                        <CheckCircle2 size={13} style={{ color: BLUE }} className="shrink-0 mt-0.5" /> {item}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </FadeIn>
+          </div>
+        </div>
+      </section>
+
       {/* MISSION */}
       <section className="py-20 sm:py-24" style={{ backgroundColor: CREAM }}>
         <div className="max-w-7xl mx-auto px-5 sm:px-8">
