@@ -8,6 +8,7 @@ import { useState, useMemo, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { type BlogPost, type BlogCategory } from "@shared/schema";
 import DOMPurify from "dompurify";
+import SocialShareBar from "@/components/shared/SocialShareBar";
 const NAVY = "#05163D";
 const BLUE = "#275799";
 const PINK = "#EF2A86";
@@ -197,11 +198,15 @@ export default function Blog() {
                               </div>
                             </DialogHeader>
                             {post.image && (
-                              <div className="w-full mt-2 mb-6 rounded-xl overflow-hidden">
+                              <div className="w-full mt-2 mb-4 rounded-xl overflow-hidden">
                                 <img src={post.image} alt={post.title} className="w-full object-cover block" style={{ maxHeight: "380px" }} />
                               </div>
                             )}
+                            <SocialShareBar url={`${window.location.origin}/blog/${post.slug}`} title={post.title} />
                             <div className="prose prose-lg max-w-none" style={{ clear: "both" }} dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(post.fullContent) }} data-testid={`full-article-${index}`} />
+                            <div className="mt-8">
+                              <SocialShareBar url={`${window.location.origin}/blog/${post.slug}`} title={post.title} />
+                            </div>
                           </DialogContent>
                         </Dialog>
                       </div>
