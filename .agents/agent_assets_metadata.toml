@@ -12,3 +12,21 @@ id = "Ru0MBFg2_jqI72oniUR3G"
 uri = "file://CARELOGR-JOBS-SPEC.md"
 type = "text"
 title = "CareLogr Jobs Spec — send this to the CareLogr Replit"
+
+[[outputs]]
+id = "x0SEwv_e1E7uTjd8i2yTA"
+uri = "file://attached_assets/stock_images/live_in_care.jpg"
+type = "image"
+title = "elderly person at home with professional carer, warm living room, natural light, companionship"
+
+[[outputs]]
+id = "E7aZEe4hAj7Bq1Dkdh8qe"
+uri = "file://attached_assets/stock_images/care_visit.jpg"
+type = "image"
+title = "professional carer helping elderly woman in kitchen, friendly, natural home environment"
+
+[[outputs]]
+id = "mgr5YGoj7T5voxi4FMUc3"
+uri = "file://attached_assets/stock_images/supported_living.jpg"
+type = "image"
+title = "young adult with support worker in modern bright apartment, independent living, positive"
