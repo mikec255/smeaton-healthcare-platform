@@ -3089,33 +3089,52 @@ Sitemap: https://smeatonhealthcare.co.uk/sitemap.xml`);
   });
 
   // sitemap.xml
-  app.get("/sitemap.xml", (_req, res) => {
+  app.get("/sitemap.xml", async (_req, res) => {
     const BASE = "https://smeatonhealthcare.co.uk";
-    const now = new Date().toISOString().split("T")[0];
-    const urls = [
-      { loc: "/", priority: "1.0", changefreq: "weekly" },
-      { loc: "/about", priority: "0.8", changefreq: "monthly" },
-      { loc: "/contact", priority: "0.8", changefreq: "monthly" },
-      { loc: "/referral", priority: "0.9", changefreq: "monthly" },
-      { loc: "/jobs", priority: "0.8", changefreq: "weekly" },
-      { loc: "/services/short-visits", priority: "0.9", changefreq: "monthly" },
-      { loc: "/services/supported-living", priority: "0.9", changefreq: "monthly" },
-      { loc: "/services/care-24-7", priority: "0.9", changefreq: "monthly" },
-      { loc: "/services/live-in-care", priority: "0.9", changefreq: "monthly" },
-      { loc: "/services/respite", priority: "0.9", changefreq: "monthly" },
-      { loc: "/services/enablements", priority: "0.9", changefreq: "monthly" },
-      { loc: "/services/condition-led-care", priority: "0.9", changefreq: "monthly" },
-      { loc: "/resources/blog", priority: "0.7", changefreq: "weekly" },
-      { loc: "/resources/working-at-smeaton", priority: "0.6", changefreq: "monthly" },
-      { loc: "/resources/newsletter", priority: "0.5", changefreq: "monthly" },
-      { loc: "/resources/costings", priority: "0.7", changefreq: "monthly" },
-      { loc: "/resources/sponsorship", priority: "0.6", changefreq: "monthly" },
+    const staticUrls = [
+      { loc: "/", priority: "1.0", changefreq: "weekly", lastmod: "2025-09-01" },
+      { loc: "/about", priority: "0.8", changefreq: "monthly", lastmod: "2025-09-01" },
+      { loc: "/contact", priority: "0.8", changefreq: "monthly", lastmod: "2025-09-01" },
+      { loc: "/referral", priority: "0.9", changefreq: "monthly", lastmod: "2025-09-01" },
+      { loc: "/jobs", priority: "0.8", changefreq: "weekly", lastmod: "2025-09-01" },
+      { loc: "/services/short-visits", priority: "0.9", changefreq: "monthly", lastmod: "2025-09-01" },
+      { loc: "/services/supported-living", priority: "0.9", changefreq: "monthly", lastmod: "2025-09-01" },
+      { loc: "/services/care-24-7", priority: "0.9", changefreq: "monthly", lastmod: "2025-09-01" },
+      { loc: "/services/live-in-care", priority: "0.9", changefreq: "monthly", lastmod: "2025-09-01" },
+      { loc: "/services/respite", priority: "0.9", changefreq: "monthly", lastmod: "2025-09-01" },
+      { loc: "/services/enablements", priority: "0.9", changefreq: "monthly", lastmod: "2025-09-01" },
+      { loc: "/services/condition-led-care", priority: "0.9", changefreq: "monthly", lastmod: "2025-09-01" },
+      { loc: "/locations/devon", priority: "0.8", changefreq: "monthly", lastmod: "2025-09-01" },
+      { loc: "/locations/cornwall", priority: "0.8", changefreq: "monthly", lastmod: "2025-09-01" },
+      { loc: "/locations/plymouth", priority: "0.8", changefreq: "monthly", lastmod: "2025-09-01" },
+      { loc: "/locations/exeter", priority: "0.8", changefreq: "monthly", lastmod: "2025-09-01" },
+      { loc: "/locations/truro", priority: "0.8", changefreq: "monthly", lastmod: "2025-09-01" },
+      { loc: "/resources/blog", priority: "0.7", changefreq: "weekly", lastmod: "2025-09-01" },
+      { loc: "/resources/working-at-smeaton", priority: "0.6", changefreq: "monthly", lastmod: "2025-09-01" },
+      { loc: "/resources/newsletter", priority: "0.5", changefreq: "monthly", lastmod: "2025-09-01" },
+      { loc: "/resources/costings", priority: "0.7", changefreq: "monthly", lastmod: "2025-09-01" },
+      { loc: "/resources/sponsorship", priority: "0.6", changefreq: "monthly", lastmod: "2025-09-01" },
     ];
+
+    let blogUrls: { loc: string; priority: string; changefreq: string; lastmod: string }[] = [];
+    try {
+      const posts = await storage.getAllBlogPosts({ isPublished: true });
+      blogUrls = posts.map(p => ({
+        loc: `/blog/${p.slug}`,
+        priority: "0.7",
+        changefreq: "monthly",
+        lastmod: p.publishedAt ? new Date(p.publishedAt).toISOString().split("T")[0] : new Date(p.createdAt!).toISOString().split("T")[0],
+      }));
+    } catch (_e) {
+      // silently continue without blog URLs if DB unavailable
+    }
+
+    const allUrls = [...staticUrls, ...blogUrls];
     const xml = `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-${urls.map(u => `  <url>
+${allUrls.map(u => `  <url>
     <loc>${BASE}${u.loc}</loc>
-    <lastmod>${now}</lastmod>
+    <lastmod>${u.lastmod}</lastmod>
     <changefreq>${u.changefreq}</changefreq>
     <priority>${u.priority}</priority>
   </url>`).join("\n")}

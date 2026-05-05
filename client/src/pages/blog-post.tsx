@@ -1,12 +1,12 @@
 import { useParams, Link } from "wouter";
 import { useQuery } from "@tanstack/react-query";
 import { type BlogPost, type BlogCategory } from "@shared/schema";
-import { ArrowLeft, Calendar } from "lucide-react";
+import { ArrowLeft, Calendar, Clock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import DOMPurify from "dompurify";
 import SocialShareBar from "@/components/shared/SocialShareBar";
-import { useEffect } from "react";
+import Seo from "@/components/seo";
 
 export default function BlogPostPage() {
   const { slug } = useParams<{ slug: string }>();
@@ -24,15 +24,6 @@ export default function BlogPostPage() {
     const category = categories.find(cat => cat.id === categoryId);
     return category?.name || "Uncategorised";
   };
-
-  useEffect(() => {
-    if (post) {
-      document.title = `${post.title} | Smeaton Healthcare Blog`;
-    }
-    return () => {
-      document.title = "Smeaton Healthcare";
-    };
-  }, [post]);
 
   if (isLoading) {
     return (
@@ -121,7 +112,21 @@ export default function BlogPostPage() {
   const content = getContent();
   const shareUrl = `${window.location.origin}/blog/${post.slug}`;
 
+  const seoDescription = post.excerpt || `Read about ${post.title} on the Smeaton Healthcare blog. Expert care guidance for families in Devon and Cornwall.`;
+  const seoImage = featuredImage || "";
+  const datePublished = post.publishedAt ? new Date(post.publishedAt).toISOString() : post.createdAt ? new Date(post.createdAt).toISOString() : undefined;
+
   return (
+    <>
+    <Seo
+      title={post.title}
+      description={seoDescription}
+      path={`/blog/${post.slug}`}
+      image={seoImage}
+      type="article"
+      datePublished={datePublished}
+      author={post.author}
+    />
     <article className="max-w-4xl mx-auto px-4 py-12">
       <Link href="/resources/blog">
         <Button variant="ghost" className="mb-6 -ml-2 text-muted-foreground hover:text-foreground">
@@ -188,5 +193,6 @@ export default function BlogPostPage() {
         </Link>
       </div>
     </article>
+    </>
   );
 }
