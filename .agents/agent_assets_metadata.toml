@@ -30,6 +30,66 @@ uri = "file://attached_assets/generated_images/blog-supported-living.png"
 type = "image"
 title = "generated_image"
 
+[[generated]]
+id = "j-3jCmnsi2sDDuxSNhPX0"
+uri = "file://attached_assets/generated_images/blog-stroke.png"
+type = "image"
+title = "generated_image"
+
+[[generated]]
+id = "WhFFsqWd6KzbQBSWML2FI"
+uri = "file://attached_assets/generated_images/blog-parkinsons.png"
+type = "image"
+title = "generated_image"
+
+[[generated]]
+id = "PlV2YhSlZNOBQpZzLBgLu"
+uri = "file://attached_assets/generated_images/blog-ms.png"
+type = "image"
+title = "generated_image"
+
+[[generated]]
+id = "E_gv_JCa5AO7Z24YQpbht"
+uri = "file://attached_assets/generated_images/blog-diabetes.png"
+type = "image"
+title = "generated_image"
+
+[[generated]]
+id = "pHWpiRO-hONeO820t6mGI"
+uri = "file://attached_assets/generated_images/blog-epilepsy.png"
+type = "image"
+title = "generated_image"
+
+[[generated]]
+id = "erGPnO3yo2tut5w2sedTZ"
+uri = "file://attached_assets/generated_images/blog-signs.png"
+type = "image"
+title = "generated_image"
+
+[[generated]]
+id = "M9HkrHvKqGtPflwVq0mII"
+uri = "file://attached_assets/generated_images/blog-talk-about-care.png"
+type = "image"
+title = "generated_image"
+
+[[generated]]
+id = "jGZxMRyktVpdBj9-4qfEr"
+uri = "file://attached_assets/generated_images/blog-choosing-provider.png"
+type = "image"
+title = "generated_image"
+
+[[generated]]
+id = "24sms4Gk7ouMzs7nLk19g"
+uri = "file://attached_assets/generated_images/blog-respite.png"
+type = "image"
+title = "generated_image"
+
+[[generated]]
+id = "PLn5jVdO4vMmuhRTYennX"
+uri = "file://attached_assets/generated_images/blog-end-of-life.png"
+type = "image"
+title = "generated_image"
+
 [[outputs]]
 id = "E2I6VPO8Vk7bvdSNPiKxr"
 uri = "file://CARELOGR-BLOG-SPEC.md"
