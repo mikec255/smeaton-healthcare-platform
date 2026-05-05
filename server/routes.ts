@@ -2313,9 +2313,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (req.body.type === "general-contact") {
         const { name, email, phone, reason, message } = req.body;
         
-        // Validate simple contact form data
-        if (!name || !email || !phone || !reason || !message) {
-          return res.status(400).json({ message: "All fields are required" });
+        // Validate simple contact form data (email or phone required, not both)
+        if (!name || (!email && !phone) || !reason || !message) {
+          return res.status(400).json({ message: "Name, a contact method (email or phone), and message are required" });
         }
 
         // Send email notification to hello@smeatonhealthcare.co.uk
@@ -2338,8 +2338,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           type: "general-contact",
           firstName: name.split(' ')[0] || name,
           lastName: name.split(' ').slice(1).join(' ') || '',
-          email,
-          phone,
+          email: email || 'no-email@provided.com',
+          phone: phone || '',
           location: '', // Not provided in general contact form
           serviceRequired: reason,
           additionalRequirements: message,

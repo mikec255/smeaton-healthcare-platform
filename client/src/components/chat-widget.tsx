@@ -24,7 +24,7 @@ export default function ChatWidget() {
 
   const mutation = useMutation({
     mutationFn: (data: typeof form) =>
-      apiRequest("POST", "/api/contact", {
+      apiRequest("POST", "/api/contact-submissions", {
         type: "general-contact",
         name: data.name,
         email: data.email,

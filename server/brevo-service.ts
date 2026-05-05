@@ -125,10 +125,7 @@ class BrevoService {
           email: 'recruitment@smeatonhealthcare.co.uk',
           name: 'Smeaton Healthcare'
         },
-        replyTo: {
-          email: contactData.email,
-          name: contactData.name
-        }
+        ...(contactData.email ? { replyTo: { email: contactData.email, name: contactData.name } } : {})
       });
 
       console.log('Contact form email sent successfully:', result.body?.messageId || 'Email sent');
