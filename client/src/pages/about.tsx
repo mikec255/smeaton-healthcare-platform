@@ -144,7 +144,7 @@ export default function About() {
                 <div className="space-y-4 text-gray-500 leading-relaxed text-base">
                   <p>Claire is the person ultimately responsible for the quality and safety of care delivered across both our Plymouth and Truro branches. She has built her career from the ground up in care — working her way through every level, from frontline carer to business management, recruitment, administration and everything in between.</p>
                   <p>What that means for you is simple: the person overseeing your care genuinely understands what good care looks like at every level, not just from behind a desk.</p>
-                  <p>Claire holds a <strong style={{ color: NAVY }}>Level 5 Diploma in Leadership for Health and Social Care Services</strong> — the highest professional qualification in care management — and has completed a wide range of specialist training across clinical, safeguarding and management disciplines.</p>
+                  <p>Claire holds a <strong style={{ color: NAVY }}>Level 5 Diploma in Leadership for Health and Social Care Services</strong> — the highest professional qualification in care management — and has completed a wide range of training across safeguarding, management and specialist care disciplines.</p>
                 </div>
               </div>
             </FadeIn>
@@ -166,17 +166,15 @@ export default function About() {
                   </div>
                 </div>
 
-                <div className="rounded-2xl p-7 border-2 border-gray-100" style={{ backgroundColor: CREAM }}>
-                  <div className="w-10 h-10 rounded-xl flex items-center justify-center mb-4" style={{ backgroundColor: PINK }}>
-                    <Star size={18} className="text-white" />
+                <div className="rounded-2xl p-7 border-2 border-gray-100 relative overflow-hidden" style={{ backgroundColor: CREAM }}>
+                  <div className="w-10 h-10 rounded-xl flex items-center justify-center mb-5" style={{ backgroundColor: PINK }}>
+                    <Heart size={18} className="text-white" />
                   </div>
-                  <h4 className="font-extrabold text-lg mb-3" style={{ color: NAVY }}>Specialist training completed</h4>
-                  <div className="grid grid-cols-2 gap-2">
-                    {["Adult safeguarding","Medication management","Dementia care","Epilepsy & PEG","Autism & PBM","Risk assessment","Infection control","Conflict management","Moving & handling","Health & safety","Person-centred planning","Investigation management"].map((item) => (
-                      <span key={item} className="flex items-start gap-2 text-sm text-gray-600">
-                        <CheckCircle2 size={13} style={{ color: BLUE }} className="shrink-0 mt-0.5" /> {item}
-                      </span>
-                    ))}
+                  <h4 className="font-extrabold text-lg mb-3" style={{ color: NAVY }}>What this means for your family</h4>
+                  <p className="text-sm text-gray-500 leading-relaxed">When something matters — whether it's a change in care needs, a concern you want to raise, or simply making sure everything is working as it should — Claire is the person making sure it gets the attention it deserves. Families trust us because the people leading our care have genuinely earned that trust, one day at a time.</p>
+                  <div className="mt-5 pt-5 border-t border-gray-200">
+                    <p className="text-xs font-bold uppercase tracking-widest" style={{ color: PINK }}>CQC Registered</p>
+                    <p className="text-sm text-gray-400 mt-0.5">Both Plymouth &amp; Truro branches</p>
                   </div>
                 </div>
               </div>
