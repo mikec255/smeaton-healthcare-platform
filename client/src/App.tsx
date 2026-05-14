@@ -194,6 +194,7 @@ function Router() {
             <Route path="/admin/users" component={UsersAdmin} />
             <Route path="/admin/audit-logs" component={AuditLogsAdmin} />
             <Route path="/admin/tools" component={ToolsAdmin} />
+            <Route path="/package" component={ToolsAdmin} />
             <Route path="/admin/cqc-toolkit" component={CqcToolkitAdmin} />
             <Route path="/admin/route-planner" component={RoutePlannerAdmin} />
             <Route path="/admin/finance-reports" component={FinanceReportsAdmin} />
