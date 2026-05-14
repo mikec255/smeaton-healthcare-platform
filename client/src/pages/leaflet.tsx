@@ -1,4 +1,4 @@
-import { Printer, Phone, Globe, MapPin, CheckCircle2, Clock, Home as HomeIcon, Heart, Zap, RefreshCw, User, Activity, Star } from "lucide-react";
+import { Printer, Phone, Globe, MapPin, Check, Star } from "lucide-react";
 import logoImage from "@/assets/logo.png";
 
 const NAVY = "#05163D";
@@ -8,19 +8,20 @@ const CREAM = "#FDF7F0";
 const SCRIPT = { fontFamily: "'Dancing Script', cursive" };
 
 const SERVICES = [
-  { icon: Clock,      name: "Short Visits",        desc: "Personal care, medication and companionship." },
-  { icon: User,       name: "Live-In Care",         desc: "Full-time support in the comfort of home." },
-  { icon: Activity,   name: "24/7 Care",            desc: "Round-the-clock cover for complex needs." },
-  { icon: HomeIcon,   name: "Supported Living",     desc: "Helping adults live independently every day." },
-  { icon: RefreshCw,  name: "Respite Care",         desc: "Short-term relief so carers can recharge." },
-  { icon: Heart,      name: "Condition-Led Care",   desc: "Specialist care for dementia, MS, Parkinson's and more." },
-  { icon: Zap,        name: "Enabling",             desc: "Empowering independence, not dependency." },
+  "Short Visits",
+  "Live-In Care",
+  "24/7 Care",
+  "Supported Living",
+  "Respite Care",
+  "Condition-Led Care",
+  "Enabling",
 ];
 
 const TOWNS = [
-  "Plymouth","Saltash","Liskeard","Tavistock","Truro","Falmouth",
-  "Penzance","Newquay","Bodmin","St Austell","Launceston","Helston",
-  "Camborne","Redruth","St Ives","Hayle","Ivybridge","Totnes","Kingsbridge","Wadebridge",
+  "Plymouth","Saltash","Tavistock","Liskeard","Ivybridge",
+  "Truro","Falmouth","Penzance","St Ives","Hayle",
+  "Newquay","Bodmin","St Austell","Camborne","Redruth",
+  "Launceston","Wadebridge","Helston","Totnes","Kingsbridge",
 ];
 
 export default function Leaflet() {
@@ -40,225 +41,204 @@ export default function Leaflet() {
             height: 148mm !important;
             overflow: hidden;
             box-shadow: none !important;
-            display: flex !important;
+            position: relative !important;
           }
           .leaflet-side:last-child { page-break-after: avoid; break-after: avoid; }
-          .leaflet-wrapper {
-            display: block !important;
-            padding: 0 !important;
-            background: white !important;
-          }
+          .leaflet-wrapper { display: block !important; padding: 0 !important; background: white !important; }
           nav, footer, [data-testid="ticker"], .chat-widget { display: none !important; }
           main { padding-top: 0 !important; }
         }
 
         .leaflet-wrapper {
-          background: #d1d5db;
+          background: #e2e8f0;
           padding: 48px 24px;
           min-height: 100vh;
           display: flex;
           flex-direction: column;
           align-items: center;
-          gap: 48px;
+          gap: 52px;
         }
 
         .leaflet-side {
           width: 210mm;
           height: 148mm;
-          background: white;
-          box-shadow: 0 25px 80px rgba(0,0,0,0.25);
+          background: ${CREAM};
+          box-shadow: 0 30px 80px rgba(0,0,0,0.18);
           overflow: hidden;
-          display: flex;
-          flex-direction: row;
           position: relative;
         }
       `}</style>
 
-      {/* Control bar */}
-      <div className="print-hide" style={{ background: "#1f2937", padding: "14px 28px", display: "flex", justifyContent: "space-between", alignItems: "center", position: "sticky", top: 0, zIndex: 50 }}>
+      {/* Controls */}
+      <div className="print-hide" style={{ background: NAVY, padding: "14px 28px", display: "flex", justifyContent: "space-between", alignItems: "center", position: "sticky", top: 0, zIndex: 50 }}>
         <div>
-          <p style={{ color: CREAM, fontWeight: 700, margin: 0, fontSize: "14px" }}>A5 Landscape Leaflet — Front &amp; Back</p>
-          <p style={{ color: "rgba(253,247,240,0.45)", margin: 0, fontSize: "11px" }}>Print → Paper size: A5, Orientation: Landscape, Margins: None, Headers &amp; footers: Off</p>
+          <p style={{ color: CREAM, fontWeight: 700, margin: 0, fontSize: "14px" }}>A5 Landscape — Front &amp; Back</p>
+          <p style={{ color: "rgba(253,247,240,0.4)", margin: 0, fontSize: "11px" }}>Print: A5 · Landscape · Margins: None · Headers &amp; footers: Off</p>
         </div>
-        <button
-          onClick={() => window.print()}
-          style={{ background: PINK, color: "white", border: "none", borderRadius: "10px", padding: "10px 22px", fontWeight: 700, fontSize: "14px", cursor: "pointer", display: "flex", alignItems: "center", gap: "8px", boxShadow: "0 4px 20px rgba(239,42,134,0.4)" }}
-        >
-          <Printer size={16} /> Print Leaflet
+        <button onClick={() => window.print()} style={{ background: PINK, color: "white", border: "none", borderRadius: "10px", padding: "10px 22px", fontWeight: 700, fontSize: "14px", cursor: "pointer", display: "flex", alignItems: "center", gap: "8px" }}>
+          <Printer size={16} /> Print
         </button>
       </div>
 
       <div className="leaflet-wrapper">
 
-        {/* ============================================================
-            FRONT — Left pink panel + right cream panel
-        ============================================================ */}
+        {/* ── FRONT ─────────────────────────────────────────────── */}
         <div className="leaflet-side">
 
-          {/* LEFT: Pink brand panel */}
-          <div style={{ width: "38%", background: PINK, display: "flex", flexDirection: "column", justifyContent: "space-between", padding: "28px 26px", position: "relative", overflow: "hidden", flexShrink: 0 }}>
-            {/* Decorative circle */}
-            <div style={{ position: "absolute", bottom: "-60px", right: "-60px", width: "200px", height: "200px", borderRadius: "50%", background: "rgba(255,255,255,0.08)" }} />
-            <div style={{ position: "absolute", top: "-40px", left: "-40px", width: "140px", height: "140px", borderRadius: "50%", background: "rgba(255,255,255,0.06)" }} />
+          {/* Soft background circles — decorative warmth */}
+          <div style={{ position: "absolute", top: "-80px", right: "-80px", width: "320px", height: "320px", borderRadius: "50%", background: `${PINK}0D`, pointerEvents: "none" }} />
+          <div style={{ position: "absolute", bottom: "-60px", left: "36%", width: "220px", height: "220px", borderRadius: "50%", background: `${BLUE}08`, pointerEvents: "none" }} />
 
-            <div style={{ position: "relative", zIndex: 2 }}>
-              {/* Logo */}
-              <img src={logoImage} alt="Smeaton Healthcare" style={{ height: "36px", width: "auto", marginBottom: "22px", filter: "brightness(0) invert(1)" }} />
+          {/* TOP NAV */}
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "16px 28px 0" }}>
+            <img src={logoImage} alt="Smeaton Healthcare" style={{ height: "40px", width: "auto" }} />
+            <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
+              <span style={{ fontSize: "10px", fontWeight: 700, color: "#9ca3af", letterSpacing: "0.06em" }}>CQC RATED GOOD</span>
+              <div style={{ width: "3px", height: "3px", borderRadius: "50%", background: "#d1d5db" }} />
+              <span style={{ fontSize: "10px", fontWeight: 700, color: "#9ca3af", letterSpacing: "0.06em" }}>NHS APPROVED</span>
+              <div style={{ width: "3px", height: "3px", borderRadius: "50%", background: "#d1d5db" }} />
+              <div style={{ display: "flex", gap: "1px" }}>
+                {[1,2,3,4,5].map(s => <Star key={s} size={10} fill={PINK} style={{ color: PINK }} />)}
+              </div>
+              <span style={{ fontSize: "10px", fontWeight: 700, color: PINK }}>4.9 on Google</span>
+            </div>
+          </div>
 
-              {/* Tagline */}
-              <div style={{ ...SCRIPT, fontSize: "30px", color: "white", lineHeight: 1.2, marginBottom: "14px" }}>
+          {/* MAIN CONTENT */}
+          <div style={{ display: "flex", padding: "18px 28px 0", gap: "40px", alignItems: "flex-start" }}>
+
+            {/* LEFT: headline + intro + contact */}
+            <div style={{ flex: "0 0 52%" }}>
+              <div style={{ ...SCRIPT, fontSize: "38px", color: PINK, lineHeight: 1.1, marginBottom: "8px" }}>
                 care that feels<br />like family.
               </div>
-              <p style={{ color: "rgba(255,255,255,0.82)", fontSize: "11.5px", lineHeight: 1.6, margin: 0 }}>
-                Trusted home care across Devon &amp; Cornwall, helping people live well and independently at home.
+              <p style={{ fontSize: "12px", color: BLUE, fontWeight: 800, marginBottom: "10px", lineHeight: 1.4 }}>
+                Home care across Devon &amp; Cornwall
               </p>
+              <p style={{ fontSize: "11px", color: "#4b5563", lineHeight: 1.65, margin: "0 0 18px", maxWidth: "280px" }}>
+                We know how hard it is to find care you can truly trust. At Smeaton Healthcare, we match you with consistent, trained carers who get to know your loved one — and genuinely care about their wellbeing.
+              </p>
+
+              {/* Soft contact card */}
+              <div style={{ display: "inline-flex", alignItems: "center", gap: "12px", background: "white", borderRadius: "14px", padding: "12px 18px", boxShadow: "0 4px 20px rgba(239,42,134,0.12)" }}>
+                <div style={{ background: `${PINK}15`, borderRadius: "10px", padding: "8px" }}>
+                  <Phone size={16} style={{ color: PINK }} />
+                </div>
+                <div>
+                  <p style={{ margin: 0, fontSize: "9px", color: "#9ca3af", fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase" }}>Free call — no obligation</p>
+                  <p style={{ margin: 0, fontSize: "18px", fontWeight: 900, color: NAVY, letterSpacing: "-0.5px" }}>0330 165 8880</p>
+                </div>
+              </div>
             </div>
 
-            {/* Bottom contact */}
-            <div style={{ position: "relative", zIndex: 2 }}>
-              <div style={{ background: "rgba(255,255,255,0.18)", borderRadius: "10px", padding: "12px 14px" }}>
-                <p style={{ margin: "0 0 4px", color: "rgba(255,255,255,0.7)", fontSize: "9px", fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase" }}>Call us free</p>
-                <div style={{ display: "flex", alignItems: "center", gap: "7px" }}>
-                  <Phone size={14} style={{ color: "white" }} />
-                  <span style={{ color: "white", fontWeight: 800, fontSize: "18px", letterSpacing: "-0.5px" }}>0330 165 8880</span>
+            {/* RIGHT: services soft list */}
+            <div style={{ flex: 1, paddingTop: "4px" }}>
+              <p style={{ margin: "0 0 12px", fontSize: "10px", fontWeight: 800, letterSpacing: "0.1em", textTransform: "uppercase", color: "#9ca3af" }}>How we can help</p>
+              <div style={{ display: "flex", flexDirection: "column", gap: "7px" }}>
+                {SERVICES.map((s, i) => (
+                  <div key={s} style={{ display: "flex", alignItems: "center", gap: "9px" }}>
+                    <div style={{ width: "18px", height: "18px", borderRadius: "50%", background: i % 2 === 0 ? `${PINK}15` : `${BLUE}10`, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                      <Check size={10} style={{ color: i % 2 === 0 ? PINK : BLUE }} />
+                    </div>
+                    <span style={{ fontSize: "11.5px", fontWeight: 700, color: NAVY }}>{s}</span>
+                  </div>
+                ))}
+              </div>
+              <div style={{ marginTop: "16px", paddingTop: "12px", borderTop: "1px solid rgba(0,0,0,0.06)" }}>
+                <div style={{ display: "flex", alignItems: "center", gap: "5px" }}>
+                  <Globe size={11} style={{ color: "#9ca3af" }} />
+                  <span style={{ fontSize: "10px", color: "#9ca3af", fontWeight: 600 }}>smeatonhealthcare.co.uk</span>
                 </div>
-                <p style={{ margin: "5px 0 0", color: "rgba(255,255,255,0.65)", fontSize: "10px" }}>smeatonhealthcare.co.uk</p>
               </div>
             </div>
           </div>
 
-          {/* RIGHT: Services + trust */}
-          <div style={{ flex: 1, background: CREAM, display: "flex", flexDirection: "column", padding: "24px 26px 20px" }}>
-            {/* Top strip */}
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "16px" }}>
-              <div>
-                <p style={{ margin: 0, fontSize: "9px", fontWeight: 800, letterSpacing: "0.12em", textTransform: "uppercase", color: PINK }}>Our Care Services</p>
-                <p style={{ margin: "2px 0 0", fontWeight: 800, fontSize: "16px", color: BLUE, letterSpacing: "-0.5px" }}>Everything you need, at home.</p>
-              </div>
-              <div style={{ display: "flex", gap: "6px" }}>
-                <span style={{ background: `${PINK}18`, color: PINK, fontSize: "9px", fontWeight: 800, padding: "4px 9px", borderRadius: "20px", letterSpacing: "0.04em" }}>CQC Rated Good</span>
-                <span style={{ background: `${BLUE}12`, color: BLUE, fontSize: "9px", fontWeight: 800, padding: "4px 9px", borderRadius: "20px", letterSpacing: "0.04em" }}>NHS Approved</span>
-              </div>
-            </div>
-
-            {/* 2-column service list */}
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "7px", flex: 1 }}>
-              {SERVICES.map((s, i) => (
-                <div key={s.name} style={{ display: "flex", alignItems: "flex-start", gap: "9px", background: "white", borderRadius: "8px", padding: "9px 11px", border: `1px solid rgba(39,87,153,0.07)` }}>
-                  <div style={{ background: i % 2 === 0 ? `${PINK}15` : `${BLUE}12`, borderRadius: "6px", padding: "5px", flexShrink: 0 }}>
-                    <s.icon size={12} style={{ color: i % 2 === 0 ? PINK : BLUE }} />
-                  </div>
-                  <div>
-                    <p style={{ margin: 0, fontWeight: 800, fontSize: "10.5px", color: NAVY, lineHeight: 1.3 }}>{s.name}</p>
-                    <p style={{ margin: "2px 0 0", fontSize: "9.5px", color: "#6b7280", lineHeight: 1.4 }}>{s.desc}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            {/* Trust bar */}
-            <div style={{ display: "flex", gap: "8px", marginTop: "12px", paddingTop: "10px", borderTop: "1px solid rgba(39,87,153,0.1)" }}>
-              {[
-                { v: "★ 4.9", l: "Google" },
-                { v: "★ 4.6", l: "Trustpilot" },
-                { v: "Since", l: "2019" },
-                { v: "Care", l: "Within 24hrs" },
-              ].map((t) => (
-                <div key={t.l} style={{ flex: 1, textAlign: "center" }}>
-                  <p style={{ margin: 0, fontWeight: 800, fontSize: "11px", color: BLUE }}>{t.v}</p>
-                  <p style={{ margin: 0, fontSize: "8.5px", color: "#9ca3af", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.04em" }}>{t.l}</p>
-                </div>
-              ))}
-              <div style={{ borderLeft: "1px solid rgba(39,87,153,0.1)", paddingLeft: "8px", display: "flex", alignItems: "center" }}>
-                <div style={{ background: PINK, borderRadius: "8px", padding: "8px 12px", cursor: "pointer" }}>
-                  <p style={{ margin: 0, color: "white", fontWeight: 800, fontSize: "9.5px", lineHeight: 1.3, textAlign: "center" }}>Free<br />Assessment</p>
-                </div>
-              </div>
-            </div>
+          {/* BOTTOM warm strip */}
+          <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, background: `${PINK}10`, padding: "9px 28px", display: "flex", alignItems: "center", gap: "6px" }}>
+            <MapPin size={11} style={{ color: PINK, flexShrink: 0 }} />
+            <p style={{ margin: 0, fontSize: "10px", color: "#6b7280", lineHeight: 1.4 }}>
+              <span style={{ fontWeight: 700, color: BLUE }}>Covering: </span>
+              {TOWNS.slice(0, 12).join(" · ")} <span style={{ color: "#9ca3af" }}>and surrounding areas</span>
+            </p>
           </div>
         </div>
 
 
-        {/* ============================================================
-            BACK — 3-column layout: why us | quote+areas | contact strip
-        ============================================================ */}
+        {/* ── BACK ──────────────────────────────────────────────── */}
         <div className="leaflet-side">
 
-          {/* LEFT: Why choose us */}
-          <div style={{ width: "44%", background: "white", padding: "28px 26px", display: "flex", flexDirection: "column", flexShrink: 0 }}>
-            <div style={{ marginBottom: "16px" }}>
-              <p style={{ margin: "0 0 4px", fontSize: "9px", fontWeight: 800, letterSpacing: "0.12em", textTransform: "uppercase", color: PINK }}>Why choose Smeaton</p>
-              <div style={{ ...SCRIPT, fontSize: "26px", color: BLUE, lineHeight: 1.2 }}>What makes us different.</div>
-            </div>
+          {/* Decorative circles */}
+          <div style={{ position: "absolute", top: "-60px", left: "-60px", width: "240px", height: "240px", borderRadius: "50%", background: `${PINK}0A`, pointerEvents: "none" }} />
+          <div style={{ position: "absolute", bottom: "-80px", right: "30%", width: "260px", height: "260px", borderRadius: "50%", background: `${BLUE}07`, pointerEvents: "none" }} />
 
-            <div style={{ display: "flex", flexDirection: "column", gap: "11px", flex: 1 }}>
-              {[
-                { title: "The same carers, every visit", detail: "No strangers at the door. You'll build a real relationship with a consistent team." },
-                { title: "Trained, checked and insured", detail: "Every carer is fully DBS checked, trained and supervised before your first visit." },
-                { title: "Care can start in 24 hours", detail: "Urgent or planned — we work around your timeline, not ours." },
-                { title: "All funding types accepted", detail: "Self-funded, direct payments, personal health budgets and local authority funding." },
-              ].map((p, i) => (
-                <div key={i} style={{ display: "flex", gap: "10px" }}>
-                  <div style={{ width: "20px", height: "20px", borderRadius: "50%", background: `${PINK}18`, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, marginTop: "1px" }}>
-                    <CheckCircle2 size={12} style={{ color: PINK }} />
-                  </div>
-                  <div>
-                    <p style={{ margin: 0, fontWeight: 800, fontSize: "11px", color: NAVY }}>{p.title}</p>
-                    <p style={{ margin: "2px 0 0", fontSize: "10px", color: "#6b7280", lineHeight: 1.4 }}>{p.detail}</p>
-                  </div>
+          <div style={{ display: "flex", height: "100%" }}>
+
+            {/* LEFT: Testimonial — big and human */}
+            <div style={{ flex: "0 0 48%", padding: "28px 30px", display: "flex", flexDirection: "column", justifyContent: "space-between", position: "relative" }}>
+              <div>
+                {/* Stars */}
+                <div style={{ display: "flex", gap: "2px", marginBottom: "14px" }}>
+                  {[1,2,3,4,5].map(s => <Star key={s} size={14} fill={PINK} style={{ color: PINK }} />)}
                 </div>
-              ))}
-            </div>
-          </div>
 
-          {/* CENTRE: Testimonial + areas */}
-          <div style={{ flex: 1, background: CREAM, padding: "28px 22px", display: "flex", flexDirection: "column", justifyContent: "space-between" }}>
-            {/* Testimonial */}
-            <div>
-              <div style={{ display: "flex", gap: "1px", marginBottom: "10px" }}>
-                {[1,2,3,4,5].map(s => <Star key={s} size={13} fill={PINK} style={{ color: PINK }} />)}
+                {/* Big quote */}
+                <div style={{ ...SCRIPT, fontSize: "22px", color: NAVY, lineHeight: 1.4, marginBottom: "14px" }}>
+                  "The carers from Smeaton are wonderful. Mum knows them by name and looks forward to every visit."
+                </div>
+                <p style={{ margin: 0, fontSize: "11px", fontWeight: 700, color: PINK }}>Sarah T. — Daughter of service user, Plymouth</p>
               </div>
-              <blockquote style={{ margin: 0, borderLeft: `3px solid ${PINK}`, paddingLeft: "14px" }}>
-                <p style={{ margin: "0 0 8px", fontSize: "12px", color: NAVY, fontStyle: "italic", lineHeight: 1.6 }}>
-                  "The carers from Smeaton are wonderful — Mum knows them by name and actually looks forward to their visits. I genuinely don't know what we'd do without them."
-                </p>
-                <p style={{ margin: 0, fontSize: "10px", fontWeight: 700, color: PINK }}>Sarah T., Daughter of service user — Plymouth</p>
-              </blockquote>
-            </div>
 
-            {/* Areas */}
-            <div>
-              <div style={{ display: "flex", alignItems: "center", gap: "5px", marginBottom: "8px" }}>
-                <MapPin size={11} style={{ color: BLUE }} />
-                <p style={{ margin: 0, fontSize: "9px", fontWeight: 800, letterSpacing: "0.1em", textTransform: "uppercase", color: BLUE }}>Areas Covered</p>
-              </div>
-              <div style={{ display: "flex", flexWrap: "wrap", gap: "4px" }}>
-                {TOWNS.slice(0, 16).map(t => (
-                  <span key={t} style={{ background: `${BLUE}10`, color: BLUE, fontSize: "9px", fontWeight: 600, padding: "2px 7px", borderRadius: "20px" }}>{t}</span>
-                ))}
-                <span style={{ color: "#9ca3af", fontSize: "9px", fontWeight: 600, padding: "2px 4px" }}>& more</span>
+              <div>
+                <img src={logoImage} alt="Smeaton Healthcare" style={{ height: "32px", width: "auto", marginBottom: "10px" }} />
+                <div style={{ display: "flex", gap: "5px", alignItems: "center" }}>
+                  <Phone size={12} style={{ color: PINK }} />
+                  <span style={{ fontSize: "16px", fontWeight: 900, color: NAVY }}>0330 165 8880</span>
+                </div>
+                <div style={{ display: "flex", gap: "5px", alignItems: "center", marginTop: "4px" }}>
+                  <Globe size={11} style={{ color: "#9ca3af" }} />
+                  <span style={{ fontSize: "10px", color: "#6b7280", fontWeight: 600 }}>smeatonhealthcare.co.uk</span>
+                </div>
               </div>
             </div>
-          </div>
 
-          {/* RIGHT: Pink CTA panel */}
-          <div style={{ width: "26%", background: PINK, padding: "28px 20px", display: "flex", flexDirection: "column", justifyContent: "space-between", position: "relative", overflow: "hidden", flexShrink: 0 }}>
-            <div style={{ position: "absolute", top: "-50px", right: "-50px", width: "160px", height: "160px", borderRadius: "50%", background: "rgba(255,255,255,0.08)" }} />
-            <div style={{ position: "absolute", bottom: "-30px", left: "-30px", width: "100px", height: "100px", borderRadius: "50%", background: "rgba(255,255,255,0.06)" }} />
+            {/* DIVIDER */}
+            <div style={{ width: "1px", background: "rgba(0,0,0,0.07)", margin: "24px 0" }} />
 
-            <div style={{ position: "relative", zIndex: 2 }}>
-              <img src={logoImage} alt="Smeaton Healthcare" style={{ height: "28px", width: "auto", filter: "brightness(0) invert(1)", marginBottom: "20px" }} />
-              <p style={{ margin: "0 0 6px", color: "rgba(255,255,255,0.75)", fontSize: "10px", fontWeight: 700, letterSpacing: "0.06em", textTransform: "uppercase" }}>Get started today</p>
-              <p style={{ margin: "0 0 14px", color: "white", fontWeight: 800, fontSize: "15px", lineHeight: 1.3 }}>Book your free care assessment</p>
-              <p style={{ margin: 0, color: "rgba(255,255,255,0.8)", fontSize: "10px", lineHeight: 1.5 }}>No obligation. We'll discuss your needs and find the right support.</p>
-            </div>
+            {/* RIGHT: Why us + areas */}
+            <div style={{ flex: 1, padding: "28px 26px 24px", display: "flex", flexDirection: "column", justifyContent: "space-between" }}>
+              <div>
+                <p style={{ margin: "0 0 4px", fontSize: "10px", fontWeight: 800, letterSpacing: "0.1em", textTransform: "uppercase", color: PINK }}>Why families choose us</p>
+                <div style={{ ...SCRIPT, fontSize: "22px", color: BLUE, lineHeight: 1.2, marginBottom: "16px" }}>what makes us different.</div>
 
-            <div style={{ position: "relative", zIndex: 2 }}>
-              <div style={{ background: "rgba(255,255,255,0.2)", borderRadius: "10px", padding: "12px 14px" }}>
-                <p style={{ margin: "0 0 2px", color: "rgba(255,255,255,0.65)", fontSize: "9px", fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase" }}>Call us</p>
-                <p style={{ margin: "0 0 6px", color: "white", fontWeight: 800, fontSize: "16px" }}>0330 165 8880</p>
-                <div style={{ height: "1px", background: "rgba(255,255,255,0.2)", margin: "6px 0" }} />
-                <p style={{ margin: 0, color: "rgba(255,255,255,0.65)", fontSize: "10px" }}>smeatonhealthcare.co.uk</p>
+                <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
+                  {[
+                    { title: "The same carers, every time", body: "Familiar faces build real trust — no strangers at the door." },
+                    { title: "Care can start within 24 hours", body: "Urgent or planned — we move at your pace, not ours." },
+                    { title: "Trained, DBS checked & insured", body: "Every carer is fully vetted before their very first visit." },
+                    { title: "All funding types welcome", body: "Self-funded, direct payments, local authority and NHS budgets." },
+                  ].map((p) => (
+                    <div key={p.title} style={{ display: "flex", gap: "9px", alignItems: "flex-start" }}>
+                      <div style={{ width: "6px", height: "6px", borderRadius: "50%", background: PINK, flexShrink: 0, marginTop: "5px" }} />
+                      <div>
+                        <span style={{ fontWeight: 800, fontSize: "11px", color: NAVY }}>{p.title} — </span>
+                        <span style={{ fontSize: "11px", color: "#6b7280" }}>{p.body}</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Areas */}
+              <div style={{ paddingTop: "12px", borderTop: "1px solid rgba(0,0,0,0.06)" }}>
+                <div style={{ display: "flex", alignItems: "center", gap: "5px", marginBottom: "7px" }}>
+                  <MapPin size={11} style={{ color: BLUE }} />
+                  <span style={{ fontSize: "9.5px", fontWeight: 800, letterSpacing: "0.08em", textTransform: "uppercase", color: BLUE }}>Areas we cover</span>
+                </div>
+                <div style={{ display: "flex", flexWrap: "wrap", gap: "4px" }}>
+                  {TOWNS.map(t => (
+                    <span key={t} style={{ fontSize: "9px", fontWeight: 600, color: "#6b7280", background: "white", padding: "2px 8px", borderRadius: "20px", border: "1px solid rgba(0,0,0,0.08)" }}>{t}</span>
+                  ))}
+                </div>
               </div>
             </div>
           </div>
