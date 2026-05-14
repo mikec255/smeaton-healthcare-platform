@@ -81,6 +81,7 @@ const StaffAssessment = lazy(() => import("@/pages/staff-assessment"));
 
 // Public pages (no auth required)
 const PublicFeedback = lazy(() => import("@/pages/public-feedback"));
+const Leaflet = lazy(() => import("@/pages/leaflet"));
 
 // Resources pages
 const Resources = lazy(() => import("@/pages/resources"));
@@ -167,6 +168,9 @@ function Router() {
             
             {/* Public Feedback Form */}
             <Route path="/feedback/:token" component={PublicFeedback} />
+
+            {/* Print materials */}
+            <Route path="/leaflet" component={Leaflet} />
             
             {/* Admin hub pages */}
             <Route path="/admin/recruitment" component={RecruitmentHub} />
