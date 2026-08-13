@@ -94,12 +94,11 @@ export default function JobCard({ job, onViewDetails, onApply }: JobCardProps) {
           </span>
           <Button
             onClick={onApply}
-            variant="outline"
-            className="text-sm font-bold border-2 hover:opacity-90"
-            style={{ borderColor: PINK, color: PINK }}
+            className="text-sm font-bold hover:opacity-90 text-white"
+            style={{ backgroundColor: PINK }}
             data-testid={`button-quick-apply-${job.id}`}
           >
-            Quick Apply
+            Apply Now
           </Button>
         </div>
 
