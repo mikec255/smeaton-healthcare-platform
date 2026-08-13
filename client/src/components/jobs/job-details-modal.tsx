@@ -86,51 +86,44 @@ export default function JobDetailsModal({ job, isOpen, onClose, onApply }: JobDe
           </div>
         </DialogHeader>
         
-        <div className="grid md:grid-cols-3 gap-8">
-          <div className="md:col-span-2">
-            <div className="prose max-w-none" data-testid="modal-job-content">
-              <h3 className="text-xl font-bold mb-4">Job Summary</h3>
-              <p className="mb-4">{job.summary}</p>
-              
-              {job.description && (
-                <>
-                  <h4 className="text-lg font-semibold mb-3">Full Description</h4>
-                  <div className="whitespace-pre-line mb-6">{job.description}</div>
-                </>
-              )}
-              
-              {job.requirements && (
-                <>
-                  <h4 className="text-lg font-semibold mb-3">Requirements</h4>
-                  <div className="whitespace-pre-line mb-6">{job.requirements}</div>
-                </>
-              )}
-              
-              {job.benefits && (
-                <>
-                  <h4 className="text-lg font-semibold mb-3">Benefits</h4>
-                  <div className="whitespace-pre-line mb-6">{job.benefits}</div>
-                </>
-              )}
+        <Button
+          onClick={onApply}
+          className="w-full text-white hover:opacity-90"
+          style={{ backgroundColor: "#EF2A86" }}
+          data-testid="button-apply-now"
+        >
+          Apply Now
+        </Button>
 
-              {/* Social Share Bar */}
-              <SocialShareBar
-                title={`${job.title} – Smeaton Healthcare`}
-                url={`https://smeatonhealthcare.co.uk/jobs/${job.id}`}
-              />
-            </div>
-          </div>
-          
-          <div>
-            <Button
-              onClick={onApply}
-              className="w-full text-white hover:opacity-90"
-              style={{ backgroundColor: "#EF2A86" }}
-              data-testid="button-apply-now"
-            >
-              Apply Now
-            </Button>
-          </div>
+        <div className="prose max-w-none" data-testid="modal-job-content">
+          <h3 className="text-xl font-bold mb-4">Job Summary</h3>
+          <p className="mb-4">{job.summary}</p>
+
+          {job.description && (
+            <>
+              <h4 className="text-lg font-semibold mb-3">Full Description</h4>
+              <div className="whitespace-pre-line mb-6">{job.description}</div>
+            </>
+          )}
+
+          {job.requirements && (
+            <>
+              <h4 className="text-lg font-semibold mb-3">Requirements</h4>
+              <div className="whitespace-pre-line mb-6">{job.requirements}</div>
+            </>
+          )}
+
+          {job.benefits && (
+            <>
+              <h4 className="text-lg font-semibold mb-3">Benefits</h4>
+              <div className="whitespace-pre-line mb-6">{job.benefits}</div>
+            </>
+          )}
+
+          <SocialShareBar
+            title={`${job.title} – Smeaton Healthcare`}
+            url={`https://smeatonhealthcare.co.uk/jobs/${job.id}`}
+          />
         </div>
       </DialogContent>
     </Dialog>
