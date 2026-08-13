@@ -860,7 +860,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
         upcoming_holiday, holiday_details, questions,
       } = req.body;
 
+      console.log("[QuickApply] incoming body keys:", Object.keys(req.body ?? {}));
+      console.log("[QuickApply] name:", first_name, last_name, "| email:", email, "| phone:", phone);
+      console.log("[QuickApply] prescreen fields —",
+        "dob:", date_of_birth,
+        "area:", area,
+        "exp_settings:", experience_settings,
+        "other_exp:", other_experience,
+        "time_in_care:", time_in_care,
+        "driver:", driver,
+        "vehicle_access:", vehicle_access,
+        "british_licence:", british_licence,
+        "upcoming_holiday:", upcoming_holiday,
+        "holiday_details:", holiday_details,
+        "questions:", questions,
+      );
+
       if (!jobId || !first_name || !last_name || !email || !phone) {
+        console.warn("[QuickApply] rejected — missing required field(s). jobId:", jobId, "first_name:", first_name, "last_name:", last_name, "email:", email, "phone:", phone);
         return res.status(400).json({ message: "Missing required fields" });
       }
 
@@ -894,6 +911,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         },
       };
 
+      console.log("[QuickApply] sending to CareLogr:", JSON.stringify(payload));
+
       const carelogrRes = await fetch("https://carelogr.replit.app/api/recruitment/applications", {
         method: "POST",
         headers: { "Content-Type": "application/json", "X-API-Key": carelogrKey },
@@ -910,6 +929,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(502).json({ message: "Submission failed, please try again" });
       }
 
+      console.log("[QuickApply] success for", email);
       // CareLogr is the system of record — we do not save to the local DB
       return res.status(201).json({ message: "Application submitted" });
     } catch (err) {
