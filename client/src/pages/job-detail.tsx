@@ -3,8 +3,7 @@ import { useParams, Link } from "wouter";
 import { Helmet } from "react-helmet-async";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-import { MapPin, PoundSterling, Building, Check, Phone, Mail, ArrowLeft, Loader2, ChevronDown } from "lucide-react";
+import { MapPin, PoundSterling, Building, ArrowLeft, Loader2, ChevronDown } from "lucide-react";
 import SocialShareBar from "@/components/shared/SocialShareBar";
 import QuickApplyForm from "@/components/jobs/QuickApplyForm";
 import { type Job } from "@shared/schema";
@@ -33,13 +32,6 @@ function formatType(type: string) {
   }
 }
 
-const BENEFITS = [
-  "Competitive salary",
-  "Comprehensive training",
-  "Career development",
-  "Supportive team environment",
-  "Flexible working arrangements",
-];
 
 export default function JobDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -171,7 +163,7 @@ export default function JobDetailPage() {
           </div>
 
           {/* Sidebar */}
-          <div className="space-y-6">
+          <div>
             <a href="#quick-apply">
               <Button
                 style={{ backgroundColor: PINK }}
@@ -180,31 +172,6 @@ export default function JobDetailPage() {
                 Apply Now
               </Button>
             </a>
-
-            <Card>
-              <CardContent className="p-6">
-                <h3 className="font-semibold mb-3">Benefits</h3>
-                <ul className="space-y-2 text-sm text-gray-500">
-                  {BENEFITS.map((b) => (
-                    <li key={b} className="flex items-center">
-                      <Check className="h-4 w-4 mr-2 text-green-500 shrink-0" />
-                      {b}
-                    </li>
-                  ))}
-                </ul>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardContent className="p-6">
-                <h3 className="font-semibold mb-3">Contact Us</h3>
-                <div className="space-y-2 text-sm text-gray-500">
-                  <p className="flex items-center gap-2"><Phone className="h-4 w-4" /> 0330 165 8880</p>
-                  <p className="flex items-center gap-2"><Mail className="h-4 w-4" /> hello@smeatonhealthcare.co.uk</p>
-                  <p className="flex items-center gap-2"><MapPin className="h-4 w-4" /> Devon &amp; Cornwall</p>
-                </div>
-              </CardContent>
-            </Card>
           </div>
         </div>
 

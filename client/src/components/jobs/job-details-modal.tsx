@@ -1,8 +1,7 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Card, CardContent } from "@/components/ui/card";
-import { MapPin, PoundSterling, Building, Check, Phone, Mail } from "lucide-react";
+import { MapPin, PoundSterling, Building } from "lucide-react";
 import { type Job } from "@shared/schema";
 import SocialShareBar from "@/components/shared/SocialShareBar";
 
@@ -122,7 +121,7 @@ export default function JobDetailsModal({ job, isOpen, onClose, onApply }: JobDe
             </div>
           </div>
           
-          <div className="space-y-6">
+          <div>
             <Button
               onClick={onApply}
               className="w-full text-white hover:opacity-90"
@@ -131,40 +130,6 @@ export default function JobDetailsModal({ job, isOpen, onClose, onApply }: JobDe
             >
               Apply Now
             </Button>
-            
-            <Card data-testid="modal-benefits-section">
-              <CardContent className="p-6">
-                <h3 className="font-semibold text-foreground mb-4">Job Benefits</h3>
-                <ul className="space-y-2 text-sm text-muted-foreground">
-                  {benefits.map((benefit, index) => (
-                    <li key={index} className="flex items-center" data-testid={`benefit-${index}`}>
-                      <Check className="text-accent h-4 w-4 mr-2" />
-                      {benefit}
-                    </li>
-                  ))}
-                </ul>
-              </CardContent>
-            </Card>
-            
-            <Card data-testid="modal-contact-section">
-              <CardContent className="p-6">
-                <h3 className="font-semibold text-foreground mb-4">Contact Information</h3>
-                <div className="space-y-2 text-sm text-muted-foreground">
-                  <p className="flex items-center">
-                    <Phone className="h-4 w-4 mr-2" />
-                    Call us for more information
-                  </p>
-                  <p className="flex items-center">
-                    <Mail className="h-4 w-4 mr-2" />
-                    hello@smeatonhealthcare.co.uk
-                  </p>
-                  <p className="flex items-center">
-                    <MapPin className="h-4 w-4 mr-2" />
-                    Devon & Cornwall
-                  </p>
-                </div>
-              </CardContent>
-            </Card>
           </div>
         </div>
       </DialogContent>
