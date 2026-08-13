@@ -7,34 +7,38 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { CheckCircle2, Loader2 } from "lucide-react";
 
-const EXPERIENCE_SETTINGS = [
-  "Short Visits",
-  "Care Home",
-  "Hospital",
-  "Private",
-  "Family",
-  "Community",
-] as const;
+const SHIFT_OPTIONS = ["Early", "Late", "Long Days", "Nights"] as const;
+
+const HEARD_ABOUT_OPTIONS = [
+  "Indeed",
+  "Google",
+  "Facebook / Instagram",
+  "Friend or family referral",
+  "Current / former employee",
+  "Job board (other)",
+  "Leaflet / local advertising",
+  "Other",
+];
 
 const schema = z.object({
   first_name: z.string().min(1, "Required"),
   last_name: z.string().min(1, "Required"),
   email: z.string().email("Valid email required"),
   phone: z.string().min(7, "Required"),
-  date_of_birth: z.string().min(1, "Required"),
-  area: z.string().min(1, "Required"),
-  experience_settings: z.array(z.string()).optional(),
-  other_experience: z.string().optional(),
-  time_in_care: z.string().optional(),
-  driver: z.enum(["Yes", "No"], { required_error: "Required" }),
-  vehicle_access: z.enum(["Yes", "No"], { required_error: "Required" }),
-  british_licence: z.enum(["Yes", "No"], { required_error: "Required" }),
+  location: z.string().min(1, "Required"),
+  heard_about_us: z.string().min(1, "Required"),
+  currently_working: z.enum(["Yes", "No"], { required_error: "Required" }),
+  care_experience: z.string().optional(),
   upcoming_holiday: z.enum(["Yes", "No"], { required_error: "Required" }),
-  holiday_details: z.string().optional(),
-  questions: z.string().optional(),
+  driver: z.enum(["Yes", "No"], { required_error: "Required" }),
+  shift_preferences: z.array(z.string()).optional(),
+  hours_wanted: z.string().optional(),
+  dbs_update_service: z.enum(["Yes", "No"], { required_error: "Required" }),
+  mh_certificate: z.enum(["Yes", "No"], { required_error: "Required" }),
   privacy_consent: z.boolean().refine((v) => v === true, "You must agree to the privacy notice"),
 });
 
@@ -98,22 +102,20 @@ export default function QuickApplyForm({ jobId, jobTitle }: QuickApplyFormProps)
       last_name: "",
       email: "",
       phone: "",
-      date_of_birth: "",
-      area: "",
-      experience_settings: [],
-      other_experience: "",
-      time_in_care: "",
-      driver: undefined,
-      vehicle_access: undefined,
-      british_licence: undefined,
+      location: "",
+      heard_about_us: "",
+      currently_working: undefined,
+      care_experience: "",
       upcoming_holiday: undefined,
-      holiday_details: "",
-      questions: "",
+      driver: undefined,
+      shift_preferences: [],
+      hours_wanted: "",
+      dbs_update_service: undefined,
+      mh_certificate: undefined,
       privacy_consent: false,
     },
   });
 
-  const upcomingHoliday = form.watch("upcoming_holiday");
   const isSubmitting = form.formState.isSubmitting;
 
   async function onSubmit(values: FormValues) {
@@ -204,38 +206,62 @@ export default function QuickApplyForm({ jobId, jobTitle }: QuickApplyFormProps)
               </FormItem>
             )} />
           </div>
-          <div className="grid sm:grid-cols-2 gap-4">
-            <FormField control={form.control} name="date_of_birth" render={({ field }) => (
-              <FormItem>
-                <FormLabel>Date of birth *</FormLabel>
-                <FormControl><Input type="date" {...field} /></FormControl>
-                <FormMessage />
-              </FormItem>
-            )} />
-            <FormField control={form.control} name="area" render={({ field }) => (
-              <FormItem>
-                <FormLabel>What area do you live in? *</FormLabel>
-                <FormControl><Input placeholder="e.g. Plymouth" {...field} /></FormControl>
-                <FormMessage />
-              </FormItem>
-            )} />
-          </div>
+          <FormField control={form.control} name="location" render={({ field }) => (
+            <FormItem>
+              <FormLabel>Where do you live? *</FormLabel>
+              <FormControl><Input placeholder="e.g. Plymouth" {...field} /></FormControl>
+              <FormMessage />
+            </FormItem>
+          )} />
+          <FormField control={form.control} name="heard_about_us" render={({ field }) => (
+            <FormItem>
+              <FormLabel>How did you hear about us? *</FormLabel>
+              <Select onValueChange={field.onChange} value={field.value}>
+                <FormControl>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select an option" />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                  {HEARD_ABOUT_OPTIONS.map((opt) => (
+                    <SelectItem key={opt} value={opt}>{opt}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <FormMessage />
+            </FormItem>
+          )} />
         </div>
 
-        {/* Experience */}
+        {/* Employment & experience */}
         <div className="space-y-4">
           <h3 className="font-semibold text-base border-b pb-2">Experience</h3>
+          <YesNoField control={form.control} name="currently_working" label="Are you currently working? *" />
+          <FormField control={form.control} name="care_experience" render={({ field }) => (
+            <FormItem>
+              <FormLabel>Tell us about your care experience</FormLabel>
+              <FormControl>
+                <Textarea rows={4} placeholder="e.g. 3 years in homecare, short visits and live-in…" {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )} />
+        </div>
+
+        {/* Shift preferences */}
+        <div className="space-y-4">
+          <h3 className="font-semibold text-base border-b pb-2">Availability</h3>
           <FormField
             control={form.control}
-            name="experience_settings"
+            name="shift_preferences"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Which settings have you worked in? <span className="text-gray-400 font-normal">(tick all that apply)</span></FormLabel>
-                <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 mt-2">
-                  {EXPERIENCE_SETTINGS.map((s) => (
+                <FormLabel>Which shifts can you work? <span className="text-gray-400 font-normal">(tick all that apply)</span></FormLabel>
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-2">
+                  {SHIFT_OPTIONS.map((s) => (
                     <div key={s} className="flex items-center gap-2">
                       <Checkbox
-                        id={`exp-${s}`}
+                        id={`shift-${s}`}
                         checked={field.value?.includes(s) ?? false}
                         onCheckedChange={(checked) => {
                           const current = field.value ?? [];
@@ -244,7 +270,7 @@ export default function QuickApplyForm({ jobId, jobTitle }: QuickApplyFormProps)
                           );
                         }}
                       />
-                      <label htmlFor={`exp-${s}`} className="text-sm cursor-pointer">{s}</label>
+                      <label htmlFor={`shift-${s}`} className="text-sm cursor-pointer">{s}</label>
                     </div>
                   ))}
                 </div>
@@ -252,56 +278,24 @@ export default function QuickApplyForm({ jobId, jobTitle }: QuickApplyFormProps)
               </FormItem>
             )}
           />
-          <FormField control={form.control} name="other_experience" render={({ field }) => (
+          <FormField control={form.control} name="hours_wanted" render={({ field }) => (
             <FormItem>
-              <FormLabel>Any other relevant experience?</FormLabel>
-              <FormControl><Textarea rows={3} placeholder="Tell us about any other relevant experience…" {...field} /></FormControl>
+              <FormLabel>How many hours per week are you looking for?</FormLabel>
+              <FormControl><Input placeholder="e.g. 30 hours, full time" {...field} /></FormControl>
               <FormMessage />
             </FormItem>
           )} />
-          <FormField control={form.control} name="time_in_care" render={({ field }) => (
-            <FormItem>
-              <FormLabel>How long have you worked in care?</FormLabel>
-              <FormControl><Input placeholder="e.g. 3 years, 6 months" {...field} /></FormControl>
-              <FormMessage />
-            </FormItem>
-          )} />
+          <YesNoField control={form.control} name="upcoming_holiday" label="Do you have any holidays booked? *" />
         </div>
 
-        {/* Transport */}
+        {/* Transport & compliance */}
         <div className="space-y-4">
-          <h3 className="font-semibold text-base border-b pb-2">Transport</h3>
+          <h3 className="font-semibold text-base border-b pb-2">Transport &amp; compliance</h3>
           <div className="grid sm:grid-cols-3 gap-6">
-            <YesNoField control={form.control} name="driver" label="Are you a driver?" />
-            <YesNoField control={form.control} name="vehicle_access" label="Do you have access to a vehicle?" />
-            <YesNoField control={form.control} name="british_licence" label="Do you hold a British driving licence?" />
+            <YesNoField control={form.control} name="driver" label="Are you a driver? *" />
+            <YesNoField control={form.control} name="dbs_update_service" label="Are you on the DBS Update Service? *" />
+            <YesNoField control={form.control} name="mh_certificate" label="Do you hold a Moving &amp; Handling certificate? *" />
           </div>
-        </div>
-
-        {/* Holiday */}
-        <div className="space-y-4">
-          <h3 className="font-semibold text-base border-b pb-2">Availability</h3>
-          <YesNoField control={form.control} name="upcoming_holiday" label="Do you have any holidays coming up?" />
-          {upcomingHoliday === "Yes" && (
-            <FormField control={form.control} name="holiday_details" render={({ field }) => (
-              <FormItem>
-                <FormLabel>Please give dates / details</FormLabel>
-                <FormControl><Textarea rows={2} placeholder="e.g. 2–9 September 2026" {...field} /></FormControl>
-                <FormMessage />
-              </FormItem>
-            )} />
-          )}
-        </div>
-
-        {/* Questions */}
-        <div className="space-y-4">
-          <FormField control={form.control} name="questions" render={({ field }) => (
-            <FormItem>
-              <FormLabel>Any questions for us?</FormLabel>
-              <FormControl><Textarea rows={3} placeholder="Anything you'd like to know before we speak?" {...field} /></FormControl>
-              <FormMessage />
-            </FormItem>
-          )} />
         </div>
 
         {/* Privacy notice */}
@@ -313,9 +307,9 @@ export default function QuickApplyForm({ jobId, jobTitle }: QuickApplyFormProps)
           </p>
           <p>
             <span className="font-medium text-gray-700">What we collect when you apply:</span>{" "}
-            your name and contact details, date of birth, the area you live in, the role you're
-            applying for, your care experience and time in care, driving/vehicle details,
-            right-to-work licence information, any upcoming holidays, and any questions you ask us.
+            your name and contact details, the area you live in, the role you're applying for,
+            your care experience, driving details, shift preferences, DBS and certificate status,
+            and any upcoming holidays.
           </p>
           <p>
             <span className="font-medium text-gray-700">What we hold during recruitment:</span>{" "}

@@ -854,30 +854,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/quick-apply", async (req, res) => {
     try {
       const {
-        jobId, first_name, last_name, email, phone,
-        date_of_birth, area, experience_settings, other_experience,
-        time_in_care, driver, vehicle_access, british_licence,
-        upcoming_holiday, holiday_details, questions,
+        jobId,
+        first_name, last_name, email, phone,
+        location, heard_about_us, currently_working, care_experience,
+        upcoming_holiday, driver, shift_preferences, hours_wanted,
+        dbs_update_service, mh_certificate,
       } = req.body;
 
       console.log("[QuickApply] incoming body keys:", Object.keys(req.body ?? {}));
       console.log("[QuickApply] name:", first_name, last_name, "| email:", email, "| phone:", phone);
-      console.log("[QuickApply] prescreen fields —",
-        "dob:", date_of_birth,
-        "area:", area,
-        "exp_settings:", experience_settings,
-        "other_exp:", other_experience,
-        "time_in_care:", time_in_care,
-        "driver:", driver,
-        "vehicle_access:", vehicle_access,
-        "british_licence:", british_licence,
-        "upcoming_holiday:", upcoming_holiday,
-        "holiday_details:", holiday_details,
-        "questions:", questions,
-      );
 
       if (!jobId || !first_name || !last_name || !email || !phone) {
-        console.warn("[QuickApply] rejected — missing required field(s). jobId:", jobId, "first_name:", first_name, "last_name:", last_name, "email:", email, "phone:", phone);
+        console.warn("[QuickApply] rejected — missing required field(s). jobId:", jobId,
+          "first_name:", first_name, "last_name:", last_name, "email:", email, "phone:", phone);
         return res.status(400).json({ message: "Missing required fields" });
       }
 
@@ -889,26 +878,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const job = await storage.getJob(jobId).catch(() => null);
 
+      // Flat payload — exact keys CareLogr expects
       const payload = {
         first_name,
         last_name,
         email,
         phone,
         position: job?.title ?? "Care Assistant",
-        prescreen: {
-          date_of_birth: date_of_birth ?? "",
-          area: area ?? "",
-          job_applied_for: job?.title ?? "Care Assistant",
-          experience_settings: Array.isArray(experience_settings) ? experience_settings : [],
-          other_experience: other_experience ?? "",
-          time_in_care: time_in_care ?? "",
-          driver: driver ?? "",
-          vehicle_access: vehicle_access ?? "",
-          british_licence: british_licence ?? "",
-          upcoming_holiday: upcoming_holiday ?? "",
-          holiday_details: holiday_details ?? "",
-          questions: questions ?? "",
-        },
+        location: location ?? "",
+        heard_about_us: heard_about_us ?? "",
+        currently_working: currently_working ?? "",
+        care_experience: care_experience ?? "",
+        upcoming_holiday: upcoming_holiday ?? "",
+        driver: driver ?? "",
+        shift_preferences: Array.isArray(shift_preferences) ? shift_preferences : [],
+        hours_wanted: hours_wanted ?? "",
+        dbs_update_service: dbs_update_service ?? "",
+        mh_certificate: mh_certificate ?? "",
       };
 
       console.log("[QuickApply] sending to CareLogr:", JSON.stringify(payload));
