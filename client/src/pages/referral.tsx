@@ -300,6 +300,7 @@ export default function Referral() {
                           <SelectContent>
                             <SelectItem value="short-visits">Short Visits</SelectItem>
                             <SelectItem value="supported-living">Supported Living</SelectItem>
+                            <SelectItem value="live-in-care">Live-In Care</SelectItem>
                             <SelectItem value="24-7-care">24/7 Care</SelectItem>
                             <SelectItem value="enablements">Enablements</SelectItem>
                             <SelectItem value="respite-care">Respite Care</SelectItem>
