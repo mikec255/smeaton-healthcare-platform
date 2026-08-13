@@ -1,5 +1,6 @@
 import { Link } from "wouter";
 import Seo from "@/components/seo";
+import { FAQSchema } from "@/components/seo/StructuredData";
 import { Clock, Shield, CheckCircle, ArrowRight, Phone, Heart, AlertCircle, HeartHandshake, PoundSterling, Building2 } from "lucide-react";
 import Ticker from "@/components/layout/ticker";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
@@ -35,6 +36,7 @@ export default function Care247() {
   return (
     <div data-testid="care-247-page">
       <Seo title="24/7 Around-the-Clock Home Care Devon & Cornwall" description="24/7 home care for complex needs across Devon and Cornwall. Our trained carers provide consistent, reliable support day and night. CQC Rated Good." path="/services/care-24-7" />
+      <FAQSchema faqs={FAQS.map(f => ({ question: f.q, answer: f.a }))} />
       <Ticker />
 
       {/* HERO */}

@@ -42,6 +42,7 @@ export function registerSeoRoutes(app: express.Application) {
         { url: '/locations/exeter', priority: '0.9', changefreq: 'monthly' },
         { url: '/locations/cornwall', priority: '0.9', changefreq: 'monthly' },
         { url: '/locations/devon', priority: '0.9', changefreq: 'monthly' },
+        { url: '/privacy', priority: '0.4', changefreq: 'yearly' },
       ];
       
       const today = new Date().toISOString().split('T')[0];
@@ -62,11 +63,14 @@ export function registerSeoRoutes(app: express.Application) {
 `;
       }
       
-      // Add job listings
+      // Add individual job pages
       for (const job of jobs) {
+        const jobDate = job.updatedAt
+          ? new Date(job.updatedAt).toISOString().split('T')[0]
+          : today;
         sitemap += `  <url>
-    <loc>${baseUrl}/jobs#${job.id}</loc>
-    <lastmod>${today}</lastmod>
+    <loc>${baseUrl}/jobs/${job.id}</loc>
+    <lastmod>${jobDate}</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>

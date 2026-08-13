@@ -1,5 +1,6 @@
 import { Link } from "wouter";
 import Seo from "@/components/seo";
+import { FAQSchema } from "@/components/seo/StructuredData";
 import { Home, Users, Shield, CheckCircle, ArrowRight, Phone, Target, Heart, PoundSterling, Building2 } from "lucide-react";
 import Ticker from "@/components/layout/ticker";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
@@ -35,6 +36,7 @@ export default function SupportedLiving() {
   return (
     <div data-testid="supported-living-page">
       <Seo title="Supported Living Care Devon & Cornwall" description="Specialist supported living helping adults with disabilities and complex needs live independently with confidence across Devon and Cornwall. CQC Rated Good." path="/services/supported-living" />
+      <FAQSchema faqs={FAQS.map(f => ({ question: f.q, answer: f.a }))} />
       <Ticker />
 
       {/* HERO */}

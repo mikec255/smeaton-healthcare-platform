@@ -3136,45 +3136,57 @@ Sitemap: https://smeatonhealthcare.co.uk/sitemap.xml`);
   // sitemap.xml
   app.get("/sitemap.xml", async (_req, res) => {
     const BASE = "https://smeatonhealthcare.co.uk";
+    const today = new Date().toISOString().split("T")[0];
     const staticUrls = [
-      { loc: "/", priority: "1.0", changefreq: "weekly", lastmod: "2025-09-01" },
-      { loc: "/about", priority: "0.8", changefreq: "monthly", lastmod: "2025-09-01" },
-      { loc: "/contact", priority: "0.8", changefreq: "monthly", lastmod: "2025-09-01" },
-      { loc: "/referral", priority: "0.9", changefreq: "monthly", lastmod: "2025-09-01" },
-      { loc: "/jobs", priority: "0.8", changefreq: "weekly", lastmod: "2025-09-01" },
-      { loc: "/services/short-visits", priority: "0.9", changefreq: "monthly", lastmod: "2025-09-01" },
-      { loc: "/services/supported-living", priority: "0.9", changefreq: "monthly", lastmod: "2025-09-01" },
-      { loc: "/services/care-24-7", priority: "0.9", changefreq: "monthly", lastmod: "2025-09-01" },
-      { loc: "/services/live-in-care", priority: "0.9", changefreq: "monthly", lastmod: "2025-09-01" },
-      { loc: "/services/respite", priority: "0.9", changefreq: "monthly", lastmod: "2025-09-01" },
-      { loc: "/services/enablements", priority: "0.9", changefreq: "monthly", lastmod: "2025-09-01" },
-      { loc: "/services/condition-led-care", priority: "0.9", changefreq: "monthly", lastmod: "2025-09-01" },
-      { loc: "/locations/devon", priority: "0.8", changefreq: "monthly", lastmod: "2025-09-01" },
-      { loc: "/locations/cornwall", priority: "0.8", changefreq: "monthly", lastmod: "2025-09-01" },
-      { loc: "/locations/plymouth", priority: "0.8", changefreq: "monthly", lastmod: "2025-09-01" },
-      { loc: "/locations/exeter", priority: "0.8", changefreq: "monthly", lastmod: "2025-09-01" },
-      { loc: "/locations/truro", priority: "0.8", changefreq: "monthly", lastmod: "2025-09-01" },
-      { loc: "/resources/blog", priority: "0.7", changefreq: "weekly", lastmod: "2025-09-01" },
-      { loc: "/resources/working-at-smeaton", priority: "0.6", changefreq: "monthly", lastmod: "2025-09-01" },
-      { loc: "/resources/newsletter", priority: "0.5", changefreq: "monthly", lastmod: "2025-09-01" },
-      { loc: "/resources/costings", priority: "0.7", changefreq: "monthly", lastmod: "2025-09-01" },
-      { loc: "/resources/sponsorship", priority: "0.6", changefreq: "monthly", lastmod: "2025-09-01" },
+      { loc: "/", priority: "1.0", changefreq: "weekly", lastmod: today },
+      { loc: "/about", priority: "0.8", changefreq: "monthly", lastmod: today },
+      { loc: "/contact", priority: "0.8", changefreq: "monthly", lastmod: today },
+      { loc: "/referral", priority: "0.9", changefreq: "monthly", lastmod: today },
+      { loc: "/jobs", priority: "0.8", changefreq: "weekly", lastmod: today },
+      { loc: "/privacy", priority: "0.4", changefreq: "yearly", lastmod: today },
+      { loc: "/services/short-visits", priority: "0.9", changefreq: "monthly", lastmod: today },
+      { loc: "/services/supported-living", priority: "0.9", changefreq: "monthly", lastmod: today },
+      { loc: "/services/care-24-7", priority: "0.9", changefreq: "monthly", lastmod: today },
+      { loc: "/services/live-in-care", priority: "0.9", changefreq: "monthly", lastmod: today },
+      { loc: "/services/respite", priority: "0.9", changefreq: "monthly", lastmod: today },
+      { loc: "/services/enablements", priority: "0.9", changefreq: "monthly", lastmod: today },
+      { loc: "/services/condition-led-care", priority: "0.9", changefreq: "monthly", lastmod: today },
+      { loc: "/locations/devon", priority: "0.8", changefreq: "monthly", lastmod: today },
+      { loc: "/locations/cornwall", priority: "0.8", changefreq: "monthly", lastmod: today },
+      { loc: "/locations/plymouth", priority: "0.8", changefreq: "monthly", lastmod: today },
+      { loc: "/locations/exeter", priority: "0.8", changefreq: "monthly", lastmod: today },
+      { loc: "/locations/truro", priority: "0.8", changefreq: "monthly", lastmod: today },
+      { loc: "/resources/blog", priority: "0.7", changefreq: "weekly", lastmod: today },
+      { loc: "/resources/working-at-smeaton", priority: "0.6", changefreq: "monthly", lastmod: today },
+      { loc: "/resources/newsletter", priority: "0.5", changefreq: "monthly", lastmod: today },
+      { loc: "/resources/costings", priority: "0.7", changefreq: "monthly", lastmod: today },
+      { loc: "/resources/sponsorship", priority: "0.6", changefreq: "monthly", lastmod: today },
     ];
 
     let blogUrls: { loc: string; priority: string; changefreq: string; lastmod: string }[] = [];
+    let jobUrls: { loc: string; priority: string; changefreq: string; lastmod: string }[] = [];
     try {
-      const posts = await storage.getAllBlogPosts({ isPublished: true });
+      const [posts, jobs] = await Promise.all([
+        storage.getAllBlogPosts({ isPublished: true }),
+        storage.getAllJobs(),
+      ]);
       blogUrls = posts.map(p => ({
         loc: `/blog/${p.slug}`,
         priority: "0.7",
         changefreq: "monthly",
         lastmod: p.publishedAt ? new Date(p.publishedAt).toISOString().split("T")[0] : new Date(p.createdAt!).toISOString().split("T")[0],
       }));
+      jobUrls = jobs.map(j => ({
+        loc: `/jobs/${j.id}`,
+        priority: "0.7",
+        changefreq: "weekly",
+        lastmod: j.updatedAt ? new Date(j.updatedAt).toISOString().split("T")[0] : today,
+      }));
     } catch (_e) {
-      // silently continue without blog URLs if DB unavailable
+      // silently continue without dynamic URLs if DB unavailable
     }
 
-    const allUrls = [...staticUrls, ...blogUrls];
+    const allUrls = [...staticUrls, ...blogUrls, ...jobUrls];
     const xml = `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 ${allUrls.map(u => `  <url>

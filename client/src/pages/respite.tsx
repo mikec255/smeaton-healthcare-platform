@@ -1,5 +1,6 @@
 import { Link } from "wouter";
 import Seo from "@/components/seo";
+import { FAQSchema } from "@/components/seo/StructuredData";
 import { Coffee, Calendar, Smile, CheckCircle, ArrowRight, Phone, Shield, Heart, PoundSterling, Building2 } from "lucide-react";
 import Ticker from "@/components/layout/ticker";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
@@ -35,6 +36,7 @@ export default function RespiteCare() {
   return (
     <div data-testid="respite-page">
       <Seo title="Respite Care in Plymouth & Cornwall" description="Professional respite care giving family carers a well-deserved break. Trusted short-term care cover across Devon and Cornwall from Smeaton Healthcare." path="/services/respite" />
+      <FAQSchema faqs={FAQS.map(f => ({ question: f.q, answer: f.a }))} />
       <Ticker />
 
       {/* HERO */}

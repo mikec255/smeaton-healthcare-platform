@@ -1,5 +1,6 @@
 import { Link } from "wouter";
 import Seo from "@/components/seo";
+import { FAQSchema } from "@/components/seo/StructuredData";
 import { Home, Heart, UserCheck, CheckCircle, ArrowRight, Phone, Shield, PoundSterling, Building2 } from "lucide-react";
 import Ticker from "@/components/layout/ticker";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
@@ -35,6 +36,7 @@ export default function LiveInCare() {
   return (
     <div data-testid="live-in-care-page">
       <Seo title="Live-In Care Devon & Cornwall" description="Full-time live-in care providing round-the-clock companionship and support at home. CQC Rated Good, trusted by families across Devon and Cornwall." path="/services/live-in-care" />
+      <FAQSchema faqs={FAQS.map(f => ({ question: f.q, answer: f.a }))} />
       <Ticker />
 
       {/* HERO */}

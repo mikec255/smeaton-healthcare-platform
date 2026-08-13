@@ -73,7 +73,7 @@ export function OrganisationSchema({
   url = "https://smeatonhealthcare.co.uk",
   logo = "https://smeatonhealthcare.co.uk/logo.png",
   telephone,
-  email = "info@smeatonhealthcare.co.uk",
+  email = "hello@smeatonhealthcare.co.uk",
   address = {
     addressLocality: "Plymouth",
     addressRegion: "Devon",

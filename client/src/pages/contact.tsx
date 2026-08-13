@@ -29,7 +29,7 @@ const OFFICES = [
     address: "Office 10, Unit 11, Kerns House",
     address2: "Threemilestone Industrial Estate, Truro",
     postcode: "TR4 9LE",
-    phone: "01872 229865",
+    phone: "0330 165 8880",
     email: "hello@smeatonhealthcare.co.uk",
     cqc: "CQC Rated Good — January 2022",
     color: BLUE,

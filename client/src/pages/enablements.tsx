@@ -1,5 +1,6 @@
 import { Link } from "wouter";
 import Seo from "@/components/seo";
+import { FAQSchema } from "@/components/seo/StructuredData";
 import { Target, CheckCircle, ArrowRight, Phone, Brain, GraduationCap, Compass, PoundSterling, Building2, Heart } from "lucide-react";
 import Ticker from "@/components/layout/ticker";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
@@ -35,6 +36,7 @@ export default function Enablements() {
   return (
     <div data-testid="enablements-page">
       <Seo title="Enabling Care Services Devon & Cornwall" description="Our enabling care service builds independence, not dependency. Specialist support empowering people to live their best lives across Devon and Cornwall." path="/services/enablements" />
+      <FAQSchema faqs={FAQS.map(f => ({ question: f.q, answer: f.a }))} />
       <Ticker />
 
       {/* HERO */}

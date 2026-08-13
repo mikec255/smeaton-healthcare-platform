@@ -1,5 +1,6 @@
 import { Link } from "wouter";
 import Seo from "@/components/seo";
+import { FAQSchema } from "@/components/seo/StructuredData";
 import { Brain, Heart, Shield, CheckCircle, ArrowRight, Phone, Stethoscope, Users, PoundSterling, Building2 } from "lucide-react";
 import Ticker from "@/components/layout/ticker";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
@@ -50,6 +51,7 @@ export default function ConditionLedCare() {
   return (
     <div data-testid="condition-led-care-page">
       <Seo title="Condition-Led Specialist Care Devon & Cornwall" description="Specialist home care tailored to your health condition — dementia, Parkinson's, stroke recovery and more. Expert carers across Devon and Cornwall." path="/services/condition-led-care" />
+      <FAQSchema faqs={FAQS.map(f => ({ question: f.q, answer: f.a }))} />
       <Ticker />
 
       {/* HERO */}
