@@ -4,11 +4,10 @@ import { Helmet } from "react-helmet-async";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { MapPin, PoundSterling, Building, Check, Phone, Mail, ArrowLeft, Loader2 } from "lucide-react";
+import { MapPin, PoundSterling, Building, Check, Phone, Mail, ArrowLeft, Loader2, ChevronDown } from "lucide-react";
 import SocialShareBar from "@/components/shared/SocialShareBar";
+import QuickApplyForm from "@/components/jobs/QuickApplyForm";
 import { type Job } from "@shared/schema";
-import { useState } from "react";
-import SimpleJobApplicationModal from "@/components/jobs/job-application-modal-simple";
 
 const SITE = "https://smeatonhealthcare.co.uk";
 const PINK = "#EF2A86";
@@ -44,7 +43,6 @@ const BENEFITS = [
 
 export default function JobDetailPage() {
   const { id } = useParams<{ id: string }>();
-  const [showApplication, setShowApplication] = useState(false);
 
   const { data: job, isLoading, isError } = useQuery<Job>({
     queryKey: [`/api/jobs/${id}`],
@@ -122,13 +120,20 @@ export default function JobDetailPage() {
             )}
           </div>
           <h1 className="text-3xl sm:text-4xl font-bold mb-3">{job.title}</h1>
-          <div className="flex flex-wrap gap-5 text-white/80 text-sm">
+          <div className="flex flex-wrap gap-5 text-white/80 text-sm mb-6">
             <span className="flex items-center gap-1.5"><MapPin size={14} />{job.location}</span>
             <span className="flex items-center gap-1.5"><PoundSterling size={14} />{formatSalary(job)}</span>
             {job.department && (
               <span className="flex items-center gap-1.5"><Building size={14} />{job.department}</span>
             )}
           </div>
+          <a
+            href="#quick-apply"
+            className="inline-flex items-center gap-2 bg-white font-semibold rounded-lg px-6 py-2.5 text-sm transition-opacity hover:opacity-90"
+            style={{ color: PINK }}
+          >
+            Apply Now <ChevronDown size={15} />
+          </a>
         </div>
       </div>
 
@@ -169,17 +174,18 @@ export default function JobDetailPage() {
           <div className="space-y-6">
             <Card className="bg-gray-50">
               <CardContent className="p-6">
-                <h3 className="font-semibold mb-3">Quick Apply</h3>
+                <h3 className="font-semibold mb-2">Quick Apply</h3>
                 <p className="text-sm text-gray-500 mb-4">
                   Interested? Apply now and we'll get back to you within 24 hours.
                 </p>
-                <Button
-                  onClick={() => setShowApplication(true)}
-                  style={{ backgroundColor: PINK }}
-                  className="w-full text-white hover:opacity-90"
-                >
-                  Apply Now
-                </Button>
+                <a href="#quick-apply">
+                  <Button
+                    style={{ backgroundColor: PINK }}
+                    className="w-full text-white hover:opacity-90"
+                  >
+                    Apply Now
+                  </Button>
+                </a>
               </CardContent>
             </Card>
 
@@ -209,15 +215,20 @@ export default function JobDetailPage() {
             </Card>
           </div>
         </div>
-      </div>
 
-      {showApplication && (
-        <SimpleJobApplicationModal
-          job={job}
-          isOpen={showApplication}
-          onClose={() => setShowApplication(false)}
-        />
-      )}
+        {/* Quick Apply form — full width below content */}
+        <div id="quick-apply" className="mt-16 scroll-mt-8">
+          <div className="max-w-2xl mx-auto">
+            <div className="mb-8 text-center">
+              <h2 className="text-2xl font-bold mb-2">Apply for {job.title}</h2>
+              <p className="text-gray-500 text-sm">
+                Fill in the form below and we'll be in touch within 24 hours.
+              </p>
+            </div>
+            <QuickApplyForm jobId={job.id} jobTitle={job.title} />
+          </div>
+        </div>
+      </div>
     </div>
   );
 }

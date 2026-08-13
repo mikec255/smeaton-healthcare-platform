@@ -850,6 +850,102 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Quick Apply — posts synchronously to CareLogr, surfaces 409 "already applied" to client
+  app.post("/api/quick-apply", async (req, res) => {
+    try {
+      const {
+        jobId, first_name, last_name, email, phone,
+        date_of_birth, area, experience_settings, other_experience,
+        time_in_care, driver, vehicle_access, british_licence,
+        upcoming_holiday, holiday_details, questions,
+      } = req.body;
+
+      if (!jobId || !first_name || !last_name || !email || !phone) {
+        return res.status(400).json({ message: "Missing required fields" });
+      }
+
+      const carelogrKey = process.env.RECRUITMENT_API_KEY;
+      if (!carelogrKey) {
+        console.error("[QuickApply] RECRUITMENT_API_KEY not set");
+        return res.status(500).json({ message: "API key not configured" });
+      }
+
+      const job = await storage.getJob(jobId).catch(() => null);
+
+      const payload = {
+        first_name,
+        last_name,
+        email,
+        phone,
+        position: job?.title ?? "Care Assistant",
+        prescreen: {
+          date_of_birth: date_of_birth ?? "",
+          area: area ?? "",
+          job_applied_for: job?.title ?? "Care Assistant",
+          experience_settings: Array.isArray(experience_settings) ? experience_settings : [],
+          other_experience: other_experience ?? "",
+          time_in_care: time_in_care ?? "",
+          driver: driver ?? "",
+          vehicle_access: vehicle_access ?? "",
+          british_licence: british_licence ?? "",
+          upcoming_holiday: upcoming_holiday ?? "",
+          holiday_details: holiday_details ?? "",
+          questions: questions ?? "",
+        },
+      };
+
+      const carelogrRes = await fetch("https://carelogr.replit.app/api/recruitment/applications", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "X-API-Key": carelogrKey },
+        body: JSON.stringify(payload),
+      });
+
+      if (carelogrRes.status === 409) {
+        return res.status(409).json({ message: "already_applied" });
+      }
+
+      if (!carelogrRes.ok) {
+        const text = await carelogrRes.text().catch(() => "");
+        console.error(`[QuickApply] CareLogr error ${carelogrRes.status}:`, text);
+        return res.status(502).json({ message: "Submission failed, please try again" });
+      }
+
+      // Save to local DB (best-effort — never fail the submission if this errors)
+      try {
+        const additionalParts = [
+          questions && `Questions: ${questions}`,
+          time_in_care && `Time in care: ${time_in_care}`,
+          date_of_birth && `Date of birth: ${date_of_birth}`,
+          vehicle_access && `Vehicle access: ${vehicle_access}`,
+          british_licence && `British driving licence: ${british_licence}`,
+        ].filter(Boolean);
+
+        await storage.createApplication({
+          jobId,
+          firstName: first_name,
+          lastName: last_name,
+          email,
+          phone,
+          location: area ?? "",
+          experience: other_experience ?? "",
+          hasPreBookedHoliday: upcoming_holiday === "Yes",
+          holidayDates: holiday_details ?? "",
+          canDrive: driver === "Yes",
+          shiftPreferences: Array.isArray(experience_settings) ? experience_settings : [],
+          additionalInfo: additionalParts.length ? additionalParts.join("\n") : undefined,
+          privacyConsent: true,
+        });
+      } catch (localErr) {
+        console.error("[QuickApply] local DB save failed (non-fatal):", localErr);
+      }
+
+      return res.status(201).json({ message: "Application submitted" });
+    } catch (err) {
+      console.error("[QuickApply] unexpected error:", err);
+      return res.status(500).json({ message: "Failed to submit application" });
+    }
+  });
+
   app.post("/api/applications", async (req, res) => {
     try {
       const validatedData = insertApplicationSchema.parse(req.body);
