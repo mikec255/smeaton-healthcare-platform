@@ -77,7 +77,10 @@ export default function Footer() {
 
         <div className="mt-10 pt-8 border-t border-white/20 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <p className="text-white/50 text-sm">© {new Date().getFullYear()} Smeaton Healthcare Ltd. All rights reserved.</p>
-          <p className="text-white/50 text-xs">CQC Rated Good — Plymouth (April 2022) &amp; Cornwall (January 2022)</p>
+          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-6">
+            <Link href="/privacy" className="text-white/50 hover:text-white/80 text-xs transition-colors">Privacy Notice</Link>
+            <p className="text-white/50 text-xs">CQC Rated Good — Plymouth (April 2022) &amp; Cornwall (January 2022)</p>
+          </div>
         </div>
       </div>
     </footer>
