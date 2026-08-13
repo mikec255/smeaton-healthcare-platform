@@ -883,6 +883,51 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // Don't fail the application creation if email fails
       }
       
+      // Forward to CareLogr recruitment API (fire-and-forget — never fail the submission)
+      try {
+        const carelogrKey = process.env.RECRUITMENT_API_KEY;
+        if (carelogrKey) {
+          const job = await storage.getJob(validatedData.jobId);
+          const payload = {
+            first_name: validatedData.firstName,
+            last_name: validatedData.lastName,
+            email: validatedData.email,
+            phone: validatedData.phone,
+            position: job?.title ?? "Care Assistant",
+            prescreen: {
+              date_of_birth: "",
+              area: validatedData.location ?? "",
+              job_applied_for: job?.title ?? "Care Assistant",
+              experience_settings: [],
+              other_experience: validatedData.experience ?? "",
+              time_in_care: "",
+              driver: validatedData.canDrive === true ? "Yes" : validatedData.canDrive === false ? "No" : "",
+              vehicle_access: validatedData.canDrive === true ? "Yes" : validatedData.canDrive === false ? "No" : "",
+              british_licence: "",
+              upcoming_holiday: validatedData.hasPreBookedHoliday === true ? "Yes" : validatedData.hasPreBookedHoliday === false ? "No" : "",
+              holiday_details: validatedData.holidayDates ?? "",
+              questions: validatedData.additionalInfo ?? "",
+            },
+          };
+          fetch("https://carelogr.replit.app/api/recruitment/applications", {
+            method: "POST",
+            headers: { "Content-Type": "application/json", "X-API-Key": carelogrKey },
+            body: JSON.stringify(payload),
+          }).then(async (r) => {
+            if (!r.ok) {
+              const text = await r.text().catch(() => "");
+              console.error(`[CareLogr] application forward failed ${r.status}:`, text);
+            } else {
+              console.log("[CareLogr] application forwarded for", validatedData.email);
+            }
+          }).catch((err) => {
+            console.error("[CareLogr] application forward error:", err);
+          });
+        }
+      } catch (carelogrErr) {
+        console.error("[CareLogr] unexpected error building forward payload:", carelogrErr);
+      }
+
       res.status(201).json(application);
     } catch (error) {
       console.error("Error creating application:", error);
