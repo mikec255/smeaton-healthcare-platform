@@ -20,7 +20,7 @@ export default function JobCard({ job, onViewDetails, onApply }: JobCardProps) {
     if (job.salaryType === "hourly") {
       return max ? `£${min.toFixed(2)}–£${max.toFixed(2)} / hr` : `£${min.toFixed(2)} / hr`;
     } else if (job.salaryType === "weekly") {
-      return max ? `£${min.toFixed(0)}–£${max.toFixed(0)} / wk` : `£${min.toFixed(0)} / wk`;
+      return max ? `£${min.toFixed(2)}–£${max.toFixed(2)} / wk` : `£${min.toFixed(2)} / wk`;
     } else {
       return max ? `£${min.toLocaleString()}–£${max.toLocaleString()} / yr` : `£${min.toLocaleString()} / yr`;
     }

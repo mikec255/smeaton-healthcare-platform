@@ -85,7 +85,7 @@ export default function JobsTable({ jobs, onEdit }: JobsTableProps) {
     if (job.salaryType === "hourly") {
       return max ? `£${min.toFixed(2)}-£${max.toFixed(2)}/hr` : `£${min.toFixed(2)}/hr`;
     } else if (job.salaryType === "weekly") {
-      return max ? `£${min.toFixed(0)}-£${max.toFixed(0)}/week` : `£${min.toFixed(0)}/week`;
+      return max ? `£${min.toFixed(2)}-£${max.toFixed(2)}/week` : `£${min.toFixed(2)}/week`;
     } else {
       return max ? `£${min.toLocaleString()}-£${max.toLocaleString()}/year` : `£${min.toLocaleString()}/year`;
     }

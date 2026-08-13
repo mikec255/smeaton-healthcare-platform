@@ -18,7 +18,7 @@ function formatSalary(job: Job) {
   if (job.salaryType === "hourly") {
     return max ? `£${min.toFixed(2)}–£${max.toFixed(2)} per hour` : `£${min.toFixed(2)} per hour`;
   } else if (job.salaryType === "weekly") {
-    return max ? `£${min.toFixed(0)}–£${max.toFixed(0)} per week` : `£${min.toFixed(0)} per week`;
+      return max ? `£${min.toFixed(2)}–£${max.toFixed(2)} per week` : `£${min.toFixed(2)} per week`;
   } else {
     return max ? `£${min.toLocaleString()}–£${max.toLocaleString()} per year` : `£${min.toLocaleString()} per year`;
   }

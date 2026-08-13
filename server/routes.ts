@@ -910,35 +910,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(502).json({ message: "Submission failed, please try again" });
       }
 
-      // Save to local DB (best-effort — never fail the submission if this errors)
-      try {
-        const additionalParts = [
-          questions && `Questions: ${questions}`,
-          time_in_care && `Time in care: ${time_in_care}`,
-          date_of_birth && `Date of birth: ${date_of_birth}`,
-          vehicle_access && `Vehicle access: ${vehicle_access}`,
-          british_licence && `British driving licence: ${british_licence}`,
-        ].filter(Boolean);
-
-        await storage.createApplication({
-          jobId,
-          firstName: first_name,
-          lastName: last_name,
-          email,
-          phone,
-          location: area ?? "",
-          experience: other_experience ?? "",
-          hasPreBookedHoliday: upcoming_holiday === "Yes",
-          holidayDates: holiday_details ?? "",
-          canDrive: driver === "Yes",
-          shiftPreferences: Array.isArray(experience_settings) ? experience_settings : [],
-          additionalInfo: additionalParts.length ? additionalParts.join("\n") : undefined,
-          privacyConsent: true,
-        });
-      } catch (localErr) {
-        console.error("[QuickApply] local DB save failed (non-fatal):", localErr);
-      }
-
+      // CareLogr is the system of record — we do not save to the local DB
       return res.status(201).json({ message: "Application submitted" });
     } catch (err) {
       console.error("[QuickApply] unexpected error:", err);

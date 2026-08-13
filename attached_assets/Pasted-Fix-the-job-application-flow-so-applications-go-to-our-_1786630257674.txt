@@ -1,0 +1,52 @@
+Fix the job application flow so applications go to our CareLogr system, plus fix salary display and share images.
+
+1. Rebuild the Apply form on each job page with these fields:
+
+First name, last name, email, phone (all required)
+Date of birth (date picker)
+What area do you live in?
+Which settings have you worked in? — tick all that apply: Short Visits / Care Home / Hospital / Private / Family / Community
+Any other relevant experience? (text)
+How long have you worked in care?
+Are you a driver? (Yes/No)
+Do you have access to a vehicle? (Yes/No)
+Do you hold a British driving licence? (Yes/No)
+Do you have any holidays coming up? (Yes/No — if Yes, show a "Please give dates" box)
+Any questions for us? (text)
+2. On submit, do NOT save the application in this site's own database. Instead POST JSON to https://carelogr.replit.app/api/recruitment/applications with header X-API-Key set to the RECRUITMENT_API_KEY secret (ask me for the value if the secret doesn't exist yet):
+
+{
+  "first_name": "...", "last_name": "...", "email": "...", "phone": "...",
+  "position": "<job title of the page they applied from>",
+  "prescreen": {
+    "date_of_birth": "1990-05-14",
+    "area": "Plymouth",
+    "job_applied_for": "<job title>",
+    "experience_settings": ["Short Visits", "Community"],
+    "other_experience": "...",
+    "time_in_care": "3 years",
+    "driver": "Yes",
+    "vehicle_access": "Yes",
+    "british_licence": "Yes",
+    "upcoming_holiday": "No",
+    "holiday_details": "",
+    "questions": "..."
+  }
+}
+
+On success (200/201): show a "Thanks — we'll be in touch soon" confirmation.
+On 409: that email already applied — show "You've already applied, we'll be in touch."
+On any other error: show a friendly failure message and don't lose their typed answers.
+Remove or repurpose the old on-site application list — CareLogr is now the system of record for applications.
+3. Show this privacy notice under the form:
+
+Privacy Notice — Job Applications. When you apply for a role with Smeaton Healthcare, the details you give us on this form are stored securely in CareLogr, our care management and recruitment system. We collect your name and contact details, date of birth, the area you live in, the role you're applying for, your care experience, driving details, and any questions you ask us. If your application progresses we will also record interview notes, references, right-to-work and identity documents, DBS check details and training certificates, used only to assess your suitability and meet our legal obligations as a regulated care provider. If you join us, your application becomes part of your staff record; if unsuccessful, we keep your details for 6 months from the outcome date, then securely delete them. We process this information under UK GDPR on the basis of taking steps to enter into an employment contract and our legal obligations under health and social care regulations. You can ask to see, correct or delete your information at any time by contacting us.
+
+4. Fix salary display: wherever a job's pay is shown, format hourly/weekly rates to exactly 2 decimal places — e.g. 13.2 must display as £13.20, never £13 or £13.2.
+
+5. Social share images: on each job detail page, add these meta tags so Facebook/LinkedIn shares show our branded job card:
+
+og:image = https://carelogr.replit.app/public/job-image/{jobId}.png
+og:title = job title
+og:description = job summary
+Two reminders on your side: publish CareLogr first (the Publish button — otherwise the website posts into thin air), and make sure the RECRUITMENT_API_KEY secret has the same value in both Replits. Then do one test application on the website and check it lands in Recruitment here.
