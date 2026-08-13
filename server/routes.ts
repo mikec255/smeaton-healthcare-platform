@@ -5483,15 +5483,14 @@ ${allUrls.map(u => `  <url>
   // normally in the browser because the injected tags are just static HTML.
   app.get("/jobs/:id", async (req, res, next) => {
     try {
+      // In dev, let Vite handle the HTML so React boots properly.
+      // Crawlers always hit production, so OG injection is only needed there.
+      if (process.env.NODE_ENV !== "production") return next();
+
       const job = await storage.getJob(req.params.id).catch(() => null);
       if (!job) return next(); // unknown ID → let SPA show its 404
 
-      // Locate index.html: dist build in prod, source in dev
-      const isProd = process.env.NODE_ENV === "production";
-      const htmlPath = isProd
-        ? path.join(process.cwd(), "public", "index.html")
-        : path.resolve(process.cwd(), "client", "index.html");
-
+      const htmlPath = path.join(process.cwd(), "public", "index.html");
       if (!fs.existsSync(htmlPath)) return next(); // safety valve
 
       let html = fs.readFileSync(htmlPath, "utf-8");
