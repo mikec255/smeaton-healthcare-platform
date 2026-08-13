@@ -65,8 +65,8 @@ export const jobs = pgTable("jobs", {
   department: text("department"),
   branch: text("branch").notNull().default("Plymouth"), // Plymouth, Truro
   salaryType: text("salary_type").notNull(), // hourly, weekly, annual
-  salaryMin: integer("salary_min").notNull(),
-  salaryMax: integer("salary_max"),
+  salaryMin: doublePrecision("salary_min").notNull(),
+  salaryMax: doublePrecision("salary_max"),
   summary: text("summary").notNull(),
   description: text("description").notNull(),
   requirements: text("requirements"),
