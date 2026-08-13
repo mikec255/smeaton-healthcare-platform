@@ -172,22 +172,14 @@ export default function JobDetailPage() {
 
           {/* Sidebar */}
           <div className="space-y-6">
-            <Card className="bg-gray-50">
-              <CardContent className="p-6">
-                <h3 className="font-semibold mb-2">Quick Apply</h3>
-                <p className="text-sm text-gray-500 mb-4">
-                  Interested? Apply now and we'll get back to you within 24 hours.
-                </p>
-                <a href="#quick-apply">
-                  <Button
-                    style={{ backgroundColor: PINK }}
-                    className="w-full text-white hover:opacity-90"
-                  >
-                    Apply Now
-                  </Button>
-                </a>
-              </CardContent>
-            </Card>
+            <a href="#quick-apply">
+              <Button
+                style={{ backgroundColor: PINK }}
+                className="w-full text-white hover:opacity-90"
+              >
+                Apply Now
+              </Button>
+            </a>
 
             <Card>
               <CardContent className="p-6">
