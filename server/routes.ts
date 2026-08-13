@@ -864,9 +864,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "Missing required fields" });
       }
 
-      const carelogrKey = process.env.RECRUITMENT_API_KEY;
+      const carelogrKey = process.env.CARELOGR_API_KEY;
       if (!carelogrKey) {
-        console.error("[QuickApply] RECRUITMENT_API_KEY not set");
+        console.error("[QuickApply] CARELOGR_API_KEY not set");
         return res.status(500).json({ message: "API key not configured" });
       }
 
@@ -953,7 +953,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Forward to CareLogr recruitment API (fire-and-forget — never fail the submission)
       try {
-        const carelogrKey = process.env.RECRUITMENT_API_KEY;
+        const carelogrKey = process.env.CARELOGR_API_KEY;
         if (carelogrKey) {
           const job = await storage.getJob(validatedData.jobId);
           const payload = {
