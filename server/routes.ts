@@ -1,5 +1,7 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
+import fs from "fs";
+import path from "path";
 import { registerCarelogrRoutes } from "./carelogr-api";
 import session from "express-session";
 import bcrypt from "bcryptjs";
@@ -5470,6 +5472,53 @@ ${allUrls.map(u => `  <url>
     } catch (error) {
       console.error("Error seeding dignity assessment:", error);
       res.status(500).json({ message: "Failed to create assessment" });
+    }
+  });
+
+  // ── Server-side OG tags for job detail pages ──────────────────────────────
+  // Crawlers (Facebook, LinkedIn, Twitter/X, WhatsApp) never execute JS, so
+  // react-helmet tags are invisible to them. This route intercepts /jobs/:id
+  // before the SPA catch-all, fetches the job, injects the correct <meta>
+  // tags into the HTML shell, and returns it. The React app still boots
+  // normally in the browser because the injected tags are just static HTML.
+  app.get("/jobs/:id", async (req, res, next) => {
+    try {
+      const job = await storage.getJob(req.params.id).catch(() => null);
+      if (!job) return next(); // unknown ID → let SPA show its 404
+
+      // Locate index.html: dist build in prod, source in dev
+      const isProd = process.env.NODE_ENV === "production";
+      const htmlPath = isProd
+        ? path.join(process.cwd(), "public", "index.html")
+        : path.resolve(process.cwd(), "client", "index.html");
+
+      if (!fs.existsSync(htmlPath)) return next(); // safety valve
+
+      let html = fs.readFileSync(htmlPath, "utf-8");
+
+      // Escape content safe for HTML attribute values
+      const esc = (s: string) =>
+        s.replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+
+      const ogTitle   = esc(`${job.title} | Smeaton Healthcare`);
+      const ogDesc    = esc(job.summary ?? "Join the Smeaton Healthcare team — CQC Rated Good home care provider across Devon and Cornwall.");
+      const ogImage   = `https://carelogr.co.uk/public/job-image/${job.id}.png`;
+      const ogUrl     = `https://smeatonhealthcare.co.uk/jobs/${job.id}`;
+
+      // Replace every relevant tag in the shell HTML
+      html = html
+        .replace(/(<title>)[^<]*(<\/title>)/, `$1${ogTitle}$2`)
+        .replace(/<meta property="og:title"[^>]*>/,       `<meta property="og:title" content="${ogTitle}" />`)
+        .replace(/<meta property="og:description"[^>]*>/, `<meta property="og:description" content="${ogDesc}" />`)
+        .replace(/<meta property="og:image"[^>]*>/,       `<meta property="og:image" content="${ogImage}" />`)
+        .replace(/<meta property="og:url"[^>]*>/,         `<meta property="og:url" content="${ogUrl}" />`)
+        .replace(/<meta name="twitter:title"[^>]*>/,      `<meta name="twitter:title" content="${ogTitle}" />`)
+        .replace(/<meta name="twitter:description"[^>]*>/,`<meta name="twitter:description" content="${ogDesc}" />`)
+        .replace(/<meta name="twitter:image"[^>]*>/,      `<meta name="twitter:image" content="${ogImage}" />`);
+
+      res.set("Content-Type", "text/html").send(html);
+    } catch (err) {
+      next(err);
     }
   });
 
