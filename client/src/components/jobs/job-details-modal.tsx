@@ -123,21 +123,14 @@ export default function JobDetailsModal({ job, isOpen, onClose, onApply }: JobDe
           </div>
           
           <div className="space-y-6">
-            <Card className="bg-muted" data-testid="modal-apply-section">
-              <CardContent className="p-6">
-                <h3 className="font-semibold text-foreground mb-4">Quick Apply</h3>
-                <p className="text-sm text-muted-foreground mb-4">
-                  Interested in this position? Apply now and we'll get back to you within 24 hours.
-                </p>
-                <Button 
-                  onClick={onApply}
-                  className="w-full bg-primary text-primary-foreground hover:bg-primary/90"
-                  data-testid="button-apply-now"
-                >
-                  Apply Now
-                </Button>
-              </CardContent>
-            </Card>
+            <Button
+              onClick={onApply}
+              className="w-full text-white hover:opacity-90"
+              style={{ backgroundColor: "#EF2A86" }}
+              data-testid="button-apply-now"
+            >
+              Apply Now
+            </Button>
             
             <Card data-testid="modal-benefits-section">
               <CardContent className="p-6">
