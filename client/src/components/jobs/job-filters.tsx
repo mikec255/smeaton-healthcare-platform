@@ -20,7 +20,11 @@ export default function JobFilters({ onFilterChange }: JobFiltersProps) {
 
   useEffect(() => {
     onFilterChange({ location, type, salaryRange });
-  }, [location, type, salaryRange, onFilterChange]);
+    // onFilterChange intentionally omitted — it's a parent callback and including it
+    // causes an infinite loop when the parent re-renders. The effect should only
+    // run when the actual filter values change.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [location, type, salaryRange]);
 
   const clearFilters = () => {
     setLocation("all");

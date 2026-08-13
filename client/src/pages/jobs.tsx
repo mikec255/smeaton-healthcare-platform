@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import Seo from "@/components/seo";
 import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
@@ -70,9 +70,9 @@ export default function Jobs() {
     retryDelay: 1000,
   });
 
-  const handleFilterChange = (newFilters: typeof filters) => {
+  const handleFilterChange = useCallback((newFilters: typeof filters) => {
     setFilters(newFilters);
-  };
+  }, []);
 
   const handleJobSelect = (job: Job) => {
     setSelectedJob(job);
