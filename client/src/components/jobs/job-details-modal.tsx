@@ -115,7 +115,10 @@ export default function JobDetailsModal({ job, isOpen, onClose, onApply }: JobDe
               )}
 
               {/* Social Share Bar */}
-              <SocialShareBar title={`${job.title} - Smeaton Healthcare`} />
+              <SocialShareBar
+                title={`${job.title} – Smeaton Healthcare`}
+                url={`https://smeatonhealthcare.co.uk/jobs/${job.id}`}
+              />
             </div>
           </div>
           

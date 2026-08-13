@@ -83,6 +83,7 @@ const StaffAssessment = lazy(() => import("@/pages/staff-assessment"));
 const PublicFeedback = lazy(() => import("@/pages/public-feedback"));
 const Leaflet = lazy(() => import("@/pages/leaflet"));
 const PrivacyNotice = lazy(() => import("@/pages/privacy"));
+const JobDetail = lazy(() => import("@/pages/job-detail"));
 
 // Resources pages
 const Resources = lazy(() => import("@/pages/resources"));
@@ -122,6 +123,7 @@ function Router() {
             </Route>
             
             {/* Core functionality - tested and working */}
+            <Route path="/jobs/:id" component={JobDetail} />
             <Route path="/jobs" component={Jobs} />
             <Route path="/contact" component={Contact} />
             <Route path="/login" component={Login} />
