@@ -5475,6 +5475,38 @@ ${allUrls.map(u => `  <url>
     }
   });
 
+  // ── OG image proxy ────────────────────────────────────────────────────────
+  // CareLogr serves job images with Cache-Control: no-cache, which stops
+  // Facebook/LinkedIn CDNs from caching them (grey box after first render).
+  // This proxy fetches from CareLogr and re-serves with a 24-hour public
+  // cache header so social crawlers can cache the image normally.
+  const ogImageCache = new Map<string, { buf: Buffer; contentType: string; ts: number }>();
+  const OG_IMAGE_TTL_MS = 24 * 60 * 60 * 1000; // 24 hours
+
+  app.get("/api/og-image/:jobId", async (req, res) => {
+    const { jobId } = req.params;
+    const now = Date.now();
+    const cached = ogImageCache.get(jobId);
+    if (cached && now - cached.ts < OG_IMAGE_TTL_MS) {
+      res.set("Content-Type", cached.contentType)
+         .set("Cache-Control", "public, max-age=86400")
+         .send(cached.buf);
+      return;
+    }
+    try {
+      const upstream = await fetch(`https://carelogr.co.uk/public/job-image/${jobId}.png`);
+      if (!upstream.ok) { res.status(502).end(); return; }
+      const buf = Buffer.from(await upstream.arrayBuffer());
+      const contentType = upstream.headers.get("content-type") || "image/png";
+      ogImageCache.set(jobId, { buf, contentType, ts: now });
+      res.set("Content-Type", contentType)
+         .set("Cache-Control", "public, max-age=86400")
+         .send(buf);
+    } catch {
+      res.status(502).end();
+    }
+  });
+
   // ── Server-side OG tags for job detail pages ──────────────────────────────
   // Crawlers (Facebook, LinkedIn, Twitter/X, WhatsApp) never execute JS, so
   // react-helmet tags are invisible to them. This route intercepts /jobs/:id
@@ -5501,7 +5533,7 @@ ${allUrls.map(u => `  <url>
 
       const ogTitle   = esc(`${job.title} | Smeaton Healthcare`);
       const ogDesc    = esc(job.summary ?? "Join the Smeaton Healthcare team — CQC Rated Good home care provider across Devon and Cornwall.");
-      const ogImage   = `https://carelogr.co.uk/public/job-image/${job.id}.png`;
+      const ogImage   = `https://smeatonhealthcare.co.uk/api/og-image/${job.id}`;
       const ogUrl     = `https://smeatonhealthcare.co.uk/jobs/${job.id}`;
 
       // Replace every relevant tag in the shell HTML
