@@ -8,7 +8,7 @@ const SOCIAL_MEDIA_WIDTH = 1200;
 const SOCIAL_MEDIA_HEIGHT = 630;
 
 // Logo watermark — resize once at startup and cache the buffer
-const LOGO_SIZE = 130; // px wide (square logo, so height = same)
+const LOGO_SIZE = 240; // px wide (square logo, so height = same)
 const LOGO_PADDING = 24; // px from edges
 let logoBuffer: Buffer | null = null;
 

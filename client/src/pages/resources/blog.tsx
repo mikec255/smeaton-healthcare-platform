@@ -8,6 +8,7 @@ import { useState, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { type BlogPost, type BlogCategory } from "@shared/schema";
 import DOMPurify from "dompurify";
+import BlogImage from "@/components/blog/BlogImage";
 import SocialShareBar from "@/components/shared/SocialShareBar";
 
 const NAVY = "#05163D";
@@ -130,7 +131,7 @@ export default function Blog() {
         </DialogHeader>
         {post.image && (
           <div className="w-full mt-2 mb-4 rounded-xl overflow-hidden">
-            <img src={post.image} alt={post.title} className="w-full object-cover block" style={{ maxHeight: "380px" }} />
+            <BlogImage src={post.image} alt={post.title} className="w-full object-cover block" style={{ maxHeight: "380px" }} />
           </div>
         )}
         <SocialShareBar url={`${window.location.origin}/blog/${post.slug}`} title={post.title} />
@@ -214,7 +215,7 @@ export default function Blog() {
                     <div className="grid md:grid-cols-2">
                       {featuredPost.image ? (
                         <div className="h-64 md:h-full overflow-hidden">
-                          <img
+                          <BlogImage
                             src={featuredPost.image}
                             alt={featuredPost.title}
                             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
@@ -264,7 +265,7 @@ export default function Blog() {
                       >
                         <div className="overflow-hidden h-48">
                           {post.image ? (
-                            <img
+                            <BlogImage
                               src={post.image}
                               alt={post.title}
                               className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"

@@ -7,6 +7,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import DOMPurify from "dompurify";
 import SocialShareBar from "@/components/shared/SocialShareBar";
 import Seo from "@/components/seo";
+import BlogImage from "@/components/blog/BlogImage";
 
 export default function BlogPostPage() {
   const { slug } = useParams<{ slug: string }>();
@@ -160,11 +161,11 @@ export default function BlogPostPage() {
       </header>
 
       {featuredImage && (
-        <div className="mb-8">
-          <img
+        <div className="mb-8 rounded-lg shadow-md overflow-hidden">
+          <BlogImage
             src={featuredImage}
             alt={post.title}
-            className="w-full h-auto rounded-lg shadow-md"
+            className="w-full h-auto"
             data-testid="blog-post-featured-image"
           />
         </div>
