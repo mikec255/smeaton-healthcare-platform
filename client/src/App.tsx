@@ -36,6 +36,7 @@ const Enablements = lazy(() => import("@/pages/enablements"));
 const RespiteCare = lazy(() => import("@/pages/respite"));
 const LiveInCare = lazy(() => import("@/pages/live-in-care"));
 const ConditionLedCare = lazy(() => import("@/pages/condition-led-care"));
+const AgencyStaffing = lazy(() => import("@/pages/services/agency-staffing"));
 
 // Other essential pages
 const About = lazy(() => import("@/pages/about"));
@@ -142,6 +143,7 @@ function Router() {
             <Route path="/respite" component={RespiteCare} />
             <Route path="/services/live-in-care" component={LiveInCare} />
             <Route path="/services/condition-led-care" component={ConditionLedCare} />
+            <Route path="/services/agency-staffing" component={AgencyStaffing} />
             
             {/* Resources pages */}
             <Route path="/resources/blog" component={Blog} />

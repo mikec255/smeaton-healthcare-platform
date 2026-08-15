@@ -64,6 +64,7 @@ const SERVICES_MENU = [
   { href: "/services/respite", name: "Respite Care", desc: "Short-term relief for family carers, delivered by our trusted team." },
   { href: "/services/live-in-care", name: "Live-In Care", desc: "Full-time live-in support for people who need constant companionship and care." },
   { href: "/services/condition-led-care", name: "Condition-Led Care", desc: "Specialist care tailored to specific health conditions and complex needs." },
+  { href: "/services/agency-staffing", name: "Agency Staffing", desc: "Care homes book the cover they need. Verified carers and nurses pick up shifts that suit them." },
 ];
 
 const RESOURCES_MENU = [
