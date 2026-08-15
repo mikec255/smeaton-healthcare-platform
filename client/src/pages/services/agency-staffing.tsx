@@ -179,35 +179,6 @@ export default function AgencyStaffing() {
         </div>
       </section>
 
-      {/* ── CTA ── */}
-      <section className="py-20" style={{ background: `linear-gradient(135deg, ${NAVY} 0%, #0a2a5e 100%)` }}>
-        <FadeIn>
-          <div className="max-w-3xl mx-auto px-5 sm:px-8 text-center">
-            <img src={shiftBookingLogo} alt="Carelogr" className="h-12 w-auto object-contain mx-auto mb-8 opacity-90" />
-            <h2 className="text-3xl sm:text-4xl font-extrabold text-white mb-4">
-              Ready to simplify your agency staffing?
-            </h2>
-            <p className="text-white/60 text-lg leading-relaxed mb-10">
-              Register your organisation on Carelogr and start posting shifts today.
-              It's free to get started.
-            </p>
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-              <a
-                href={REGISTER_URL}
-                className="inline-flex items-center gap-2 px-8 py-4 rounded-2xl font-bold text-white transition-all hover:scale-105"
-                style={{ backgroundColor: ORANGE, boxShadow: "0 8px 32px rgba(234,88,12,0.4)" }}
-              >
-                Register your organisation <ArrowRight size={16} />
-              </a>
-              <Link href="/carelogr"
-                className="inline-flex items-center gap-2 px-8 py-4 rounded-2xl font-bold text-white/80 hover:text-white transition-colors"
-                style={{ border: "1px solid rgba(255,255,255,0.2)" }}>
-                Learn about Carelogr
-              </Link>
-            </div>
-          </div>
-        </FadeIn>
-      </section>
     </div>
   );
 }
