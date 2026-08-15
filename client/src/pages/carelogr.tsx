@@ -5,8 +5,8 @@ import { ClipboardList, Pill, GraduationCap, PoundSterling, Calendar, Building2,
 import careManagementLogo from "@assets/carelogr-care-management-logo.png";
 import shiftBookingLogo from "@assets/carelogr-shift-booking-logo.png";
 
-const CARE_MGMT_URL = "https://carelogr.co.uk";
-const SHIFT_BOOKING_URL = "https://carelogr.co.uk";
+const CARE_MGMT_URL = "https://carelogr.co.uk/cms/login";
+const SHIFT_BOOKING_URL = "https://carelogr.co.uk/agency/login";
 
 function FadeIn({ children, delay = 0, className = "" }: { children: React.ReactNode; delay?: number; className?: string }) {
   const ref = useRef(null);

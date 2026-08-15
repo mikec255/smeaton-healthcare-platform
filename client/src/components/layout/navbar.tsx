@@ -352,7 +352,7 @@ export default function Navbar() {
               <div className="max-w-7xl mx-auto px-5 sm:px-8 lg:px-12 py-8 flex gap-8">
                 {/* Care Management */}
                 <a
-                  href="https://carelogr.co.uk"
+                  href="https://carelogr.co.uk/cms/login"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="flex-1 flex items-start gap-4 rounded-2xl p-6 border transition-all duration-200 hover:shadow-md group"
@@ -372,7 +372,7 @@ export default function Navbar() {
 
                 {/* Shift Booking */}
                 <a
-                  href="https://carelogr.co.uk"
+                  href="https://carelogr.co.uk/agency/login"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="flex-1 flex items-start gap-4 rounded-2xl p-6 border transition-all duration-200 hover:shadow-md group"
@@ -383,11 +383,11 @@ export default function Navbar() {
                     <p className="text-xs font-bold uppercase tracking-widest mb-1" style={{ color: "#ea580c" }}>Agency Staffing</p>
                     <p className="text-sm text-gray-500 leading-relaxed">Care homes book cover. Carers and nurses pick up the shifts that suit them.</p>
                     <div className="flex items-center gap-3 mt-3">
-                      <a href="https://carelogr.co.uk" target="_blank" rel="noopener noreferrer" className="text-xs font-bold" style={{ color: "#ea580c" }}>
+                      <a href="https://carelogr.co.uk/agency/login" target="_blank" rel="noopener noreferrer" className="text-xs font-bold" style={{ color: "#ea580c" }}>
                         Care home →
                       </a>
                       <span className="text-gray-300">·</span>
-                      <a href="https://carelogr.co.uk" target="_blank" rel="noopener noreferrer" className="text-xs font-bold" style={{ color: "#ea580c" }}>
+                      <a href="https://carelogr.co.uk/agency/login" target="_blank" rel="noopener noreferrer" className="text-xs font-bold" style={{ color: "#ea580c" }}>
                         Carer →
                       </a>
                     </div>
@@ -461,7 +461,7 @@ export default function Navbar() {
                 <div className="py-2">
                   <p className="text-xs font-bold uppercase tracking-widest mb-2" style={{ color: "#5eead4" }}>Care Management</p>
                   <a
-                    href="https://carelogr.co.uk"
+                    href="https://carelogr.co.uk/cms/login"
                     target="_blank"
                     rel="noopener noreferrer"
                     className="block py-2.5 text-base font-semibold text-white/80 hover:text-[#5eead4] transition-colors"
@@ -472,7 +472,7 @@ export default function Navbar() {
                 <div className="py-2 border-t border-white/10">
                   <p className="text-xs font-bold uppercase tracking-widest mb-2 mt-1" style={{ color: "#fb923c" }}>Agency Staffing</p>
                   <a
-                    href="https://carelogr.co.uk"
+                    href="https://carelogr.co.uk/agency/login"
                     target="_blank"
                     rel="noopener noreferrer"
                     className="block py-2 text-base font-semibold text-white/80 hover:text-[#fb923c] transition-colors"
@@ -480,7 +480,7 @@ export default function Navbar() {
                     Carelogr — Care home
                   </a>
                   <a
-                    href="https://carelogr.co.uk"
+                    href="https://carelogr.co.uk/agency/login"
                     target="_blank"
                     rel="noopener noreferrer"
                     className="block py-2 text-base font-semibold text-white/80 hover:text-[#fb923c] transition-colors"
