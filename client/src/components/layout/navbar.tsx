@@ -211,18 +211,6 @@ export default function Navbar() {
               </Link>
             ))}
 
-            {/* Login dropdown button — desktop */}
-            <button
-              onClick={handleLoginClick}
-              className="flex items-center gap-1 text-sm font-semibold transition-colors duration-200"
-              style={{ color: loginOpen ? "#EF2A86" : "#05163D" }}
-            >
-              <LogIn size={14} strokeWidth={2.5} className="mr-0.5" />
-              Login
-              <motion.span animate={{ rotate: loginOpen ? 180 : 0 }} transition={{ duration: 0.2 }}>
-                <ChevronDown size={14} strokeWidth={2.5} />
-              </motion.span>
-            </button>
           </div>
 
           {/* CTA — right side */}
@@ -235,6 +223,22 @@ export default function Navbar() {
               <Phone size={14} />
               0330 165 8880
             </a>
+
+            {/* Login dropdown button — desktop */}
+            <button
+              onClick={handleLoginClick}
+              className="flex items-center gap-1.5 px-4 py-2.5 rounded-lg text-sm font-bold border transition-colors duration-200"
+              style={{
+                color: loginOpen ? "#EF2A86" : "#05163D",
+                borderColor: loginOpen ? "#EF2A86" : "rgba(5,22,61,0.18)",
+              }}
+            >
+              <LogIn size={14} strokeWidth={2.5} />
+              Login
+              <motion.span animate={{ rotate: loginOpen ? 180 : 0 }} transition={{ duration: 0.2 }}>
+                <ChevronDown size={14} strokeWidth={2.5} />
+              </motion.span>
+            </button>
 
             <Link
               href="/referral"
