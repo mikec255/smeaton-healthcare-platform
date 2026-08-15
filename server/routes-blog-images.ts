@@ -66,11 +66,19 @@ export function registerBlogImageRoutes(app: express.Application) {
 
       if (!imageUrl) return res.status(404).send("No featured image found");
 
-      // Only base64 data URLs are supported
-      const base64Match = imageUrl.match(/^data:image\/(png|jpg|jpeg|gif|webp);base64,(.+)$/);
-      if (!base64Match) return res.status(400).send("Invalid image format");
+      // Resolve image to a Buffer — supports base64 data URLs and /blog-images/* file paths
+      let originalBuffer: Buffer;
 
-      const originalBuffer = Buffer.from(base64Match[2], "base64");
+      const base64Match = imageUrl.match(/^data:image\/(png|jpg|jpeg|gif|webp);base64,(.+)$/);
+      if (base64Match) {
+        originalBuffer = Buffer.from(base64Match[2], "base64");
+      } else if (imageUrl.startsWith("/blog-images/")) {
+        const filePath = path.join(process.cwd(), "client/public", imageUrl);
+        if (!fs.existsSync(filePath)) return res.status(404).send("Image file not found");
+        originalBuffer = fs.readFileSync(filePath);
+      } else {
+        return res.status(400).send("Unsupported image format");
+      }
 
       // Determine dimensions
       const metadata = await sharp(originalBuffer).metadata();
