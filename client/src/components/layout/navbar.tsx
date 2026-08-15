@@ -389,7 +389,7 @@ export default function Navbar() {
                     <p className="text-sm text-gray-500 leading-relaxed">Care homes book cover. Carers and nurses pick up the shifts that suit them.</p>
                     <div className="flex items-center gap-3 mt-3">
                       <a href="https://carelogr.co.uk/agency/login" target="_blank" rel="noopener noreferrer" className="text-xs font-bold" style={{ color: "#ea580c" }}>
-                        Care home →
+                        Organisation login →
                       </a>
                       <span className="text-gray-300">·</span>
                       <a href="https://carelogr.co.uk/agency/login" target="_blank" rel="noopener noreferrer" className="text-xs font-bold" style={{ color: "#ea580c" }}>
