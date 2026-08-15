@@ -46,33 +46,6 @@ export default function Carelogr() {
         path="/carelogr"
       />
 
-      {/* ── HERO ── */}
-      <section
-        className="relative overflow-hidden"
-        style={{ background: "linear-gradient(135deg, #05163D 0%, #0a2a5e 60%, #1a3a7a 100%)" }}
-      >
-        <div className="absolute inset-0 pointer-events-none overflow-hidden">
-          <div className="absolute -top-32 -right-32 w-[500px] h-[500px] rounded-full opacity-10"
-            style={{ background: "radial-gradient(circle, #0e9488 0%, transparent 70%)" }} />
-          <div className="absolute -bottom-24 -left-24 w-[400px] h-[400px] rounded-full opacity-10"
-            style={{ background: "radial-gradient(circle, #EF2A86 0%, transparent 70%)" }} />
-        </div>
-
-        <div className="relative max-w-5xl mx-auto px-5 sm:px-8 py-20 sm:py-28 text-center">
-          <motion.div initial={{ opacity: 0, y: 28 }} animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.75, ease: [0.22, 1, 0.36, 1] }}>
-            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold text-white tracking-tight leading-tight mb-6">
-              Meet <span style={{ color: "#5eead4" }}>Carelogr</span>
-            </h1>
-            <p className="text-lg sm:text-xl text-white/70 leading-relaxed max-w-2xl mx-auto">
-              Our purpose-built digital platform that powers everything behind the scenes —
-              from care planning and medication management, to flexible agency staffing across
-              Devon and Cornwall.
-            </p>
-          </motion.div>
-        </div>
-      </section>
-
       {/* ── CARE MANAGEMENT SYSTEM ── */}
       <section className="py-20 sm:py-28" style={{ backgroundColor: "#ffffff" }}>
         <div className="max-w-6xl mx-auto px-5 sm:px-8">
