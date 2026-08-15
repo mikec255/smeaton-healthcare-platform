@@ -5493,9 +5493,35 @@ ${allUrls.map(u => `  <url>
          .send(cached.buf);
       return;
     }
+
+    const sendFallback = async () => {
+      // Branded 1200×630 fallback — pink background with logo — so Facebook
+      // always gets a valid image even when CareLogr is down
+      try {
+        const sharp = (await import("sharp")).default;
+        const logoPath = path.join(process.cwd(), "client/src/assets/logo.png");
+        const base = await sharp({
+          create: { width: 1200, height: 630, channels: 3, background: { r: 239, g: 42, b: 134 } },
+        }).png().toBuffer();
+        let buf: Buffer;
+        if (fs.existsSync(logoPath)) {
+          const logo = await sharp(logoPath).resize(300, 300, { fit: "contain", background: { r: 0, g: 0, b: 0, alpha: 0 } }).png().toBuffer();
+          buf = await sharp(base).composite([{ input: logo, gravity: "centre" }]).jpeg({ quality: 90 }).toBuffer();
+        } else {
+          buf = await sharp(base).jpeg({ quality: 90 }).toBuffer();
+        }
+        res.set("Content-Type", "image/jpeg").set("Cache-Control", "public, max-age=300").send(buf);
+      } catch {
+        res.status(502).end();
+      }
+    };
+
     try {
-      const upstream = await fetch(`https://carelogr.co.uk/public/job-image/${jobId}.png`);
-      if (!upstream.ok) { res.status(502).end(); return; }
+      const controller = new AbortController();
+      const timer = setTimeout(() => controller.abort(), 4000);
+      const upstream = await fetch(`https://carelogr.co.uk/public/job-image/${jobId}.png`, { signal: controller.signal });
+      clearTimeout(timer);
+      if (!upstream.ok) return sendFallback();
       const buf = Buffer.from(await upstream.arrayBuffer());
       const contentType = upstream.headers.get("content-type") || "image/png";
       ogImageCache.set(jobId, { buf, contentType, ts: now });
@@ -5503,7 +5529,7 @@ ${allUrls.map(u => `  <url>
          .set("Cache-Control", "public, max-age=86400")
          .send(buf);
     } catch {
-      res.status(502).end();
+      return sendFallback();
     }
   });
 
