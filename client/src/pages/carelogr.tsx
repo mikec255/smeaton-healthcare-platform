@@ -61,10 +61,6 @@ export default function Carelogr() {
         <div className="relative max-w-5xl mx-auto px-5 sm:px-8 py-20 sm:py-28 text-center">
           <motion.div initial={{ opacity: 0, y: 28 }} animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.75, ease: [0.22, 1, 0.36, 1] }}>
-            <span className="inline-block px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-widest mb-8"
-              style={{ color: "#5eead4", backgroundColor: "rgba(94,234,212,0.12)", border: "1px solid rgba(94,234,212,0.25)" }}>
-              Smeaton Healthcare's Digital Platform
-            </span>
             <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold text-white tracking-tight leading-tight mb-6">
               Meet <span style={{ color: "#5eead4" }}>Carelogr</span>
             </h1>
@@ -75,21 +71,6 @@ export default function Carelogr() {
             </p>
           </motion.div>
         </div>
-      </section>
-
-      {/* ── INTRO STRIP ── */}
-      <section className="py-12 border-b" style={{ backgroundColor: "#FDF7F0", borderColor: "rgba(0,0,0,0.06)" }}>
-        <FadeIn>
-          <div className="max-w-4xl mx-auto px-5 sm:px-8 text-center">
-            <p className="text-base sm:text-lg text-gray-500 leading-relaxed">
-              Carelogr is made up of two interconnected systems — a{" "}
-              <span className="font-semibold" style={{ color: "#0e9488" }}>Care Management System</span>{" "}
-              for our office teams and carers, and a{" "}
-              <span className="font-semibold" style={{ color: "#ea580c" }}>Shift Booking System</span>{" "}
-              for agency staffing. Together they help us deliver consistent, high-quality care every day.
-            </p>
-          </div>
-        </FadeIn>
       </section>
 
       {/* ── CARE MANAGEMENT SYSTEM ── */}
