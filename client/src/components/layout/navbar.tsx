@@ -393,7 +393,7 @@ export default function Navbar() {
                       </a>
                       <span className="text-gray-300">·</span>
                       <a href="https://carelogr.co.uk/agency/login" target="_blank" rel="noopener noreferrer" className="text-xs font-bold" style={{ color: "#ea580c" }}>
-                        Carer →
+                        Healthcare Professional Login →
                       </a>
                     </div>
                   </div>
