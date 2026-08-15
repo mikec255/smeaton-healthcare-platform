@@ -79,6 +79,9 @@ const Assessment = lazy(() => import("@/pages/assessment"));
 // Staff assessment page (branch-specific knowledge assessments)
 const StaffAssessment = lazy(() => import("@/pages/staff-assessment"));
 
+// CareLogr platform page
+const Carelogr = lazy(() => import("@/pages/carelogr"));
+
 // Public pages (no auth required)
 const PublicFeedback = lazy(() => import("@/pages/public-feedback"));
 const Leaflet = lazy(() => import("@/pages/leaflet"));
@@ -157,6 +160,9 @@ function Router() {
             <Route path="/locations/cornwall" component={CornwallLocation} />
             <Route path="/locations/devon" component={DevonLocation} />
             
+            {/* CareLogr platform page */}
+            <Route path="/carelogr" component={Carelogr} />
+
             {/* Other pages */}
             <Route path="/about" component={About} />
             <Route path="/referral" component={Referral} />
