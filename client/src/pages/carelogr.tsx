@@ -5,10 +5,10 @@ import careManagementLogo from "@assets/carelogr-care-management-logo.png";
 import shiftBookingLogo from "@assets/carelogr-shift-booking-logo.png";
 
 // CareLogr product URLs — update these when known
-const CARE_MGMT_URL = "https://carelogr.com";
-const SHIFT_BOOKING_URL = "https://carelogr.com";
-const CARE_HOME_LOGIN_URL = "https://carelogr.com";
-const CARER_LOGIN_URL = "https://carelogr.com";
+const CARE_MGMT_URL = "https://carelogr.co.uk";
+const SHIFT_BOOKING_URL = "https://carelogr.co.uk";
+const CARE_HOME_LOGIN_URL = "https://carelogr.co.uk";
+const CARER_LOGIN_URL = "https://carelogr.co.uk";
 
 function FadeIn({
   children,
