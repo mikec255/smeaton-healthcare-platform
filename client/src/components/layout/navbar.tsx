@@ -361,7 +361,6 @@ export default function Navbar() {
                   <div>
                     <img src={careManagementLogo} alt="Carelogr Care Management" className="h-12 w-auto object-contain mb-3" />
                     <p className="text-xs font-bold uppercase tracking-widest mb-1" style={{ color: "#0e9488" }}>Care Management</p>
-                    <h4 className="text-base font-extrabold mb-1" style={{ color: "#05163D" }}>Carelogr — Care System</h4>
                     <p className="text-sm text-gray-500 leading-relaxed">Rotas, care plans, medication, training and payroll for office staff and carers.</p>
                     <span className="inline-flex items-center gap-1 mt-3 text-xs font-bold" style={{ color: "#0e9488" }}>
                       Sign in <ArrowRight size={12} />
@@ -382,7 +381,6 @@ export default function Navbar() {
                   <div>
                     <img src={shiftBookingLogo} alt="Carelogr Shift Booking" className="h-12 w-auto object-contain mb-3" />
                     <p className="text-xs font-bold uppercase tracking-widest mb-1" style={{ color: "#ea580c" }}>Agency Staffing</p>
-                    <h4 className="text-base font-extrabold mb-1" style={{ color: "#05163D" }}>Carelogr — Shift Booking</h4>
                     <p className="text-sm text-gray-500 leading-relaxed">Care homes book cover. Carers and nurses pick up the shifts that suit them.</p>
                     <div className="flex items-center gap-3 mt-3">
                       <a href="https://carelogr.com" target="_blank" rel="noopener noreferrer" className="text-xs font-bold" style={{ color: "#ea580c" }}>
