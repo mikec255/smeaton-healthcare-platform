@@ -111,15 +111,15 @@ export default function AgencyStaffing() {
             <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7, delay: 0.15 }}
               className="hidden lg:flex flex-col gap-5">
               <div className="rounded-3xl p-8 flex flex-col gap-6"
-                style={{ background: "linear-gradient(135deg, #1c1a17 0%, #2a1f0e 100%)", boxShadow: "0 24px 64px rgba(0,0,0,0.18)" }}>
+                style={{ background: "#fff7ed", border: "1px solid #fed7aa", boxShadow: "0 16px 48px rgba(234,88,12,0.10)" }}>
                 <img src={shiftBookingLogo} alt="Carelogr Shift Booking" className="h-14 w-auto object-contain" />
                 <div>
-                  <p className="text-xs font-bold uppercase tracking-widest mb-3" style={{ color: "#fb923c" }}>Who it's for</p>
+                  <p className="text-xs font-bold uppercase tracking-widest mb-3" style={{ color: ORANGE }}>Who it's for</p>
                   <div className="flex flex-col gap-2">
                     {WHO_ITS_FOR.map((w) => (
                       <div key={w} className="flex items-center gap-2.5">
-                        <CheckCircle2 size={14} style={{ color: "#fb923c" }} />
-                        <span className="text-sm font-semibold text-white/80">{w}</span>
+                        <CheckCircle2 size={14} style={{ color: ORANGE }} />
+                        <span className="text-sm font-semibold" style={{ color: NAVY }}>{w}</span>
                       </div>
                     ))}
                   </div>
