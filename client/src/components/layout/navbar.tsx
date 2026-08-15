@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { Link, useLocation } from "wouter";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, Menu, Phone, ChevronDown, ArrowRight, BookOpen, PoundSterling, Mail, Users, Globe, GraduationCap } from "lucide-react";
+import { X, Menu, Phone, ChevronDown, ArrowRight, BookOpen, PoundSterling, Mail, Users, Globe, GraduationCap, LogIn } from "lucide-react";
 import logoImage from "@/assets/logo.png";
 import {
   Dialog,
@@ -115,6 +115,7 @@ export default function Navbar() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [servicesOpen, setServicesOpen] = useState(false);
   const [resourcesOpen, setResourcesOpen] = useState(false);
+  const [loginOpen, setLoginOpen] = useState(false);
   const [location] = useLocation();
   const dropdownRef = useRef<HTMLDivElement>(null);
 
@@ -122,6 +123,7 @@ export default function Navbar() {
     setMobileOpen(false);
     setServicesOpen(false);
     setResourcesOpen(false);
+    setLoginOpen(false);
   }, [location]);
 
   useEffect(() => {
@@ -134,20 +136,29 @@ export default function Navbar() {
       if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
         setServicesOpen(false);
         setResourcesOpen(false);
+        setLoginOpen(false);
       }
     }
-    if (servicesOpen || resourcesOpen) document.addEventListener("mousedown", handleClick);
+    if (servicesOpen || resourcesOpen || loginOpen) document.addEventListener("mousedown", handleClick);
     return () => document.removeEventListener("mousedown", handleClick);
-  }, [servicesOpen, resourcesOpen]);
+  }, [servicesOpen, resourcesOpen, loginOpen]);
 
   const handleServicesClick = () => {
     setResourcesOpen(false);
+    setLoginOpen(false);
     setServicesOpen(!servicesOpen);
   };
 
   const handleResourcesClick = () => {
     setServicesOpen(false);
+    setLoginOpen(false);
     setResourcesOpen(!resourcesOpen);
+  };
+
+  const handleLoginClick = () => {
+    setServicesOpen(false);
+    setResourcesOpen(false);
+    setLoginOpen(!loginOpen);
   };
 
   return (
@@ -197,6 +208,19 @@ export default function Navbar() {
                 {l.label}
               </Link>
             ))}
+
+            {/* Login dropdown button — desktop */}
+            <button
+              onClick={handleLoginClick}
+              className="flex items-center gap-1 text-sm font-semibold transition-colors duration-200"
+              style={{ color: loginOpen ? "#EF2A86" : "#05163D" }}
+            >
+              <LogIn size={14} strokeWidth={2.5} className="mr-0.5" />
+              Login
+              <motion.span animate={{ rotate: loginOpen ? 180 : 0 }} transition={{ duration: 0.2 }}>
+                <ChevronDown size={14} strokeWidth={2.5} />
+              </motion.span>
+            </button>
           </div>
 
           {/* CTA — right side */}
@@ -311,6 +335,83 @@ export default function Navbar() {
             </motion.div>
           )}
         </AnimatePresence>
+
+        {/* Login Dropdown */}
+        <AnimatePresence>
+          {loginOpen && (
+            <motion.div
+              initial={{ opacity: 0, y: -8 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -8 }}
+              transition={{ duration: 0.22, ease: "easeOut" }}
+              className="absolute left-0 right-0 border-t"
+              style={{ backgroundColor: "white", borderColor: "rgba(0,0,0,0.06)", boxShadow: "0 24px 48px rgba(5,22,61,0.14)" }}
+            >
+              <div className="max-w-7xl mx-auto px-5 sm:px-8 lg:px-12 py-8 flex gap-8">
+                {/* Care Management */}
+                <a
+                  href="https://carelogr.com"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex-1 flex items-start gap-4 rounded-2xl p-6 border transition-all duration-200 hover:shadow-md group"
+                  style={{ borderColor: "rgba(0,0,0,0.08)", background: "linear-gradient(135deg, #f0fdfa 0%, #ffffff 100%)" }}
+                >
+                  <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 mt-0.5" style={{ backgroundColor: "#0e9488" }}>
+                    <LogIn size={18} color="white" />
+                  </div>
+                  <div>
+                    <p className="text-xs font-bold uppercase tracking-widest mb-1" style={{ color: "#0e9488" }}>Care Management</p>
+                    <h4 className="text-base font-extrabold mb-1" style={{ color: "#05163D" }}>Carelogr — Care System</h4>
+                    <p className="text-sm text-gray-500 leading-relaxed">Rotas, care plans, medication, training and payroll for office staff and carers.</p>
+                    <span className="inline-flex items-center gap-1 mt-3 text-xs font-bold" style={{ color: "#0e9488" }}>
+                      Sign in <ArrowRight size={12} />
+                    </span>
+                  </div>
+                </a>
+
+                <div className="w-px shrink-0" style={{ backgroundColor: "rgba(0,0,0,0.07)" }} />
+
+                {/* Shift Booking */}
+                <a
+                  href="https://carelogr.com"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex-1 flex items-start gap-4 rounded-2xl p-6 border transition-all duration-200 hover:shadow-md group"
+                  style={{ borderColor: "rgba(0,0,0,0.08)", background: "linear-gradient(135deg, #fff7ed 0%, #ffffff 100%)" }}
+                >
+                  <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 mt-0.5" style={{ backgroundColor: "#ea580c" }}>
+                    <LogIn size={18} color="white" />
+                  </div>
+                  <div>
+                    <p className="text-xs font-bold uppercase tracking-widest mb-1" style={{ color: "#ea580c" }}>Agency Staffing</p>
+                    <h4 className="text-base font-extrabold mb-1" style={{ color: "#05163D" }}>Carelogr — Shift Booking</h4>
+                    <p className="text-sm text-gray-500 leading-relaxed">Care homes book cover. Carers and nurses pick up the shifts that suit them.</p>
+                    <div className="flex items-center gap-3 mt-3">
+                      <a href="https://carelogr.com" target="_blank" rel="noopener noreferrer" className="text-xs font-bold" style={{ color: "#ea580c" }}>
+                        Care home →
+                      </a>
+                      <span className="text-gray-300">·</span>
+                      <a href="https://carelogr.com" target="_blank" rel="noopener noreferrer" className="text-xs font-bold" style={{ color: "#ea580c" }}>
+                        Carer →
+                      </a>
+                    </div>
+                  </div>
+                </a>
+
+                <div className="w-px shrink-0" style={{ backgroundColor: "rgba(0,0,0,0.07)" }} />
+
+                {/* Info panel */}
+                <div className="w-52 shrink-0 flex flex-col justify-center">
+                  <p className="text-xs font-bold tracking-widest uppercase mb-2" style={{ color: "#EF2A86" }}>CareLogr</p>
+                  <p className="text-sm text-gray-500 leading-relaxed mb-4">Our purpose-built digital platform for care management and agency shift booking.</p>
+                  <Link href="/carelogr" className="text-xs font-bold" style={{ color: "#275799" }}>
+                    Learn more →
+                  </Link>
+                </div>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </header>
 
       {/* Mobile Menu */}
@@ -357,6 +458,40 @@ export default function Navbar() {
                     {r.name}
                   </Link>
                 ))}
+              </MobileAccordion>
+
+              {/* Login accordion */}
+              <MobileAccordion label="Login">
+                <div className="py-2">
+                  <p className="text-xs font-bold uppercase tracking-widest mb-2" style={{ color: "#5eead4" }}>Care Management</p>
+                  <a
+                    href="https://carelogr.com"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="block py-2.5 text-base font-semibold text-white/80 hover:text-[#5eead4] transition-colors"
+                  >
+                    Carelogr — Care System
+                  </a>
+                </div>
+                <div className="py-2 border-t border-white/10">
+                  <p className="text-xs font-bold uppercase tracking-widest mb-2 mt-1" style={{ color: "#fb923c" }}>Agency Staffing</p>
+                  <a
+                    href="https://carelogr.com"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="block py-2 text-base font-semibold text-white/80 hover:text-[#fb923c] transition-colors"
+                  >
+                    Carelogr — Care home
+                  </a>
+                  <a
+                    href="https://carelogr.com"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="block py-2 text-base font-semibold text-white/80 hover:text-[#fb923c] transition-colors"
+                  >
+                    Carelogr — Carer
+                  </a>
+                </div>
               </MobileAccordion>
 
               {/* Other links */}
