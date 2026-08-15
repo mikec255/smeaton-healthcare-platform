@@ -5519,8 +5519,12 @@ ${allUrls.map(u => `  <url>
       // Crawlers always hit production, so OG injection is only needed there.
       if (process.env.NODE_ENV !== "production") return next();
 
-      const job = await storage.getJob(req.params.id).catch(() => null);
-      if (!job) return next(); // unknown ID → let SPA show its 404
+      // Race against a 3-second timeout so Facebook's scraper never hangs
+      const job = await Promise.race([
+        storage.getJob(req.params.id),
+        new Promise<null>((resolve) => setTimeout(() => resolve(null), 3000)),
+      ]).catch(() => null);
+      if (!job) return next(); // unknown ID or timeout → SPA handles it
 
       const htmlPath = path.join(process.cwd(), "public", "index.html");
       if (!fs.existsSync(htmlPath)) return next(); // safety valve
