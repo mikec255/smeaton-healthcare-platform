@@ -3,6 +3,8 @@ import { Link, useLocation } from "wouter";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, Menu, Phone, ChevronDown, ArrowRight, BookOpen, PoundSterling, Mail, Users, Globe, GraduationCap, LogIn } from "lucide-react";
 import logoImage from "@/assets/logo.png";
+import careManagementLogo from "@assets/carelogr-care-management-logo.png";
+import shiftBookingLogo from "@assets/carelogr-shift-booking-logo.png";
 import {
   Dialog,
   DialogContent,
@@ -356,10 +358,8 @@ export default function Navbar() {
                   className="flex-1 flex items-start gap-4 rounded-2xl p-6 border transition-all duration-200 hover:shadow-md group"
                   style={{ borderColor: "rgba(0,0,0,0.08)", background: "linear-gradient(135deg, #f0fdfa 0%, #ffffff 100%)" }}
                 >
-                  <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 mt-0.5" style={{ backgroundColor: "#0e9488" }}>
-                    <LogIn size={18} color="white" />
-                  </div>
                   <div>
+                    <img src={careManagementLogo} alt="Carelogr Care Management" className="h-12 w-auto object-contain mb-3" />
                     <p className="text-xs font-bold uppercase tracking-widest mb-1" style={{ color: "#0e9488" }}>Care Management</p>
                     <h4 className="text-base font-extrabold mb-1" style={{ color: "#05163D" }}>Carelogr — Care System</h4>
                     <p className="text-sm text-gray-500 leading-relaxed">Rotas, care plans, medication, training and payroll for office staff and carers.</p>
@@ -379,10 +379,8 @@ export default function Navbar() {
                   className="flex-1 flex items-start gap-4 rounded-2xl p-6 border transition-all duration-200 hover:shadow-md group"
                   style={{ borderColor: "rgba(0,0,0,0.08)", background: "linear-gradient(135deg, #fff7ed 0%, #ffffff 100%)" }}
                 >
-                  <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 mt-0.5" style={{ backgroundColor: "#ea580c" }}>
-                    <LogIn size={18} color="white" />
-                  </div>
                   <div>
+                    <img src={shiftBookingLogo} alt="Carelogr Shift Booking" className="h-12 w-auto object-contain mb-3" />
                     <p className="text-xs font-bold uppercase tracking-widest mb-1" style={{ color: "#ea580c" }}>Agency Staffing</p>
                     <h4 className="text-base font-extrabold mb-1" style={{ color: "#05163D" }}>Carelogr — Shift Booking</h4>
                     <p className="text-sm text-gray-500 leading-relaxed">Care homes book cover. Carers and nurses pick up the shifts that suit them.</p>
