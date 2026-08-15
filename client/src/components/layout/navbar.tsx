@@ -368,7 +368,7 @@ export default function Navbar() {
                     <p className="text-xs font-bold uppercase tracking-widest mb-1" style={{ color: "#0e9488" }}>Care Management</p>
                     <p className="text-sm text-gray-500 leading-relaxed">Rotas, care plans, medication, training and payroll for office staff and carers.</p>
                     <span className="inline-flex items-center gap-1 mt-3 text-xs font-bold" style={{ color: "#0e9488" }}>
-                      Sign in <ArrowRight size={12} />
+                      Smeaton Staff <ArrowRight size={12} />
                     </span>
                   </div>
                 </a>
