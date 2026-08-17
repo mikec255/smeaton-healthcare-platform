@@ -123,6 +123,7 @@ export default function JobDetailsModal({ job, isOpen, onClose, onApply }: JobDe
           <SocialShareBar
             title={`${job.title} – Smeaton Healthcare`}
             url={`https://smeatonhealthcare.co.uk/jobs/${job.id}`}
+            imageUrl={`https://carelogr.co.uk/public/job-image/${job.id}.png`}
           />
         </div>
       </DialogContent>

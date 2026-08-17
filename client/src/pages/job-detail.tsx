@@ -161,7 +161,11 @@ export default function JobDetailPage() {
               </>
             )}
 
-            <SocialShareBar title={`${job.title} – Smeaton Healthcare`} url={pageUrl} />
+            <SocialShareBar
+              title={`${job.title} – Smeaton Healthcare`}
+              url={pageUrl}
+              imageUrl={`https://carelogr.co.uk/public/job-image/${job.id}.png`}
+            />
           </div>
 
           {/* Sidebar */}

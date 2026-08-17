@@ -5589,7 +5589,9 @@ ${allUrls.map(u => `  <url>
 
       html = html.replace("</head>", `${ogTags}\n  </head>`);
 
-      res.set("Content-Type", "text/html").send(html);
+      res.set("Content-Type", "text/html")
+         .set("Cache-Control", "no-store, no-cache, must-revalidate")
+         .send(html);
     } catch (err) {
       next(err);
     }
