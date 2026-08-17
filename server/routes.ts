@@ -760,7 +760,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/jobs/:id", async (req, res) => {
     try {
       const job = await storage.getJob(req.params.id);
-      if (!job) {
+      // An unpublished role must stop being readable on its direct URL too,
+      // not just vanish from the listing. The admin screens read from
+      // /api/admin/jobs, so this closes the public hole without hiding
+      // anything from recruiters.
+      if (!job || job.isActive === false) {
         return res.status(404).json({ message: "Job not found" });
       }
       res.json(job);
@@ -5487,13 +5491,6 @@ ${allUrls.map(u => `  <url>
   app.get("/api/og-image/:jobId", async (req, res) => {
     const { jobId } = req.params;
     const now = Date.now();
-    const cached = ogImageCache.get(jobId);
-    if (cached && now - cached.ts < OG_IMAGE_TTL_MS) {
-      res.set("Content-Type", cached.contentType)
-         .set("Cache-Control", "public, max-age=86400")
-         .send(cached.buf);
-      return;
-    }
 
     const sendFallback = async () => {
       // Branded 1200×630 fallback — pink background with logo — so Facebook
@@ -5516,6 +5513,31 @@ ${allUrls.map(u => `  <url>
         res.status(502).end();
       }
     };
+
+    // A withdrawn advert must not keep serving its own share image. The advert
+    // page already returns 410, so a job-specific image here would be the last
+    // public trace of an unpublished role. On a slow or failed lookup, serve the
+    // generic branded card rather than risk serving the real advert image.
+    const lookup = await Promise.race([
+      storage.getJob(jobId).then((job) => ({ ok: true as const, job })),
+      new Promise<{ ok: false }>((resolve) =>
+        setTimeout(() => resolve({ ok: false }), 2000),
+      ),
+    ]).catch(() => ({ ok: false as const }));
+
+    if (!lookup.ok) return sendFallback();
+    if (!lookup.job || lookup.job.isActive === false) {
+      ogImageCache.delete(jobId); // drop anything cached while it was still live
+      return res.status(404).end();
+    }
+
+    const cached = ogImageCache.get(jobId);
+    if (cached && now - cached.ts < OG_IMAGE_TTL_MS) {
+      return res
+        .set("Content-Type", cached.contentType)
+        .set("Cache-Control", "public, max-age=86400")
+        .send(cached.buf);
+    }
 
     try {
       const controller = new AbortController();
@@ -5546,12 +5568,20 @@ ${allUrls.map(u => `  <url>
       // Crawlers always hit production, so OG injection is only needed there.
       if (process.env.NODE_ENV !== "production") return next();
 
-      // Race against a 3-second timeout so Facebook's scraper never hangs
-      const job = await Promise.race([
-        storage.getJob(req.params.id),
-        new Promise<null>((resolve) => setTimeout(() => resolve(null), 3000)),
-      ]).catch(() => null);
-      if (!job) return next(); // unknown ID or timeout → SPA handles it
+      // Race against a 3-second timeout so Facebook's scraper never hangs.
+      // A timeout has to stay distinguishable from a genuine miss, otherwise a
+      // slow query would make a live advert look deleted to crawlers.
+      const lookup = await Promise.race([
+        storage
+          .getJob(req.params.id)
+          .then((job) => ({ ok: true as const, job })),
+        new Promise<{ ok: false }>((resolve) =>
+          setTimeout(() => resolve({ ok: false }), 3000),
+        ),
+      ]).catch(() => ({ ok: false as const }));
+
+      if (!lookup.ok) return next(); // slow or failed lookup — assert nothing
+      const job = lookup.job;
 
       // In production the build output lands in dist/public/
       // dist/public on Replit, public on Azure — see server/paths.ts
@@ -5559,6 +5589,18 @@ ${allUrls.map(u => `  <url>
       if (!htmlPath) return next(); // safety valve
 
       let html = fs.readFileSync(htmlPath, "utf-8");
+
+      // Unknown or unpublished roles still serve the app shell so the page
+      // renders, but with a status that tells crawlers to drop the URL.
+      // Previously a closed vacancy kept returning 200 with the full advert
+      // and its share tags, so it stayed indexed and shareable indefinitely.
+      if (!job || job.isActive === false) {
+        return res
+          .status(job ? 410 : 404)
+          .set("Content-Type", "text/html")
+          .set("Cache-Control", "no-store, no-cache, must-revalidate")
+          .send(html);
+      }
 
       // Escape content safe for HTML attribute values
       const esc = (s: string) =>

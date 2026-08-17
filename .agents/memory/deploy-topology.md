@@ -26,6 +26,37 @@ redeploying repeatedly. Either DNS moves to Replit, or the change ships through 
 pipeline that feeds the other host — a decision for the user, not something to work
 around in code.
 
+## Both hosts read the SAME database
+
+The two hosts run different *code* but share one database. A record created in the
+Replit workspace is immediately visible on the public domain, with no deploy involved.
+
+**Why this matters:** it splits every "the live site is wrong" report into two very
+different classes, and guessing wrong wastes a session:
+
+- **Data differs** between the workspace and the public site → not possible; suspect
+  caching or a filter, not a sync gap. Do not go looking for a second database or an
+  import job.
+- **Behaviour differs** (same data, different response) → a code change that has not
+  reached the other host. This is the topology problem above.
+
+**How to apply:** diff `/api/<resource>` from both hosts first. Identical payloads
+prove the shared database and point at code; differing payloads point at caching.
+A record created in the workspace minutes ago and visible publicly is the fastest
+positive proof of the shared database.
+
+## A third system holds an API key into this app
+
+A separate care-management platform both consumes this app's data and pushes into it
+through an authenticated API namespace, and it also hosts job share images on its own
+public URLs. Two consequences worth remembering:
+
+- It is a *client* of this database, not the source of the records. "Their system must
+  be out of sync" is the wrong first hypothesis.
+- Hiding something in this app does **not** withdraw assets that the third party serves
+  from its own domain. Suppressing a record here only closes this app's surface; the
+  upstream public asset URL has to be handled on their side.
+
 ## The two hosts use different client build layouts
 
 The built frontend lives in a different directory on each host — the Replit/vite build
