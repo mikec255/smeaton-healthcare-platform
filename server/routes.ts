@@ -5552,7 +5552,8 @@ ${allUrls.map(u => `  <url>
       ]).catch(() => null);
       if (!job) return next(); // unknown ID or timeout → SPA handles it
 
-      const htmlPath = path.join(process.cwd(), "public", "index.html");
+      // In production the build output lands in dist/public/
+      const htmlPath = path.join(process.cwd(), "dist", "public", "index.html");
       if (!fs.existsSync(htmlPath)) return next(); // safety valve
 
       let html = fs.readFileSync(htmlPath, "utf-8");
@@ -5566,16 +5567,24 @@ ${allUrls.map(u => `  <url>
       const ogImage   = `https://smeatonhealthcare.co.uk/api/og-image/${job.id}`;
       const ogUrl     = `https://smeatonhealthcare.co.uk/jobs/${job.id}`;
 
-      // Replace every relevant tag in the shell HTML
-      html = html
-        .replace(/(<title>)[^<]*(<\/title>)/, `$1${ogTitle}$2`)
-        .replace(/<meta property="og:title"[^>]*>/,       `<meta property="og:title" content="${ogTitle}" />`)
-        .replace(/<meta property="og:description"[^>]*>/, `<meta property="og:description" content="${ogDesc}" />`)
-        .replace(/<meta property="og:image"[^>]*>/,       `<meta property="og:image" content="${ogImage}" />`)
-        .replace(/<meta property="og:url"[^>]*>/,         `<meta property="og:url" content="${ogUrl}" />`)
-        .replace(/<meta name="twitter:title"[^>]*>/,      `<meta name="twitter:title" content="${ogTitle}" />`)
-        .replace(/<meta name="twitter:description"[^>]*>/,`<meta name="twitter:description" content="${ogDesc}" />`)
-        .replace(/<meta name="twitter:image"[^>]*>/,      `<meta name="twitter:image" content="${ogImage}" />`);
+      // The built index.html has no OG tags, so inject them before </head>
+      const ogTags = `
+    <title>${ogTitle}</title>
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Smeaton Healthcare" />
+    <meta property="og:title" content="${ogTitle}" />
+    <meta property="og:description" content="${ogDesc}" />
+    <meta property="og:image" content="${ogImage}" />
+    <meta property="og:image:type" content="image/jpeg" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:url" content="${ogUrl}" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="${ogTitle}" />
+    <meta name="twitter:description" content="${ogDesc}" />
+    <meta name="twitter:image" content="${ogImage}" />`;
+
+      html = html.replace("</head>", `${ogTags}\n  </head>`);
 
       res.set("Content-Type", "text/html").send(html);
     } catch (err) {
