@@ -5564,7 +5564,8 @@ ${allUrls.map(u => `  <url>
 
       const ogTitle   = esc(`${job.title} | Smeaton Healthcare`);
       const ogDesc    = esc(job.summary ?? "Join the Smeaton Healthcare team — CQC Rated Good home care provider across Devon and Cornwall.");
-      const ogImage   = `https://smeatonhealthcare.co.uk/api/og-image/${job.id}`;
+      // Point directly at Carelogr — no proxy hop, fresh URL Facebook hasn't cached
+      const ogImage   = `https://carelogr.co.uk/public/job-image/${job.id}.png`;
       const ogUrl     = `https://smeatonhealthcare.co.uk/jobs/${job.id}`;
 
       // The built index.html has no OG tags, so inject them before </head>
