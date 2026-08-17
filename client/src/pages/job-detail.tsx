@@ -47,7 +47,9 @@ export default function JobDetailPage() {
   });
 
   const pageUrl = `${SITE}/jobs/${id}`;
-  const ogImage = `https://carelogr.replit.app/public/job-image/${id}.png`;
+  // Routed through our own proxy (/api/og-image/:id) which fetches from
+  // carelogr.co.uk and falls back to a branded pink card if unreachable.
+  const ogImage = `https://smeatonhealthcare.co.uk/api/og-image/${id}`;
 
   if (isLoading) {
     return (
