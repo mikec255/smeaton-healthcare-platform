@@ -5591,13 +5591,143 @@ ${allUrls.map(u => `  <url>
     <meta name="twitter:description" content="${ogDesc}" />
     <meta name="twitter:image" content="${ogImage}" />`;
 
+      // ---- JobPosting structured data (Google Jobs) --------------------
+      // Google's jobs widget only indexes postings whose JSON-LD is present
+      // in the HTML it fetches. Client-side injection is unreliable for this,
+      // so the schema is built here alongside the OG tags.
+      const branchAddresses: Record<
+        string,
+        { street: string; locality: string; region: string; postcode: string }
+      > = {
+        Plymouth: {
+          street: "Brunswick House, Floor Two, 1 Brunswick Road",
+          locality: "Plymouth",
+          region: "Devon",
+          postcode: "PL4 0NP",
+        },
+        Truro: {
+          street:
+            "Office 10, Unit 11, Kerns House, Threemilestone Industrial Estate",
+          locality: "Truro",
+          region: "Cornwall",
+          postcode: "TR4 9LE",
+        },
+      };
+      // Only branches with a verified office address get a full postal
+      // address. An unrecognised branch falls back to the town named on the
+      // advert instead of inventing a street — a confidently wrong address is
+      // worse for both candidates and Google than a vague one.
+      const addr = branchAddresses[job.branch];
+      const jobAddress = addr
+        ? {
+            "@type": "PostalAddress",
+            streetAddress: addr.street,
+            addressLocality: addr.locality,
+            addressRegion: addr.region,
+            postalCode: addr.postcode,
+            addressCountry: "GB",
+          }
+        : {
+            "@type": "PostalAddress",
+            addressLocality:
+              (job.location || job.branch || "")
+                .replace(/\s*branch\s*$/i, "")
+                .trim() || job.branch,
+            addressCountry: "GB",
+          };
+
+      // Stored job types -> schema.org employmentType enum
+      const employmentType =
+        job.type === "temporary"
+          ? "TEMPORARY"
+          : job.type === "care-at-home"
+            ? ["FULL_TIME", "PART_TIME"]
+            : "FULL_TIME";
+
+      const salaryUnit =
+        job.salaryType === "hourly"
+          ? "HOUR"
+          : job.salaryType === "weekly"
+            ? "WEEK"
+            : "YEAR";
+
+      // Google expects an HTML description; the column holds plain text.
+      const toHtml = (s: string) =>
+        s
+          .split(/\r?\n\s*\r?\n/)
+          .filter((p) => p.trim())
+          .map((p) => `<p>${esc(p.trim()).replace(/\r?\n/g, "<br />")}</p>`)
+          .join("");
+
+      const descriptionHtml = [job.description, job.requirements, job.benefits]
+        .filter((s): s is string => Boolean(s && s.trim()))
+        .map(toHtml)
+        .join("");
+
+      const datePosted = (job.createdAt ?? new Date())
+        .toISOString()
+        .split("T")[0];
+      // No validThrough is emitted: the jobs table holds no closing date, and
+      // a rolling one would keep asserting a deadline that does not exist.
+      // The schema is only written while the role is active, so closing a job
+      // withdraws the posting — which is the accurate signal to send.
+
+      const jobPosting: Record<string, unknown> = {
+        "@context": "https://schema.org",
+        "@type": "JobPosting",
+        title: job.title,
+        description: descriptionHtml,
+        identifier: {
+          "@type": "PropertyValue",
+          name: "Smeaton Healthcare",
+          value: job.id,
+        },
+        datePosted,
+        employmentType,
+        hiringOrganization: {
+          "@type": "Organization",
+          name: "Smeaton Healthcare",
+          sameAs: "https://smeatonhealthcare.co.uk",
+          logo: "https://smeatonhealthcare.co.uk/logo.png",
+        },
+        jobLocation: {
+          "@type": "Place",
+          address: jobAddress,
+        },
+        directApply: true,
+        url: ogUrl,
+      };
+
+      if (job.salaryMin) {
+        jobPosting.baseSalary = {
+          "@type": "MonetaryAmount",
+          currency: "GBP",
+          value: {
+            "@type": "QuantitativeValue",
+            ...(job.salaryMax
+              ? { minValue: job.salaryMin, maxValue: job.salaryMax }
+              : { value: job.salaryMin }),
+            unitText: salaryUnit,
+          },
+        };
+      }
+
+      // Only advertise roles that are actually open, and escape "<" so a
+      // stray "</script>" in the copy cannot close the tag early.
+      const jobPostingLd =
+        job.isActive === false
+          ? ""
+          : `\n    <script type="application/ld+json">${JSON.stringify(
+              jobPosting,
+            ).replace(/</g, "\\u003c")}</script>`;
+
       html = html
         .replace(/<title>[\s\S]*?<\/title>\s*/i, "")
         .replace(
           /<meta\s+(?:property|name)\s*=\s*["'](?:og:|twitter:)[^"']*["'][^>]*>\s*/gi,
           "",
         )
-        .replace("</head>", `${ogTags}\n  </head>`);
+        .replace("</head>", `${ogTags}${jobPostingLd}\n  </head>`);
 
       res.set("Content-Type", "text/html")
          .set("Cache-Control", "no-store, no-cache, must-revalidate")
