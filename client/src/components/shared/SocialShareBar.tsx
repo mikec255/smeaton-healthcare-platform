@@ -6,22 +6,15 @@ import { Mail } from "lucide-react";
 interface SocialShareBarProps {
   title: string;
   url?: string;
-  /** Direct image URL passed to Facebook sharer — bypasses OG scraping */
-  imageUrl?: string;
 }
 
-export default function SocialShareBar({ title, url, imageUrl }: SocialShareBarProps) {
+export default function SocialShareBar({ title, url }: SocialShareBarProps) {
   const shareUrl = url || window.location.href;
   const encodedUrl = encodeURIComponent(shareUrl);
   const encodedTitle = encodeURIComponent(title);
 
-  const facebookBase = `https://www.facebook.com/sharer/sharer.php?u=${encodedUrl}`;
-  const facebookHref = imageUrl
-    ? `${facebookBase}&picture=${encodeURIComponent(imageUrl)}&title=${encodedTitle}`
-    : facebookBase;
-
   const shareLinks = {
-    facebook: facebookHref,
+    facebook: `https://www.facebook.com/sharer/sharer.php?u=${encodedUrl}`,
     twitter: `https://twitter.com/intent/tweet?url=${encodedUrl}&text=${encodedTitle}`,
     linkedin: `https://www.linkedin.com/sharing/share-offsite/?url=${encodedUrl}`,
     whatsapp: `https://wa.me/?text=${encodedTitle}%20${encodedUrl}`,

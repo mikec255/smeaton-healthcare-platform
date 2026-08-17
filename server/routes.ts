@@ -2,6 +2,7 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import fs from "fs";
 import path from "path";
+import { resolveClientIndex } from "./paths";
 import { registerCarelogrRoutes } from "./carelogr-api";
 import session from "express-session";
 import bcrypt from "bcryptjs";
@@ -5553,8 +5554,9 @@ ${allUrls.map(u => `  <url>
       if (!job) return next(); // unknown ID or timeout → SPA handles it
 
       // In production the build output lands in dist/public/
-      const htmlPath = path.join(process.cwd(), "dist", "public", "index.html");
-      if (!fs.existsSync(htmlPath)) return next(); // safety valve
+      // dist/public on Replit, public on Azure — see server/paths.ts
+      const htmlPath = resolveClientIndex();
+      if (!htmlPath) return next(); // safety valve
 
       let html = fs.readFileSync(htmlPath, "utf-8");
 
@@ -5568,7 +5570,9 @@ ${allUrls.map(u => `  <url>
       const ogImage   = `https://carelogr.co.uk/public/job-image/${job.id}.png`;
       const ogUrl     = `https://smeatonhealthcare.co.uk/jobs/${job.id}`;
 
-      // The built index.html has no OG tags, so inject them before </head>
+      // index.html ships with its own homepage <title> and og:/twitter: tags.
+      // They must be stripped first — Facebook honours the FIRST og:image it
+      // finds, so leaving them in makes the crawler pick the homepage image.
       const ogTags = `
     <title>${ogTitle}</title>
     <meta property="og:type" content="website" />
@@ -5587,7 +5591,13 @@ ${allUrls.map(u => `  <url>
     <meta name="twitter:description" content="${ogDesc}" />
     <meta name="twitter:image" content="${ogImage}" />`;
 
-      html = html.replace("</head>", `${ogTags}\n  </head>`);
+      html = html
+        .replace(/<title>[\s\S]*?<\/title>\s*/i, "")
+        .replace(
+          /<meta\s+(?:property|name)\s*=\s*["'](?:og:|twitter:)[^"']*["'][^>]*>\s*/gi,
+          "",
+        )
+        .replace("</head>", `${ogTags}\n  </head>`);
 
       res.set("Content-Type", "text/html")
          .set("Cache-Control", "no-store, no-cache, must-revalidate")
