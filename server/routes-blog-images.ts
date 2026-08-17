@@ -2,6 +2,73 @@ import express from "express";
 import sharp from "sharp";
 import path from "path";
 import fs from "fs";
+import { resolveClientDir } from "./paths";
+
+/**
+ * Resolve a file that lives under the client's public/ folder.
+ *
+ * In dev these sit in the source tree; once built, vite copies them into the
+ * client build directory (dist/public on Replit, public on the Azure layout)
+ * and the source tree is not shipped at all. A path hardcoded to client/public
+ * or client/src therefore resolves fine locally and finds nothing in
+ * production — which surfaces as a flat pink fallback share image, not as an
+ * error. Check the build output first, the source tree second.
+ */
+function publicAssetRoots(): string[] {
+  const source = path.join(process.cwd(), "client", "public");
+  const build = resolveClientDir();
+  // In dev the source tree is authoritative: preferring a leftover dist/ build
+  // would keep serving yesterday's picture after the file had been replaced.
+  // In production the source tree is not shipped, so the build dir is all there is.
+  return process.env.NODE_ENV === "production"
+    ? [...(build ? [build] : []), source]
+    : [source, ...(build ? [build] : [])];
+}
+
+function resolvePublicAsset(relative: string): string | null {
+  // These URLs come from database content, so they must not be able to select
+  // an arbitrary file. Resolve inside each root and require the result to stay
+  // under it — "/blog-images/../../.env.png" normalises outside and is rejected.
+  const rel = relative.replace(/^\/+/, "");
+  if (!rel || rel.includes("\0") || path.isAbsolute(rel)) return null;
+
+  const within = (base: string, target: string) =>
+    target === base || target.startsWith(base + path.sep);
+
+  for (const root of publicAssetRoots()) {
+    try {
+      // Compare real paths, not just the strings. path.resolve() collapses "..",
+      // but a symlink sitting inside the root can still point outside it, and
+      // that only shows up once the link is followed.
+      const base = fs.realpathSync(path.resolve(root));
+      const candidate = path.resolve(base, rel);
+      if (!within(base, candidate)) continue;
+
+      const real = fs.realpathSync(candidate);
+      if (!within(base, real)) continue;
+      if (fs.statSync(real).isFile()) return real;
+    } catch {
+      // Missing root, missing file or broken link — just try the next root.
+      continue;
+    }
+  }
+  return null;
+}
+
+/**
+ * share-badge.png is the wordmark pre-composed on a white panel, sized snugly so
+ * it reads as a deliberate label over any photo. logo.png is the plain mark and
+ * carries its own white square, which stamps an obvious box onto the image — so
+ * it is only a fallback. The source copy is a last resort for dev; it is not
+ * shipped to a deployed server.
+ */
+function resolveLogoPath(): string | null {
+  const built =
+    resolvePublicAsset("share-badge.png") ?? resolvePublicAsset("logo.png");
+  if (built) return built;
+  const source = path.join(process.cwd(), "client", "src", "assets", "logo.png");
+  return fs.existsSync(source) ? source : null;
+}
 
 // Social media optimal dimensions
 const SOCIAL_MEDIA_WIDTH = 1200;
@@ -15,8 +82,8 @@ let fallbackImageBuffer: Buffer | null = null;
 
 async function getLogoBuffer(): Promise<Buffer | null> {
   if (logoBuffer) return logoBuffer;
-  const logoPath = path.join(process.cwd(), "client/src/assets/logo.png");
-  if (!fs.existsSync(logoPath)) return null;
+  const logoPath = resolveLogoPath();
+  if (!logoPath) return null;
   try {
     logoBuffer = await sharp(logoPath)
       .resize(LOGO_SIZE, LOGO_SIZE, { fit: "contain", background: { r: 0, g: 0, b: 0, alpha: 0 } })
@@ -31,7 +98,7 @@ async function getLogoBuffer(): Promise<Buffer | null> {
 /** Branded 1200×630 fallback — pink background with logo centred */
 async function getFallbackImage(): Promise<Buffer> {
   if (fallbackImageBuffer) return fallbackImageBuffer;
-  const logoPath = path.join(process.cwd(), "client/src/assets/logo.png");
+  const logoPath = resolveLogoPath();
   const base = await sharp({
     create: {
       width: SOCIAL_MEDIA_WIDTH,
@@ -41,7 +108,7 @@ async function getFallbackImage(): Promise<Buffer> {
     },
   }).png().toBuffer();
 
-  if (fs.existsSync(logoPath)) {
+  if (logoPath) {
     try {
       const centredLogo = await sharp(logoPath)
         .resize(320, 320, { fit: "contain", background: { r: 0, g: 0, b: 0, alpha: 0 } })
@@ -109,10 +176,11 @@ async function resolveImageUrl(imageUrl: string): Promise<Buffer | null> {
   const base64Match = imageUrl.match(/^data:image\/(png|jpg|jpeg|gif|webp);base64,(.+)$/);
   if (base64Match) return Buffer.from(base64Match[2], "base64");
 
-  // local /blog-images/ file
+  // local /blog-images/ file — lives in the client build once deployed
   if (imageUrl.startsWith("/blog-images/")) {
-    const filePath = path.join(process.cwd(), "client/public", imageUrl);
-    if (fs.existsSync(filePath)) return fs.readFileSync(filePath);
+    const filePath = resolvePublicAsset(imageUrl);
+    if (filePath) return fs.readFileSync(filePath);
+    console.warn(`[BlogImage] ${imageUrl} not found in the client build`);
     return null;
   }
 
