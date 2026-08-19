@@ -126,13 +126,13 @@ export default function ExeterPage() {
           "respite care Exeter",
           "East Devon care agency"
         ]}
-        canonicalUrl="https://www.smeatonhealthcare.co.uk/locations/exeter"
+        canonicalUrl="https://smeatonhealthcare.co.uk/locations/exeter"
       />
       
       <OrganisationSchema
         name="Smeaton Healthcare Exeter"
         description="Professional home care services in Exeter and East Devon. CQC rated Good. Providing live-in care, short visits, respite care and 24/7 support."
-        url="https://www.smeatonhealthcare.co.uk/locations/exeter"
+        url="https://smeatonhealthcare.co.uk/locations/exeter"
         address={{
           addressLocality: "Exeter",
           addressRegion: "Devon",

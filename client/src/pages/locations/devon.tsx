@@ -129,13 +129,13 @@ export default function DevonPage() {
           "Devon care agency",
           "South Devon care"
         ]}
-        canonicalUrl="https://www.smeatonhealthcare.co.uk/locations/devon"
+        canonicalUrl="https://smeatonhealthcare.co.uk/locations/devon"
       />
       
       <OrganisationSchema
         name="Smeaton Healthcare Devon"
         description="Professional home care services across Devon. CQC rated Good. Providing live-in care, short visits, respite care and 24/7 support throughout Devon."
-        url="https://www.smeatonhealthcare.co.uk/locations/devon"
+        url="https://smeatonhealthcare.co.uk/locations/devon"
         telephone="+44 1752 241655"
         address={{
           streetAddress: "5 Devonport Road",

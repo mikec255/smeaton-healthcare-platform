@@ -1,13 +1,19 @@
 import express from "express";
 import type { Job, BlogPost } from "@shared/schema";
 
+// The sitemap and robots.txt must advertise the public domain, never the request
+// host. This app also answers on a .replit.app host, and a host-derived sitemap
+// served there submits that copy to Google under its own hostname, contradicting
+// the canonical tag on every page it lists.
+const SITE = "https://smeatonhealthcare.co.uk";
+
 export function registerSeoRoutes(app: express.Application) {
   
   // Dynamic sitemap.xml
   app.get("/sitemap.xml", async (req, res) => {
     try {
       const { storage } = await import("./storage");
-      const baseUrl = `${req.protocol}://${req.get('host')}`;
+      const baseUrl = SITE;
       
       // Get all published jobs and blog posts
       const [jobs, blogPosts] = await Promise.all([
@@ -121,7 +127,7 @@ export function registerSeoRoutes(app: express.Application) {
   
   // robots.txt
   app.get("/robots.txt", (req, res) => {
-    const baseUrl = `${req.protocol}://${req.get('host')}`;
+    const baseUrl = SITE;
     
     const robotsTxt = `# Smeaton Healthcare - robots.txt
 User-agent: *

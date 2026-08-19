@@ -5612,11 +5612,14 @@ ${allUrls.map(u => `  <url>
       const ogImage   = `https://carelogr.co.uk/public/job-image/${job.id}.png`;
       const ogUrl     = `https://smeatonhealthcare.co.uk/jobs/${job.id}`;
 
-      // index.html ships with its own homepage <title> and og:/twitter: tags.
-      // They must be stripped first — Facebook honours the FIRST og:image it
-      // finds, so leaving them in makes the crawler pick the homepage image.
+      // index.html ships with its own homepage <title>, canonical and og:/twitter:
+      // tags. They must all be stripped first: Facebook honours the FIRST og:image
+      // it finds, so leaving those in makes the crawler pick the homepage image,
+      // and an inherited canonical tells Google this job page is really the
+      // homepage — which quietly keeps every vacancy out of the index.
       const ogTags = `
     <title>${ogTitle}</title>
+    <link rel="canonical" href="${ogUrl}" />
     <meta property="og:type" content="website" />
     <meta property="og:site_name" content="Smeaton Healthcare" />
     <meta property="og:title" content="${ogTitle}" />
@@ -5769,6 +5772,7 @@ ${allUrls.map(u => `  <url>
           /<meta\s+(?:property|name)\s*=\s*["'](?:og:|twitter:)[^"']*["'][^>]*>\s*/gi,
           "",
         )
+        .replace(/<link\s+[^>]*rel\s*=\s*["']canonical["'][^>]*>\s*/gi, "")
         .replace("</head>", `${ogTags}${jobPostingLd}\n  </head>`);
 
       res.set("Content-Type", "text/html")

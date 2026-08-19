@@ -126,13 +126,13 @@ export default function TruroPage() {
           "respite care Truro",
           "Cornwall care agency"
         ]}
-        canonicalUrl="https://www.smeatonhealthcare.co.uk/locations/truro"
+        canonicalUrl="https://smeatonhealthcare.co.uk/locations/truro"
       />
       
       <OrganisationSchema
         name="Smeaton Healthcare Cornwall"
         description="Professional home care services in Truro and Cornwall. CQC rated Good. Providing live-in care, short visits, respite care and 24/7 support across Cornwall."
-        url="https://www.smeatonhealthcare.co.uk/locations/truro"
+        url="https://smeatonhealthcare.co.uk/locations/truro"
         address={{
           addressLocality: "Truro",
           addressRegion: "Cornwall",

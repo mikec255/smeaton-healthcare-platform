@@ -9,7 +9,11 @@
     <title>Smeaton Healthcare | Home Care in Devon &amp; Cornwall</title>
     <meta name="description" content="Smeaton Healthcare provides expert home care services across Devon and Cornwall — including short visits, live-in care, supported living and respite care. CQC Rated Good." />
     <meta name="robots" content="index, follow" />
-    <link rel="canonical" href="https://smeatonhealthcare.co.uk/" />
+    <!-- Deliberately no canonical here. This shell is served for every route, so a
+         hardcoded one told search engines that every page was really the homepage.
+         Pages declare their own through the Seo component, and the job and blog
+         crawler routes inject theirs server-side. -->
+
 
     <!-- Open Graph -->
     <meta property="og:type" content="website" />

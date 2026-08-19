@@ -67,15 +67,17 @@ export function registerBlogSharingRoutes(app: express.Application) {
         }
       }
       
-      // Always use HTTPS for external URLs (Replit proxy handles SSL)
-      const protocol = req.headers['x-forwarded-proto'] || 'https';
-      const host = req.get('host');
-      
+      // Point at the public domain rather than the request host. This app also
+      // answers on a .replit.app host, and a host-derived canonical served there
+      // would declare that copy the original — leaving it to compete with the
+      // real site for its own content.
+      const SITE = "https://smeatonhealthcare.co.uk";
+
       const imageUrl = hasImage
-        ? `${protocol}://${host}/api/blog-images/${post.id}/featured`
-        : `${protocol}://${host}/og-default.jpg`;
-      
-      const pageUrl = `${protocol}://${host}/blog/${post.slug}`;
+        ? `${SITE}/api/blog-images/${post.id}/featured`
+        : `${SITE}/og-default.jpg`;
+
+      const pageUrl = `${SITE}/blog/${post.slug}`;
       
       // Escape HTML to prevent meta tag injection
       const escapeHtml = (text: string) => text
@@ -97,6 +99,7 @@ export function registerBlogSharingRoutes(app: express.Application) {
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>${safeTitle} | Smeaton Healthcare Blog</title>
     <meta name="description" content="${safeExcerpt}" />
+    <link rel="canonical" href="${pageUrl}" />
     
     <!-- Open Graph / Facebook -->
     <meta property="og:type" content="article" />

@@ -128,13 +128,13 @@ export default function CornwallPage() {
           "respite care Cornwall",
           "Cornwall care agency"
         ]}
-        canonicalUrl="https://www.smeatonhealthcare.co.uk/locations/cornwall"
+        canonicalUrl="https://smeatonhealthcare.co.uk/locations/cornwall"
       />
       
       <OrganisationSchema
         name="Smeaton Healthcare Cornwall"
         description="Professional home care services across Cornwall. CQC rated Good. Providing live-in care, short visits, respite care and 24/7 support throughout Cornwall."
-        url="https://www.smeatonhealthcare.co.uk/locations/cornwall"
+        url="https://smeatonhealthcare.co.uk/locations/cornwall"
         address={{
           addressRegion: "Cornwall",
           addressCountry: "GB"

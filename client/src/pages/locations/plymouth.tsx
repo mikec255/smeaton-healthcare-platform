@@ -126,13 +126,13 @@ export default function PlymouthPage() {
           "respite care Plymouth",
           "Plymouth care agency"
         ]}
-        canonicalUrl="https://www.smeatonhealthcare.co.uk/locations/plymouth"
+        canonicalUrl="https://smeatonhealthcare.co.uk/locations/plymouth"
       />
       
       <OrganisationSchema
         name="Smeaton Healthcare Plymouth"
         description="Professional home care services in Plymouth. CQC rated Good. Providing live-in care, short visits, respite care and 24/7 support across Plymouth and South Devon."
-        url="https://www.smeatonhealthcare.co.uk/locations/plymouth"
+        url="https://smeatonhealthcare.co.uk/locations/plymouth"
         telephone="+44 1752 241655"
         address={{
           streetAddress: "5 Devonport Road",
