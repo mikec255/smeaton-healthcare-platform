@@ -5590,16 +5590,59 @@ ${allUrls.map(u => `  <url>
 
       let html = fs.readFileSync(htmlPath, "utf-8");
 
-      // Unknown or unpublished roles still serve the app shell so the page
-      // renders, but with a status that tells crawlers to drop the URL.
-      // Previously a closed vacancy kept returning 200 with the full advert
-      // and its share tags, so it stayed indexed and shareable indefinitely.
+      // A closed vacancy must not become a dead link. Those URLs are already
+      // out on Facebook, in emails and in search results, and returning 4xx/410
+      // makes Facebook's in-app browser refuse the link outright ("this page
+      // isn't available") instead of loading the page at all — so re-posting a
+      // role silently killed every share of the previous advert.
+      //
+      // Serve a real 200 page that explains the role has closed and points at
+      // current vacancies, and let robots noindex keep it out of search. The
+      // advert itself is still never exposed: /api/jobs/:id continues to 404
+      // for an inactive role, so an unpublished draft cannot leak through here.
+      // A genuinely unknown id keeps its honest 404.
       if (!job || job.isActive === false) {
+        const closedTitle = job
+          ? "This vacancy has closed | Smeaton Healthcare"
+          : "Vacancy not found | Smeaton Healthcare";
+        const closedDesc = job
+          ? "This role is no longer accepting applications. See our current care vacancies across Devon and Cornwall."
+          : "We couldn't find that vacancy. See our current care vacancies across Devon and Cornwall.";
+        const closedUrl = "https://smeatonhealthcare.co.uk/jobs";
+
+        const closedHtml = html
+          .replace(/<title>[\s\S]*?<\/title>\s*/i, "")
+          .replace(
+            /<meta\s+(?:property|name)\s*=\s*["'](?:og:|twitter:)[^"']*["'][^>]*>\s*/gi,
+            "",
+          )
+          .replace(/<link\s+[^>]*rel\s*=\s*["']canonical["'][^>]*>\s*/gi, "")
+          // The shell ships "index, follow". Leaving it in place would put two
+          // conflicting robots directives on the page, so drop it before the
+          // noindex goes in.
+          .replace(/<meta\s+name\s*=\s*["']robots["'][^>]*>\s*/gi, "")
+          .replace(
+            "</head>",
+            `
+    <title>${closedTitle}</title>
+    <meta name="robots" content="noindex, follow" />
+    <link rel="canonical" href="${closedUrl}" />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Smeaton Healthcare" />
+    <meta property="og:title" content="${closedTitle}" />
+    <meta property="og:description" content="${closedDesc}" />
+    <meta property="og:url" content="${closedUrl}" />
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:title" content="${closedTitle}" />
+    <meta name="twitter:description" content="${closedDesc}" />
+  </head>`,
+          );
+
         return res
-          .status(job ? 410 : 404)
+          .status(job ? 200 : 404)
           .set("Content-Type", "text/html")
           .set("Cache-Control", "no-store, no-cache, must-revalidate")
-          .send(html);
+          .send(closedHtml);
       }
 
       // Escape content safe for HTML attribute values

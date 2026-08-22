@@ -1,7 +1,7 @@
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Share2 } from "lucide-react";
+import { Share2, Check, Link2, Mail } from "lucide-react";
 import { SiFacebook, SiX, SiLinkedin, SiWhatsapp } from "react-icons/si";
-import { Mail } from "lucide-react";
 
 interface SocialShareBarProps {
   title: string;
@@ -12,6 +12,7 @@ export default function SocialShareBar({ title, url }: SocialShareBarProps) {
   const shareUrl = url || window.location.href;
   const encodedUrl = encodeURIComponent(shareUrl);
   const encodedTitle = encodeURIComponent(title);
+  const [copied, setCopied] = useState(false);
 
   const shareLinks = {
     facebook: `https://www.facebook.com/sharer/sharer.php?u=${encodedUrl}`,
@@ -22,7 +23,30 @@ export default function SocialShareBar({ title, url }: SocialShareBarProps) {
   };
 
   const handleShare = (platform: string) => {
-    window.open(shareLinks[platform as keyof typeof shareLinks], '_blank', 'width=600,height=400');
+    // Facebook's composer needs real room to render; the previous 600x400
+    // popup left it cramped. Never pass "noopener" here — severing the opener
+    // stops these dialogs from closing themselves after posting.
+    window.open(shareLinks[platform as keyof typeof shareLinks], '_blank', 'width=680,height=700');
+  };
+
+  const handleCopy = async () => {
+    try {
+      await navigator.clipboard.writeText(shareUrl);
+    } catch {
+      // navigator.clipboard needs a secure context and can be blocked outright
+      // by in-app browsers, so fall back to the old selection trick.
+      const el = document.createElement("textarea");
+      el.value = shareUrl;
+      el.setAttribute("readonly", "");
+      el.style.position = "fixed";
+      el.style.opacity = "0";
+      document.body.appendChild(el);
+      el.select();
+      document.execCommand("copy");
+      document.body.removeChild(el);
+    }
+    setCopied(true);
+    window.setTimeout(() => setCopied(false), 2000);
   };
 
   return (
@@ -32,6 +56,25 @@ export default function SocialShareBar({ title, url }: SocialShareBarProps) {
         <span className="text-sm sm:text-base font-medium">Share:</span>
       </div>
       <div className="flex flex-wrap gap-2">
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={handleCopy}
+          className="hover:bg-gray-50 hover:border-gray-900 hover:text-gray-900"
+          data-testid="share-copy-link"
+        >
+          {copied ? (
+            <>
+              <Check className="h-4 w-4 mr-2 text-green-600" />
+              Link copied
+            </>
+          ) : (
+            <>
+              <Link2 className="h-4 w-4 mr-2" />
+              Copy link
+            </>
+          )}
+        </Button>
         <Button
           variant="outline"
           size="sm"

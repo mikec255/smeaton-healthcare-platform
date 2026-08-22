@@ -59,12 +59,22 @@ export default function JobDetailPage() {
     );
   }
 
+  // Reached both when a role has been filled/re-posted and when the id is
+  // unknown. Someone arriving here has almost always followed an older share
+  // link, so the copy points them at what is open now rather than dead-ending.
   if (isError || !job) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center gap-4 px-5">
-        <p className="text-gray-500">This job listing couldn't be found.</p>
+      <div className="min-h-screen flex flex-col items-center justify-center gap-4 px-5 text-center">
+        <h1 className="text-2xl font-semibold text-gray-900">
+          This vacancy is no longer available
+        </h1>
+        <p className="text-gray-500 max-w-md">
+          It may have been filled or closed since this link was shared. We post
+          new roles across Devon and Cornwall regularly — take a look at what's
+          open right now.
+        </p>
         <Link href="/jobs">
-          <Button variant="outline"><ArrowLeft className="h-4 w-4 mr-2" /> Back to Jobs</Button>
+          <Button><ArrowLeft className="h-4 w-4 mr-2" /> View current vacancies</Button>
         </Link>
       </div>
     );

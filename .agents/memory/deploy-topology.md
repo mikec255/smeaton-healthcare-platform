@@ -14,17 +14,26 @@ This project is deployed to **two separate hosts**:
 No custom domain is attached to the Replit deployment.
 
 **Why this matters:** publishing from Replit updates *only* the `.replit.app` host. The
-public site never receives those deploys. The build succeeds, the deploy succeeds, and
-the live site is unchanged — which looks exactly like a caching or stale-build bug and
-is not one. This burned multiple sessions.
+public site is fed by a **separate pipeline** into the off-platform host, so a Replit
+publish on its own leaves the public domain unchanged — which looks exactly like a
+caching or stale-build bug and is not one.
 
-**How to apply:** before concluding "the deployment is serving stale code", fetch the
-same path from the `.replit.app` URL (from `getDeploymentInfo()`) and from the public
-domain, and diff the responses. If they differ, it is a topology problem, not a build
-problem. Do not respond by rewriting build config, adding cache-busting headers, or
-redeploying repeatedly. Either DNS moves to Replit, or the change ships through the
-pipeline that feeds the other host — a decision for the user, not something to work
-around in code.
+**But code from this repo does reach the public domain.** This was confirmed directly:
+server changes written in this workspace were later observed live on the public site
+with no Replit publish involved. The opposite conclusion — "these fixes are stranded,
+nothing I write can ship" — was asserted repeatedly across a session and was **wrong**,
+and it delayed real diagnosis because live symptoms were blamed on old code.
+
+**How to apply:** never *assume* either way. Pick a **fingerprint** unique to the change
+— a tag it adds or removes, a status code it alters — and curl the public domain for
+exactly that. One request settles it. Only after the fingerprint is missing should you
+treat a change as undeployed, and even then diff the same path from the `.replit.app`
+URL (via `getDeploymentInfo()`) before concluding it is a topology problem. Do not
+respond by rewriting build config, adding cache-busting headers, or redeploying
+repeatedly.
+
+**Corollary:** because deploys *do* land, a change that hardens live behaviour can break
+real users. Treat this repo as production, not a staging copy.
 
 ## Both hosts read the SAME database
 
